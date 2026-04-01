@@ -1,0 +1,13 @@
+{
+  "name": "fs-claude-plugin",
+  "owner": {
+    "name": "FacturaScripts"
+  },
+  "plugins": [
+    {
+      "name": "fs-developer",
+      "source": "./fs-developer",
+      "description": "Plugin de FacturaScripts para Claude Code: skills y herramientas para trabajar con el ERP."
+    }
+  ]
+}

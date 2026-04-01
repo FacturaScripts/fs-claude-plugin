@@ -1,0 +1,8 @@
+{
+  "name": "fs-developer",
+  "version": "0.1.0",
+  "description": "Plugin de FacturaScripts para Claude Code: skills y herramientas para trabajar con el ERP.",
+  "author": {
+    "name": "FacturaScripts"
+  }
+}
