@@ -1,13 +1,13 @@
 {
   "name": "fs-claude-plugin",
   "owner": {
-    "name": "Daniel Fernández Giménez",
-    "url": "https://danielfg.es"
+    "name": "FacturaScripts",
+    "url": "https://facturascripts.com"
   },
   "plugins": [
     {
-      "name": "fs-developer",
-      "source": "./fs-developer",
+      "name": "fs-dev",
+      "source": "./fs-dev",
       "description": "Plugin para programadores: skills, agentes y documentación técnica de FacturaScripts."
     },
     {

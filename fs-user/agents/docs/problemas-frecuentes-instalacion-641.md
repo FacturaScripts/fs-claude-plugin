@@ -9,7 +9,7 @@ url: https://facturascripts.com/problemas-frecuentes-instalacion-641
 Esta es una pequeña lista de problemas frecuentes en la instalación de FacturaScripts 2025.
 
 ## 🚩 COMPOSER ERROR
-Si le aparece el mensaje ``COMPOSER ERROR: You need to run: composer install``. Significa que usted no ha seguido el [tutorial de instalación de FacturaScripts](/publicaciones/instalacion-desde-el-zip-331), sino que ha descargado el código fuente a lo loco y sin seguir ni siquiera las propias instrucciones del README.md. Lea y siga las instrucciones del archivo README.md o bien siga el tutorial de instalación.
+Si le aparece el mensaje ``COMPOSER ERROR: You need to run: composer install``. Significa que usted no ha seguido el [tutorial de instalación de FacturaScripts](https://facturascripts.com/publicaciones/instalacion-desde-el-zip-331), sino que ha descargado el código fuente a lo loco y sin seguir ni siquiera las propias instrucciones del README.md. Lea y siga las instrucciones del archivo README.md o bien siga el tutorial de instalación.
 
 ## ⚠️ You don&#39;t have the mysqli PHP extension installed
 Usted no tiene instalada la extensión de PHP para usar MySQL. Esta extensión es necesaria para usar FacturaScripts. Debe instalarla para continuar. El instalador de FacturaScripts ya comprueba las extensiones necesarias y no le permite instalar si falta alguna. Pero puede encontrarse con este problema si traslada la instalación de servidor.
@@ -32,7 +32,7 @@ Este comportamiento indica un problema con el mod rewrite del Apache. Es necesar
 ## 💣 Error 500
 Este es un error 500 de FacturaScripts: indica el archivo que falla, un mensaje de error y las versiones de FacturaScripts y de PHP:
 
-![error 500 FacturaScripts](/MyFiles/2024/12/2450.png?myft=2405cb22803ea25d75b80dce15210423021c2e5a)
+![error 500 FacturaScripts](https://facturascripts.com/MyFiles/2024/12/2450.png?myft=2405cb22803ea25d75b80dce15210423021c2e5a)
 
 ### 🔥 Error 500 del hosting
 Este es un error 500 del hosting o servidor donde esté instalado FacturaScripts. No indica archivo, ni versiones de PHP o FacturaScripts:

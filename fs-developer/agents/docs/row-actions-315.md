@@ -21,12 +21,12 @@ Este tipo de row permite definir un grupo de **botones** a mostrar junto al rest
 ### 🖱️ Botones
 Los botones se definen mediante **etiquetas button** y tienen las siguiente propiedades:
 - **type**: indica el tipo de botón.
-	- **action**: al hacer clic se recargará la página ejecutando el action indicado en la propiedad action. Este action deberá estar implementado en el controlador, ya sea en [execPreviousActions() o execAfterActions()](/publicaciones/controladores-extendidos-367).
+	- **action**: al hacer clic se recargará la página ejecutando el action indicado en la propiedad action. Este action deberá estar implementado en el controlador, ya sea en [execPreviousActions() o execAfterActions()](https://facturascripts.com/publicaciones/controladores-extendidos-367).
 	- **js**: al hacer clic ejecutará la función javascript indicada en la propiedad action.
 	- **link**: al hacer clic se redirecciona a la página indicada en la propiedad action.
 	- **modal**: al hacer clic mostrará el modal con el name indicado en la propiedad action.
 - **id**: (opcional) identificador html para poder selecionarlo desde JavaScript.
-- **icon**: (opcional) [icono del botón](/publicaciones/iconos-disponibles-308).
+- **icon**: (opcional) [icono del botón](https://facturascripts.com/publicaciones/iconos-disponibles-308).
 - **label**: texto a mostrar en el botón. Se traducirá automáticamente por FacturaScripts.
 - **level**: (opcional) nivel de seguridad aplicable. Por defecto 0. Solamente los usuarios con un nivel de seguridad igual o superior podrán ver este botón.
 - **color**: (opcional) indica la configuración de color a utilizar.
@@ -51,7 +51,7 @@ $this-&gt;addButton(&#39;ListProducto&#39;, [
 	&#39;label&#39; =&gt; &#39;test&#39;
 ]);
 ```
-Este código añade el botón test a la pestaña ListProducto. Al hacer clic ejecutará la acción test-action del controlador, si la hubiera. Recuerde implementar esta acción en [execPreviousActions() o execAfterActions()](/publicaciones/controladores-extendidos-367).
+Este código añade el botón test a la pestaña ListProducto. Al hacer clic ejecutará la acción test-action del controlador, si la hubiera. Recuerde implementar esta acción en [execPreviousActions() o execAfterActions()](https://facturascripts.com/publicaciones/controladores-extendidos-367).
 
 Es posible indicar el grupo o row donde se añadirá el botón informando el identificador &#39;row&#39; y como valor el name que identifica al row.
 Si no se informa el botón se añade al row de acciones generales.

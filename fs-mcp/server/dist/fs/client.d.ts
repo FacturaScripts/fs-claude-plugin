@@ -5,51 +5,36 @@
 declare class FacturaScriptsClient {
     private defaultConnectionKey;
     private axiosInstances;
-    /**
-     * Inicializa el cliente con una conexión por defecto opcional
-     * @param connectionKey - Clave de la conexión a usar por defecto
-     */
     constructor(connectionKey?: string);
-    /**
-     * Obtiene o crea una instancia de Axios configurada para una conexión
-     * @param connectionKey - Clave de la conexión (usa default del ConnectionManager si no se proporciona)
-     * @returns Instancia de Axios configurada
-     */
     private getAxiosInstance;
     /**
+     * Serializa un objeto a URLSearchParams para application/x-www-form-urlencoded.
+     * La API REST de FacturaScripts requiere este formato en POST y PUT.
+     * Los valores null/undefined se omiten; los booleanos se convierten a 0/1.
+     */
+    private toFormData;
+    /**
      * Realiza una petición GET a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint (ej: "clientes")
-     * @param params - Parámetros de query opcionales
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Datos de tipo T
      */
     get<T>(endpoint: string, params?: Record<string, unknown>, connectionKey?: string): Promise<T>;
     /**
-     * Realiza una petición POST a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param data - Datos a enviar en el body
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición POST a la API de FacturaScripts.
+     * Envía los datos como application/x-www-form-urlencoded (requerido por FacturaScripts).
      */
     post<T>(endpoint: string, data: unknown, connectionKey?: string): Promise<T>;
     /**
-     * Realiza una petición PUT a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param data - Datos a actualizar
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición PUT a la API de FacturaScripts.
+     * Envía los datos como application/x-www-form-urlencoded (requerido por FacturaScripts).
+     * El ID del registro debe incluirse en la URL (ej: /clientes/CLI001).
      */
     put<T>(endpoint: string, data: unknown, connectionKey?: string): Promise<T>;
     /**
-     * Realiza una petición DELETE a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición DELETE a la API de FacturaScripts.
+     * El ID del registro debe incluirse en la URL (ej: /clientes/CLI001).
      */
     delete<T>(endpoint: string, connectionKey?: string): Promise<T>;
     /**
      * Limpia el caché de instancias de Axios
-     * Útil para refrescar credenciales o cambios de configuración
      */
     clearCache(): void;
 }

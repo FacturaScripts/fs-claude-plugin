@@ -195,4 +195,4 @@ Si tu plugin depende de otro plugin, puedes añadir ese paso. No olvides que deb
 ## ☑️ Revisa la pestaña actions
 En la pestaña **actions** del repositorio en github podrás ver cómo se ejecutan los tests. Cada vez que añadas un commit o un pull-request al repositorio, se ejecutarán automáticamente los tests unitarios. Y si fallan, recibirás un email.
 
-![ver resultados tests en github actions](/MyFiles/2025/05/2858.png?myft=43460d4d689a18e4af184e1cd33c26c9398299e1)
+![ver resultados tests en github actions](https://facturascripts.com/MyFiles/2025/05/2858.png?myft=43460d4d689a18e4af184e1cd33c26c9398299e1)

@@ -9,19 +9,19 @@ url: https://facturascripts.com/almacenes-128
 Desde el menú almacén puede ver los distintos almacenes de FacturaScripts, porque puede añadir todos los almacenes que necesite. Tenga en cuenta que un almacén puede ser incluso una tienda, así que si su negocio tiene varias tiendas, puede crear un almacén para cada tienda en lugar de una empresa.
 
 También puede gestionar:
-- [Productos](/publicaciones/tu-primer-producto-431).
-- [Atributos, como tallas y colores](/publicaciones/tu-primer-atributo-515).
-- [Familias](/publicaciones/tu-primera-familia-43).
-- [Fabricantes](/publicaciones/tu-primer-fabricante-538).
-- [Transportistas](/publicaciones/tu-primer-transportista-807).
+- [Productos](https://facturascripts.com/publicaciones/tu-primer-producto-431).
+- [Atributos, como tallas y colores](https://facturascripts.com/publicaciones/tu-primer-atributo-515).
+- [Familias](https://facturascripts.com/publicaciones/tu-primera-familia-43).
+- [Fabricantes](https://facturascripts.com/publicaciones/tu-primer-fabricante-538).
+- [Transportistas](https://facturascripts.com/publicaciones/tu-primer-transportista-807).
 
-Con el [plugin StockAvanzado](/plugins/stockavanzado) puede además:
-- [Ver todos los movimientos de stock de un producto](/publicaciones/como-ver-los-movimientos-de-stock-de-un-producto).
-- [Hacer transferencias de stock entre almacenes](/publicaciones/como-hacer-una-transferencia-de-stock-entre-almacenes).
-- [Hacer inventario](/publicaciones/como-hacer-inventario-del-almacen).
-- Ver la [valoración de todo el stock (inventario valorado)](/publicaciones/como-hacer-un-inventario-valorado).
+Con el [plugin StockAvanzado](https://facturascripts.com/plugins/stockavanzado) puede además:
+- [Ver todos los movimientos de stock de un producto](https://facturascripts.com/publicaciones/como-ver-los-movimientos-de-stock-de-un-producto).
+- [Hacer transferencias de stock entre almacenes](https://facturascripts.com/publicaciones/como-hacer-una-transferencia-de-stock-entre-almacenes).
+- [Hacer inventario](https://facturascripts.com/publicaciones/como-hacer-inventario-del-almacen).
+- Ver la [valoración de todo el stock (inventario valorado)](https://facturascripts.com/publicaciones/como-hacer-un-inventario-valorado).
 
-Y con el [plugin Ubicaciones](/plugins/ubicaciones) puede [gestionar las ubicaciones del almacén](/publicaciones/crear-ubicaciones-652), con sus pasillos, armarios, estantes y cajones.
+Y con el [plugin Ubicaciones](https://facturascripts.com/plugins/ubicaciones) puede [gestionar las ubicaciones del almacén](https://facturascripts.com/publicaciones/crear-ubicaciones-652), con sus pasillos, armarios, estantes y cajones.
 
 ## 📝 Crear un nuevo almacén
 Para crear un nuevo almacén haga clic en el **menú Almacén → Almacenes** y clic en el **botón nuevo**.

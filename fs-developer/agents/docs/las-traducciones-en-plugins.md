@@ -6,7 +6,7 @@ creationdate: 18-09-2022 11:33:44
 lastmod: 31-10-2025
 url: https://facturascripts.com/las-traducciones-en-plugins
 ---
-FacturaScripts almacena las traducciones en archivos json en la carpeta **Translation** del plugin, de esta forma cada plugin puede contener sus propias traducciones. También puedes usar el plugin [Traducciones](/plugins/traducciones) que te ayudará a crear tus traducciones más fácil.
+FacturaScripts almacena las traducciones en archivos json en la carpeta **Translation** del plugin, de esta forma cada plugin puede contener sus propias traducciones. También puedes usar el plugin [Traducciones](https://facturascripts.com/plugins/traducciones) que te ayudará a crear tus traducciones más fácil.
 
 ## ¿Cómo puedo traducir un texto?
 Nuestro traductor se basa en el concepto clave-valor, es decir, no ponemos textos completos sino que usamos cadenas separadas por guiones (generalmente en inglés) que tengan una traducción en los archivos de traducciones. Por ejemplo, para mostrar el texto **aceptar**, realmente llamamos a traducir &#39;accept&#39;.
@@ -36,7 +36,7 @@ Esta cadena usará estra traducción, sustituyendo %exerciseName% por el valor a
 ```
 
 ### ¿Puedo usar traducciones existentes?
-Si, simplemente ve al [listado de traducciones en español](/traducciones/lang/es_ES) y busca la que más se te adapte.
+Si, simplemente ve al [listado de traducciones en español](https://facturascripts.com/traducciones/lang/es_ES) y busca la que más se te adapte.
 
 ### ¿Puedo compartir mis traducciones para que me ayuden a traducir?
 Si, si publicas tu plugin en la forja (sección mis plugins), en la página del plugin podrás añadir tus traducciones para que el resto de usuarios de la web pueda traducirlas. Después puedes utilizar el script incluido para descargar las traducciones actualizadas.

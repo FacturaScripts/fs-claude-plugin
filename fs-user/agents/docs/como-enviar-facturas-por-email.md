@@ -10,7 +10,7 @@ Para enviar una factura por email simplemente hacemos clic en el botón imprimir
 
 ![enviar email factura](https://i.imgur.com/yfiNVdW.png)
 
-Es importante que tengamos **configurado el email** en FacturaScripts. Si todavía no tienes configurada tu cuenta de gmail, hotmail u otro proveedor, puedes hacerlo desde el [menú administrador, emails](/publicaciones/envio-de-emails).
+Es importante que tengamos **configurado el email** en FacturaScripts. Si todavía no tienes configurada tu cuenta de gmail, hotmail u otro proveedor, puedes hacerlo desde el [menú administrador, emails](https://facturascripts.com/publicaciones/envio-de-emails).
 
 ![formulario envio email](https://i.imgur.com/f6OBKTj.png)
 

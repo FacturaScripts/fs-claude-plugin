@@ -6,7 +6,7 @@ creationdate: 18-07-2021 11:41:50
 lastmod: 10-03-2026
 url: https://facturascripts.com/como-hacer-una-factura-proforma
 ---
-Las facturas proforma son una forma de presupuesto. Puedes [crear presupuestos de venta](/publicaciones/tu-primer-presupuesto-de-venta-351) fácilmente desde el menú Ventas → Presupuestos.
+Las facturas proforma son una forma de presupuesto. Puedes [crear presupuestos de venta](https://facturascripts.com/publicaciones/tu-primer-presupuesto-de-venta-351) fácilmente desde el menú Ventas → Presupuestos.
 
 Una factura proforma es un documento informativo que se emite antes de una venta, con el objetivo de informar de los detalles al cliente.
 

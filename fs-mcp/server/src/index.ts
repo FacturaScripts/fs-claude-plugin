@@ -11,19 +11,23 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { connectionManager } from './connection-manager.js';
-import { registerAccountingTools } from './modules/accounting/index.js';
-import { registerCoreBusinessTools, coreBusinessTools } from './modules/core-business/index.js';
-import { registerSalesOrdersTools, salesOrdersTools } from './modules/sales-orders/index.js';
-import { registerPurchasingTools } from './modules/purchasing/index.js';
-import { registerFinanceTools } from './modules/finance/index.js';
-import { registerConfigurationTools } from './modules/configuration/index.js';
-import { registerGeographicTools } from './modules/geographic/index.js';
-import { registerCommunicationTools } from './modules/communication/index.js';
-import { registerSystemTools } from './modules/system/index.js';
-import { registerAnalyticsTools } from './modules/analytics/index.js';
+import { registerAccountingTools, handleAccountingTool } from './modules/accounting/index.js';
+import { registerCoreBusinessTools, handleCoreBusinessTool } from './modules/core-business/index.js';
+import { registerSalesOrdersTools, handleSalesOrdersTool } from './modules/sales-orders/index.js';
+import { registerPurchasingTools, handlePurchasingTool } from './modules/purchasing/index.js';
+import { registerFinanceTools, handleFinanceTool } from './modules/finance/index.js';
+import { registerConfigurationTools, handleConfigurationTool } from './modules/configuration/index.js';
+import { registerGeographicTools, handleGeographicTool } from './modules/geographic/index.js';
+import { registerCommunicationTools, handleCommunicationTool } from './modules/communication/index.js';
+import { registerSystemTools, handleSystemTool } from './modules/system/index.js';
+import { registerAnalyticsTools, handleAnalyticsTool } from './modules/analytics/index.js';
+import { loadLocalModules, type LocalModuleHandler } from './local-loader.js';
 
 // Track registered tools
 const tools = new Map<string, Tool>();
+
+// Handlers de módulos locales privados (cargados desde FS_LOCAL_MODULES_PATH)
+let localModuleHandlers: LocalModuleHandler[] = [];
 
 /**
  * Initialize and configure the MCP server
@@ -126,20 +130,19 @@ async function registerAllTools(): Promise<void> {
   registerConnectionTools();
 
   // Register module tools
-  await registerAccountingTools(server);
-  await registerCoreBusinessTools(server);
-  coreBusinessTools.forEach((tool) => tools.set(tool.name, tool));
+  await registerAccountingTools(tools);
+  await registerCoreBusinessTools(tools);
+  await registerSalesOrdersTools(tools);
+  await registerPurchasingTools(tools);
+  await registerFinanceTools(tools);
+  await registerConfigurationTools(tools);
+  await registerGeographicTools(tools);
+  await registerCommunicationTools(tools);
+  await registerSystemTools(tools);
+  await registerAnalyticsTools(tools);
 
-  await registerSalesOrdersTools(server);
-  salesOrdersTools.forEach((tool) => tools.set(tool.name, tool));
-
-  await registerPurchasingTools(server);
-  await registerFinanceTools(server);
-  await registerConfigurationTools(server, tools);
-  await registerGeographicTools(server, tools);
-  await registerCommunicationTools(server, tools);
-  await registerSystemTools(server, tools);
-  await registerAnalyticsTools(server);
+  // Cargar módulos locales privados (desde FS_LOCAL_MODULES_PATH o dist/modules-local)
+  localModuleHandlers = await loadLocalModules(tools);
 }
 
 /**
@@ -240,7 +243,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      default:
+      default: {
+        // Try to dispatch to module handlers
+        let result = await handleAccountingTool(toolName, toolInput)
+          ?? await handleCoreBusinessTool(toolName, toolInput)
+          ?? await handleSalesOrdersTool(toolName, toolInput)
+          ?? await handlePurchasingTool(toolName, toolInput)
+          ?? await handleFinanceTool(toolName, toolInput)
+          ?? await handleConfigurationTool(toolName, toolInput)
+          ?? await handleGeographicTool(toolName, toolInput)
+          ?? await handleCommunicationTool(toolName, toolInput)
+          ?? await handleSystemTool(toolName, toolInput)
+          ?? await handleAnalyticsTool(toolName, toolInput);
+
+        if (result) {
+          return result;
+        }
+
+        // Intentar con módulos locales privados
+        for (const handler of localModuleHandlers) {
+          const localResult = await handler.handleTool(toolName, toolInput);
+          if (localResult) {
+            return localResult;
+          }
+        }
+
         return {
           content: [
             {
@@ -250,6 +277,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ],
           isError: true,
         };
+      }
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

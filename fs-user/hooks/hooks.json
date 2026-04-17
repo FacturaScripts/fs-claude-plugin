@@ -1,9 +1,26 @@
 {
+  "description": "Detecta si el directorio actual pertenece a FacturaScripts e inyecta contexto de skills",
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh",
+            "timeout": 10
+          }
+        ]
       }
     ]
   }

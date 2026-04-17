@@ -36,7 +36,7 @@ class Producto
 Fíjate que no hay ningún extends Producto. No estamos heredando del modelo, solamente estamos añadiendo el método &quot;usado()&quot;. Y fíjate además que el método devuelve una función, esta función es la que se añade al modelo. Pero para ello primero hay que cargar la extensión en el archivo **Init.php** del plugin.
 
 ### Cargar extensiones en el Init.php
-Las extensiones de archivos xml se integran automáticamente al activar el plugin o reconstruir Dinamic. En cambio, las extensiones de archivo php se deben cargar explícitamente llamando al método ``loadExtension()`` del [archivo Init.php del plugin](/publicaciones/el-archivo-init-php-307), en el método **init()**.
+Las extensiones de archivos xml se integran automáticamente al activar el plugin o reconstruir Dinamic. En cambio, las extensiones de archivo php se deben cargar explícitamente llamando al método ``loadExtension()`` del [archivo Init.php del plugin](https://facturascripts.com/publicaciones/el-archivo-init-php-307), en el método **init()**.
 
 ```
 public function init(): void
@@ -48,9 +48,9 @@ public function init(): void
 
 ### Métodos disponibles para extender
 - **clear()** se ejecuta cuando se instancia un objeto del modelo, por ejemplo al hacer new Producto(). Asigna valores predeterminados.
-- **delete()** se ejecuta una vez realizado el [delete() del modelo](/publicaciones/delete-986).
+- **delete()** se ejecuta una vez realizado el [delete() del modelo](https://facturascripts.com/publicaciones/delete-986).
 - **deleteBefore()** se ejecuta antes de hacer el delete() del modelo. **Si devolvemos false**, impedimos el delete().
-- **save()** se ejecuta una vez realizado el [save() del modelo](/publicaciones/save-782).
+- **save()** se ejecuta una vez realizado el [save() del modelo](https://facturascripts.com/publicaciones/save-782).
 - **saveBefore()** se ejecuta antes de hacer el save() del modelo. **Si devolvemos false**, impedimos el save().
 - **saveInsert()** se ejecuta una vez realizado el saveInsert() del modelo.
 - **saveInsertBefore()** se ejecuta antes de hacer el saveInsert() del modelo. **Si devolvemos false**, impedimos el saveInsert().
@@ -63,10 +63,10 @@ public function init(): void
 
 Aquí tienes un esquema de en qué orden se ejecutan las funciones y extensiones de un modelo:
 
-![esquema ejecución de extensiones](/MyFiles/2025/03/2738.png?myft=a56aa3c2890a9815cd2ff98becc7054e26111494)
+![esquema ejecución de extensiones](https://facturascripts.com/MyFiles/2025/03/2738.png?myft=a56aa3c2890a9815cd2ff98becc7054e26111494)
 
 ## fsmaker
-Para hacer este mismo proceso con [fsmaker](/publicaciones/fsmaker-0-92-disponible) ejecutamos:
+Para hacer este mismo proceso con [fsmaker](https://facturascripts.com/publicaciones/fsmaker-0-92-disponible) ejecutamos:
 
 ```
 fsmaker extension

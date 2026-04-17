@@ -20,4 +20,4 @@ Al hacer click en el widget, se abrirá una nueva interfaz la cual servirá para
 
 Dentro de esa misma interfaz se podrán filtrar las subcuentas por codsubcuenta o por descripción desde el buscador, tambien hay un desplegable para elejir el año y otro para cambiar el orden del listado.
 
-![selector subcuenta](/MyFiles/2025/11/3430.png?myft=4a9a654b9523cd4907b8b4a476cafa9ce8fed8a7)
+![selector subcuenta](https://facturascripts.com/MyFiles/2025/11/3430.png?myft=4a9a654b9523cd4907b8b4a476cafa9ce8fed8a7)

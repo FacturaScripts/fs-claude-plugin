@@ -11,6 +11,7 @@ export interface ConnectionConfig {
   url: string;
   token: string;
   version?: string;
+  rejectUnauthorized?: boolean;
 }
 
 /**

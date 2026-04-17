@@ -9,7 +9,7 @@ url: https://facturascripts.com/como-hacer-una-factura-con-irpf
 FacturaScripts es un programa de facturación online que permite crear facturas con retención de IRPF de forma sencilla. En este tutorial, te explicamos cómo hacerlo paso a paso.
 
 ## 🛠️ Configuración de impuestos
-Antes de empezar, es necesario configurar los impuestos en FacturaScripts. Para ello, accede al [menú Contabilidad → Impuestos](/publicaciones/impuestos-967). En la pestaña Retenciones, comprueba que existe el tipo de retención que vas a aplicar. En España, la retención de IRPF para profesionales autónomos es del 15%. Si no la tienes, pulsa el botón nuevo y crea la nueva retención.
+Antes de empezar, es necesario configurar los impuestos en FacturaScripts. Para ello, accede al [menú Contabilidad → Impuestos](https://facturascripts.com/publicaciones/impuestos-967). En la pestaña Retenciones, comprueba que existe el tipo de retención que vas a aplicar. En España, la retención de IRPF para profesionales autónomos es del 15%. Si no la tienes, pulsa el botón nuevo y crea la nueva retención.
 
 ![retenciones IRPF FacturaScripts](https://i.imgur.com/kSJ7zyw.png)
 
@@ -19,7 +19,7 @@ Si siempre vamos a vender con IRPF al cliente, podemos asignarle la retención d
 ![retención aplicada al cliente](https://i.imgur.com/SQIfMGb.png)
 
  ## 📄 Creación de la factura
-Para crear una factura con retención de IRPF, accede al [menú Ventas → Facturas](/publicaciones/como-hacer-una-factura-de-venta). Haz clic en el botón Nuevo y rellena los datos de la factura, como el cliente, la fecha, los productos o servicios vendidos y los precios.
+Para crear una factura con retención de IRPF, accede al [menú Ventas → Facturas](https://facturascripts.com/publicaciones/como-hacer-una-factura-de-venta). Haz clic en el botón Nuevo y rellena los datos de la factura, como el cliente, la fecha, los productos o servicios vendidos y los precios.
 
 ![nueva factura](https://i.imgur.com/3oLkE08.png)
 

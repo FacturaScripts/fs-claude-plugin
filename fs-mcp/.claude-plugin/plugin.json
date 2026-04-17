@@ -16,13 +16,22 @@
       "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"],
       "env": {
         "FS_CONNECTIONS_FILE": "${CLAUDE_PLUGIN_DATA}/connections.json",
-        "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}"
+        "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}",
+        "FS_LOCAL_MODULES_PATH": "${FS_LOCAL_MODULES_PATH}"
       }
     }
   },
   "userConfig": {
     "FS_DEFAULT_CONNECTION": {
+      "title": "Conexión por defecto",
       "description": "Clave de la conexión por defecto (ej: 'empresa1'). Puedes añadir conexiones con el skill 'fs-mcp:add-connection'.",
+      "type": "string",
+      "sensitive": false
+    },
+    "FS_LOCAL_MODULES_PATH": {
+      "title": "Ruta de módulos locales privados",
+      "description": "Ruta absoluta a la carpeta con tus módulos MCP privados (ej: /Users/tu-usuario/fs-mcp-modules-private). Si se deja vacío, no se cargarán módulos locales.",
+      "type": "string",
       "sensitive": false
     }
   }

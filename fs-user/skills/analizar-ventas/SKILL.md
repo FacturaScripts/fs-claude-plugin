@@ -1,7 +1,7 @@
-# Analizar Ventas
-
+---
 name: analizar-ventas
 description: Analiza las ventas del período y genera un informe ejecutivo con cifras clave, comparativas y tendencias
+---
 
 ## Descripción
 

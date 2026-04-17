@@ -9,6 +9,10 @@
   },
   "license": "MIT",
   "keywords": ["FacturaScripts", "ERP", "informes", "análisis", "usuario"],
-  "agents": "./agents/",
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "agents": [
+    "./agents/erp-guide.md",
+    "./agents/reporting-analyst.md",
+    "./agents/docs-expert.md"
+  ]
 }

@@ -19,7 +19,7 @@ La mayor parte de facturaScripts 2018 ha sido reescrita en inglés, y el resto s
 - &lt; restriccion &gt; es &lt; constraint &gt;
 - &lt; consulta &gt; es &lt; type &gt;
 
-Puedes leer más sobre [los archivos XML de las tablas de FacturaScripts 2018](/publicaciones/la-definicion-de-la-estructura-de-la-tabla-514) en la documentación.
+Puedes leer más sobre [los archivos XML de las tablas de FacturaScripts 2018](https://facturascripts.com/publicaciones/la-definicion-de-la-estructura-de-la-tabla-514) en la documentación.
 
 ### Script de migración
 Puedes copiar este archivo al directorio donde tengas los xml para hacer la transformación.

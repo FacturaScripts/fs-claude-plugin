@@ -8,19 +8,19 @@ url: https://facturascripts.com/tu-primer-producto-431
 ---
 En el **menú Almacén → Productos** puede consultar todos los productos de su catálogo, tanto los que compra como los que vende. Si no está familiarizado con los listados de FacturaScripts, le recomendamos leer estos artículos:
 
-- [Cómo usar los listados y filtros en FacturaScripts](/publicaciones/como-funcionan-los-listados-y-filtros).
-- [Cómo importar productos desde Excel](/publicaciones/como-importar-productos-de-excel).
+- [Cómo usar los listados y filtros en FacturaScripts](https://facturascripts.com/publicaciones/como-funcionan-los-listados-y-filtros).
+- [Cómo importar productos desde Excel](https://facturascripts.com/publicaciones/como-importar-productos-de-excel).
 
 ## 📝 Crear un Nuevo Producto
 Para añadir un producto, haga clic en el **botón &quot;Nuevo&quot;** dentro del listado de productos. Se abrirá el formulario de creación, donde solo es obligatorio completar el campo **Descripción**. El resto de campos son opcionales.
 
-![Crear producto](/MyFiles/2025/01/2590.png?myft=95f3d332cb347ed6f553f3b6ef40fa9e28990e1e)
+![Crear producto](https://facturascripts.com/MyFiles/2025/01/2590.png?myft=95f3d332cb347ed6f553f3b6ef40fa9e28990e1e)
 
 ### 📑 Campos del Producto
 - **Referencia:** Código único del producto. Si se deja en blanco, se generará automáticamente sumando 1 a la referencia numérica más alta.
-- **Fabricante:** Indica el fabricante del producto. [Más información](/publicaciones/tu-primer-fabricante-538).
-- **Familia:** Agrupación de productos similares, como &quot;aceites&quot;. [Más información](/publicaciones/tu-primera-familia-43).
-- **Impuesto:** Indica el impuesto aplicable al producto. [Más información](/publicaciones/impuestos-967).
+- **Fabricante:** Indica el fabricante del producto. [Más información](https://facturascripts.com/publicaciones/tu-primer-fabricante-538).
+- **Familia:** Agrupación de productos similares, como &quot;aceites&quot;. [Más información](https://facturascripts.com/publicaciones/tu-primera-familia-43).
+- **Impuesto:** Indica el impuesto aplicable al producto. [Más información](https://facturascripts.com/publicaciones/impuestos-967).
 - **Descripción:** Nombre del producto que aparecerá en presupuestos, pedidos, albaranes y facturas.
 - **Stock:** Muestra la cantidad disponible del producto, incluyendo sus variantes.
 - **No controlar stock:** Marque esta opción si no desea gestionar el stock de este producto.

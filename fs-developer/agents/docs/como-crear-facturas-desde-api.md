@@ -6,7 +6,7 @@ creationdate: 05-08-2021 13:44:13
 lastmod: 11-10-2025
 url: https://facturascripts.com/como-crear-facturas-desde-api
 ---
-Podemos crear facturas de venta con una sola petición **POST** a la API al endpoint ``crearFacturaCliente``. Una forma sencilla de comprobar si tu API lo permite es [consultar la lista de recursos](/publicaciones/listado-de-recursos-modelos-102). Si aparece crearFacturaCliente, entonces puedes usarlo.
+Podemos crear facturas de venta con una sola petición **POST** a la API al endpoint ``crearFacturaCliente``. Una forma sencilla de comprobar si tu API lo permite es [consultar la lista de recursos](https://facturascripts.com/publicaciones/listado-de-recursos-modelos-102). Si aparece crearFacturaCliente, entonces puedes usarlo.
 
 ![consultar lista de recursos de la api](https://facturascripts.com/MyFiles/2024/03/2031.png?myft=73bf2b0e7d86dbea6243fa144c5ff2bc3e6b8aa2)
 
@@ -15,7 +15,7 @@ Haremos una petición **POST** al endpoint ``crearFacturaCliente`` y le pasaremo
 
 En este caso ``lineas`` debe ser un **json** con las líneas de las facturas, que deberán tener los campos ``referencia`` o ``descripcion``, y opcionalmente el resto de campos que puede tener una línea: ``cantidad``, ``pvpunitario``, ``dtopor``, ``dtopor2``, ``codimpuesto``, ``irpf`` ...
 
-![creación factura venta mediante api fs](/MyFiles/2024/03/2032.png?myft=06b8d34f98439a7120410e02b4b9ac2cceeca1d0)
+![creación factura venta mediante api fs](https://facturascripts.com/MyFiles/2024/03/2032.png?myft=06b8d34f98439a7120410e02b4b9ac2cceeca1d0)
 
 Datos del ejemplo:
 - Petición: POST

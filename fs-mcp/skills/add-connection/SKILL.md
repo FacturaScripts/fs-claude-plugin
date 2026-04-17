@@ -14,6 +14,7 @@ Antes de comenzar, asegúrate de tener a mano:
 - **Nombre descriptivo**: Descripción legible (por ejemplo: "FacturaScripts Principal")
 - **URL del ERP**: La dirección completa (por ejemplo: `https://facturascripts.miempresa.com`)
 - **Token API**: El token de autenticación de FacturaScripts
+- **Verificación SSL**: Si la instalación usa HTTPS con certificado auto-firmado (típico en instalaciones locales), necesitarás desactivar la verificación
 
 ## Pasos
 
@@ -27,7 +28,13 @@ Te haré algunas preguntas para recopilar los datos necesarios:
 ¿Cuál es la URL de FacturaScripts?
 ¿Cuál es el token API?
 ¿Quieres que sea la conexión por defecto? (sí/no)
+¿La instalación usa HTTPS con certificado auto-firmado o no verificable? (sí/no)
 ```
+
+La última pregunta es especialmente relevante en estos casos:
+- Instalaciones locales (`https://localhost`, `https://192.168.x.x`, etc.)
+- Servidores de desarrollo con certificados auto-firmados
+- Cualquier instalación donde el navegador muestre advertencia de certificado
 
 ### 2. Procesa la información
 
@@ -36,6 +43,7 @@ Una vez que proporciones los datos, verificaré que sean válidos:
 - El nombre es obligatorio
 - La URL debe ser válida
 - El token no puede estar vacío
+- Si la URL empieza por `https://` y apunta a `localhost`, una IP privada o un dominio sin certificado público, se sugerirá automáticamente desactivar la verificación SSL
 
 ### 3. Añade la conexión
 
@@ -57,6 +65,24 @@ Te mostraré cómo editar manualmente el archivo `connections.json` con el sigui
   }
 }
 ```
+
+Para instalaciones locales o con certificado auto-firmado, añade `"rejectUnauthorized": false`:
+
+```json
+{
+  "default": "local",
+  "connections": {
+    "local": {
+      "name": "FacturaScripts Local",
+      "url": "https://localhost",
+      "token": "tu-token-api-aqui",
+      "rejectUnauthorized": false
+    }
+  }
+}
+```
+
+> ⚠️ **Nota de seguridad**: `rejectUnauthorized: false` desactiva la verificación del certificado SSL. Úsalo únicamente en instalaciones locales o de desarrollo de confianza, nunca en producción con datos reales accesibles desde internet.
 
 ## Flujo Interactivo
 

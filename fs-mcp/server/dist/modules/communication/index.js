@@ -3,201 +3,242 @@
  * Provides tools for accessing communication and notification data
  */
 import { fsClient } from '../../fs/client.js';
-/**
- * Register all communication tools with the MCP server
- */
-export async function registerCommunicationTools(server, tools) {
-    // Tool: get_emailsentes
-    const getEmailSentesTool = {
+export const communicationTools = [
+    {
         name: 'get_emailsentes',
-        description: 'Get sent emails from FacturaScripts',
+        description: 'Obtiene correos electrónicos enviados de FacturaScripts',
         inputSchema: {
             type: 'object',
             properties: {
                 connection: {
                     type: 'string',
-                    description: 'Connection key to use (optional, uses default if not specified)',
+                    description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
                 },
                 offset: {
                     type: 'number',
-                    description: 'Pagination offset (default: 0)',
+                    description: 'Desplazamiento de paginación (por defecto: 0)',
                 },
                 limit: {
                     type: 'number',
-                    description: 'Pagination limit (default: 100)',
+                    description: 'Límite de paginación (por defecto: 100)',
                 },
                 destinatario: {
                     type: 'string',
-                    description: 'Filter by recipient email',
+                    description: 'Filtrar por correo del destinatario',
                 },
                 asunto: {
                     type: 'string',
-                    description: 'Filter by subject',
+                    description: 'Filtrar por asunto',
                 },
                 fecha: {
                     type: 'string',
-                    description: 'Filter by date (YYYY-MM-DD format)',
+                    description: 'Filtrar por fecha (formato YYYY-MM-DD)',
                 },
             },
             required: [],
         },
-    };
-    tools.set('get_emailsentes', getEmailSentesTool);
-    // Tool: get_emailnotifications
-    const getEmailNotificationsTool = {
+    },
+    {
         name: 'get_emailnotifications',
-        description: 'Get email notifications from FacturaScripts',
+        description: 'Obtiene notificaciones de correo electrónico de FacturaScripts',
         inputSchema: {
             type: 'object',
             properties: {
                 connection: {
                     type: 'string',
-                    description: 'Connection key to use (optional, uses default if not specified)',
+                    description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
                 },
                 offset: {
                     type: 'number',
-                    description: 'Pagination offset (default: 0)',
+                    description: 'Desplazamiento de paginación (por defecto: 0)',
                 },
                 limit: {
                     type: 'number',
-                    description: 'Pagination limit (default: 100)',
+                    description: 'Límite de paginación (por defecto: 100)',
                 },
             },
             required: [],
         },
-    };
-    tools.set('get_emailnotifications', getEmailNotificationsTool);
-    // Tool: get_attachedfiles
-    const getAttachedFilesTool = {
+    },
+    {
         name: 'get_attachedfiles',
-        description: 'Get attached files from FacturaScripts',
+        description: 'Obtiene archivos adjuntos de FacturaScripts',
         inputSchema: {
             type: 'object',
             properties: {
                 connection: {
                     type: 'string',
-                    description: 'Connection key to use (optional, uses default if not specified)',
+                    description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
                 },
                 offset: {
                     type: 'number',
-                    description: 'Pagination offset (default: 0)',
+                    description: 'Desplazamiento de paginación (por defecto: 0)',
                 },
                 limit: {
                     type: 'number',
-                    description: 'Pagination limit (default: 100)',
+                    description: 'Límite de paginación (por defecto: 100)',
                 },
                 modelo: {
                     type: 'string',
-                    description: 'Filter by model name',
+                    description: 'Filtrar por nombre de modelo',
                 },
                 modelid: {
                     type: 'string',
-                    description: 'Filter by model ID',
+                    description: 'Filtrar por ID de modelo',
                 },
             },
             required: [],
         },
-    };
-    tools.set('get_attachedfiles', getAttachedFilesTool);
-    // Tool: get_attachedfilerelations
-    const getAttachedFileRelationsTool = {
+    },
+    {
         name: 'get_attachedfilerelations',
-        description: 'Get attached file relations from FacturaScripts',
+        description: 'Obtiene relaciones de archivos adjuntos de FacturaScripts',
         inputSchema: {
             type: 'object',
             properties: {
                 connection: {
                     type: 'string',
-                    description: 'Connection key to use (optional, uses default if not specified)',
+                    description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
                 },
                 offset: {
                     type: 'number',
-                    description: 'Pagination offset (default: 0)',
+                    description: 'Desplazamiento de paginación (por defecto: 0)',
                 },
                 limit: {
                     type: 'number',
-                    description: 'Pagination limit (default: 100)',
+                    description: 'Límite de paginación (por defecto: 100)',
                 },
             },
             required: [],
         },
-    };
-    tools.set('get_attachedfilerelations', getAttachedFileRelationsTool);
-    // Register tool handlers
-    server.setRequestHandler({
-        method: 'tools/call',
-        params: {
-            name: 'string',
-            arguments: 'object',
+    },
+];
+export const communicationWriteTools = [
+    {
+        name: 'create_emailnotification',
+        description: 'Crea una nueva notificación de email en FacturaScripts',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: { type: 'string', description: 'Clave de conexión' },
+                name: { type: 'string', description: 'Nombre identificador de la notificación (obligatorio)' },
+                subject: { type: 'string', description: 'Asunto del email (obligatorio)' },
+                body: { type: 'string', description: 'Cuerpo del email en HTML' },
+                enabled: { type: 'boolean', description: 'Si la notificación está habilitada' },
+            },
+            required: ['name', 'subject'],
         },
-    }, async (request) => {
-        const { name, arguments: args } = request.params;
-        const connection = args.connection || undefined;
-        const offset = args.offset || 0;
-        const limit = args.limit || 100;
-        try {
-            let result;
-            switch (name) {
-                case 'get_emailsentes': {
-                    const params = { offset, limit };
-                    if (args.destinatario)
-                        params.destinatario = args.destinatario;
-                    if (args.asunto)
-                        params.asunto = args.asunto;
-                    if (args.fecha)
-                        params.fecha = args.fecha;
-                    result = await fsClient.get('/emailsentes', params, connection);
-                    break;
-                }
-                case 'get_emailnotifications': {
-                    result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
-                    break;
-                }
-                case 'get_attachedfiles': {
-                    const params = { offset, limit };
-                    if (args.modelo)
-                        params.modelo = args.modelo;
-                    if (args.modelid)
-                        params.modelid = args.modelid;
-                    result = await fsClient.get('/attachedfiles', params, connection);
-                    break;
-                }
-                case 'get_attachedfilerelations': {
-                    result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
-                    break;
-                }
-                default:
-                    return {
-                        content: [
-                            {
-                                type: 'text',
-                                text: JSON.stringify({ error: `Unknown communication tool: ${name}` }, null, 2),
-                            },
-                        ],
-                        isError: true,
-                    };
+    },
+    {
+        name: 'update_emailnotification',
+        description: 'Actualiza una notificación de email existente en FacturaScripts',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: { type: 'string', description: 'Clave de conexión' },
+                name: { type: 'string', description: 'Nombre de la notificación a actualizar (obligatorio)' },
+                subject: { type: 'string', description: 'Asunto del email' },
+                body: { type: 'string', description: 'Cuerpo del email en HTML' },
+                enabled: { type: 'boolean', description: 'Si la notificación está habilitada' },
+            },
+            required: ['name'],
+        },
+    },
+    {
+        name: 'delete_emailnotification',
+        description: 'Elimina una notificación de email de FacturaScripts',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: { type: 'string', description: 'Clave de conexión' },
+                name: { type: 'string', description: 'Nombre de la notificación a eliminar' },
+            },
+            required: ['name'],
+        },
+    },
+];
+/**
+ * Register all communication tools with the MCP server
+ */
+export async function registerCommunicationTools(tools) {
+    communicationTools.forEach((tool) => tools.set(tool.name, tool));
+    communicationWriteTools.forEach((tool) => tools.set(tool.name, tool));
+}
+/**
+ * Handle communication tool calls
+ */
+export async function handleCommunicationTool(name, args) {
+    const connection = args.connection || undefined;
+    const offset = args.offset || 0;
+    const limit = args.limit || 100;
+    try {
+        let result;
+        switch (name) {
+            case 'get_emailsentes': {
+                const params = { offset, limit };
+                if (args.destinatario)
+                    params.destinatario = args.destinatario;
+                if (args.asunto)
+                    params.asunto = args.asunto;
+                if (args.fecha)
+                    params.fecha = args.fecha;
+                result = await fsClient.get('/emailsentes', params, connection);
+                break;
             }
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: JSON.stringify(result, null, 2),
-                    },
-                ],
-            };
+            case 'get_emailnotifications': {
+                result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
+                break;
+            }
+            case 'get_attachedfiles': {
+                const params = { offset, limit };
+                if (args.modelo)
+                    params.modelo = args.modelo;
+                if (args.modelid)
+                    params.modelid = args.modelid;
+                result = await fsClient.get('/attachedfiles', params, connection);
+                break;
+            }
+            case 'get_attachedfilerelations': {
+                result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
+                break;
+            }
+            case 'create_emailnotification': {
+                const { connection: _conn, ...data } = args;
+                result = await fsClient.post('/emailnotifications', data, connection);
+                break;
+            }
+            case 'update_emailnotification': {
+                const { connection: _conn, name, ...data } = args;
+                result = await fsClient.put(`/emailnotifications/${name}`, data, connection);
+                break;
+            }
+            case 'delete_emailnotification': {
+                result = await fsClient.delete(`/emailnotifications/${args.name}`, connection);
+                break;
+            }
+            default:
+                return null;
         }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: JSON.stringify({ error: errorMessage }, null, 2),
-                    },
-                ],
-                isError: true,
-            };
-        }
-    });
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(result, null, 2),
+                },
+            ],
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify({ error: errorMessage }, null, 2),
+                },
+            ],
+            isError: true,
+        };
+    }
 }
 //# sourceMappingURL=index.js.map

@@ -12,7 +12,7 @@ FacturaScripts es **software libre** con licencia LGPL. Puede leer la licencia c
 - ✅ Puede **usar** FacturaScripts sin limitaciones. No tiene que pedir permiso a nadie.
 - ✅ Puede **distribuir** FacturaScripts e instalarlo a sus clientes.
 - ✅ Puede **ver y modificar** el código fuente de FacturaScripts.
-- ✅ Puede **[crear plugins](/como-crear-plugin)**, independientemente de que el plugin sea gratuito o de pago, libre o privativo.
+- ✅ Puede **[crear plugins](https://facturascripts.com/como-crear-plugin)**, independientemente de que el plugin sea gratuito o de pago, libre o privativo.
 - ⛔ **No puede** cambiar la licencia de FacturaScripts, es decir, incluso aunque haya hecho modificaciones en el código, la licencia sigue siendo LGPL. No puede cambiarla ni introducir limitaciones. Usted no es el propietario de todo el código, no puede alterar la propiedad de otros.
 - ⛔ **No puede** quitar las menciones al copyright, ni decir que lo ha creado usted.
 
@@ -21,7 +21,7 @@ La licencia de FacturaScripts **solamente se aplica a FacturaScripts**, no a sus
 
 - ✅ Puede usarlo en su propia instalación.
 - ☑️ O puede **instalarlo a un cliente**. Pero si solamente ha comprado una licencia de uso del plugin, solamente lo puede instalar a un cliente. Para un segundo cliente tendrá que comprar otra licencia de uso.
-- ⛔ **No puede** modificar un plugin de pago, pero puede [crear otro plugin](/como-crear-plugin) que lo complemente o altere su funcionamiento. Ese nuevo plugin sería suyo y solamente suyo.
+- ⛔ **No puede** modificar un plugin de pago, pero puede [crear otro plugin](https://facturascripts.com/como-crear-plugin) que lo complemente o altere su funcionamiento. Ese nuevo plugin sería suyo y solamente suyo.
 
 Puede ver más detalles sobre la licencia de cada plugin y sus actualizaciones en la sección de plugins.
 
@@ -32,20 +32,20 @@ Puede ver más detalles sobre la licencia de cada plugin y sus actualizaciones e
 - ✅ Puede instalar FacturaScripts a sus clientes en su propio servidor y cobrar una mensualidad por el servicio.
 - ✅ Puede comprar una licencia de uso de un plugin e instalarlo a un cliente. Si quiere instalarlo a un segundo cliente debe comprar una segunda licencia de uso.
 - ✅ Puede ofrecer a sus clientes formación sobre el manejo de FacturaScripts y cobrar ese servicio.
-- ✅ Puede crear plugins y venderlos a sus clientes u ofrecerlos como servicio. Y si lo desea [puede publicar sus plugins en nuestro catálogo oficial](/como-vender-plugins). haga clic en el enlace para ver las condiciones.
+- ✅ Puede crear plugins y venderlos a sus clientes u ofrecerlos como servicio. Y si lo desea [puede publicar sus plugins en nuestro catálogo oficial](https://facturascripts.com/como-vender-plugins). haga clic en el enlace para ver las condiciones.
 
 #### 📚 Necesita formación y recursos
 Sus clientes llegarán a conocer el software mejor que usted, antes de lo que se imagina. Ellos usarán el software mucho más tiempo que usted. Le recomendamos que comience con su formación hoy mismo:
 
 - [Curso de FacturaScripts en YouTube](https://www.youtube.com/watch?v=rGopZA3ErzE&list=PLNxcJ5CWZ8V6nfeVu6vieKI_d8a_ObLfY)
-- [Cursos de creación de plugins](/cursos)
-- [Boletines de soporte](/forja?activetab=CardBulletin)
+- [Cursos de creación de plugins](https://facturascripts.com/cursos)
+- [Boletines de soporte](https://facturascripts.com/forja?activetab=CardBulletin)
 
 Sus clientes querrán mejoras y estar al tanto de las novedades, le recomendamos **convertirse en patrocinador** y revisar el **plan de desarrollo**. Podrá añadir y **votar ideas** para nuevas versiones, descargar **plugins exclusivos** y tener **acceso anticipado** a plugins antes que el resto:
 
-- [Patrocinar FacturaScripts](/patrocinar)
-- [Plan de desarrollo](/roadmap)
-- [Grupos de soporte y desarrollo](/colabora)
+- [Patrocinar FacturaScripts](https://facturascripts.com/patrocinar)
+- [Plan de desarrollo](https://facturascripts.com/roadmap)
+- [Grupos de soporte y desarrollo](https://facturascripts.com/colabora)
 
 ### 🤡 ¿Puede fingir que el software lo ha creado usted?
 No. Que sea software libre no significa que renunciemos a la autoría. No puede retirar nuestras menciones de copyright. Puede cambiarle el nombre y hacer un fork, seguir su propio desarrollo, como sucede con algunos proyectos de software libre. Pero no puede retirar nuestra autoría, ni cambiar la licencia. Eso si, **no venga por aquí pidiendo ayuda** cuando se encuentre con problemas que no puede resolver. Trabajamos en grupo, si usted elige cambiarle el nombre, entonces **usted está solo**.

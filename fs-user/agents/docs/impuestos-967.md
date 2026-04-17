@@ -31,9 +31,9 @@ Si es usted un profesional que está obligado a retener **IRPF** en sus facturas
 
 - Para hacer que **las facturas a un cliente** tengan una retención determinada, asigne esa retención al cliente desde la ficha del cliente.
 ![retencion en la ficha del cliente](https://i.imgur.com/550mqa6.png).
-- Para hacer que **todas las facturas** de venta tengan una retención determinada, asígnelo en el [panel de control](/publicaciones/configuracion-15).
+- Para hacer que **todas las facturas** de venta tengan una retención determinada, asígnelo en el [panel de control](https://facturascripts.com/publicaciones/configuracion-15).
 ![retencion en panel de control](https://i.imgur.com/5LbYkIv.png).
-- [Cómo hacer una factura con IRPF](/publicaciones/como-hacer-una-factura-con-irpf).
+- [Cómo hacer una factura con IRPF](https://facturascripts.com/publicaciones/como-hacer-una-factura-con-irpf).
 
 ## Informes
 Puede consultar un desglose de todos los impuestos desglosados de facturas desde el menú **menú Informes, Impuestos**.

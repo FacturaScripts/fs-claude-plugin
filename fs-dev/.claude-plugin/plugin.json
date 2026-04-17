@@ -1,0 +1,43 @@
+{
+  "name": "fs-dev",
+  "version": "0.5.6",
+  "description": "Plugin de FacturaScripts para Claude Code: skills, agentes y herramientas para trabajar con el ERP. Incluye agentes especializados para backend, frontend, fullstack, UI, API, extensiones, SQL, PHP, documentos y testing.",
+  "author": {
+    "name": "Daniel Fernández Giménez",
+    "email": "contacto@danielfg.es",
+    "url": "https://danielfg.es"
+  },
+  "license": "MIT",
+  "keywords": [
+    "FacturaScripts",
+    "FS",
+    "Core",
+    "Plugins",
+    "ERP",
+    "desarrollo",
+    "backend",
+    "frontend",
+    "fullstack",
+    "UI",
+    "API",
+    "extensiones",
+    "SQL",
+    "PHP",
+    "testing",
+    "documentos"
+  ],
+  "skills": "./skills/",
+  "agents": [
+    "./agents/api-designer.md",
+    "./agents/backend-developer.md",
+    "./agents/docs-expert.md",
+    "./agents/document-expert.md",
+    "./agents/extension-developer.md",
+    "./agents/frontend-developer.md",
+    "./agents/fullstack-developer.md",
+    "./agents/php-expert.md",
+    "./agents/sql-expert.md",
+    "./agents/testing-expert.md",
+    "./agents/ui-designer.md"
+  ]
+}

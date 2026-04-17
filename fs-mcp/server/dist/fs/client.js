@@ -1,4 +1,5 @@
 import axios from "axios";
+import https from "https";
 import { connectionManager } from "../connection-manager.js";
 /**
  * Cliente HTTP para la API REST de FacturaScripts
@@ -7,25 +8,14 @@ import { connectionManager } from "../connection-manager.js";
 class FacturaScriptsClient {
     defaultConnectionKey;
     axiosInstances = new Map();
-    /**
-     * Inicializa el cliente con una conexión por defecto opcional
-     * @param connectionKey - Clave de la conexión a usar por defecto
-     */
     constructor(connectionKey) {
         this.defaultConnectionKey = connectionKey;
     }
-    /**
-     * Obtiene o crea una instancia de Axios configurada para una conexión
-     * @param connectionKey - Clave de la conexión (usa default del ConnectionManager si no se proporciona)
-     * @returns Instancia de Axios configurada
-     */
     getAxiosInstance(connectionKey) {
         const key = connectionKey || this.defaultConnectionKey;
-        // Retorna instancia cacheada si existe
         if (this.axiosInstances.has(key || "default")) {
             return this.axiosInstances.get(key || "default");
         }
-        // Obtiene configuración de conexión
         let connection;
         let resolvedKey;
         try {
@@ -35,7 +25,12 @@ class FacturaScriptsClient {
         catch (error) {
             throw new Error(`Error al obtener configuración de conexión: ${error instanceof Error ? error.message : String(error)}`);
         }
-        // Crea nueva instancia de Axios
+        const shouldRejectUnauthorized = connection.rejectUnauthorized !== undefined
+            ? connection.rejectUnauthorized
+            : process.env.NODE_TLS_REJECT_UNAUTHORIZED !== "0";
+        const httpsAgent = new https.Agent({
+            rejectUnauthorized: shouldRejectUnauthorized,
+        });
         const instance = axios.create({
             baseURL: `${connection.url}/api/3`,
             headers: {
@@ -43,24 +38,40 @@ class FacturaScriptsClient {
                 "Content-Type": "application/json",
             },
             timeout: 30000,
+            httpsAgent,
         });
-        // Interceptor para manejo de errores
         instance.interceptors.response.use((response) => response, (error) => {
             const connectionName = connection.name || resolvedKey;
             const statusCode = error.response?.status || "desconocido";
             const errorMessage = error.response?.data?.message || error.message || "Error desconocido";
             throw new Error(`Error en FacturaScripts (${connectionName}, HTTP ${statusCode}): ${errorMessage}`);
         });
-        // Cachea la instancia
         this.axiosInstances.set(key || "default", instance);
         return instance;
     }
     /**
+     * Serializa un objeto a URLSearchParams para application/x-www-form-urlencoded.
+     * La API REST de FacturaScripts requiere este formato en POST y PUT.
+     * Los valores null/undefined se omiten; los booleanos se convierten a 0/1.
+     */
+    toFormData(data) {
+        const params = new URLSearchParams();
+        if (data && typeof data === 'object') {
+            for (const [key, value] of Object.entries(data)) {
+                if (value === undefined || value === null)
+                    continue;
+                if (typeof value === 'boolean') {
+                    params.append(key, value ? '1' : '0');
+                }
+                else {
+                    params.append(key, String(value));
+                }
+            }
+        }
+        return params;
+    }
+    /**
      * Realiza una petición GET a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint (ej: "clientes")
-     * @param params - Parámetros de query opcionales
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Datos de tipo T
      */
     async get(endpoint, params, connectionKey) {
         try {
@@ -73,16 +84,16 @@ class FacturaScriptsClient {
         }
     }
     /**
-     * Realiza una petición POST a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param data - Datos a enviar en el body
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición POST a la API de FacturaScripts.
+     * Envía los datos como application/x-www-form-urlencoded (requerido por FacturaScripts).
      */
     async post(endpoint, data, connectionKey) {
         try {
             const instance = this.getAxiosInstance(connectionKey);
-            const response = await instance.post(endpoint, data);
+            const formData = this.toFormData(data);
+            const response = await instance.post(endpoint, formData, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
             return response.data;
         }
         catch (error) {
@@ -90,16 +101,17 @@ class FacturaScriptsClient {
         }
     }
     /**
-     * Realiza una petición PUT a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param data - Datos a actualizar
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición PUT a la API de FacturaScripts.
+     * Envía los datos como application/x-www-form-urlencoded (requerido por FacturaScripts).
+     * El ID del registro debe incluirse en la URL (ej: /clientes/CLI001).
      */
     async put(endpoint, data, connectionKey) {
         try {
             const instance = this.getAxiosInstance(connectionKey);
-            const response = await instance.put(endpoint, data);
+            const formData = this.toFormData(data);
+            const response = await instance.put(endpoint, formData, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
             return response.data;
         }
         catch (error) {
@@ -107,10 +119,8 @@ class FacturaScriptsClient {
         }
     }
     /**
-     * Realiza una petición DELETE a la API de FacturaScripts
-     * @param endpoint - Ruta del endpoint
-     * @param connectionKey - Clave de conexión opcional
-     * @returns Respuesta de tipo T
+     * Realiza una petición DELETE a la API de FacturaScripts.
+     * El ID del registro debe incluirse en la URL (ej: /clientes/CLI001).
      */
     async delete(endpoint, connectionKey) {
         try {
@@ -124,7 +134,6 @@ class FacturaScriptsClient {
     }
     /**
      * Limpia el caché de instancias de Axios
-     * Útil para refrescar credenciales o cambios de configuración
      */
     clearCache() {
         this.axiosInstances.clear();

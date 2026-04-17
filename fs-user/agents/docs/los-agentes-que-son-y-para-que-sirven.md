@@ -45,10 +45,10 @@ El agente vinculado al usuario tiene prioridad sobre el agente asignado al clien
 - Si el usuario no tiene un agente asignado, se utilizará el agente ligado al cliente si existe.
 
 ## 💰 Gestión de comisiones
-Con el [plugin Comisiones](/plugins/comisiones) (gratuito) puede:
+Con el [plugin Comisiones](https://facturascripts.com/plugins/comisiones) (gratuito) puede:
 
-- [Asignar comisiones de venta](/publicaciones/comisiones-de-agentes-comisiones-por-venta)
+- [Asignar comisiones de venta](https://facturascripts.com/publicaciones/comisiones-de-agentes-comisiones-por-venta)
 - Definir penalizaciones
-- Gestionar las [liquidaciones de comisiones](/publicaciones/liquidacion-de-comisiones-de-venta)
+- Gestionar las [liquidaciones de comisiones](https://facturascripts.com/publicaciones/liquidacion-de-comisiones-de-venta)
 
 Para más información sobre la configuración general, consulte la [documentación relacionada](https://facturascripts.com/publication/configuracion-15).

@@ -10,7 +10,7 @@ Desde el **menú Ventas, Clientes** puede ver todos los clientes (salvo los que 
 
 ![crear cliente](https://i.imgur.com/63bqwky.png)
 
-También puede [importar clientes desde](/publicaciones/como-importar-clientes-de-excel) un Excel usando el plugin CSVimport.
+También puede [importar clientes desde](https://facturascripts.com/publicaciones/como-importar-clientes-de-excel) un Excel usando el plugin CSVimport.
 
 ## Nuevo cliente
 Para un nuevo cliente solamente es obligatorio escribir un nombre, el resto de campos son opcionales. Cuando haya rellenado el formulario pulse el **botón guardar**, abajo a la derecha. No podrá ver ninguna sección más del cliente hasta que no guarde. Sencillamente no es posible añadir una dirección al cliente si el cliente todavía no existe.
@@ -22,7 +22,7 @@ Para un nuevo cliente solamente es obligatorio escribir un nombre, el resto de c
 - **Persona natural (no jurídica)**: para distinguir a los clientes particulares de las empresas. Si es una empresa, este campo debe estar desmarcado.
 
 ### Asignar un número de cliente
-Puedes asignar o [cambiar el código de cliente activando la columna código desde el botón opciones](/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
+Puedes asignar o [cambiar el código de cliente activando la columna código desde el botón opciones](https://facturascripts.com/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
 
 ### Información de contacto
 - **Teléfono**: (opcional) número de teléfono de contacto del cliente.
@@ -30,16 +30,16 @@ Puedes asignar o [cambiar el código de cliente activando la columna código des
 - **Email**: (opcional) dirección de correo electrónico del cliente.
 
 ### Términos comerciales
-- **Agente**: (opcional) el [agente comercial](/publicaciones/los-agentes-que-son-y-para-que-sirven) asignado. Todas las facturas para este cliente se asignarán automáticamente a este comercial. Esto es útil para asignar comisiones de todas las ventas del cliente.
-- [Tarifa](/publicaciones/las-tarifas-de-precios-por-clientes-o-grupos): (opcional) la tarifa especial que se asignará al cliente. Podemos usar este campo para asignarle una tarifa distinta a la del grupo.
+- **Agente**: (opcional) el [agente comercial](https://facturascripts.com/publicaciones/los-agentes-que-son-y-para-que-sirven) asignado. Todas las facturas para este cliente se asignarán automáticamente a este comercial. Esto es útil para asignar comisiones de todas las ventas del cliente.
+- [Tarifa](https://facturascripts.com/publicaciones/las-tarifas-de-precios-por-clientes-o-grupos): (opcional) la tarifa especial que se asignará al cliente. Podemos usar este campo para asignarle una tarifa distinta a la del grupo.
 - **Grupo**: (opcional) el grupo de clientes al que pertenece. En el grupo podemos asignar una tarifa y se le aplica al cliente, salvo si el cliente tiene asignada una tarifa directamente.
-- [Serie](/publicaciones/series-470): (opcional) la serie que se asignará automáticamente a las facturas de este cliente.
-- [Forma de pago](/publicaciones/formas-de-pago-729): (opcional) la forma de pago que se asignará automáticamente a las facturas de este cliente.
+- [Serie](https://facturascripts.com/publicaciones/series-470): (opcional) la serie que se asignará automáticamente a las facturas de este cliente.
+- [Forma de pago](https://facturascripts.com/publicaciones/formas-de-pago-729): (opcional) la forma de pago que se asignará automáticamente a las facturas de este cliente.
 - **Días de pago**: (opcional) si se ha pactado con el cliente unos días concretos de pago, por ejemplo el día 1 y el 15, podemos escribir esos días en este campo. Los nuevos recibos de las facturas de este cliente usarán esos días para la fecha de vencimiento.
 - **Riesgo actual**: (calculado automáticamente) es el importe que suman todas las facturas y albaranes sin pagar del cliente.
 - **Riesgo máximo**: (opcional) el importe máximo que autorizamos a este cliente, por ejemplo 2 000€. Una vez alcanzado, el sistema no permitirá hacer más ventas a este cliente.
 - **Régimen de impuestos**: general, recargo de equivalencia o exento.
-- [Retención de IRPF](/publicaciones/impuestos-967): (opcional) la retención que se asignará automáticamente a las facturas de este cliente.
+- [Retención de IRPF](https://facturascripts.com/publicaciones/impuestos-967): (opcional) la retención que se asignará automáticamente a las facturas de este cliente.
 - **Fecha de baja**: (opcional) podemos dar de baja un cliente asignando una fecha de baja.
 
 ### Direcciones de cliente
@@ -67,7 +67,7 @@ Después de guardar los datos mediante el **botón guardar** (abajo a la derecha
 - **Principal**:  De todas las cuentas bancarias que nos suministre el cliente, la que marquemos como principal será la que normalmente usará FacturaScripts.
 
 ### Subcuentas de cliente
-En esta sección podemos ver la cuenta contable del cliente. Una para cada ejercicio. Si quiere [cambiar la subcuenta del cliente, puede activar el campo subcuenta desde el botón opciones](/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
+En esta sección podemos ver la cuenta contable del cliente. Una para cada ejercicio. Si quiere [cambiar la subcuenta del cliente, puede activar el campo subcuenta desde el botón opciones](https://facturascripts.com/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
 
 ## Eliminar un cliente
 Podremos eliminar el cliente, pulsando el botón eliminar situado abajo a la izquierda, siempre que este cliente no tenga ya facturas, albaranes, pedidos o presupuestos asignados. Si ya los tiene, lo mejor es **dar de caja** el cliente.

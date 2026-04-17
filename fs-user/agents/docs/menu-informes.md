@@ -9,8 +9,8 @@ url: https://facturascripts.com/menu-informes
 Desde el menú informes de FacturaScripts puede crear informes gráficos y ver el tablero o dashboard.
 
 ## 🔌 Otros informes en Plugins
-- El [plugin Informes](/plugins/informes) añade informes adicionales de resultados anuales, estado de tesorería y desgloses de compras y ventas. Disponibles en el menú informes.
-- Con el [plugin AdmReportico](/plugins/admreportico) puede diseñar e imprimir sus propios informes.
+- El [plugin Informes](https://facturascripts.com/plugins/informes) añade informes adicionales de resultados anuales, estado de tesorería y desgloses de compras y ventas. Disponibles en el menú informes.
+- Con el [plugin AdmReportico](https://facturascripts.com/plugins/admreportico) puede diseñar e imprimir sus propios informes.
 
 ## 📊 Informes gráficos
 Los gráficos son la forma ideal de apreciar la evolución de cualquier indicador en la vida de nuestras empresas, ya que la información es visual. En Facturascripts podemos configurar nuestros propios gráficos con muy poco trabajo
@@ -26,16 +26,16 @@ Al entrar vemos el listado de gráficos ya creados. Podemos fijarnos en la confi
 ## 💰 Informe de impuestos
 Con el informe de impuestos puede imprimir el listado de facturas y desglose de impuestos del periodo seleccionado. Este informe es muy útil para obtener el listado de facturas del trimestre y enviarlo al gestor:
 
-- [Cómo imprimir el informe de impuestos](/publicaciones/como-sacar-un-desglose-de-impuestos-de-facturas)
+- [Cómo imprimir el informe de impuestos](https://facturascripts.com/publicaciones/como-sacar-un-desglose-de-impuestos-de-facturas)
 
 ## ⚖️ Informes contables
-Con el [plugin Informes](/plugins/informes) instalado y activado, desde el menú informes, informes contables se pueden obtener diarios contables, mayor de cuentas y subcuentas, balances de sumas y saldos, balances de situación, de pérdidas y ganancias o de ingresos y gastos, además de la configuración de balances.
+Con el [plugin Informes](https://facturascripts.com/plugins/informes) instalado y activado, desde el menú informes, informes contables se pueden obtener diarios contables, mayor de cuentas y subcuentas, balances de sumas y saldos, balances de situación, de pérdidas y ganancias o de ingresos y gastos, además de la configuración de balances.
 
-- [Diario contable](/publicaciones/como-hacer-un-libro-diario-contable).
-- [Balances de sumas y saldos](/publicaciones/como-hacer-un-balance-de-sumas-y-saldos).
-- [Balances de situación](/publicaciones/como-hacer-un-balance-de-situacion).
-- [Balances de pérdidas y ganancias](/publicaciones/como-hacer-un-balance-de-perdidas-y-ganancias).
-- [Balances de ingresos y gastos](/publicaciones/como-hacer-un-balance-de-ingresos-y-gastos).
+- [Diario contable](https://facturascripts.com/publicaciones/como-hacer-un-libro-diario-contable).
+- [Balances de sumas y saldos](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-sumas-y-saldos).
+- [Balances de situación](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-situacion).
+- [Balances de pérdidas y ganancias](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-perdidas-y-ganancias).
+- [Balances de ingresos y gastos](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-ingresos-y-gastos).
 
 ## 📈 Informe de productos
 Desde el menú informes, productos puede obtener un resumen rápido de todos los productos en albaranes y facturas de compra o venta. Incluye referencia, descripción, fabricante, familia, stock, cantidad comprada o vendida, precio de compra unitario, precio de coste y el precio del producto.
@@ -56,8 +56,8 @@ Queda fuera de este manual destacar las ventajas de un cuadro de mando integral.
 ## 📚 Modelos fiscales de hacienda
 En el catálogo de plugins encontrará uno para cada modelo fiscal de entre los más importantes:
 
-- [Modelo 111](/plugins/modelo111)
-- [Modelo 115](/plugins/modelo115)
-- [Modelo 130](/plugins/modelo130)
-- [Modelo 303](/plugins/modelo303)
-- [Modelo 347](/plugins/modelo347)
+- [Modelo 111](https://facturascripts.com/plugins/modelo111)
+- [Modelo 115](https://facturascripts.com/plugins/modelo115)
+- [Modelo 130](https://facturascripts.com/plugins/modelo130)
+- [Modelo 303](https://facturascripts.com/plugins/modelo303)
+- [Modelo 347](https://facturascripts.com/plugins/modelo347)

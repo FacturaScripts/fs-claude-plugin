@@ -34,7 +34,7 @@ use FacturaScripts\Core\Kernel;
 Kernel::addRoute(&#39;/productos&#39;, &#39;ListProducto&#39;);
 ```
 
-Si queremos hacer esto en nuestro plugin, lo ideal es colocar esta llamada en la función ``init()`` del [archivo Init.php del plugin](/publicaciones/el-archivo-init-php-307). También podemos añadir una función a ejecutar cada vez que se reconstruya el archivo de rutas, por ejemplo para tener más control:
+Si queremos hacer esto en nuestro plugin, lo ideal es colocar esta llamada en la función ``init()`` del [archivo Init.php del plugin](https://facturascripts.com/publicaciones/el-archivo-init-php-307). También podemos añadir una función a ejecutar cada vez que se reconstruya el archivo de rutas, por ejemplo para tener más control:
 
 ```
 Kernel::addRoutes(function () {

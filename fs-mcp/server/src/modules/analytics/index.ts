@@ -3,7 +3,6 @@
  * Provides tools for analyzing customer behavior, product sales, billing trends, and business metrics
  */
 
-import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
 
@@ -105,7 +104,7 @@ interface EvolucionNegocio {
   numeroFacturas: number;
 }
 
-const analyticsTools: Tool[] = [
+export const analyticsTools: Tool[] = [
   {
     name: 'get_clientes_morosos',
     description: 'Obtiene clientes con recibos vencidos no pagados',
@@ -368,22 +367,24 @@ const analyticsTools: Tool[] = [
   },
 ];
 
-export async function registerAnalyticsTools(server: Server): Promise<void> {
-  server.setRequestHandler(
-    { resources: { list: {} } } as unknown as Parameters<typeof server.setRequestHandler>[0],
-    async () => {
-      return { resources: [] };
-    },
-  );
+/**
+ * Register all analytics tools with the MCP server
+ */
+export async function registerAnalyticsTools(tools: Map<string, Tool>): Promise<void> {
+  analyticsTools.forEach((tool) => tools.set(tool.name, tool));
+}
 
-  for (const tool of analyticsTools) {
-    server.setRequestHandler(
-      { tools: { call: { name: tool.name } } } as unknown as Parameters<typeof server.setRequestHandler>[0],
-      async (request) => {
-        const input = request.params.arguments as Record<string, unknown>;
+/**
+ * Handle analytics tool calls
+ */
+export async function handleAnalyticsTool(
+  name: string,
+  args: Record<string, unknown>
+): Promise<{ content: [{ type: 'text'; text: string }]; isError?: boolean } | null> {
+  const input = args;
 
-        try {
-          switch (tool.name) {
+  try {
+    switch (name) {
             case 'get_clientes_morosos': {
               const connection = input.connection as string;
 
@@ -1023,24 +1024,16 @@ export async function registerAnalyticsTools(server: Server): Promise<void> {
               };
             }
 
-            default:
-              return {
-                content: [
-                  { type: 'text' as const, text: JSON.stringify({ error: `Unknown tool: ${tool.name}` }, null, 2) },
-                ],
-                isError: true,
-              };
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          return {
-            content: [
-              { type: 'text' as const, text: JSON.stringify({ error: errorMessage }, null, 2) },
-            ],
-            isError: true,
-          };
-        }
-      },
-    );
+      default:
+        return null;
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      content: [
+        { type: 'text' as const, text: JSON.stringify({ error: errorMessage }, null, 2) },
+      ],
+      isError: true,
+    };
   }
 }

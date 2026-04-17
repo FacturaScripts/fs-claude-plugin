@@ -1,7 +1,7 @@
-# Stock Bajo
-
+---
 name: stock-bajo
 description: Identifica productos con stock por debajo del mínimo y genera alertas de reposición
+---
 
 ## Descripción
 

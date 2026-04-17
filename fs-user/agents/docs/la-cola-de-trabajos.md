@@ -58,7 +58,7 @@ class MiWorker extends WorkerClass
 ```
 
 ### Registrar un worker
-Para hacer que un worker &quot;escuche&quot; un evento podemos llamar a ``WorkQueue::addWorker()`` en la función ``init()`` del [archivo Init.php](/publicaciones/el-archivo-init-php-307) de nuestro plugin. En el siguiente ejemplo registraremos el worker MiWorker para que escuche el evento de cuando se modifica un producto.
+Para hacer que un worker &quot;escuche&quot; un evento podemos llamar a ``WorkQueue::addWorker()`` en la función ``init()`` del [archivo Init.php](https://facturascripts.com/publicaciones/el-archivo-init-php-307) de nuestro plugin. En el siguiente ejemplo registraremos el worker MiWorker para que escuche el evento de cuando se modifica un producto.
 
 ```
 WorkQueue::addWorker(&#39;MiWorker&#39;, &#39;Model.Producto.Update&#39;);

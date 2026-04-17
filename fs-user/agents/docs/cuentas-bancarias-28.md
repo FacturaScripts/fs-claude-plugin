@@ -30,9 +30,9 @@ Podemos añadir las cuentas bancarias de clientes desde el propio cliente. Haz c
 ### 👨‍🔧 Cuentas bancarias de proveedores
 De igual forma que con clientes, podemos añadir las cuentas bancarias de un proveedores desde la sección cuentas bancarias del proveedor.
 
-![cuentas bancarias proveedores](/MyFiles/2025/05/2852.png?myft=8b0e710c63939e2986f4ce0e96f5a667b6b9e852)
+![cuentas bancarias proveedores](https://facturascripts.com/MyFiles/2025/05/2852.png?myft=8b0e710c63939e2986f4ce0e96f5a667b6b9e852)
 
 ### 🖨️ Mostrar la cuenta bancaria en las facturas
-Una vez tengamos nuestras cuentas bancarias creadas. Debemos ir a las [formas de pago](/publicaciones/formas-de-pago-729), y podremos asociar cada forma de pago con su cuenta bancaria correspondiente. De este modo **la factura mostrará la cuenta bancaria** que este vinculada con la forma de pago elegida. Si la forma de pago no tiene ninguna cuenta bancaria vinculada no mostrará nada.
+Una vez tengamos nuestras cuentas bancarias creadas. Debemos ir a las [formas de pago](https://facturascripts.com/publicaciones/formas-de-pago-729), y podremos asociar cada forma de pago con su cuenta bancaria correspondiente. De este modo **la factura mostrará la cuenta bancaria** que este vinculada con la forma de pago elegida. Si la forma de pago no tiene ninguna cuenta bancaria vinculada no mostrará nada.
 
 ![vincular forma de pago con cuenta bancaria](https://i.imgur.com/VvRs5aq.png)

@@ -10,6 +10,7 @@ export interface ConnectionConfig {
     url: string;
     token: string;
     version?: string;
+    rejectUnauthorized?: boolean;
 }
 /**
  * Configuración completa de conexiones multi-instancia

@@ -40,7 +40,7 @@ StockAvanzado,Servicios
 
 ### 🧪 Creación de un Test Unitario
 
-Podemos crear un test unitario utilizando [fsmaker](/fsmaker) con el parámetro test. Nos pedirá el nombre del archivo y lo creará en la carpeta.
+Podemos crear un test unitario utilizando [fsmaker](https://facturascripts.com/fsmaker) con el parámetro test. Nos pedirá el nombre del archivo y lo creará en la carpeta.
 
 ```
 fsmaker test

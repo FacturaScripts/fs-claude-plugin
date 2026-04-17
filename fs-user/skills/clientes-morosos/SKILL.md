@@ -1,7 +1,7 @@
-# Clientes Morosos
-
+---
 name: clientes-morosos
 description: Identifica clientes con deuda pendiente y genera un informe de cobro con prioridades de seguimiento
+---
 
 ## Descripción
 

@@ -20,7 +20,7 @@ $sql = &#39;SELECT * FROM productos WHERE &#39; . Where::multiSql($where);
 // SELECT * FROM productos WHERE precio &gt; 0 AND codfamilia IS NULL
 ```
 
-Esta clase se usa activamente con la clase [DbQuery](/publicaciones/dbquery) y pronto con los nuevos modelos:
+Esta clase se usa activamente con la clase [DbQuery](https://facturascripts.com/publicaciones/dbquery) y pronto con los nuevos modelos:
 
 ```
 use FacturaScripts\Core\DbQuery;

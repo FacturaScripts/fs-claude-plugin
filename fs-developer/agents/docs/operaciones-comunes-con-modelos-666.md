@@ -22,7 +22,7 @@ use FacturaScripts\Dinamic\Model\Project;
 ```
 
 ## 📝 Crear y guardar un registro
-Siguiendo con nuestro ejemplo del modelo Project, vamos a crear un nuevo proyecto. Para guardar el registro en la base de datos llamaremos al [método save() del modelo](/publicaciones/save-782).
+Siguiendo con nuestro ejemplo del modelo Project, vamos a crear un nuevo proyecto. Para guardar el registro en la base de datos llamaremos al [método save() del modelo](https://facturascripts.com/publicaciones/save-782).
 
 ```
 $newProject = new Project();
@@ -32,7 +32,7 @@ $newProject-&gt;save();
 ```
 
 ### 🔍 Obtener un registro del que conocemos su identificador o clave primaria:
-Para cargar los datos de un registro almacenado en la base de datos llamaremos al [método load() del modelo](/publicaciones/loadfromcode-677) o `find()`.
+Para cargar los datos de un registro almacenado en la base de datos llamaremos al [método load() del modelo](https://facturascripts.com/publicaciones/loadfromcode-677) o `find()`.
 
 ```
 // supongamos que es &#39;test&#39;
@@ -49,7 +49,7 @@ if($project) {
 ```
 
 ### 🗑️ Eliminar un registro:
-Para eliminar un registro de la base de datos llamaremos al [método delete() del modelo](/publicaciones/delete-986).
+Para eliminar un registro de la base de datos llamaremos al [método delete() del modelo](https://facturascripts.com/publicaciones/delete-986).
 
 ```
 // supongamos que es &#39;test&#39;
@@ -62,7 +62,7 @@ if ($project-&gt;load(&#39;test&#39;)) {
 ```
 
 ### 📖 Leer muchos registros
-Podemos leer muchos registros de la base de datos, o todos, con el [método all() del modelo](/publicaciones/all-863). Este método permite filtros, ordenación y paginación.
+Podemos leer muchos registros de la base de datos, o todos, con el [método all() del modelo](https://facturascripts.com/publicaciones/all-863). Este método permite filtros, ordenación y paginación.
 
 ```
 foreach (Producto::all() as $producto) {
@@ -71,7 +71,7 @@ foreach (Producto::all() as $producto) {
 ```
 
 ### 🔢 Contar registros
-También podemos obtener el número de registros en la base de datos llamando al [método count() del modelo](/publicaciones/count-882). Este método además permite pasar filtros para obtener el contador de aquellos registros que cumplan los filtros.
+También podemos obtener el número de registros en la base de datos llamando al [método count() del modelo](https://facturascripts.com/publicaciones/count-882). Este método además permite pasar filtros para obtener el contador de aquellos registros que cumplan los filtros.
 
 ```
 $total = Producto::count();

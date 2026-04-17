@@ -54,7 +54,7 @@ La función `setToast()` en JavaScript permite mostrar mensajes en la vista y ac
 3. **Título**: (opcional) Título del mensaje.
 4. **Duración**: Tiempo de visualización en milisegundos. Por defecto, 10000 (10 segundos).
 
-Si deseas saber cómo integrar estos mensajes en tu vista HTML, consulta la documentación sobre [Vistas HTML](/publicaciones/las-vistas-html-69).
+Si deseas saber cómo integrar estos mensajes en tu vista HTML, consulta la documentación sobre [Vistas HTML](https://facturascripts.com/publicaciones/las-vistas-html-69).
 
 ```html
 &lt;script&gt;
@@ -91,8 +91,8 @@ Puedes consultar los logs antiguos desde el menú **Administrador &gt; Logs**. A
 
 ## Traducciones
 
-Las traducciones se almacenan en el directorio **Translation** del plugin en archivos JSON. Se pueden gestionar y actualizar desde la sección de traducciones en [la Forja](/forja).
+Las traducciones se almacenan en el directorio **Translation** del plugin en archivos JSON. Se pueden gestionar y actualizar desde la sección de traducciones en [la Forja](https://facturascripts.com/forja).
 
 ### Uso de traducciones existentes
 
-Si deseas utilizar traducciones ya existentes, visita el [listado de traducciones en español](/EditLanguage?code=es_ES) y selecciona la que mejor se adapte a tus necesidades.
+Si deseas utilizar traducciones ya existentes, visita el [listado de traducciones en español](https://facturascripts.com/EditLanguage?code=es_ES) y selecciona la que mejor se adapte a tus necesidades.

@@ -6,13 +6,13 @@ creationdate: 01-05-2018 00:00:00
 lastmod: 07-04-2026
 url: https://facturascripts.com/las-vistas-xml-xmlview-668
 ---
-Los controladores extendidos como [ListController](/publicaciones/listcontroller-232) y [EditController](/publicaciones/editcontroller-642), utilizan **archivos XML** para definir las columnas, grupos, widgets y botones a mostrar en una pestaña. De esta forma podemos personalizar rápidamente un listado o formulario sin necesidad de editar PHP. Estos archivos se deben almacenar en la **carpeta XMLView** del plugin.
+Los controladores extendidos como [ListController](https://facturascripts.com/publicaciones/listcontroller-232) y [EditController](https://facturascripts.com/publicaciones/editcontroller-642), utilizan **archivos XML** para definir las columnas, grupos, widgets y botones a mostrar en una pestaña. De esta forma podemos personalizar rápidamente un listado o formulario sin necesidad de editar PHP. Estos archivos se deben almacenar en la **carpeta XMLView** del plugin.
 
 ## Estructura del XML
 El elemento raíz del archivo XML será la **etiqueta view** y se podrán incluir las siguientes etiquetas a modo de grupo:
-- [Etiqueta columns](/publicaciones/columns-88): (obligatoria) para definir la lista de campos que se visualizan en la vista.
-- [Etiqueta rows](/publicaciones/rows-304): (opcional) permite definir condiciones especiales para la filas, así como añadir botones a las vistas.
-- [Etiqueta modals](/publicaciones/modals-718): (opcional) define un formulario modal que será visualizado mediante la interacción con un botón definido en la vista.
+- [Etiqueta columns](https://facturascripts.com/publicaciones/columns-88): (obligatoria) para definir la lista de campos que se visualizan en la vista.
+- [Etiqueta rows](https://facturascripts.com/publicaciones/rows-304): (opcional) permite definir condiciones especiales para la filas, así como añadir botones a las vistas.
+- [Etiqueta modals](https://facturascripts.com/publicaciones/modals-718): (opcional) define un formulario modal que será visualizado mediante la interacción con un botón definido en la vista.
 
 ### Ejemplo: vista para ListController
 Aquí podemos ver que se definen 3 columnas a mostrar, más un row status, que sirve para indicar los colores a aplicar.

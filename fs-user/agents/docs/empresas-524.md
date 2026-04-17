@@ -37,7 +37,7 @@ Para hacer una factura en otra empresa, que no sea la predeterminada, simplement
 ### Empresa predeterminada
 Puede seleccionar la empresa predefinida (la que se asignará automáticamente a los nuevos documentos) desde el menú **Administrador, Panel de control**. Seleccione la empresa en el campo empresa y pulse guardar.
 
-![cambiar empresa predeterminada](/MyFiles/2025/01/2493.png?myft=e62bf6b6c8b4dccd8c4e70b096f6903d5e6297d4)
+![cambiar empresa predeterminada](https://facturascripts.com/MyFiles/2025/01/2493.png?myft=e62bf6b6c8b4dccd8c4e70b096f6903d5e6297d4)
 
 ### Empresa predeterminada por usuario
 Cuando tiene más de una empresa configurada, puede elegir la empresa predeterminada para cada usuario en la configuración del usuario. Haga clic en el menú Administrador, Usuarios, clic en el usuario que desea cambiar. Y en la siguiente pantalla, seleccione la empresa en el campo empresa y pulse guardar.

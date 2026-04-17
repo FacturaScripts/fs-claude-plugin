@@ -16,7 +16,7 @@ Si hay actualizaciones del núcleo, le aparecerá el componente CORE o CORE-2018
 ![actualizar el core](https://i.imgur.com/K6CVnJW.png)
 
 ### 📅 FacturaScripts 2017
-Si tiene instalada la versión 2017 y quere actualizar, consulte nuestra [guía sobre cómo actualizar desde FacturaScripts 2017](/publicaciones/actualizar-desde-facturascripts-2017-292).
+Si tiene instalada la versión 2017 y quere actualizar, consulte nuestra [guía sobre cómo actualizar desde FacturaScripts 2017](https://facturascripts.com/publicaciones/actualizar-desde-facturascripts-2017-292).
 
 ## 🔌 Actualizar plugins
 Para actualizar los plugins funciona exáctamente igual, si hay actualización, pulse el botón descargar y después el botón actualizar. Tenga en cuenta que debería **actualizar el núcleo** antes que los plugins.
@@ -36,4 +36,4 @@ Una vez registrada la instalación, solamente falta vincular la suscripción del
 Tras vincular el plugin, ya puede actualizarlo sin problemas desde el actualizador. Tenga en cuenta que cuando compra un plugin, además del plugin, obtiene soporte de actualizaciones durante X meses. Cuando este soporte caduque recibirá un email informándole de los pasos a seguir.
 
 ## 📈 Telemetría
-También es importante señalar que al registrar una instalación, se envía periódicamente a facturascripts.com información estadística como la versiones de PHP, versión de FacturaScripts, plugins activos, etc. A este proceso lo llamamos [telemetría](/publicaciones/telemetria-de-facturascripts).
+También es importante señalar que al registrar una instalación, se envía periódicamente a facturascripts.com información estadística como la versiones de PHP, versión de FacturaScripts, plugins activos, etc. A este proceso lo llamamos [telemetría](https://facturascripts.com/publicaciones/telemetria-de-facturascripts).

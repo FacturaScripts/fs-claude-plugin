@@ -32,4 +32,4 @@ Lo mismo ocurre si en lugar de querer asignar una tarifa a un cliente y queremos
 Si un cliente tiene asignada la tarifa 1 y el cliente pertenece a un grupo de clientes que tiene asignada la tarifa 2, la tarifa que se aplicará es la tarifa 1, es decir, la tarifa asignada al cliente tiene preferencia sobre la tarifa del grupo.
 
 ### 🛠️ Mas control sobre las tarifas
-Estas tarifas se aplican sobre todos los productos creados en FacturaScripts, si necesitamos un control mas fino de las mismas o crear descuentos podemos hacer uso del plugin [**Tarifas Avanzadas**](/plugins/tarifasavanzadas).
+Estas tarifas se aplican sobre todos los productos creados en FacturaScripts, si necesitamos un control mas fino de las mismas o crear descuentos podemos hacer uso del plugin [**Tarifas Avanzadas**](https://facturascripts.com/plugins/tarifasavanzadas).

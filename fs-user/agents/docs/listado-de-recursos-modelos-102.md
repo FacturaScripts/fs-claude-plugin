@@ -14,7 +14,7 @@ Al acceder a la API indicando únicamente la versión, obtendremos un listado co
 http://localhost:8000/api/3
 ```
 
-![Lista de recursos API](/MyFiles/2024/03/2022.png?myft=fd1934bc91748ad90f3360e4a154bc0d784d7c17)
+![Lista de recursos API](https://facturascripts.com/MyFiles/2024/03/2022.png?myft=fd1934bc91748ad90f3360e4a154bc0d784d7c17)
 
 Puedes consultar cada uno de estos recursos agregando el nombre del recurso a la URL:
 

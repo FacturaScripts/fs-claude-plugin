@@ -30,7 +30,7 @@ También podemos asignar una serie predeterminada a un cliente/proveedor desde e
 
 
 ## Numeración de facturas, albaranes y otros documentos
-La numeración de facturas, albaranes, pedidos, presupuestos u otros documentos que sigan el estandar de FacturaScripts se configura desde las [secuencias de documentos](/publicaciones/secuencias-de-documentos-184).
+La numeración de facturas, albaranes, pedidos, presupuestos u otros documentos que sigan el estandar de FacturaScripts se configura desde las [secuencias de documentos](https://facturascripts.com/publicaciones/secuencias-de-documentos-184).
 
 ## Formatos de impresión por serie de impresion
-Tambien podemos hacer que cada serie tenga un [Formato de impresión](/publicaciones/los-formatos-de-impresion-de-facturascripts) en específico.
+Tambien podemos hacer que cada serie tenga un [Formato de impresión](https://facturascripts.com/publicaciones/los-formatos-de-impresion-de-facturascripts) en específico.

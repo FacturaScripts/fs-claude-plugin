@@ -34,7 +34,7 @@ Puede configurar el número de decimales a usar en FacturaScripts desde el menú
 
 ![decimales facturascripts](https://i.imgur.com/laLMMqp.png)
 
-Tenga en cuenta que esta configuración se aplicará al mostrar números en los listados o al imprimir (excepto con [el plugin PlantillasPDF, que aplica su propia configuración](/publicaciones/como-cambiar-los-decimales-de-cantidad) en facturas, albaranes...).
+Tenga en cuenta que esta configuración se aplicará al mostrar números en los listados o al imprimir (excepto con [el plugin PlantillasPDF, que aplica su propia configuración](https://facturascripts.com/publicaciones/como-cambiar-los-decimales-de-cantidad) en facturas, albaranes...).
 
 ### Advertencia sobre decimales
 No asigne más decimales que los que tiene su divisa o podría tener problemas de redondeo en los totales.

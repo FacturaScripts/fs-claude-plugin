@@ -23,7 +23,7 @@ Y así es cómo se ve el widget checkbox en listados:
 ![widget checkbox listados](https://i.imgur.com/OonKO4l.png)
 
 ## Alineación vertical
-Cuando mezcla columnas select, text y checkbox sucede que las checkbox se alinean en la parte de arriba. Puede modificar este comportamiento cambiando la alineación vertical de la [etiqueta group](/publicaciones/group-747) con el **parámetro valign**. Ejemplo:
+Cuando mezcla columnas select, text y checkbox sucede que las checkbox se alinean en la parte de arriba. Puede modificar este comportamiento cambiando la alineación vertical de la [etiqueta group](https://facturascripts.com/publicaciones/group-747) con el **parámetro valign**. Ejemplo:
 
 ```
 &lt;group name=&quot;data&quot; numcolumns=&quot;12&quot; valign=&quot;bottom&quot;&gt;

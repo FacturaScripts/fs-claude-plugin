@@ -8,7 +8,7 @@ url: https://facturascripts.com/usuarios-y-permisos
 ---
 Para usar FacturaScripts es necesario un usuario y contraseña, así se evita que cualquiera pueda acceder a sus datos. Puede gestionar la lista de usuarios de FacturaScripts desde el **menú Administrador** → **Usuarios**.
 
-![listado de usuarios](/MyFiles/2023/12/1852.png?myft=5ba3b3c7c4a9716be7c19d5e44a86386b43250ca)
+![listado de usuarios](https://facturascripts.com/MyFiles/2023/12/1852.png?myft=5ba3b3c7c4a9716be7c19d5e44a86386b43250ca)
 
 ## ⁉️ FacturaScripts y facturascripts.com
 Su instalación de FacturaScripts es **totalmente independiente** de facturascripts.com. No se comparten usuarios, ni contraseñas, ni emails, nada. Si lo instala en su PC o servidor, sus datos están ahí y solamente ahí.

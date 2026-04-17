@@ -7,7 +7,7 @@ lastmod: 10-03-2026
 url: https://facturascripts.com/row-statistics-603
 ---
 Este tipo de row permite definir botones o etiquetas que muestran datos calculados en el momento por el controlador. Estas etiquetas se definen con la etiqueta **datalabel** que tiene estos atributos:
-- **icon**: [icono de la etiqueta](/publicaciones/iconos-disponibles-308).
+- **icon**: [icono de la etiqueta](https://facturascripts.com/publicaciones/iconos-disponibles-308).
 - **label**: texto del botón. **Se traducirá automáticamente**.
 - **function**: nombre de la función del controlador que se ejecuta para devolver el texto a visualizar.
 - **link**: URL destino, donde se redigirá al usuario al hacer click sobre el botón.

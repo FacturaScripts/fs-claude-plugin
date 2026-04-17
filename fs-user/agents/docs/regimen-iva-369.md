@@ -17,7 +17,7 @@ Para asignar un régimen de impuestos a un cliente, haga clic en el **menú Vent
 ![cambiar regimen impuestos cliente](https://i.imgur.com/inCE9Ax.png)
 
 Si ha seleccionado recargo de equivalencia, las nuevas facturas que haga a este cliente incluirán el recargo de equivalencia en cada línea. Y si ha seleccionado exento, las nuevas facturas al cliente no incluirán IVA ni recargo de equivalencia:
-- [Cómo hacer una factura con recargo de equivalencia](/publicaciones/como-hacer-una-factura-con-recargo-de-equivalencia).
+- [Cómo hacer una factura con recargo de equivalencia](https://facturascripts.com/publicaciones/como-hacer-una-factura-con-recargo-de-equivalencia).
 
 ## Cambiar el régimen de IVA de un proveedor
 Para cambiar un régimen de IVA de un proveedor,haga clic en el **menú Compras**,**Proveedor**,  abra el proveedor y en el campo **régimen impuestos** seleccione el correspondiente y pulse el botón guardar:

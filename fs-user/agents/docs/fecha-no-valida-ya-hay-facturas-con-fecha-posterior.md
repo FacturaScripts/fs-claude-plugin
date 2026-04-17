@@ -15,7 +15,7 @@ Si la factura 13 tiene fecha del 11-10-2024, la factura 14 no puede tener fecha 
 Para este ejemplo, lo correcto es asignar la fecha 11-10-2024 a la factura 14. Así evitamos el problema.
 
 ### Series
-Si necesita facturar a ritmos distintos, por ejemplo porque hace ventas a diario, pero también atiende a algunos clientes a los que factura a final de mes, lo ideal sería que crease [series distintas](/publicaciones/series-470) para estos casos, así las ventas de diario las puede tener en una serie y el resto en otra.
+Si necesita facturar a ritmos distintos, por ejemplo porque hace ventas a diario, pero también atiende a algunos clientes a los que factura a final de mes, lo ideal sería que crease [series distintas](https://facturascripts.com/publicaciones/series-470) para estos casos, así las ventas de diario las puede tener en una serie y el resto en otra.
 
 ### Albaranes
-Si en su negocio es habitual hacer las facturas a posteriori, lo recomendable es que trabaje con [albaranes](/como-hacer-un-albaran-de-venta), no con facturas. Los albaranes no tienen esta restricción y se pueden agrupar en facturas rápida y cómodamente.
+Si en su negocio es habitual hacer las facturas a posteriori, lo recomendable es que trabaje con [albaranes](https://facturascripts.com/como-hacer-un-albaran-de-venta), no con facturas. Los albaranes no tienen esta restricción y se pueden agrupar en facturas rápida y cómodamente.

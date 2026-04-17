@@ -6,7 +6,7 @@ creationdate: 02-01-2021 13:17:21
 lastmod: 07-05-2025
 url: https://facturascripts.com/los-ejercicios-contables
 ---
-FacturaScripts **genera automáticamente** un ejercicio contable cada año, conforme lo va necesitando. Si por ejemplo crea un pedido con fecha de 2 de enero de 2026, FacturaScripts creará automáticamente el ejercicio 2026 (si no existe). **Lo que no generará automáticamente** es [el plan contable](/publicaciones/plan-contable-442). Ese paso deberá realizarlo usted y es importante para el buen funcionamiento de la contabilidad. Sin plan contable no se pueden generar asientos contables. 
+FacturaScripts **genera automáticamente** un ejercicio contable cada año, conforme lo va necesitando. Si por ejemplo crea un pedido con fecha de 2 de enero de 2026, FacturaScripts creará automáticamente el ejercicio 2026 (si no existe). **Lo que no generará automáticamente** es [el plan contable](https://facturascripts.com/publicaciones/plan-contable-442). Ese paso deberá realizarlo usted y es importante para el buen funcionamiento de la contabilidad. Sin plan contable no se pueden generar asientos contables. 
 
 Puede tener todos los ejercicios abiertos que desee. Al contrario que otros programas, FacturaScripts no limita el uso de ejercicios. Puede hacer facturas en el nuevo año, mientras termina de crear las facturas que le faltaban del año anterior.
 
@@ -26,13 +26,13 @@ Si desea abrir un ejercicio ya cerrado, vaya al **menú Contabilidad, Ejercicios
 ![reabrir ejercicio](https://i.imgur.com/gpz1oYI.png)
 
 ## 📑 Plan contable
-[El plan contable](/publicaciones/plan-contable-442) comprende el listado de cuentas, subcuentas y [cuentas especiales](/publicaciones/cuentas-especiales) para el correcto funcionamiento de la contabilidad. Este plan contable está vinculado al ejercicio, es decir, cada ejercicio puede tener una relación de cuentas y subcuentas distinta.
+[El plan contable](https://facturascripts.com/publicaciones/plan-contable-442) comprende el listado de cuentas, subcuentas y [cuentas especiales](https://facturascripts.com/publicaciones/cuentas-especiales) para el correcto funcionamiento de la contabilidad. Este plan contable está vinculado al ejercicio, es decir, cada ejercicio puede tener una relación de cuentas y subcuentas distinta.
 
 ## 📚 Diarios y balances
-Con el [plugin Informes](/plugins/informes) activado. Desde el menú **Informes, Informes contables** puede generar:
+Con el [plugin Informes](https://facturascripts.com/plugins/informes) activado. Desde el menú **Informes, Informes contables** puede generar:
 
 - Diarios contables.
-- [Balances de sumas y saldos](/publicaciones/como-hacer-un-balance-de-sumas-y-saldos).
-- [Balances de situación](/publicaciones/como-hacer-un-balance-de-situacion).
+- [Balances de sumas y saldos](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-sumas-y-saldos).
+- [Balances de situación](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-situacion).
 - Balances de ingresos y gastos.
-- [Balances de pérdidas y ganancias](/publicaciones/como-hacer-un-balance-de-perdidas-y-ganancias).
+- [Balances de pérdidas y ganancias](https://facturascripts.com/publicaciones/como-hacer-un-balance-de-perdidas-y-ganancias).

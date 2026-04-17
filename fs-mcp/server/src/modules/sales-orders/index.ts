@@ -3,7 +3,6 @@
  * Incluye: Presupuestos, Pedidos, Albaranes, Facturas y Recibos de clientes
  */
 
-import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
 
@@ -95,6 +94,13 @@ interface PagoclientesParams {
   offset?: number;
   limit?: number;
   idrecibo?: number;
+}
+
+interface CuentaBancoClientesParams {
+  connection: string;
+  offset?: number;
+  limit?: number;
+  codcliente?: string;
 }
 
 export const salesOrdersTools: Tool[] = [
@@ -438,25 +444,466 @@ export const salesOrdersTools: Tool[] = [
       required: ['connection'],
     },
   },
+  {
+    name: 'get_cuentabancoclientes',
+    description:
+      'Obtiene cuentas bancarias de clientes con filtros opcionales de código de cliente',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: {
+          type: 'string',
+          description: 'Identificador de conexión a la base de datos',
+        },
+        offset: {
+          type: 'number',
+          description: 'Número de registros a saltar',
+        },
+        limit: {
+          type: 'number',
+          description: 'Número máximo de registros a retornar',
+        },
+        codcliente: {
+          type: 'string',
+          description: 'Código del cliente',
+        },
+      },
+      required: ['connection'],
+    },
+  },
 ];
 
-export async function registerSalesOrdersTools(server: Server): Promise<void> {
-  server.setRequestHandler(
-    { resources: { list: {} } } as unknown as Parameters<typeof server.setRequestHandler>[0],
-    async () => {
-      return { resources: [] };
+
+// ──────────────────────────────────────────────────
+// Interfaces para operaciones de escritura de ventas
+// ──────────────────────────────────────────────────
+
+interface LineaDocumento {
+  referencia?: string;
+  descripcion?: string;
+  cantidad?: number;
+  pvpunitario?: number;
+  dtopor?: number;
+  dtopor2?: number;
+  codimpuesto?: string;
+  excepcioniva?: string;
+  suplido?: boolean;
+  coste?: number;
+  orden?: number;
+  actualizastock?: boolean;
+  servido?: number;
+  mostrar_cantidad?: boolean;
+  mostrar_precio?: boolean;
+  salto_pagina?: boolean;
+}
+
+interface CreateDocumentoClienteParams {
+  connection: string;
+  codcliente: string;
+  lineas: LineaDocumento[];
+  fecha?: string;
+  hora?: string;
+  codserie?: string;
+  codalmacen?: string;
+  coddivisa?: string;
+  observaciones?: string;
+  numero2?: string;
+  pagada?: boolean;
+  codagente?: string;
+  codpago?: string;
+  dtopor1?: number;
+  dtopor2?: number;
+  irpf?: number;
+  nombrecliente?: string;
+  cifnif?: string;
+  direccion?: string;
+  apartado?: string;
+  ciudad?: string;
+  codpostal?: string;
+  codpais?: string;
+  idcontactoenv?: number;
+  idcontactofact?: number;
+  finoferta?: string;
+}
+
+interface DeleteDocumentoClienteParams {
+  connection: string;
+  id: number;
+}
+
+
+export const salesOrdersWriteTools: Tool[] = [
+  // ── Facturas de cliente ──
+  {
+    name: 'create_factura_cliente',
+    description: 'Crea una nueva factura de cliente en FacturaScripts usando el endpoint especializado /crearFacturaCliente',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        codcliente: { type: 'string', description: 'Código del cliente (obligatorio)' },
+        lineas: {
+          type: 'array',
+          description: 'Líneas de la factura (obligatorio)',
+          items: {
+            type: 'object',
+            properties: {
+              referencia: { type: 'string', description: 'Referencia del producto (opcional)' },
+              descripcion: { type: 'string', description: 'Descripción de la línea' },
+              cantidad: { type: 'number', description: 'Cantidad' },
+              pvpunitario: { type: 'number', description: 'Precio unitario' },
+              dtopor: { type: 'number', description: 'Descuento en porcentaje' },
+              codimpuesto: { type: 'string', description: 'Código de impuesto (ej: IVA21)' },
+              coste: { type: 'number', description: 'Precio de coste de la línea' },
+              orden: { type: 'number', description: 'Orden de la línea en el documento' },
+              actualizastock: { type: 'boolean', description: 'Si actualiza el stock al registrar' },
+              servido: { type: 'number', description: 'Cantidad ya servida' },
+              mostrar_cantidad: { type: 'boolean', description: 'Mostrar cantidad en impresión' },
+              mostrar_precio: { type: 'boolean', description: 'Mostrar precio en impresión' },
+              salto_pagina: { type: 'boolean', description: 'Insertar salto de página tras esta línea' },
+            },
+          },
+        },
+        fecha: { type: 'string', description: 'Fecha de la factura (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de serie' },
+        codalmacen: { type: 'string', description: 'Código de almacén' },
+        coddivisa: { type: 'string', description: 'Código de divisa (ej: EUR)' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        numero2: { type: 'string', description: 'Número externo o referencia del cliente' },
+        pagada: { type: 'boolean', description: 'Marcar la factura como pagada al crearla' },
+        codagente: { type: 'string', description: 'Código de agente comercial' },
+        codpago: { type: 'string', description: 'Código de forma de pago' },
+        dtopor1: { type: 'number', description: 'Descuento porcentual nivel 1' },
+        dtopor2: { type: 'number', description: 'Descuento porcentual nivel 2' },
+        irpf: { type: 'number', description: 'Porcentaje de retención IRPF' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente en el documento' },
+        cifnif: { type: 'string', description: 'CIF/NIF en el documento' },
+        direccion: { type: 'string', description: 'Dirección de envío' },
+        apartado: { type: 'string', description: 'Apartado de correos' },
+        ciudad: { type: 'string', description: 'Ciudad' },
+        codpostal: { type: 'string', description: 'Código postal' },
+        codpais: { type: 'string', description: 'Código de país' },
+        idcontactoenv: { type: 'number', description: 'ID del contacto de envío' },
+        idcontactofact: { type: 'number', description: 'ID del contacto de facturación' },
+      },
+      required: ['connection', 'codcliente', 'lineas'],
     },
-  );
+  },
+  {
+    name: 'delete_factura_cliente',
+    description: 'Elimina una factura de cliente. Precaución: operación irreversible.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        id: { type: 'number', description: 'ID de la factura (idfactura)' },
+      },
+      required: ['connection', 'id'],
+    },
+  },
+  // ── Albaranes de cliente ──
+  {
+    name: 'create_albaran_cliente',
+    description: 'Crea un nuevo albarán de cliente en FacturaScripts usando el endpoint /crearAlbaranCliente',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        codcliente: { type: 'string', description: 'Código del cliente (obligatorio)' },
+        lineas: {
+          type: 'array',
+          description: 'Líneas del albarán (obligatorio)',
+          items: {
+            type: 'object',
+            properties: {
+              referencia: { type: 'string', description: 'Referencia del producto' },
+              descripcion: { type: 'string', description: 'Descripción' },
+              cantidad: { type: 'number', description: 'Cantidad' },
+              pvpunitario: { type: 'number', description: 'Precio unitario' },
+              dtopor: { type: 'number', description: 'Descuento en porcentaje' },
+              codimpuesto: { type: 'string', description: 'Código de impuesto' },
+              coste: { type: 'number', description: 'Precio de coste de la línea' },
+              orden: { type: 'number', description: 'Orden de la línea en el documento' },
+              actualizastock: { type: 'boolean', description: 'Si actualiza el stock al registrar' },
+              servido: { type: 'number', description: 'Cantidad ya servida' },
+              mostrar_cantidad: { type: 'boolean', description: 'Mostrar cantidad en impresión' },
+              mostrar_precio: { type: 'boolean', description: 'Mostrar precio en impresión' },
+              salto_pagina: { type: 'boolean', description: 'Insertar salto de página tras esta línea' },
+            },
+          },
+        },
+        fecha: { type: 'string', description: 'Fecha (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de serie' },
+        codalmacen: { type: 'string', description: 'Código de almacén' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        numero2: { type: 'string', description: 'Número externo' },
+        codagente: { type: 'string', description: 'Código de agente comercial' },
+        codpago: { type: 'string', description: 'Código de forma de pago' },
+        dtopor1: { type: 'number', description: 'Descuento porcentual nivel 1' },
+        dtopor2: { type: 'number', description: 'Descuento porcentual nivel 2' },
+        irpf: { type: 'number', description: 'Porcentaje de retención IRPF' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente en el documento' },
+        cifnif: { type: 'string', description: 'CIF/NIF en el documento' },
+        direccion: { type: 'string', description: 'Dirección de envío' },
+        apartado: { type: 'string', description: 'Apartado de correos' },
+        ciudad: { type: 'string', description: 'Ciudad' },
+        codpostal: { type: 'string', description: 'Código postal' },
+        codpais: { type: 'string', description: 'Código de país' },
+        idcontactoenv: { type: 'number', description: 'ID del contacto de envío' },
+        idcontactofact: { type: 'number', description: 'ID del contacto de facturación' },
+      },
+      required: ['connection', 'codcliente', 'lineas'],
+    },
+  },
+  {
+    name: 'delete_albaran_cliente',
+    description: 'Elimina un albarán de cliente. Precaución: operación irreversible.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        id: { type: 'number', description: 'ID del albarán (idalbaran)' },
+      },
+      required: ['connection', 'id'],
+    },
+  },
+  // ── Pedidos de cliente ──
+  {
+    name: 'create_pedido_cliente',
+    description: 'Crea un nuevo pedido de cliente en FacturaScripts usando el endpoint /crearPedidoCliente',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        codcliente: { type: 'string', description: 'Código del cliente (obligatorio)' },
+        lineas: {
+          type: 'array',
+          description: 'Líneas del pedido (obligatorio)',
+          items: {
+            type: 'object',
+            properties: {
+              referencia: { type: 'string', description: 'Referencia del producto' },
+              descripcion: { type: 'string', description: 'Descripción' },
+              cantidad: { type: 'number', description: 'Cantidad' },
+              pvpunitario: { type: 'number', description: 'Precio unitario' },
+              dtopor: { type: 'number', description: 'Descuento en porcentaje' },
+              codimpuesto: { type: 'string', description: 'Código de impuesto' },
+              coste: { type: 'number', description: 'Precio de coste de la línea' },
+              orden: { type: 'number', description: 'Orden de la línea en el documento' },
+              actualizastock: { type: 'boolean', description: 'Si actualiza el stock al registrar' },
+              servido: { type: 'number', description: 'Cantidad ya servida' },
+              mostrar_cantidad: { type: 'boolean', description: 'Mostrar cantidad en impresión' },
+              mostrar_precio: { type: 'boolean', description: 'Mostrar precio en impresión' },
+              salto_pagina: { type: 'boolean', description: 'Insertar salto de página tras esta línea' },
+            },
+          },
+        },
+        fecha: { type: 'string', description: 'Fecha (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de serie' },
+        codalmacen: { type: 'string', description: 'Código de almacén' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        numero2: { type: 'string', description: 'Número externo' },
+        codagente: { type: 'string', description: 'Código de agente comercial' },
+        codpago: { type: 'string', description: 'Código de forma de pago' },
+        dtopor1: { type: 'number', description: 'Descuento porcentual nivel 1' },
+        dtopor2: { type: 'number', description: 'Descuento porcentual nivel 2' },
+        irpf: { type: 'number', description: 'Porcentaje de retención IRPF' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente en el documento' },
+        cifnif: { type: 'string', description: 'CIF/NIF en el documento' },
+        direccion: { type: 'string', description: 'Dirección de envío' },
+        apartado: { type: 'string', description: 'Apartado de correos' },
+        ciudad: { type: 'string', description: 'Ciudad' },
+        codpostal: { type: 'string', description: 'Código postal' },
+        codpais: { type: 'string', description: 'Código de país' },
+        idcontactoenv: { type: 'number', description: 'ID del contacto de envío' },
+        idcontactofact: { type: 'number', description: 'ID del contacto de facturación' },
+        finoferta: { type: 'string', description: 'Fecha de fin de validez del pedido (YYYY-MM-DD)' },
+      },
+      required: ['connection', 'codcliente', 'lineas'],
+    },
+  },
+  {
+    name: 'delete_pedido_cliente',
+    description: 'Elimina un pedido de cliente. Precaución: operación irreversible.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        id: { type: 'number', description: 'ID del pedido (idpedido)' },
+      },
+      required: ['connection', 'id'],
+    },
+  },
+  // ── Presupuestos de cliente ──
+  {
+    name: 'create_presupuesto_cliente',
+    description: 'Crea un nuevo presupuesto de cliente en FacturaScripts usando el endpoint /crearPresupuestoCliente',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        codcliente: { type: 'string', description: 'Código del cliente (obligatorio)' },
+        lineas: {
+          type: 'array',
+          description: 'Líneas del presupuesto (obligatorio)',
+          items: {
+            type: 'object',
+            properties: {
+              referencia: { type: 'string', description: 'Referencia del producto' },
+              descripcion: { type: 'string', description: 'Descripción' },
+              cantidad: { type: 'number', description: 'Cantidad' },
+              pvpunitario: { type: 'number', description: 'Precio unitario' },
+              dtopor: { type: 'number', description: 'Descuento en porcentaje' },
+              codimpuesto: { type: 'string', description: 'Código de impuesto' },
+              coste: { type: 'number', description: 'Precio de coste de la línea' },
+              orden: { type: 'number', description: 'Orden de la línea en el documento' },
+              actualizastock: { type: 'boolean', description: 'Si actualiza el stock al registrar' },
+              servido: { type: 'number', description: 'Cantidad ya servida' },
+              mostrar_cantidad: { type: 'boolean', description: 'Mostrar cantidad en impresión' },
+              mostrar_precio: { type: 'boolean', description: 'Mostrar precio en impresión' },
+              salto_pagina: { type: 'boolean', description: 'Insertar salto de página tras esta línea' },
+            },
+          },
+        },
+        fecha: { type: 'string', description: 'Fecha (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de serie' },
+        codalmacen: { type: 'string', description: 'Código de almacén' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        numero2: { type: 'string', description: 'Número externo' },
+        codagente: { type: 'string', description: 'Código de agente comercial' },
+        codpago: { type: 'string', description: 'Código de forma de pago' },
+        dtopor1: { type: 'number', description: 'Descuento porcentual nivel 1' },
+        dtopor2: { type: 'number', description: 'Descuento porcentual nivel 2' },
+        irpf: { type: 'number', description: 'Porcentaje de retención IRPF' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente en el documento' },
+        cifnif: { type: 'string', description: 'CIF/NIF en el documento' },
+        direccion: { type: 'string', description: 'Dirección de envío' },
+        apartado: { type: 'string', description: 'Apartado de correos' },
+        ciudad: { type: 'string', description: 'Ciudad' },
+        codpostal: { type: 'string', description: 'Código postal' },
+        codpais: { type: 'string', description: 'Código de país' },
+        idcontactoenv: { type: 'number', description: 'ID del contacto de envío' },
+        idcontactofact: { type: 'number', description: 'ID del contacto de facturación' },
+        finoferta: { type: 'string', description: 'Fecha de fin de validez del presupuesto (YYYY-MM-DD)' },
+      },
+      required: ['connection', 'codcliente', 'lineas'],
+    },
+  },
+  {
+    name: 'delete_presupuesto_cliente',
+    description: 'Elimina un presupuesto de cliente. Precaución: operación irreversible.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        id: { type: 'number', description: 'ID del presupuesto (idpresupuesto)' },
+      },
+      required: ['connection', 'id'],
+    },
+  },
 
-  for (const tool of salesOrdersTools) {
-    server.setRequestHandler(
-      { tools: { call: { name: tool.name } } } as unknown as Parameters<typeof server.setRequestHandler>[0],
-      async (request) => {
-        const input = request.params.arguments;
+  // ── Actualizar documentos de cliente ──
+  {
+    name: 'update_factura_cliente',
+    description: 'Actualiza los datos de cabecera de una factura de cliente en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        idfactura: { type: 'number', description: 'ID de la factura a actualizar (obligatorio)' },
+        codcliente: { type: 'string', description: 'Código del cliente' },
+        cifnif: { type: 'string', description: 'CIF/NIF del cliente' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente' },
+        fecha: { type: 'string', description: 'Fecha de la factura (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de la serie' },
+        codpago: { type: 'string', description: 'Código de la forma de pago' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        codagente: { type: 'string', description: 'Código del agente' },
+        codigoenv: { type: 'string', description: 'Código de envío' },
+      },
+      required: ['connection', 'idfactura'],
+    },
+  },
+  {
+    name: 'update_albaran_cliente',
+    description: 'Actualiza los datos de cabecera de un albarán de cliente en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        idalbaran: { type: 'number', description: 'ID del albarán a actualizar (obligatorio)' },
+        codcliente: { type: 'string', description: 'Código del cliente' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente' },
+        fecha: { type: 'string', description: 'Fecha del albarán (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de la serie' },
+        codpago: { type: 'string', description: 'Código de la forma de pago' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        codagente: { type: 'string', description: 'Código del agente' },
+      },
+      required: ['connection', 'idalbaran'],
+    },
+  },
+  {
+    name: 'update_pedido_cliente',
+    description: 'Actualiza los datos de cabecera de un pedido de cliente en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        idpedido: { type: 'number', description: 'ID del pedido a actualizar (obligatorio)' },
+        codcliente: { type: 'string', description: 'Código del cliente' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente' },
+        fecha: { type: 'string', description: 'Fecha del pedido (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de la serie' },
+        codpago: { type: 'string', description: 'Código de la forma de pago' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        codagente: { type: 'string', description: 'Código del agente' },
+      },
+      required: ['connection', 'idpedido'],
+    },
+  },
+  {
+    name: 'update_presupuesto_cliente',
+    description: 'Actualiza los datos de cabecera de un presupuesto de cliente en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        idpresupuesto: { type: 'number', description: 'ID del presupuesto a actualizar (obligatorio)' },
+        codcliente: { type: 'string', description: 'Código del cliente' },
+        nombrecliente: { type: 'string', description: 'Nombre del cliente' },
+        fecha: { type: 'string', description: 'Fecha del presupuesto (YYYY-MM-DD)' },
+        codserie: { type: 'string', description: 'Código de la serie' },
+        codpago: { type: 'string', description: 'Código de la forma de pago' },
+        observaciones: { type: 'string', description: 'Observaciones' },
+        codagente: { type: 'string', description: 'Código del agente' },
+        fechafin: { type: 'string', description: 'Fecha de fin de validez (YYYY-MM-DD)' },
+      },
+      required: ['connection', 'idpresupuesto'],
+    },
+  },
+];
 
-        switch (tool.name) {
+/**
+ * Register all sales orders tools with the MCP server
+ */
+export async function registerSalesOrdersTools(tools: Map<string, Tool>): Promise<void> {
+  salesOrdersTools.forEach((tool) => tools.set(tool.name, tool));
+  salesOrdersWriteTools.forEach((tool) => tools.set(tool.name, tool));
+}
+
+/**
+ * Handle sales orders tool calls
+ */
+export async function handleSalesOrdersTool(
+  name: string,
+  args: Record<string, unknown>
+): Promise<{ content: [{ type: 'text'; text: string }]; isError?: boolean } | null> {
+  const input = args;
+
+  switch (name) {
           case 'get_presupuestoclientes': {
-            const params = input as PresupuestoclientesParams;
+            const params = input as any as PresupuestoclientesParams;
             const result = await fsClient.get(
               '/presupuestoclientes',
               {
@@ -475,7 +922,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_lineapresupuestoclientes': {
-            const params = input as LineapresupuestoclientesParams;
+            const params = input as any as LineapresupuestoclientesParams;
             const result = await fsClient.get(
               '/lineapresupuestoclientes',
               {
@@ -492,7 +939,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_pedidoclientes': {
-            const params = input as PedidoclientesParams;
+            const params = input as any as PedidoclientesParams;
             const result = await fsClient.get(
               '/pedidoclientes',
               {
@@ -511,7 +958,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_lineapedidoclientes': {
-            const params = input as LineapedidoclientesParams;
+            const params = input as any as LineapedidoclientesParams;
             const result = await fsClient.get(
               '/lineapedidoclientes',
               {
@@ -528,7 +975,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_albaranclientes': {
-            const params = input as AlbaranclientesParams;
+            const params = input as any as AlbaranclientesParams;
             const result = await fsClient.get(
               '/albaranclientes',
               {
@@ -546,7 +993,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_lineaalbaranclientes': {
-            const params = input as LineaalbaranclientesParams;
+            const params = input as any as LineaalbaranclientesParams;
             const result = await fsClient.get(
               '/lineaalbaranclientes',
               {
@@ -563,7 +1010,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_facturaclientes': {
-            const params = input as FacturaclientesParams;
+            const params = input as any as FacturaclientesParams;
             const result = await fsClient.get(
               '/facturaclientes',
               {
@@ -584,7 +1031,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_lineafacturaclientes': {
-            const params = input as LineafacturaclientesParams;
+            const params = input as any as LineafacturaclientesParams;
             const result = await fsClient.get(
               '/lineafacturaclientes',
               {
@@ -601,7 +1048,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_reciboclientes': {
-            const params = input as ReciboclientesParams;
+            const params = input as any as ReciboclientesParams;
             const result = await fsClient.get(
               '/reciboclientes',
               {
@@ -620,7 +1067,7 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
           }
 
           case 'get_pagoclientes': {
-            const params = input as PagoclientesParams;
+            const params = input as any as PagoclientesParams;
             const result = await fsClient.get(
               '/pagoclientes',
               {
@@ -635,17 +1082,109 @@ export async function registerSalesOrdersTools(server: Server): Promise<void> {
             };
           }
 
-          default:
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: JSON.stringify({ error: 'Tool not found' }, null, 2),
-                },
-              ],
-            };
-        }
-      },
-    );
+
+          case 'create_factura_cliente': {
+            const params = input as any as CreateDocumentoClienteParams;
+            const { connection, lineas, ...rest } = params;
+            const body = { ...rest, lineas: JSON.stringify(lineas) };
+            const result = await fsClient.post('/crearFacturaCliente', body, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'delete_factura_cliente': {
+            const params = input as any as DeleteDocumentoClienteParams;
+            const result = await fsClient.delete(`/facturaclientes/${params.id}`, params.connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'create_albaran_cliente': {
+            const params = input as any as CreateDocumentoClienteParams;
+            const { connection, lineas, ...rest } = params;
+            const body = { ...rest, lineas: JSON.stringify(lineas) };
+            const result = await fsClient.post('/crearAlbaranCliente', body, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'delete_albaran_cliente': {
+            const params = input as any as DeleteDocumentoClienteParams;
+            const result = await fsClient.delete(`/albaranclientes/${params.id}`, params.connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'create_pedido_cliente': {
+            const params = input as any as CreateDocumentoClienteParams;
+            const { connection, lineas, ...rest } = params;
+            const body = { ...rest, lineas: JSON.stringify(lineas) };
+            const result = await fsClient.post('/crearPedidoCliente', body, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'delete_pedido_cliente': {
+            const params = input as any as DeleteDocumentoClienteParams;
+            const result = await fsClient.delete(`/pedidoclientes/${params.id}`, params.connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'create_presupuesto_cliente': {
+            const params = input as any as CreateDocumentoClienteParams;
+            const { connection, lineas, ...rest } = params;
+            const body = { ...rest, lineas: JSON.stringify(lineas) };
+            const result = await fsClient.post('/crearPresupuestoCliente', body, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'delete_presupuesto_cliente': {
+            const params = input as any as DeleteDocumentoClienteParams;
+            const result = await fsClient.delete(`/presupuestoclientes/${params.id}`, params.connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+    case 'get_cuentabancoclientes': {
+      const params = input as any as CuentaBancoClientesParams;
+      const result = await fsClient.get(
+        '/cuentabancoclientes',
+        {
+          offset: params.offset,
+          limit: params.limit,
+          codcliente: params.codcliente,
+        },
+        params.connection,
+      );
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+      };
+    }
+
+
+          case 'update_factura_cliente': {
+            const params = input as any as { connection?: string; idfactura: number; [key: string]: unknown };
+            const { connection, idfactura, ...data } = params;
+            const result = await fsClient.put(`/facturascli/${idfactura}`, data, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'update_albaran_cliente': {
+            const params = input as any as { connection?: string; idalbaran: number; [key: string]: unknown };
+            const { connection, idalbaran, ...data } = params;
+            const result = await fsClient.put(`/albaranescli/${idalbaran}`, data, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'update_pedido_cliente': {
+            const params = input as any as { connection?: string; idpedido: number; [key: string]: unknown };
+            const { connection, idpedido, ...data } = params;
+            const result = await fsClient.put(`/pedidoscli/${idpedido}`, data, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+          case 'update_presupuesto_cliente': {
+            const params = input as any as { connection?: string; idpresupuesto: number; [key: string]: unknown };
+            const { connection, idpresupuesto, ...data } = params;
+            const result = await fsClient.put(`/presupuestoscli/${idpresupuesto}`, data, connection);
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+          }
+
+    default:
+      return null;
   }
 }

@@ -11,8 +11,8 @@ No se pueden modificar los numeros de facturas manualmente, pero con las secuenc
 ## Campos de una secuencia
 - **Tipo de documento**: albarán de cliente, albarán de proveedor, factura de cliente...
 - **Empresa**: la empresa a la que se aplica.
-- **Ejercicio**: el ejercicio al que se aplica. Si no selecciona ninguno, se aplica para todos (*excepto para aquellos ejercicios que si tengan una secuencia asignada*). [¿Qué son los ejercicios?](/publicaciones/los-ejercicios-contables)
-- **Serie**: la serie a la que se aplica. [¿Qué son las series?](/publicaciones/series-470)
+- **Ejercicio**: el ejercicio al que se aplica. Si no selecciona ninguno, se aplica para todos (*excepto para aquellos ejercicios que si tengan una secuencia asignada*). [¿Qué son los ejercicios?](https://facturascripts.com/publicaciones/los-ejercicios-contables)
+- **Serie**: la serie a la que se aplica. [¿Qué son las series?](https://facturascripts.com/publicaciones/series-470)
 - **Número**: el siguiente numero a utilizar. Es un contador.
 - **Longitud del número**: si queremos rellenar con ceros, se añadirán los necesarios hasta que la longitud del número sea la indicada.
 - **Número inicial**: el número en el que empieza esta secuencia, normalmente el 1.

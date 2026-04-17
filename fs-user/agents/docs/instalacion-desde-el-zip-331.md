@@ -6,11 +6,11 @@ creationdate: 26-04-2018 00:00:00
 lastmod: 15-01-2026
 url: https://facturascripts.com/instalacion-desde-el-zip-331
 ---
-FacturaScripts es una aplicación web, similar a un blog o una tienda en línea. Para poder usarlo, **necesitas un servidor web** como Apache. Puedes consultar la [lista completa de requisitos](/publicaciones/requisitos-917).
+FacturaScripts es una aplicación web, similar a un blog o una tienda en línea. Para poder usarlo, **necesitas un servidor web** como Apache. Puedes consultar la [lista completa de requisitos](https://facturascripts.com/publicaciones/requisitos-917).
 
 A continuación, se detallan los pasos para realizar la instalación en tu servidor, ya sea en Linux, Windows o macOS:
 
-1. **Descarga** la última versión de FacturaScripts desde [este enlace](/DownloadBuild/1/stable).
+1. **Descarga** la última versión de FacturaScripts desde [este enlace](https://facturascripts.com/DownloadBuild/1/stable).
 2. **Descomprime** el archivo ZIP en la carpeta de tu servidor web (normalmente en `/var/www/html` si estás utilizando Linux).
 3. Abre una nueva pestaña en tu **navegador** e introduce la URI de tu sitio web. Si lo has instalado localmente, esta suele ser `http://localhost/NOMBRE_CARPETA`, donde `NOMBRE_CARPETA` es el nombre de la carpeta de FacturaScripts.
 4. Aparecerá la pantalla del instalador de FacturaScripts. Completa el formulario y finaliza la instalación.
@@ -30,7 +30,7 @@ Instala Apache o utiliza uno de los paquetes más comunes:
 - [MAMP](https://www.mamp.info/en/downloads/)
 
 ## ⚠️ Problemas de instalación
-Puedes consultar la lista de problemas frecuentes y sus soluciones en la sección de [problemas frecuentes tras la instalación de FacturaScripts](/publicaciones/requisitos-917).
+Puedes consultar la lista de problemas frecuentes y sus soluciones en la sección de [problemas frecuentes tras la instalación de FacturaScripts](https://facturascripts.com/publicaciones/requisitos-917).
 
 ### 🔄 Segunda instalación
 Este método de instalación es también el recomendado si deseas hacer una segunda instalación de FacturaScripts en el mismo PC. No es necesario instalar XAMPP dos veces, basta con copiar el archivo ZIP de FacturaScripts en una nueva carpeta. Recuerda que cada instalación debe utilizar un nombre distinto para la base de datos.

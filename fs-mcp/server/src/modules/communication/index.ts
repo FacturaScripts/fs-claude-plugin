@@ -3,219 +3,257 @@
  * Provides tools for accessing communication and notification data
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+
+export const communicationTools: Tool[] = [
+  {
+    name: 'get_emailsentes',
+    description: 'Obtiene correos electrónicos enviados de FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: {
+          type: 'string',
+          description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
+        },
+        offset: {
+          type: 'number',
+          description: 'Desplazamiento de paginación (por defecto: 0)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Límite de paginación (por defecto: 100)',
+        },
+        destinatario: {
+          type: 'string',
+          description: 'Filtrar por correo del destinatario',
+        },
+        asunto: {
+          type: 'string',
+          description: 'Filtrar por asunto',
+        },
+        fecha: {
+          type: 'string',
+          description: 'Filtrar por fecha (formato YYYY-MM-DD)',
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_emailnotifications',
+    description: 'Obtiene notificaciones de correo electrónico de FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: {
+          type: 'string',
+          description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
+        },
+        offset: {
+          type: 'number',
+          description: 'Desplazamiento de paginación (por defecto: 0)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Límite de paginación (por defecto: 100)',
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_attachedfiles',
+    description: 'Obtiene archivos adjuntos de FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: {
+          type: 'string',
+          description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
+        },
+        offset: {
+          type: 'number',
+          description: 'Desplazamiento de paginación (por defecto: 0)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Límite de paginación (por defecto: 100)',
+        },
+        modelo: {
+          type: 'string',
+          description: 'Filtrar por nombre de modelo',
+        },
+        modelid: {
+          type: 'string',
+          description: 'Filtrar por ID de modelo',
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_attachedfilerelations',
+    description: 'Obtiene relaciones de archivos adjuntos de FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: {
+          type: 'string',
+          description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
+        },
+        offset: {
+          type: 'number',
+          description: 'Desplazamiento de paginación (por defecto: 0)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Límite de paginación (por defecto: 100)',
+        },
+      },
+      required: [],
+    },
+  },
+];
+
+
+
+export const communicationWriteTools: Tool[] = [
+  {
+    name: 'create_emailnotification',
+    description: 'Crea una nueva notificación de email en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        name: { type: 'string', description: 'Nombre identificador de la notificación (obligatorio)' },
+        subject: { type: 'string', description: 'Asunto del email (obligatorio)' },
+        body: { type: 'string', description: 'Cuerpo del email en HTML' },
+        enabled: { type: 'boolean', description: 'Si la notificación está habilitada' },
+      },
+      required: ['name', 'subject'],
+    },
+  },
+  {
+    name: 'update_emailnotification',
+    description: 'Actualiza una notificación de email existente en FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        name: { type: 'string', description: 'Nombre de la notificación a actualizar (obligatorio)' },
+        subject: { type: 'string', description: 'Asunto del email' },
+        body: { type: 'string', description: 'Cuerpo del email en HTML' },
+        enabled: { type: 'boolean', description: 'Si la notificación está habilitada' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'delete_emailnotification',
+    description: 'Elimina una notificación de email de FacturaScripts',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        connection: { type: 'string', description: 'Clave de conexión' },
+        name: { type: 'string', description: 'Nombre de la notificación a eliminar' },
+      },
+      required: ['name'],
+    },
+  },
+];
 
 /**
  * Register all communication tools with the MCP server
  */
-export async function registerCommunicationTools(
-  server: Server,
-  tools: Map<string, Tool>
-): Promise<void> {
-  // Tool: get_emailsentes
-  const getEmailSentesTool: Tool = {
-    name: 'get_emailsentes',
-    description: 'Get sent emails from FacturaScripts',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        connection: {
-          type: 'string',
-          description: 'Connection key to use (optional, uses default if not specified)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Pagination offset (default: 0)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Pagination limit (default: 100)',
-        },
-        destinatario: {
-          type: 'string',
-          description: 'Filter by recipient email',
-        },
-        asunto: {
-          type: 'string',
-          description: 'Filter by subject',
-        },
-        fecha: {
-          type: 'string',
-          description: 'Filter by date (YYYY-MM-DD format)',
-        },
-      },
-      required: [],
-    },
-  };
+export async function registerCommunicationTools(tools: Map<string, Tool>): Promise<void> {
+  communicationTools.forEach((tool) => tools.set(tool.name, tool));
+  communicationWriteTools.forEach((tool) => tools.set(tool.name, tool));
+}
 
-  tools.set('get_emailsentes', getEmailSentesTool);
+/**
+ * Handle communication tool calls
+ */
+export async function handleCommunicationTool(
+  name: string,
+  args: Record<string, unknown>
+): Promise<{ content: [{ type: 'text'; text: string }]; isError?: boolean } | null> {
+  const connection = (args.connection as string | undefined) || undefined;
+  const offset = (args.offset as number | undefined) || 0;
+  const limit = (args.limit as number | undefined) || 100;
 
-  // Tool: get_emailnotifications
-  const getEmailNotificationsTool: Tool = {
-    name: 'get_emailnotifications',
-    description: 'Get email notifications from FacturaScripts',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        connection: {
-          type: 'string',
-          description: 'Connection key to use (optional, uses default if not specified)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Pagination offset (default: 0)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Pagination limit (default: 100)',
-        },
-      },
-      required: [],
-    },
-  };
+  try {
+    let result;
 
-  tools.set('get_emailnotifications', getEmailNotificationsTool);
-
-  // Tool: get_attachedfiles
-  const getAttachedFilesTool: Tool = {
-    name: 'get_attachedfiles',
-    description: 'Get attached files from FacturaScripts',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        connection: {
-          type: 'string',
-          description: 'Connection key to use (optional, uses default if not specified)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Pagination offset (default: 0)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Pagination limit (default: 100)',
-        },
-        modelo: {
-          type: 'string',
-          description: 'Filter by model name',
-        },
-        modelid: {
-          type: 'string',
-          description: 'Filter by model ID',
-        },
-      },
-      required: [],
-    },
-  };
-
-  tools.set('get_attachedfiles', getAttachedFilesTool);
-
-  // Tool: get_attachedfilerelations
-  const getAttachedFileRelationsTool: Tool = {
-    name: 'get_attachedfilerelations',
-    description: 'Get attached file relations from FacturaScripts',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        connection: {
-          type: 'string',
-          description: 'Connection key to use (optional, uses default if not specified)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Pagination offset (default: 0)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Pagination limit (default: 100)',
-        },
-      },
-      required: [],
-    },
-  };
-
-  tools.set('get_attachedfilerelations', getAttachedFileRelationsTool);
-
-  // Register tool handlers
-  server.setRequestHandler(
-    {
-      method: 'tools/call',
-      params: {
-        name: 'string',
-        arguments: 'object',
-      },
-    } as never,
-    async (request: { params: { name: string; arguments: Record<string, unknown> } }) => {
-      const { name, arguments: args } = request.params;
-      const connection = (args.connection as string | undefined) || undefined;
-      const offset = (args.offset as number | undefined) || 0;
-      const limit = (args.limit as number | undefined) || 100;
-
-      try {
-        let result;
-
-        switch (name) {
-          case 'get_emailsentes': {
-            const params: Record<string, unknown> = { offset, limit };
-            if (args.destinatario) params.destinatario = args.destinatario;
-            if (args.asunto) params.asunto = args.asunto;
-            if (args.fecha) params.fecha = args.fecha;
-            result = await fsClient.get('/emailsentes', params, connection);
-            break;
-          }
-
-          case 'get_emailnotifications': {
-            result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
-            break;
-          }
-
-          case 'get_attachedfiles': {
-            const params: Record<string, unknown> = { offset, limit };
-            if (args.modelo) params.modelo = args.modelo;
-            if (args.modelid) params.modelid = args.modelid;
-            result = await fsClient.get('/attachedfiles', params, connection);
-            break;
-          }
-
-          case 'get_attachedfilerelations': {
-            result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
-            break;
-          }
-
-          default:
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: JSON.stringify({ error: `Unknown communication tool: ${name}` }, null, 2),
-                },
-              ],
-              isError: true,
-            };
-        }
-
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: JSON.stringify({ error: errorMessage }, null, 2),
-            },
-          ],
-          isError: true,
-        };
+    switch (name) {
+      case 'get_emailsentes': {
+        const params: Record<string, unknown> = { offset, limit };
+        if (args.destinatario) params.destinatario = args.destinatario;
+        if (args.asunto) params.asunto = args.asunto;
+        if (args.fecha) params.fecha = args.fecha;
+        result = await fsClient.get('/emailsentes', params, connection);
+        break;
       }
+
+      case 'get_emailnotifications': {
+        result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
+        break;
+      }
+
+      case 'get_attachedfiles': {
+        const params: Record<string, unknown> = { offset, limit };
+        if (args.modelo) params.modelo = args.modelo;
+        if (args.modelid) params.modelid = args.modelid;
+        result = await fsClient.get('/attachedfiles', params, connection);
+        break;
+      }
+
+      case 'get_attachedfilerelations': {
+        result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
+        break;
+      }
+
+
+      case 'create_emailnotification': {
+        const { connection: _conn, ...data } = args;
+        result = await fsClient.post('/emailnotifications', data, connection);
+        break;
+      }
+
+      case 'update_emailnotification': {
+        const { connection: _conn, name, ...data } = args;
+        result = await fsClient.put(`/emailnotifications/${name}`, data, connection);
+        break;
+      }
+
+      case 'delete_emailnotification': {
+        result = await fsClient.delete(`/emailnotifications/${args.name}`, connection);
+        break;
+      }
+
+      default:
+        return null;
     }
-  );
+
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({ error: errorMessage }, null, 2),
+        },
+      ],
+      isError: true,
+    };
+  }
 }
