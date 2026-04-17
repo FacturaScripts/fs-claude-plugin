@@ -1,0 +1,5 @@
+.DS_Store
+.claude/
+./fs-mcp/server/node_modules/
+./fs-mcp/server/*.tsbuildinfo
+# dist/ se incluye intencionalmente en el repo para evitar necesitar Node.js en el cliente

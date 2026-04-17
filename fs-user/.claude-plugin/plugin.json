@@ -1,0 +1,14 @@
+{
+  "name": "fs-user",
+  "version": "0.1.0",
+  "description": "Plugin para usuarios del ERP FacturaScripts: análisis de datos, informes y asistencia en el uso del sistema.",
+  "author": {
+    "name": "Daniel Fernández Giménez",
+    "email": "contacto@danielfg.es",
+    "url": "https://danielfg.es"
+  },
+  "license": "MIT",
+  "keywords": ["FacturaScripts", "ERP", "informes", "análisis", "usuario"],
+  "agents": "./agents/",
+  "skills": "./skills/"
+}

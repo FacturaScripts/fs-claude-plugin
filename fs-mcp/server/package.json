@@ -1,0 +1,24 @@
+{
+  "name": "fs-mcp-server",
+  "version": "0.1.0",
+  "description": "Servidor MCP de FacturaScripts con soporte multi-conexión",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

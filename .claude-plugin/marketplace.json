@@ -1,13 +1,24 @@
 {
   "name": "fs-claude-plugin",
   "owner": {
-    "name": "FacturaScripts"
+    "name": "Daniel Fernández Giménez",
+    "url": "https://danielfg.es"
   },
   "plugins": [
     {
       "name": "fs-developer",
       "source": "./fs-developer",
-      "description": "Plugin de FacturaScripts para Claude Code: skills y herramientas para trabajar con el ERP."
+      "description": "Plugin para programadores: skills, agentes y documentación técnica de FacturaScripts."
+    },
+    {
+      "name": "fs-user",
+      "source": "./fs-user",
+      "description": "Plugin para usuarios del ERP: informes, análisis de datos y asistencia en el uso de FacturaScripts."
+    },
+    {
+      "name": "fs-mcp",
+      "source": "./fs-mcp",
+      "description": "Servidor MCP de FacturaScripts: conecta Claude a una o varias instalaciones del ERP para obtener datos en tiempo real."
     }
   ]
 }

@@ -1,0 +1,29 @@
+{
+  "name": "fs-mcp",
+  "version": "0.1.0",
+  "description": "Servidor MCP de FacturaScripts con soporte para múltiples instalaciones.",
+  "author": {
+    "name": "Daniel Fernández Giménez",
+    "email": "contacto@danielfg.es",
+    "url": "https://danielfg.es"
+  },
+  "license": "MIT",
+  "keywords": ["FacturaScripts", "MCP", "ERP", "datos", "API"],
+  "skills": "./skills/",
+  "mcpServers": {
+    "facturascripts": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"],
+      "env": {
+        "FS_CONNECTIONS_FILE": "${CLAUDE_PLUGIN_DATA}/connections.json",
+        "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}"
+      }
+    }
+  },
+  "userConfig": {
+    "FS_DEFAULT_CONNECTION": {
+      "description": "Clave de la conexión por defecto (ej: 'empresa1'). Puedes añadir conexiones con el skill 'fs-mcp:add-connection'.",
+      "sensitive": false
+    }
+  }
+}
