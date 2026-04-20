@@ -8,7 +8,7 @@
     "url": "https://danielfg.es"
   },
   "license": "MIT",
-  "keywords": ["FacturaScripts", "ERP", "informes", "análisis", "usuario"],
+  "keywords": ["FacturaScripts", "FS", "ERP", "informes", "análisis", "usuario"],
   "skills": "./skills/",
   "agents": [
     "./agents/erp-guide.md",

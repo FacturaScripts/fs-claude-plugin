@@ -8,7 +8,7 @@
     "url": "https://danielfg.es"
   },
   "license": "MIT",
-  "keywords": ["FacturaScripts", "MCP", "ERP", "datos", "API"],
+  "keywords": ["FacturaScripts", "FS", "MCP", "ERP", "datos", "API", "Informes", "conexiones"],
   "skills": "./skills/",
   "mcpServers": {
     "facturascripts": {
