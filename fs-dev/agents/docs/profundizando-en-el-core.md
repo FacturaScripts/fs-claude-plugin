@@ -8,13 +8,13 @@ url: https://facturascripts.com/profundizando-en-el-core
 ---
 FacturaScripts es también un framework PHP, por lo que también implementa los mismos conceptos que otros frameworks:
 
-- [Enrutado](/publicaciones/enrutado-el-sistema-de-rutas)
-- [Gestión de errores](/publicaciones/gestion-de-errores)
-- [Gestión de plugins](/publicaciones/gestion-de-plugins)
-- [Logs](/publicaciones/mostrar-mensajes-errores-y-alertas)
-- [Caché](/publicaciones/uso-de-la-cache)
-- [Acceso a base de datos](/publicaciones/acceso-a-la-base-de-datos-818)
-- [Colas de trabajo](/publicaciones/la-cola-de-trabajos)
+- [Enrutado](https://facturascripts.com/publicaciones/enrutado-el-sistema-de-rutas)
+- [Gestión de errores](https://facturascripts.com/publicaciones/gestion-de-errores)
+- [Gestión de plugins](https://facturascripts.com/publicaciones/gestion-de-plugins)
+- [Logs](https://facturascripts.com/publicaciones/mostrar-mensajes-errores-y-alertas)
+- [Caché](https://facturascripts.com/publicaciones/uso-de-la-cache)
+- [Acceso a base de datos](https://facturascripts.com/publicaciones/acceso-a-la-base-de-datos-818)
+- [Colas de trabajo](https://facturascripts.com/publicaciones/la-cola-de-trabajos)
 
 ## El Kernel
 El kernel de FacturaScripts se encarga tanto del enrutado como de la gestión de errores, además de proporcionar funciones para comprobar tiempos de ejecución.

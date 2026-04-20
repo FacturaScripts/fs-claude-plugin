@@ -22,4 +22,4 @@ public function primaryDescriptionColumn(): string
 ```
 
 ## Véase también
-- [$modelo-&gt;primaryDescription()](/publicaciones/primarydescription-115)
+- [$modelo-&gt;primaryDescription()](https://facturascripts.com/publicaciones/primarydescription-115)

@@ -12,7 +12,7 @@ Para ilustrar cómo listar registros a través de la API de **FacturaScripts**, 
 http://localhost:8000/api/3/impuestos
 ```
 
-![Listado API FacturaScripts](/MyFiles/2024/03/2023.png?myft=27bc34fe9327fa401fb8515a391715ef08ad46c3)
+![Listado API FacturaScripts](https://facturascripts.com/MyFiles/2024/03/2023.png?myft=27bc34fe9327fa401fb8515a391715ef08ad46c3)
 
 Este listado está **limitado a 50** elementos por defecto y comienza desde el primer elemento. Para obtener más o menos registros de golpe, puedes usar los parámetros **?limit=50&offset=0**.
 
@@ -24,7 +24,7 @@ Para recibir más resultados, es necesario indicar desde qué elemento deseas co
 http://localhost:8000/api/3/impuestos?offset=1
 ```
 
-![Paginación API FacturaScripts](/MyFiles/2024/03/2024.png?myft=6259506c7763771b1e5fa6165c59ac671830ef7b)
+![Paginación API FacturaScripts](https://facturascripts.com/MyFiles/2024/03/2024.png?myft=6259506c7763771b1e5fa6165c59ac671830ef7b)
 
 ### Ejemplos de paginación
 

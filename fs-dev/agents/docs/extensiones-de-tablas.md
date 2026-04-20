@@ -26,7 +26,7 @@ Los cambios se pueden ver reflejados en el archivos FacturaScripts/Dinamic/Table
 **Observación: Las tablas en la base de datos sólo se modifican cuando son llamadas desde Facturascripts,**  en éste caso cuando naveguemos al menú  productos.
 
 ### fsmaker
-Para crear este archivo con [fsmaker](/publicaciones/fsmaker-0-92-disponible) simplemente ejecutamos:
+Para crear este archivo con [fsmaker](https://facturascripts.com/publicaciones/fsmaker-0-92-disponible) simplemente ejecutamos:
 ```
 fsmaker extension
 ```

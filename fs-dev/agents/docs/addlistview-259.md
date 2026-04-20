@@ -6,7 +6,7 @@ creationdate: 04-05-2018 00:00:00
 lastmod: 07-11-2025
 url: https://facturascripts.com/addlistview-259
 ---
-Añade una pestaña o sección con un **listado** al [EditController](/publicaciones/editcontroller-642) o PanelController. Esta función se utiliza dentro de la función **createViews()** del controlador.
+Añade una pestaña o sección con un **listado** al [EditController](https://facturascripts.com/publicaciones/editcontroller-642) o PanelController. Esta función se utiliza dentro de la función **createViews()** del controlador.
 
 ## Método: `$this-&gt;addListView($viewName, $modelName, $viewTitle, $viewIcon)`
 - **$viewName**: Identificador o nombre interno de la pestaña o sección. Por ejemplo: `ListProducto`.
@@ -31,7 +31,7 @@ En este ejemplo, añadimos una pestaña/sección llamada `ListProducto`, que uti
 ![Ejemplo de listview](https://i.imgur.com/Ud1Tkin.png)
 
 ### XMLView
-Esta nueva pestaña hará uso de un archivo [XMLView](/publicaciones/las-vistas-xml-xmlview-668) con el mismo nombre que la pestaña, es decir, utilizará el archivo **XMLView/ListProducto.xml** para determinar qué columnas debe mostrar en el listado.
+Esta nueva pestaña hará uso de un archivo [XMLView](https://facturascripts.com/publicaciones/las-vistas-xml-xmlview-668) con el mismo nombre que la pestaña, es decir, utilizará el archivo **XMLView/ListProducto.xml** para determinar qué columnas debe mostrar en el listado.
 
 ### Método: `loadData($viewName, $view)`
 Para cargar valores en esta pestaña, debemos implementar el método `loadData()`, que es la función que se llama cuando FacturaScripts necesita cargar los valores a mostrar en las pestañas.

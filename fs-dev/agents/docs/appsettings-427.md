@@ -6,7 +6,7 @@ creationdate: 22-10-2018 00:00:00
 lastmod: 07-04-2026
 url: https://facturascripts.com/appsettings-427
 ---
-En ocasiones queremos leer y escribir información referente a la configuración general o de nuestro plugin en concreto. Para estos casos FacturaScripts ofrece un modelo ``Settings`` con una serie de funciones de acceso rápido para leer y escribir, además de una forma sencilla de [añadir secciones al panel de control mediante archivos en la carpeta XMLView](/publicaciones/preferencias-de-la-aplicacion-314).
+En ocasiones queremos leer y escribir información referente a la configuración general o de nuestro plugin en concreto. Para estos casos FacturaScripts ofrece un modelo ``Settings`` con una serie de funciones de acceso rápido para leer y escribir, además de una forma sencilla de [añadir secciones al panel de control mediante archivos en la carpeta XMLView](https://facturascripts.com/publicaciones/preferencias-de-la-aplicacion-314).
 
 ## Leer datos de Settings
 La información de settings se organiza en **grupos** y **propiedades**. Cada una de las secciones que ve en el panel de control es un grupo, y cada campo es una propiedad. Si queremos consultar una propiedad podemos usar la función ``Tools::settings()``.
@@ -40,13 +40,13 @@ Tools::settingsSave(); // guardamos los cambios
 ```
 
 ## Leer datos del config.php
-Algunos datos como el nombre de la base de datos se almacenan en el archivo [config.php](/publicaciones/el-archivo-config-php) y no pueden ser modificados desde el programa. Pero pueden ser consultados con la función ``Tools::config()``.
+Algunos datos como el nombre de la base de datos se almacenan en el archivo [config.php](https://facturascripts.com/publicaciones/el-archivo-config-php) y no pueden ser modificados desde el programa. Pero pueden ser consultados con la función ``Tools::config()``.
 
 ```
 $db_name = Tools::config(&#39;db_name&#39;);
 ```
 
-En este ejemplo estamos consultando el nombre de la base de datos. Los nombres de las propiedades se pueden escribir tal cual aparecen en el [config.php](/publicaciones/el-archivo-config-php), en este caso ``FS_DB_NAME``, o se pueden escribir sin el prefijo ``FS_`` y en minúsculas, para mayor comodidad.
+En este ejemplo estamos consultando el nombre de la base de datos. Los nombres de las propiedades se pueden escribir tal cual aparecen en el [config.php](https://facturascripts.com/publicaciones/el-archivo-config-php), en este caso ``FS_DB_NAME``, o se pueden escribir sin el prefijo ``FS_`` y en minúsculas, para mayor comodidad.
 
 Esta función también admite establecer un **valor predeterminado** en caso de que no se encuentre en el config:
 

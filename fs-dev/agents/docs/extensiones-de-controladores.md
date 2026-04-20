@@ -12,11 +12,11 @@ Para modificar el comportamiento o añadir pestañas o secciones a controladores
 Las extensiones no son herencia. No se puede extender cualquier función imaginable, solamente las que tienen soporte. Y cada función que añadas en una extensión debe tener un **return function()**.
 
 ### Métodos disponibles para extender
-- **createViews()** se ejecuta una vez realizado el [createViews() del controlador](/publicaciones/listcontroller-232).
-- **execPreviousAction()** se ejecuta después del [execPreviousAction() del controlador](/publicaciones/controladores-extendidos-367). **Si devolvemos false** detenemos la ejecución del controlador.
+- **createViews()** se ejecuta una vez realizado el [createViews() del controlador](https://facturascripts.com/publicaciones/listcontroller-232).
+- **execPreviousAction()** se ejecuta después del [execPreviousAction() del controlador](https://facturascripts.com/publicaciones/controladores-extendidos-367). **Si devolvemos false** detenemos la ejecución del controlador.
 - **loadData()** se ejecuta tras el loadData() del controlador. Recibe los parámetros $viewName y $view.
-- **execAfterAction()** se ejecuta tras el [execAfterAction() del controlador](/publicaciones/controladores-extendidos-367).
-- **selectAction** se ejecuta antes de cargar datos en el [widget select](/publicaciones/widget-select-557).
+- **execAfterAction()** se ejecuta tras el [execAfterAction() del controlador](https://facturascripts.com/publicaciones/controladores-extendidos-367).
+- **selectAction** se ejecuta antes de cargar datos en el [widget select](https://facturascripts.com/publicaciones/widget-select-557).
 
 ### Ejemplo createViews
 Esto sirve para poder añadir pestañas o cualquier método a controladores que ya existen. Siguiendo con el ejemplo vamos a añadir la pestaña de logs al listado de productos (controlador ListProducto). Para ello creamos el archivo **Extension/Controller/ListProducto.php**:
@@ -132,7 +132,7 @@ class ListProducto
 Recuerda que las funciones deben tener un **return function()** y que debes cargar la extensión desde el archivo **Init.php** del plugin.
 
 ### Cargar extensiones en el Init.php
-Las extensiones de archivos xml se integran automáticamente al activar el plugin o reconstruir Dinamic. En cambio, las extensiones de archivos php se deben cargar explícitamente llamando al método ``loadExtension()`` del [archivo Init.php del plugin](/publicaciones/el-archivo-init-php-307), en el método **init()**.
+Las extensiones de archivos xml se integran automáticamente al activar el plugin o reconstruir Dinamic. En cambio, las extensiones de archivos php se deben cargar explícitamente llamando al método ``loadExtension()`` del [archivo Init.php del plugin](https://facturascripts.com/publicaciones/el-archivo-init-php-307), en el método **init()**.
 
 ```
 public function init(): void
@@ -143,7 +143,7 @@ public function init(): void
 ```
 
 ## fsmaker
-Para hacer este mismo proceso con [fsmaker](/publicaciones/fsmaker-0-92-disponible) ejecutamos:
+Para hacer este mismo proceso con [fsmaker](https://facturascripts.com/publicaciones/fsmaker-0-92-disponible) ejecutamos:
 
 ```
 fsmaker extension

@@ -20,13 +20,13 @@ El widget select, o WidgetSelect, permite mostrar valores que están relacionado
 - **required**: impide guardar los datos del formulario si el usuario no ha escrito nada en el campo.
 - **readonly**: impide modificar el valor.
 - **onclick**: URL o controlador al que será redirigido el usuario al hacer clic. A esta URL se le añade **?code=** y el valor del campo.
-- **icon**: [icono a mostrar en el campo de edición](/publicaciones/iconos-disponibles-308).
+- **icon**: [icono a mostrar en el campo de edición](https://facturascripts.com/publicaciones/iconos-disponibles-308).
 - **translate**: true para indicar que se traduzcan automáticamentelos títulos de los valores a mostrar al usuario.
 - **limit**: por defecto hay un máximo del 1000 elementos en el selector, pero se puede especificar un límite distinto.
 
 **Definición de la clase**: puede ver la lista completa de propiedades y métodos del widget select en la [documentación de la clase WidgetSelect](https://doc.facturascripts.com/classes/FacturaScripts-Core-Lib-Widget-WidgetSelect.html).
 
-🎨 **Opciones de coloreado**: recuerde que [todos los widgets tienen una serie de propiedades y opciones comunes](/publicaciones/widget-238).
+🎨 **Opciones de coloreado**: recuerde que [todos los widgets tienen una serie de propiedades y opciones comunes](https://facturascripts.com/publicaciones/widget-238).
 
 Así es como se ve el widget select en los formularios de edición:
 

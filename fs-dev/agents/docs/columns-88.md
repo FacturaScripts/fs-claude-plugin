@@ -8,7 +8,7 @@ url: https://facturascripts.com/columns-88
 ---
 En los archivos de la carpeta XMLView tenemos la estructura de campos a mostrar en listados o formularios de edición. Un archivo debe tener una **etiqueta view** y dentro de esta una **etiqueta column**.
 
-Dentro de la **etiqueta column** podemos tener varias [etiquetas column](/publicaciones/column-725), si el archivo es para un listado, o varias [etiquetas group](/publicaciones/group-747), si el archivo es para un formulario de edición. Las etiquetas group o grupos sirven para agrupar varias columnas.
+Dentro de la **etiqueta column** podemos tener varias [etiquetas column](https://facturascripts.com/publicaciones/column-725), si el archivo es para un listado, o varias [etiquetas group](https://facturascripts.com/publicaciones/group-747), si el archivo es para un formulario de edición. Las etiquetas group o grupos sirven para agrupar varias columnas.
 
 ```
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;

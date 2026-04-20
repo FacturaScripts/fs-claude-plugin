@@ -15,7 +15,7 @@ FacturaScripts utiliza bootstrap para el diseño de interfaces. Este framework C
 Se puede personalizar el grupo mediante los siguientes atributos:
 - **name**: Identificador interno del grupo. Es obligatorio su uso. Como norma se recomienda el uso de identificadores en minúsculas y en inglés.
 - **title**: (opcional) título a mostrar. **Se traducirá automáticamente**.
-- **icon**: [icono a mostrar junto al título](/publicaciones/iconos-disponibles-308). El icono de el grupo sólo se mostrará si hay un título definido.
+- **icon**: [icono a mostrar junto al título](https://facturascripts.com/publicaciones/iconos-disponibles-308). El icono de el grupo sólo se mostrará si hay un título definido.
 - **numcolumns**: número de columnas que ocupa el grupo. Por defecto 12.
 - **valign**: (opcional) para alinear verticalmente los elementos. Opciones: top, center, bottom.
 

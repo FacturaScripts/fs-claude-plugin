@@ -24,7 +24,7 @@ La ejecución del controlador sigue estos pasos:
 3. Carga de los datos de los modelos (método **loadData**).
 4. Ejecución de las tareas posteriores a la carga de datos (método **execAfterAction**).
 
-![Ciclo de Vida del Controlador](/MyFiles/2025/04/2757.png?myft=6b5994dc7ef9dcaa3acb143f8fb8e6779bdb9824)
+![Ciclo de Vida del Controlador](https://facturascripts.com/MyFiles/2025/04/2757.png?myft=6b5994dc7ef9dcaa3acb143f8fb8e6779bdb9824)
 
 Este método de trabajo simplifica la comprensión y el seguimiento del código del controlador. Aunque no todos los controladores se ajustan a este patrón, se recomienda mantenerlo para facilitar futuros mantenimientos.
 

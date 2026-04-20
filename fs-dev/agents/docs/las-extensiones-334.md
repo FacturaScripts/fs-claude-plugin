@@ -14,11 +14,11 @@ Las extensiones o pipes no son herencia. Cuando en una extensión añades códig
 ## Sólo en archivos soportados
 No es posible añadir extensiones a cualquier archivo imaginable. Solamente en aquellos soportados:
 
-- [Extensiones de tablas](/publicaciones/extensiones-de-tablas)
-- [Extensiones de modelos](/publicaciones/extensiones-de-modelos)
-- [Extensiones de controladores](/publicaciones/extensiones-de-controladores)
-- [Extensiones de XMLViews](/publicaciones/extensiones-de-xmlview)
-- [Extensiones de vistas HTML](/publicaciones/extensiones-de-vistas-html)
+- [Extensiones de tablas](https://facturascripts.com/publicaciones/extensiones-de-tablas)
+- [Extensiones de modelos](https://facturascripts.com/publicaciones/extensiones-de-modelos)
+- [Extensiones de controladores](https://facturascripts.com/publicaciones/extensiones-de-controladores)
+- [Extensiones de XMLViews](https://facturascripts.com/publicaciones/extensiones-de-xmlview)
+- [Extensiones de vistas HTML](https://facturascripts.com/publicaciones/extensiones-de-vistas-html)
 
 ### Extensiones no soportadas
 No es posible añadir extensiones a los archivos de:
@@ -31,7 +31,7 @@ No es posible añadir extensiones a los archivos de:
 Las extensiones de archivos xml se aplican automáticamente. Si crear un archivo Extension/Table/productos.xml, el contenido de ese archivo se fusionará automáticamente con el del archivo orginal. El resultado se almacena en la Dinamic/Table/productos.xml, que es el archivo que utiliza finalmente FacturaScripts.
 
 ## Extensiones de archivos PHP (controladores y modelos)
-Las extensiones de archivos PHP no se cargan automáticamente. Es necesario cargarlas en el archivo [Init.php](/publicaciones/el-archivo-init-php-307) del plugin.
+Las extensiones de archivos PHP no se cargan automáticamente. Es necesario cargarlas en el archivo [Init.php](https://facturascripts.com/publicaciones/el-archivo-init-php-307) del plugin.
 
 ```
 public function init() {

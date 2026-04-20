@@ -31,10 +31,10 @@ Una vez que hayas creado la API Key, puedes conectarte a la API realizando los s
 
 ## Error API-VERSION-NOT-FOUND
 
-![API Version Not Found](/MyFiles/2024/03/2021.png?myft=82c7541b26e4cfcb9078fd8a7ccee69d76e40dea)
+![API Version Not Found](https://facturascripts.com/MyFiles/2024/03/2021.png?myft=82c7541b26e4cfcb9078fd8a7ccee69d76e40dea)
 
 Este error indica que no se ha seleccionado la versión de la API. La API está diseñada para soportar múltiples versiones, aunque por el momento solo utilizaremos la versión 3. La URL correspondiente a la versión 3 es: `http://localhost:8000/api/3`.
 
-![Listado de Recursos](/MyFiles/2024/03/2022.png?myft=fd1934bc91748ad90f3360e4a154bc0d784d7c17)
+![Listado de Recursos](https://facturascripts.com/MyFiles/2024/03/2022.png?myft=fd1934bc91748ad90f3360e4a154bc0d784d7c17)
 
 En la sección **Resources**, puedes encontrar todos los recursos o endpoints accesibles a través de la API, como agencias de transporte, agentes, albaranes de cliente y albaranes de proveedor, entre otros.

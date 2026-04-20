@@ -48,7 +48,7 @@ private static function pruebaNewFields(SalesDocument $model): string
 }
 ```
 
-![campo añadido a cabecera](/MyFiles/2024/11/2386.png?myft=2ceb7473f8390a5e0ec7525e189a494606175b28)
+![campo añadido a cabecera](https://facturascripts.com/MyFiles/2024/11/2386.png?myft=2ceb7473f8390a5e0ec7525e189a494606175b28)
 
 ### Añadir columna al modal detalles
 Para añadir una columna al modal &quot;Detalle&quot;, registraremos un nuevo campo e implementaremos el html de ese input:
@@ -78,7 +78,7 @@ private static function pruebaNewModalFields(SalesDocument $model): string
 }
 ```
 
-![campo añadido a ventana detalles](/MyFiles/2024/11/2387.png?myft=06d9e15d5755c6b99c23b478fb6f694ef19cd58f)
+![campo añadido a ventana detalles](https://facturascripts.com/MyFiles/2024/11/2387.png?myft=06d9e15d5755c6b99c23b478fb6f694ef19cd58f)
 
 ### Añadir botones
 Para añadir &#39;botones&#39; o &#39;input select&#39; a la cabecera, igualmente debemos registrar el botón como nuevo campo e implementar el html:
@@ -108,7 +108,7 @@ private static function pruebaNewBtnFields(SalesDocument $model): string
 }
 ```
 
-![añadir botón cabecera](/MyFiles/2024/11/2388.png?myft=f5b11295a92a66c4707a7c28857433cf6a4954db)
+![añadir botón cabecera](https://facturascripts.com/MyFiles/2024/11/2388.png?myft=f5b11295a92a66c4707a7c28857433cf6a4954db)
 
 En los metodos `newFields()`, `newModalFields()`, `newBtnFields()` se podrá retornar varios campos a renderizar, por ejemplo:
 
@@ -271,7 +271,7 @@ private function pruebaNewFieldsTitle(): string
 
 **Nota**: Podemos decidir en que orden aparece la columna con la clase `order-1`, `order-2`, `order-3`, hasta llegar a `order-12`. Debemos colocar tanto al renderiar la columna como en el título de la columna.
 
-![campo añadido a la linea](/MyFiles/2024/11/2389.png?myft=88deeca662eec61c73c4871220ebe6c972613d74)
+![campo añadido a la linea](https://facturascripts.com/MyFiles/2024/11/2389.png?myft=88deeca662eec61c73c4871220ebe6c972613d74)
 
 ### Botón 3 puntos
 Para añadir una columna al modal de la línea &quot;...&quot;, registraremos un nuevo campo e implementaremos el html de ese input:
@@ -327,7 +327,7 @@ public function applyToLine(array $formData, SalesDocumentLine &$line, string $i
 }
 ```
 
-![campo añadido al modal de la linea](/MyFiles/2024/11/2390.png?myft=a42e2d572c158cbd62778e6b99ef223bd378f894)
+![campo añadido al modal de la linea](https://facturascripts.com/MyFiles/2024/11/2390.png?myft=a42e2d572c158cbd62778e6b99ef223bd378f894)
 
 El código completo de esta clase de ejemplo sería el siguiente:
 

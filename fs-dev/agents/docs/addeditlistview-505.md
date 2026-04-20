@@ -6,7 +6,7 @@ creationdate: 04-05-2018 00:00:00
 lastmod: 05-06-2025
 url: https://facturascripts.com/addeditlistview-505
 ---
-La función `addEditListView()` permite añadir una pestaña o sección en el [EditController](/publicaciones/editcontroller-642) o PanelController para editar múltiples registros de un modelo. Se utiliza dentro del método **createViews()** del controlador.
+La función `addEditListView()` permite añadir una pestaña o sección en el [EditController](https://facturascripts.com/publicaciones/editcontroller-642) o PanelController para editar múltiples registros de un modelo. Se utiliza dentro del método **createViews()** del controlador.
 
 ## Sintaxis
 
@@ -53,7 +53,7 @@ $this-&gt;tab($viewName)-&gt;setInLine(true);
 
 ## Relación con XMLView
 
-La pestaña añadida utilizará un archivo [XMLView](/publicaciones/las-vistas-xml-xmlview-668) con el mismo nombre que la pestaña. Por ejemplo, para `EditCuentaBancoCliente`, el archivo debe llamarse **XMLView/EditCuentaBancoCliente.xml**. Este archivo define los campos que se mostrarán en el formulario.
+La pestaña añadida utilizará un archivo [XMLView](https://facturascripts.com/publicaciones/las-vistas-xml-xmlview-668) con el mismo nombre que la pestaña. Por ejemplo, para `EditCuentaBancoCliente`, el archivo debe llamarse **XMLView/EditCuentaBancoCliente.xml**. Este archivo define los campos que se mostrarán en el formulario.
 
 ---
 
