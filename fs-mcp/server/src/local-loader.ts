@@ -9,8 +9,9 @@
  *   - handleTool(name: string, args: Record<string, unknown>, client: fsClient): Promise<ToolResult | null>
  */
 
-import { readdirSync, existsSync, statSync } from 'fs';
+import { readdirSync, existsSync, statSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
+import { homedir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from './fs/client.js';
@@ -29,18 +30,49 @@ export interface LocalModuleHandler {
 }
 
 /**
+ * Claude Code no interpola las opciones de usuario (FS_LOCAL_MODULES_PATH) en las variables de
+ * entorno del MCP. Las pasa como template literal sin resolver (ej: "${FS_LOCAL_MODULES_PATH}").
+ * Este helper lee el valor real desde ~/.claude/settings.json como fallback.
+ */
+function readLocalModulesPathFromSettings(): string | undefined {
+  try {
+    const settingsPath = join(homedir(), '.claude', 'settings.json');
+    if (!existsSync(settingsPath)) return undefined;
+
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as Record<string, unknown>;
+    const pluginConfigs = settings['pluginConfigs'] as Record<string, unknown> | undefined;
+    if (!pluginConfigs) return undefined;
+
+    // Buscar en todas las entradas de pluginConfigs la opción FS_LOCAL_MODULES_PATH
+    for (const config of Object.values(pluginConfigs)) {
+      const options = (config as Record<string, unknown>)['options'] as Record<string, unknown> | undefined;
+      const path = options?.['FS_LOCAL_MODULES_PATH'] as string | undefined;
+      if (path && path.trim() !== '') return path.trim();
+    }
+  } catch {
+    // Silencioso: si no puede leer la configuración, continúa sin módulos locales
+  }
+  return undefined;
+}
+
+/**
  * Carga todos los módulos locales desde FS_LOCAL_MODULES_PATH (o fallback a dist/modules-local).
  * Registra sus tools en el mapa global y devuelve un array de handlers para el dispatcher.
  */
 export async function loadLocalModules(toolsMap: Map<string, Tool>): Promise<LocalModuleHandler[]> {
-  // Env var tiene prioridad; si está vacía o no definida, usa el fallback local
+  // Claude Code no interpola las variables de usuario en el entorno del MCP (las pasa como
+  // "${FS_LOCAL_MODULES_PATH}" literalmente). Detectamos ese caso y leemos desde settings.json.
   const envPath = process.env['FS_LOCAL_MODULES_PATH'];
-  const localModulesDir = (envPath !== undefined && envPath.trim() !== '')
-    ? envPath.trim()
-    : join(__dirname, 'modules-local');
+  const isInterpolated = envPath !== undefined && envPath.trim() !== '' && !envPath.includes('${');
+
+  const resolvedPath = isInterpolated
+    ? envPath!.trim()
+    : readLocalModulesPathFromSettings();
+
+  const localModulesDir = resolvedPath ?? join(__dirname, 'modules-local');
 
   if (!existsSync(localModulesDir)) {
-    if (process.env['FS_LOCAL_MODULES_PATH']) {
+    if (resolvedPath) {
       console.error(
         `[local-loader] FS_LOCAL_MODULES_PATH apunta a un directorio que no existe: ${localModulesDir}`
       );

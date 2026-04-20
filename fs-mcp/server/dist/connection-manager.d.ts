@@ -8,8 +8,9 @@ declare class ConnectionManager {
     private config;
     constructor();
     /**
-     * Carga las conexiones desde el archivo JSON
-     * Si el archivo no existe, crea uno vacío y lanza error
+     * Carga las conexiones desde el archivo JSON.
+     * Si el archivo no existe, crea uno vacío y continúa sin lanzar error.
+     * El servidor arranca siempre; el error se produce al intentar usar una conexión.
      */
     private loadConnections;
     /**

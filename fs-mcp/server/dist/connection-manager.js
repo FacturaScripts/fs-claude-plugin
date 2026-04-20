@@ -14,34 +14,34 @@ class ConnectionManager {
         this.config = this.loadConnections();
     }
     /**
-     * Carga las conexiones desde el archivo JSON
-     * Si el archivo no existe, crea uno vacío y lanza error
+     * Carga las conexiones desde el archivo JSON.
+     * Si el archivo no existe, crea uno vacío y continúa sin lanzar error.
+     * El servidor arranca siempre; el error se produce al intentar usar una conexión.
      */
     loadConnections() {
+        const emptyConfig = { default: "", connections: {} };
         try {
             if (!fs.existsSync(this.connectionsPath)) {
                 this.createEmptyConnectionsFile();
-                throw new Error(`Archivo de configuración no encontrado: ${this.connectionsPath}\n` +
-                    "Por favor, configura al menos una conexión usando: fs-mcp:add-connection\n" +
-                    "Se ha creado un archivo connections.json vacío. Actualízalo con tus credenciales.");
+                console.error(`[fs-mcp] Archivo de conexiones no encontrado: ${this.connectionsPath}\n` +
+                    "[fs-mcp] Usa fs-mcp:add-connection para configurar una conexión.");
+                return emptyConfig;
             }
             const rawData = fs.readFileSync(this.connectionsPath, "utf-8");
             const parsed = JSON.parse(rawData);
-            if (!parsed.connections || Object.keys(parsed.connections).length === 0) {
-                throw new Error("No hay conexiones configuradas en connections.json\n" +
-                    "Por favor, añade al menos una conexión usando: fs-mcp:add-connection");
+            // Si el archivo está vacío o tiene formato incorrecto, devolver configuración vacía
+            if (!parsed || !parsed.connections) {
+                return emptyConfig;
+            }
+            if (Object.keys(parsed.connections).length === 0) {
+                console.error("[fs-mcp] No hay conexiones configuradas en connections.json\n" +
+                    "[fs-mcp] Usa fs-mcp:add-connection para añadir una conexión.");
             }
             return parsed;
         }
         catch (error) {
-            if (error instanceof Error && error.message.includes("no hay conexiones")) {
-                throw error;
-            }
-            if (error instanceof Error &&
-                error.message.includes("Por favor, configura")) {
-                throw error;
-            }
-            throw new Error(`Error al cargar conexiones: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(`[fs-mcp] Error al cargar conexiones: ${error instanceof Error ? error.message : String(error)}`);
+            return emptyConfig;
         }
     }
     /**
