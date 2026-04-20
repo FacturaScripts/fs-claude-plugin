@@ -1,5 +1,11 @@
 .DS_Store
 .claude/
-./fs-mcp/server/node_modules/
-./fs-mcp/server/*.tsbuildinfo
+
+# En producción se usa CLAUDE_PLUGIN_DATA/connections.json (fuera del repo).
+# El archivo server/connections.json sirve solo como fallback en desarrollo local.
+# Se excluye para evitar comprometer credenciales accidentalmente.
+connections.json
+
+fs-mcp/server/node_modules/
+fs-mcp/server/*.tsbuildinfo
 # dist/ se incluye intencionalmente en el repo para evitar necesitar Node.js en el cliente
