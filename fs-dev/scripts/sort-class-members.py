@@ -232,8 +232,8 @@ def classify_member(code: str) -> Tuple[str, str]:
         name = (first[0].split('\\')[-1]) if first else s[:30]
         return 'trait', name.lower()
 
-    # Constante: (public)? const NOMBRE
-    m = re.match(r'^(?:public\s+)?const\s+(\w+)', s)
+    # Constante: (public|protected|private)? const NOMBRE
+    m = re.match(r'^(?:public|protected|private)?\s*const\s+(\w+)', s)
     if m:
         return 'const', m.group(1).lower()
 
