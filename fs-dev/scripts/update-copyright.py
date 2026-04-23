@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Actualiza el año de copyright en archivos de FacturaScripts.
 
-Casos que gestiona:
+Casos que gestiona (en modo normal):
 1. Sin año → añade el año actual
    Copyright (C) Carlos → Copyright (C) 2026 Carlos
 2. Año único igual al actual → sin cambios
@@ -13,19 +13,27 @@ Casos que gestiona:
 5. Rango con año final diferente al actual → actualiza el año final
    Copyright (C) 2023-2024 Carlos → Copyright (C) 2023-2026 Carlos
 
-Uso: update-copyright.py <file_path> <current_year>
+En modo archivo nuevo (--new):
+- Reemplaza cualquier copyright con solo el año actual
+  Copyright (C) 2023 Carlos → Copyright (C) 2026 Carlos
+
+Uso: update-copyright.py <file_path> <current_year> [--new]
 """
 import re
 import sys
 
 
-def update_copyright_year(content: str, current_year: int) -> str:
+def update_copyright_year(content: str, current_year: int, is_new_file: bool = False) -> str:
     """Actualiza las líneas de copyright con el año actual según las reglas definidas."""
 
     def replace_match(match) -> str:
         prefix = match.group(1)     # "Copyright (C) "
         year_part = match.group(2)  # None | "2023 " | "2023-2024 "
         rest = match.group(3)       # "Carlos Garcia Gomez ..."
+
+        # Para archivos nuevos: siempre usar solo el año actual
+        if is_new_file:
+            return f"{prefix}{current_year} {rest}"
 
         # Caso 1: sin año → añadir el año actual
         if year_part is None:
@@ -60,11 +68,12 @@ def update_copyright_year(content: str, current_year: int) -> str:
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
-        print(f"Uso: {sys.argv[0]} <file_path> <current_year>", file=sys.stderr)
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print(f"Uso: {sys.argv[0]} <file_path> <current_year> [--new]", file=sys.stderr)
         sys.exit(1)
 
     file_path = sys.argv[1]
+    is_new_file = '--new' in sys.argv
 
     try:
         current_year = int(sys.argv[2])
@@ -79,7 +88,7 @@ def main() -> None:
         print(f"Error leyendo {file_path}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    updated = update_copyright_year(original, current_year)
+    updated = update_copyright_year(original, current_year, is_new_file)
 
     if updated != original:
         try:
