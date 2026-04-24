@@ -27,7 +27,7 @@ https://github.com/FacturaScripts/fs-claude-plugin
 En Claude Code ejecuta:
 
 ```
-/install-plugin https://github.com/FacturaScripts/fs-claude-plugin
+/plugin add marketplace FacturaScripts/fs-claude-plugin
 ```
 
 O desde la interfaz de gestión de plugins de Claude Code, añade la URL del repositorio.
@@ -43,7 +43,7 @@ git clone https://github.com/FacturaScripts/fs-claude-plugin
 Luego en Claude Code:
 
 ```
-/install-plugin /ruta/local/al/repositorio
+/plugin install /ruta/local/al/repositorio
 ```
 
 > **Nota:** El plugin incluye los archivos `dist/` precompilados del servidor MCP. No necesitas tener Node.js instalado para usarlo.
