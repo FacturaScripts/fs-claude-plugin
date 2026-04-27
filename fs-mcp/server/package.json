@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "tsc --watch",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "generate:metadata": "npm run build && node dist/scripts/generate-metadata.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

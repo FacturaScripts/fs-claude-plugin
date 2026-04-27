@@ -8,6 +8,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   ListToolsRequestSchema,
   CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { connectionManager } from './connection-manager.js';
@@ -21,6 +23,10 @@ import { registerGeographicTools, handleGeographicTool } from './modules/geograp
 import { registerCommunicationTools, handleCommunicationTool } from './modules/communication/index.js';
 import { registerSystemTools, handleSystemTool } from './modules/system/index.js';
 import { registerAnalyticsTools, handleAnalyticsTool } from './modules/analytics/index.js';
+import { registerSchemaTools, handleSchemaTool } from './modules/schema/index.js';
+import { listSchemaResources, readSchemaResource } from './resources/schema-resources.js';
+import { enrichAllTools } from './metadata/enrich.js';
+import { bootstrapCoreMetadata, getAllModelMetadata } from './metadata/registry.js';
 import { loadLocalModules, type LocalModuleHandler } from './local-loader.js';
 
 // Track registered tools
@@ -126,10 +132,14 @@ function registerConnectionTools(): void {
  * Register all tool modules
  */
 async function registerAllTools(): Promise<void> {
-  // Register connection tools first
+  // 1. Cargar la metadata del core en el registry mutable.
+  const coreCount = await bootstrapCoreMetadata();
+  console.error(`[fs-mcp] Modelos del core registrados: ${coreCount}`);
+
+  // 2. Tools de gestión de conexiones.
   registerConnectionTools();
 
-  // Register module tools
+  // 3. Tools de cada módulo del MCP.
   await registerAccountingTools(tools);
   await registerCoreBusinessTools(tools);
   await registerSalesOrdersTools(tools);
@@ -141,9 +151,49 @@ async function registerAllTools(): Promise<void> {
   await registerSystemTools(tools);
   await registerAnalyticsTools(tools);
 
-  // Cargar módulos locales privados (desde FS_LOCAL_MODULES_PATH o dist/modules-local)
+  // 4. Cargar módulos locales privados: registran sus tools y, si los exponen,
+  // sus modelos en el registry de metadata.
   localModuleHandlers = await loadLocalModules(tools);
+
+  // 5. Tools del schema (describe_model, list_models, verify_model_columns):
+  // se construyen DESPUÉS de cargar locales para que sus enums incluyan tanto
+  // los modelos del core como los privados.
+  await registerSchemaTools(tools);
+
+  // 6. Resumen final del registry (core + privados ya cargados).
+  const totalModels = getAllModelMetadata().length;
+  console.error(
+    `[fs-mcp] Modelos totales en el registry: ${totalModels} (core + privados).`,
+  );
+
+  // 7. Enriquecer los inputSchema de los tools con la metadata: completa
+  // descripciones vacías, maxLength y enums sin pisar descripciones hardcoded.
+  const stats = enrichAllTools(tools);
+  console.error(
+    `[fs-mcp] Tools enriquecidas: ${stats.toolsEnriched}/${stats.toolsProcessed} ` +
+      `(+${stats.descriptionsAdded} descripciones, +${stats.maxLengthsAdded} maxLength, +${stats.enumsAdded} enums)`,
+  );
 }
+
+/**
+ * List resources handler: expone la metadata de modelos como MCP Resources
+ * bajo el esquema fs-schema://...
+ */
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return { resources: listSchemaResources() };
+});
+
+/**
+ * Read resource handler: devuelve el contenido del resource solicitado.
+ */
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const uri = request.params.uri;
+  const result = readSchemaResource(uri);
+  if (!result) {
+    throw new Error(`Resource no soportado: ${uri}`);
+  }
+  return { contents: [result] };
+});
 
 /**
  * List tools handler
@@ -254,7 +304,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ?? await handleGeographicTool(toolName, toolInput)
           ?? await handleCommunicationTool(toolName, toolInput)
           ?? await handleSystemTool(toolName, toolInput)
-          ?? await handleAnalyticsTool(toolName, toolInput);
+          ?? await handleAnalyticsTool(toolName, toolInput)
+          ?? await handleSchemaTool(toolName, toolInput);
 
         if (result) {
           return result;

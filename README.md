@@ -10,6 +10,7 @@ Plugin para [Claude Code](https://claude.ai/code) que integra el ERP [FacturaScr
   - [fs-user — Plugin para usuarios del ERP](#fs-user--plugin-para-usuarios-del-erp)
   - [fs-mcp — Servidor MCP de FacturaScripts](#fs-mcp--servidor-mcp-de-facturascripts)
 - [Módulos locales privados (fs-mcp)](#módulos-locales-privados-fs-mcp)
+- [Metadata de modelos (fs-mcp)](#metadata-de-modelos-fs-mcp)
 - [Requisitos](#requisitos)
 
 ---
@@ -233,6 +234,25 @@ El servidor expone las siguientes herramientas agrupadas por módulo. Todas acep
 
 `get_logmessages`, `get_tasks`, `get_cronjobes`, `get_workeventes`
 
+**Metadata de modelos (introspección)**
+
+| Herramienta | Descripción |
+|---|---|
+| `list_models` | Lista todos los modelos del MCP (core + privados) con su descripción y conteo de columnas/relaciones. Útil cuando no sabes qué modelo consultar. |
+| `describe_model` | Devuelve la metadata completa de un modelo: columnas con tipo, requerido, label, descripción, FKs y relaciones `belongsTo`/`hasMany`. Acepta `format: "json"` (por defecto) o `"markdown"`. |
+| `verify_model_columns` | Llama a la API real con `?limit=1` y compara las keys devueltas con las del metadata local para detectar drift (columnas eliminadas/renombradas o nuevas en la versión instalada). |
+
+#### MCP Resources
+
+Además de tools, el servidor expone los modelos como **MCP Resources** bajo el esquema `fs-schema://`:
+
+- `fs-schema://models` — índice JSON de todos los modelos disponibles.
+- `fs-schema://model/<nombre>` — metadata completa del modelo en JSON.
+- `fs-schema://model/<nombre>.md` — la misma metadata en markdown legible.
+- `fs-schema://relations/<nombre>` — solo las relaciones del modelo.
+
+Los clientes MCP que soporten resources (Claude Code, Claude Desktop) los muestran en su navegador de recursos sin que aparezcan en el listado de tools.
+
 #### Skills del MCP
 
 | Skill | Descripción |
@@ -240,6 +260,7 @@ El servidor expone las siguientes herramientas agrupadas por módulo. Todas acep
 | `fs-mcp:add-connection` | Guía interactiva para añadir una nueva conexión a FacturaScripts |
 | `fs-mcp:list-connections` | Lista y gestiona las conexiones configuradas |
 | `fs-mcp:configure-local-modules` | Configura la ruta de módulos MCP locales privados |
+| `fs-mcp:sync-models` | Mantiene el catálogo de modelos: añade modelos nuevos, detecta cambios entre versiones de FacturaScripts, regenera metadata, redacta descripciones. Soporta core y privados, ruta local o GitHub. Ver [Metadata de modelos](#metadata-de-modelos-fs-mcp). |
 
 ---
 
@@ -349,11 +370,145 @@ export async function handleTool(name, args, client) {
 Al arrancar el servidor MCP verás en los logs:
 
 ```
-[local-loader] ✓ Módulo local cargado: mi-modulo
+[local-loader] ✓ Módulo local cargado: mi-modulo (+1 modelos)
 [local-loader] 1 módulo(s) local(es) cargado(s) desde: /ruta/a/mis-modulos-fs
 ```
 
-Si hay algún problema con un módulo (falta `index.js`, no exporta las funciones correctas), se registra un aviso y el servidor continúa cargando el resto.
+El sufijo `(+N modelos)` aparece cuando el módulo aporta también metadata de modelos (ver siguiente sección). Si hay algún problema con un módulo (falta `index.js`, no exporta las funciones correctas), se registra un aviso y el servidor continúa cargando el resto.
+
+### Aportar metadata de modelos desde un módulo privado
+
+Un módulo privado puede exportar opcionalmente la metadata de los modelos del plugin de FacturaScripts al que se conecta, para que aparezcan en `list_models`, `describe_model` y los Resources `fs-schema://model/<nombre>`. Solo hay que:
+
+1. Generar el archivo `metadata.js` con la skill [`fs-mcp:sync-models`](#metadata-de-modelos-fs-mcp).
+2. Importarlo desde `index.js` y exportarlo como `modelMetadata`:
+
+```javascript
+// mis-modulos-fs/mi-modulo/index.js
+
+import miModeloMetadata from './metadata.js';
+
+export async function registerTools(toolsMap) { /* ... */ }
+export async function handleTool(name, args, client) { /* ... */ }
+
+// El local-loader lee este export y lo añade al registry global del MCP.
+export const modelMetadata = [miModeloMetadata];
+```
+
+El `local-loader` valida la estructura mínima (`name`, `table`, `endpoint`, `primaryKey`, `description`, `source`, `columns`, `relations`, `generatedFrom`) y registra los modelos válidos. Los inválidos se omiten con un aviso.
+
+---
+
+## Metadata de modelos (fs-mcp)
+
+El servidor MCP mantiene una **metadata estructurada** de cada modelo de FacturaScripts (los 83 del core + los que aportes desde plugins privados). Esta metadata describe cada columna con su tipo, longitud, FK, descripción funcional, etc., y la usa Claude para generar consultas e informes complejos sin adivinar.
+
+### Qué se expone al asistente
+
+Tres canales para los mismos datos:
+
+- **Tools** (`list_models`, `describe_model`, `verify_model_columns`) — llamables explícitamente.
+- **Resources** (`fs-schema://...`) — navegables sin invocar tools.
+- **Enriquecimiento automático** — los `inputSchema` de los tools `create_*`, `update_*` y `get_*` se rellenan con `maxLength` y `enum` desde la metadata al arrancar el servidor (sin pisar las descripciones hardcoded).
+
+### Single source of truth para descripciones
+
+Las descripciones de cada columna se guardan en archivos JSON aparte, lo que las hace fáciles de auditar y mantener:
+
+- **Core** → `fs-mcp/server/src/metadata/descriptions-overrides.json` (committed en el repo del plugin).
+- **Privados** → `<outputBase>/descriptions.json` (en la carpeta privada del usuario, no se sube a GitHub).
+
+Estructura: `{ "modelo": { "campo": "descripción contextual" } }`. Estas descripciones ganan sobre cualquier otra fuente (XMLView, traducciones de FS, FK genérica) al regenerar la metadata.
+
+### Regenerar la metadata
+
+El comando `npm run generate:metadata` tiene dos modos:
+
+**Modo CORE** — regenera los modelos del core de FacturaScripts:
+
+```bash
+cd fs-mcp/server
+npm run generate:metadata -- --fs-path=/ruta/a/facturascripts
+```
+
+Lee `Core/Table/*.xml`, `Core/XMLView/*.xml`, `Core/Translation/es_ES.json` y escribe los archivos TS en `server/src/metadata/models/`. Tras regenerar hay que recompilar (`npm run build`) para que el servidor cargue los cambios.
+
+**Modo PLUGIN** — regenera los modelos de un plugin privado:
+
+```bash
+cd fs-mcp/server
+npm run generate:metadata -- --manifest=/ruta/a/manifest.json
+```
+
+El `manifest.json` declara qué modelos generar, dónde están sus tablas XML del plugin de FS, dónde escribir el `metadata.js` resultante y opcionalmente la ruta del archivo de descripciones del usuario.
+
+Estructura del manifest:
+
+```json
+{
+    "moduleName": "forja",
+    "fsPath": "/ruta/a/facturascripts",
+    "pluginPath": "/ruta/a/facturascripts/Plugins/Forja",
+    "outputBase": "/ruta/a/mis-modulos-fs",
+    "descriptionsOverridesPath": "/ruta/a/mis-modulos-fs/descriptions.json",
+    "models": [
+        {
+            "name": "task",
+            "outputDir": "tasks",
+            "table": "tasks",
+            "endpoint": "/tasks",
+            "editView": "CardTask",
+            "description": "Tarea del plugin Forja..."
+        }
+    ]
+}
+```
+
+Por cada modelo, el generador escribe `<outputBase>/<outputDir>/metadata.js`. El `index.js` del módulo importa ese `metadata.js` y lo expone como `modelMetadata` (ver sección anterior).
+
+### Mantener el catálogo con la skill `sync-models`
+
+Para no tener que recordar los pasos manuales, usa la skill:
+
+```
+fs-mcp:sync-models
+```
+
+La skill detecta cambios entre tu metadata local y una fuente (carpeta local de FacturaScripts o URL de GitHub) y orquesta todo el flujo:
+
+- **Modelo nuevo** → añade entrada al `MODEL_CATALOG` (core) o al `manifest.json` (privado), redacta descripciones contextuales para todas las columnas, regenera y compila.
+- **Modelo existente** → detecta columnas añadidas/eliminadas/cambiadas, redacta descripciones para las nuevas, ajusta el override.
+- **Lista de modelos** → procesa varios en lote (misma ruta o cada uno en distinta), regenera al final una sola vez.
+- **Refresh masivo** → audita los 83 modelos del core contra una versión nueva de FacturaScripts (ej: tras `git pull` del core) y actualiza el commit registrado.
+
+Ejemplos de invocación habituales:
+
+- *"Revisa el modelo cliente del core, fuente /Users/yo/facturascripts"*
+- *"Añade el modelo bulletin del plugin privado, está en /Users/yo/facturascripts/Plugins/Forja"*
+- *"Refresca todos los modelos del core con la versión nueva en /Users/yo/facturascripts"*
+- *"Revisa task del plugin privado en https://github.com/X/Forja"*
+
+La skill usa internamente el script `node dist/scripts/compare-model.js` para detectar cambios estructurales (added/removed/changed) y devolver un JSON con el detalle. Si quieres invocarlo directamente:
+
+```bash
+cd fs-mcp/server
+node dist/scripts/compare-model.js --model=cliente \
+  --source=/Users/yo/facturascripts --type=core
+```
+
+### Scripts auxiliares de mantenimiento
+
+En `fs-mcp/server/src/scripts/`:
+
+| Script | Descripción |
+|---|---|
+| `generate-metadata.ts` | Generador principal (modo CORE o PLUGIN). |
+| `compare-model.ts` | Compara un modelo del registry con su XML fuente y reporta diferencias en JSON. |
+| `list-undocumented.ts` | Lista las columnas sin descripción agrupadas por modelo (debe dar `0`). |
+| `dump-all-descriptions.ts` | Vuelca todas las descripciones a `/tmp/all-descriptions-dump.json` y reporta cuántas son genéricas. |
+| `test-metadata.ts` | Suite de tests unitarios sobre el sistema de metadata (registry, resources, tools, enriquecimiento). |
+
+Tras compilar (`npm run build`) se ejecutan con `node dist/scripts/<nombre>.js`.
 
 ---
 
@@ -384,13 +539,22 @@ fs-claude-plugin/
 │   └── .claude-plugin/plugin.json
 │
 └── fs-mcp/                    # Servidor MCP de FacturaScripts
-    ├── server/                # Servidor Node.js/TypeScript
-    │   ├── src/               # Código fuente TypeScript
-    │   │   ├── modules/       # Módulos por área (accounting, sales, etc.)
-    │   │   ├── local-loader.ts # Cargador de módulos locales privados
+    ├── server/
+    │   ├── src/
+    │   │   ├── modules/       # Tools por área (accounting, sales, schema, etc.)
+    │   │   ├── metadata/      # Sistema de metadata de modelos
+    │   │   │   ├── descriptions-overrides.json  # Descripciones del core (committed)
+    │   │   │   ├── models/    # Metadata generada por modelo (auto)
+    │   │   │   ├── index.ts   # Agregador (auto)
+    │   │   │   ├── registry.ts # Registry mutable (core + privados)
+    │   │   │   ├── enrich.ts  # Enriquecimiento de inputSchemas
+    │   │   │   └── types.ts   # Tipos ModelMetadata, ColumnMetadata, etc.
+    │   │   ├── resources/     # Handlers MCP Resources (fs-schema://)
+    │   │   ├── scripts/       # generate-metadata, compare-model, etc.
+    │   │   ├── local-loader.ts # Cargador de módulos privados + metadata
     │   │   └── index.ts       # Punto de entrada del servidor
     │   └── dist/              # Código compilado (incluido en el repo)
-    ├── skills/                # Skills de configuración del MCP
+    ├── skills/                # Skills (add-connection, sync-models, etc.)
     └── .claude-plugin/plugin.json
 ```
 

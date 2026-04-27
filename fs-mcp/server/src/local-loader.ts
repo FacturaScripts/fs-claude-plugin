@@ -15,6 +15,8 @@ import { homedir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from './fs/client.js';
+import { registerModelMetadata } from './metadata/registry.js';
+import type { ModelMetadata } from './metadata/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -133,7 +135,26 @@ export async function loadLocalModules(toolsMap: Map<string, Tool>): Promise<Loc
         handleTool: (name, args) => handleFn(name, args, fsClient),
       });
 
-      console.error(`[local-loader] ✓ Módulo local cargado: ${entry}`);
+      // Si el módulo expone metadata de modelos (campo `modelMetadata`),
+      // la registramos en el registry. Los modelos privados conviven con los
+      // del core y son accesibles vía describe_model, list_models y los Resources.
+      const exportedMetadata = mod['modelMetadata'];
+      let metadataCount = 0;
+      if (Array.isArray(exportedMetadata)) {
+        for (const candidate of exportedMetadata) {
+          if (isValidModelMetadata(candidate)) {
+            registerModelMetadata(candidate);
+            metadataCount += 1;
+          } else {
+            console.error(
+              `[local-loader] Módulo "${entry}": entrada de modelMetadata inválida — omitida.`,
+            );
+          }
+        }
+      }
+
+      const metaSuffix = metadataCount > 0 ? ` (+${metadataCount} modelos)` : '';
+      console.error(`[local-loader] ✓ Módulo local cargado: ${entry}${metaSuffix}`);
     } catch (err) {
       console.error(`[local-loader] Error cargando módulo "${entry}":`, err);
     }
@@ -146,4 +167,25 @@ export async function loadLocalModules(toolsMap: Map<string, Tool>): Promise<Loc
   }
 
   return handlers;
+}
+
+/**
+ * Valida superficialmente que un objeto cumple con la forma de ModelMetadata.
+ * No comprueba todos los campos opcionales, solo los obligatorios para que el
+ * registry pueda usarlo sin romperse.
+ */
+function isValidModelMetadata(value: unknown): value is ModelMetadata {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v['name'] === 'string' &&
+    typeof v['table'] === 'string' &&
+    typeof v['endpoint'] === 'string' &&
+    typeof v['primaryKey'] === 'string' &&
+    typeof v['description'] === 'string' &&
+    typeof v['source'] === 'string' &&
+    Array.isArray(v['columns']) &&
+    Array.isArray(v['relations']) &&
+    typeof v['generatedFrom'] === 'object' && v['generatedFrom'] !== null
+  );
 }

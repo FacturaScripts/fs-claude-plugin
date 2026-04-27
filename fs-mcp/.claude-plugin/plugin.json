@@ -1,6 +1,6 @@
 {
   "name": "fs-mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Servidor MCP de FacturaScripts con soporte para múltiples instalaciones.",
   "author": {
     "name": "Daniel Fernández Giménez",
