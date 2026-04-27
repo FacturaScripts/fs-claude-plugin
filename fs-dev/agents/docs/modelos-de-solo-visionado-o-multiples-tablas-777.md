@@ -3,23 +3,24 @@ id: 669
 permalink: modelos-de-solo-visionado-o-multiples-tablas-777
 title: Modelos de Más de Una Tabla
 creationdate: 11-05-2018 00:00:00
-lastmod: 03-08-2025
-url: https://facturascripts.com/modelos-de-solo-visionado-o-multiples-tablas-777
+lastmod: 16-04-2026
+url: https://facturascripts.com/publicaciones/modelos-de-solo-visionado-o-multiples-tablas-777
 ---
+
 En ocasiones, es necesario mostrar listados que consulten **más de una tabla**. Si el [widget select](https://facturascripts.com/publicaciones/widget-select-557) o el [widget autocomplete](https://facturascripts.com/publicaciones/widget-autocomplete-946) no resuelven nuestro problema, podemos utilizar **JoinModel** para solucionarlo.
 
 ## ¿Qué es un JoinModel?
 El JoinModel es un tipo especial de modelo que **se utiliza exclusivamente para listados**. Esto significa que **no está diseñado** para crear, editar o eliminar datos. Su única función es la visualización de datos.
 
 ### Ejemplo de Uso de JoinModel
-Para crear un JoinModel, debemos definir una clase en la carpeta **Model/Join** de nuestro plugin que herede de **Core/Model/Base/JoinModel**. Esta clase debe implementar los métodos `getTables()`, `getFields()` y `getSQLFrom()`, los cuales especificarán las tablas y campos a utilizar.
+Para crear un JoinModel, debemos definir una clase en la carpeta **Model/Join** de nuestro plugin que herede de **Core/Template/JoinModel**. Esta clase debe implementar los métodos `getTables()`, `getFields()` y `getSQLFrom()`, los cuales especificarán las tablas y campos a utilizar.
 
 **Ejemplo: Model/Join/PartidaAsiento.php**: A continuación, crearemos un JoinModel que combine las tablas `partidas` y `asientos`.
 
 ```php
 namespace FacturaScripts\Plugins\MyNewPlugin\Model\Join;
 
-use FacturaScripts\Core\Model\Base\JoinModel;
+use FacturaScripts\Core\Template\JoinModel;
 
 class PartidaAsiento extends JoinModel
 {
@@ -131,7 +132,7 @@ public function __construct($data = [])
 ### Métodos `clear()` y `loadFromData()`
 Si necesitamos calcular algunos valores, podemos utilizar los métodos `clear()` o `loadFromData()` para ello:
 ```php
-public function clear()
+public function clear(): void
 {
     parent::clear();
     $this-&gt;cuotaiva = 0.00;
@@ -139,7 +140,7 @@ public function clear()
     $this-&gt;total = 0.00;
 }
 
-protected function loadFromData($data)
+protected function loadFromData($data): void
 {
     parent::loadFromData($data);
     $this-&gt;cuotaiva = $this-&gt;baseimponible * ($this-&gt;iva / 100.00);

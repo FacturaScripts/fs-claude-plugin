@@ -4,8 +4,9 @@ permalink: install-205
 title: $modelo-&gt;install()
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/install-205
+url: https://facturascripts.com/publicaciones/install-205
 ---
+
 El método `install()` del modelo permite añadir registros por defecto a la tabla al momento de crearla.
 
 En ocasiones hay tablas, como `paises`, que es necesario o muy recomendable inicializar con registros. Para estos casos existe el método `install()` en los modelos. Este método es llamado **cuando se crea la tabla** en la base de datos, únicamente en ese instante. Y debe devolver una sentencia SQL para insertar los valores necesarios en la tabla.

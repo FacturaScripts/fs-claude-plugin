@@ -4,8 +4,9 @@ permalink: databasewhere-478
 title: Clase DataBaseWhere (obsoleta)
 creationdate: 11-05-2018 00:00:00
 lastmod: 06-12-2025
-url: https://facturascripts.com/databasewhere-478
+url: https://facturascripts.com/publicaciones/databasewhere-478
 ---
+
 La clase `DataBaseWhere` en FacturaScripts se utiliza para **filtrar resultados** en los métodos [all()](https://facturascripts.com/publicaciones/all-863), [count()](https://facturascripts.com/publicaciones/count-882) y [loadFromCode()](https://facturascripts.com/publicaciones/loadfromcode-677) de los modelos. Podemos pasar un array de `DataBaseWhere` a estos métodos para aplicar los filtros deseados.
 
 Esta clase fué reemplazada por Where a partir de la versión 2025.

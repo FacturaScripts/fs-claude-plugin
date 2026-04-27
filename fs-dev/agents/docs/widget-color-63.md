@@ -4,8 +4,9 @@ permalink: widget-color-63
 title: Widget Color
 creationdate: 18-10-2019 00:00:00
 lastmod: 31-01-2026
-url: https://facturascripts.com/widget-color-63
+url: https://facturascripts.com/publicaciones/widget-color-63
 ---
+
 En los archivos XMLView puedes usar el widget color (WidgetColor) para mostrar o editar colores de forma sencilla.
 
 ## 🔍 Descripción

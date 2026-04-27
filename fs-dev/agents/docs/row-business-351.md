@@ -4,8 +4,9 @@ permalink: row-business-351
 title: Row Business (Obsoleto)
 creationdate: 07-04-2020 00:00:00
 lastmod: 15-04-2025
-url: https://facturascripts.com/row-business-351
+url: https://facturascripts.com/publicaciones/row-business-351
 ---
+
 Este tipo de `row` permite añadir columnas en la parte inferior de la primera pestaña en los documentos de compra o de venta, como albaranes, facturas y pedidos.
 
 ## Ejemplo de uso

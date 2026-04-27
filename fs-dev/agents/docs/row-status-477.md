@@ -4,8 +4,9 @@ permalink: row-status-477
 title: Row status (XMLView)
 creationdate: 07-05-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/row-status-477
+url: https://facturascripts.com/publicaciones/row-status-477
 ---
+
 El tipo de estado permite **colorear las filas en función del valor de un campo** del registro o de una serie de condiciones. Se declara mediante la inclusión de una relación de uno o varios registros **option**, indicando la configuración que se aplicará para la fila. Los atributos que se pueden especificar son:
 
 - **color** (obligatorio): Para indicar el color deseado.

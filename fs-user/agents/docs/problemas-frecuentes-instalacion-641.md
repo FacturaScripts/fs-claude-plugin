@@ -4,8 +4,9 @@ permalink: problemas-frecuentes-instalacion-641
 title: Problemas frecuentes durante la instalación
 creationdate: 26-04-2018 00:00:00
 lastmod: 14-05-2025
-url: https://facturascripts.com/problemas-frecuentes-instalacion-641
+url: https://facturascripts.com/publicaciones/problemas-frecuentes-instalacion-641
 ---
+
 Esta es una pequeña lista de problemas frecuentes en la instalación de FacturaScripts 2025.
 
 ## 🚩 COMPOSER ERROR

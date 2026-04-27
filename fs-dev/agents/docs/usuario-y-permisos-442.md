@@ -4,8 +4,9 @@ permalink: usuario-y-permisos-442
 title: Consultar el usuario actual y sus permisos en FacturaScripts
 creationdate: 30-04-2018 00:00:00
 lastmod: 04-06-2025
-url: https://facturascripts.com/usuario-y-permisos-442
+url: https://facturascripts.com/publicaciones/usuario-y-permisos-442
 ---
+
 La clase **Session** de la carpeta *Core* permite consultar y almacenar información del usuario actual desde controladores, modelos y otras clases. Esta herramienta también facilita añadir temporalmente información accesible durante la ejecución actual de la aplicación.
 
 ## Añadir información a la sesión

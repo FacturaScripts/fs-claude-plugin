@@ -4,8 +4,9 @@ permalink: el-archivo-cron-php-855
 title: Uso del Archivo Cron.php en FacturaScripts
 creationdate: 25-06-2018 00:00:00
 lastmod: 28-03-2025
-url: https://facturascripts.com/el-archivo-cron-php-855
+url: https://facturascripts.com/publicaciones/el-archivo-cron-php-855
 ---
+
 Para que tu plugin **ejecute tareas periódicas**, puedes utilizar el archivo `Cron.php` de tu plugin. [El cron de FacturaScripts](https://facturascripts.com/publicaciones/el-cron-104) gestionará todos los procesos cron de los **plugins activos**, siempre y cuando **haya sido configurado** correctamente en el sistema o hosting. Si necesitas ejecutar algo de forma periódica, el mejor lugar para hacerlo es el cron de tu plugin.
 
 ## Ejemplo de Cron.php

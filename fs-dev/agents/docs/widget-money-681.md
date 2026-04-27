@@ -4,8 +4,9 @@ permalink: widget-money-681
 title: Widget Money
 creationdate: 06-10-2018 00:00:00
 lastmod: 03-01-2026
-url: https://facturascripts.com/widget-money-681
+url: https://facturascripts.com/publicaciones/widget-money-681
 ---
+
 En los **archivos XMLView** se puede utilizar el **Widget Money** para mostrar o editar cantidades monetarias. La principal diferencia con respecto al [Widget Number](https://facturascripts.com/publicaciones/widget-number-39) es que busca en el modelo un **campo coddivisa** para identificar [la divisa](https://facturascripts.com/publicaciones/divisas-773) y mostrar el símbolo correspondiente. Así, el usuario siempre tiene claridad sobre la moneda que está visualizando (euros, dólares, pesos, etc.).
 
 ### Ejemplo de uso del Widget Money

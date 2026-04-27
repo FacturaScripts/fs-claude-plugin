@@ -4,8 +4,9 @@ permalink: row-header-y-footer-565
 title: Row header y footer (XMLView)
 creationdate: 07-05-2018 00:00:00
 lastmod: 18-03-2025
-url: https://facturascripts.com/row-header-y-footer-565
+url: https://facturascripts.com/publicaciones/row-header-y-footer-565
 ---
+
 Los tipos de fila **header** y **footer** permiten definir paneles que se colocan en la cabecera o el pie de página de una pestaña, dependiendo de su tipo.
 
 Para declarar un panel, utilizaremos la etiqueta **group**, donde podemos incluir etiquetas **button** según sea necesario. Cada apartado del panel se puede personalizar con los siguientes atributos:

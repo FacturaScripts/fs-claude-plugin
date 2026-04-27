@@ -4,8 +4,9 @@ permalink: tablename-298
 title: Método tableName() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/tablename-298
+url: https://facturascripts.com/publicaciones/tablename-298
 ---
+
 El método `tableName()` es esencial en FacturaScripts, ya que devuelve el nombre de la tabla de la base de datos que utilizará el modelo. Este método es crucial para asegurar la correcta interacción del modelo con la base de datos, junto con el [método `primaryColumn()`](https://facturascripts.com/publicaciones/primarycolumn-492).
 
 ### Ejemplo de Implementación

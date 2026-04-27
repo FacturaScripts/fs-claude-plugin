@@ -4,8 +4,9 @@ permalink: primarydescription-115
 title: Método primaryDescription() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/primarydescription-115
+url: https://facturascripts.com/publicaciones/primarydescription-115
 ---
+
 El método `primaryDescription()` del modelo **devuelve el valor del campo** especificado en la función [primaryDescriptionColumn()](https://facturascripts.com/publicacion/primarydescriptioncolumn-955). Es empleado principalmente en el [EditController](https://facturascripts.com/publicacion/editcontroller-642) para añadir información junto al título, en la parte derecha de la interfaz.
 
 ![Ejemplo de primaryDescriptionColumn](https://i.imgur.com/YStwmvI.png)

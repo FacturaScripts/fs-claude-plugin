@@ -4,8 +4,9 @@ permalink: creacion-de-plugins-210
 title: Creación de Plugins
 creationdate: 27-04-2018 00:00:00
 lastmod: 08-12-2025
-url: https://facturascripts.com/creacion-de-plugins-210
+url: https://facturascripts.com/publicaciones/creacion-de-plugins-210
 ---
+
 Un plugin permite añadir nuevas funcionalidades a FacturaScripts. Si desea realizar cambios en el código de FacturaScripts, **no modifique los archivos del núcleo**, ya que al actualizar perderá esos cambios. En su lugar, debe crear un plugin con las modificaciones deseadas.
 
 ## ¿Cómo crear un plugin?

@@ -4,8 +4,9 @@ permalink: widget-number-39
 title: Widget Number
 creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/widget-number-39
+url: https://facturascripts.com/publicaciones/widget-number-39
 ---
+
 En los **archivos XMLView**, se puede usar un widget de tipo número, o **WidgetNumber**, para mostrar y editar contenido en formato numérico.
 
 ```xml

@@ -4,8 +4,9 @@ permalink: el-archivo-init-php-307
 title: El archivo Init.php en FacturaScripts
 creationdate: 25-06-2018 00:00:00
 lastmod: 18-08-2025
-url: https://facturascripts.com/el-archivo-init-php-307
+url: https://facturascripts.com/publicaciones/el-archivo-init-php-307
 ---
+
 El archivo **Init.php** es fundamental para el funcionamiento avanzado de los plugins en FacturaScripts. Este archivo permite definir procesos y acciones que se ejecutan automáticamente en distintos momentos del ciclo de vida del plugin, como la carga de la aplicación, instalación, actualización o desinstalación.
 
 ## Ubicación del archivo

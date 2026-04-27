@@ -4,8 +4,9 @@ permalink: como-publicar-plugins-en-facturascripts
 title: Cómo publicar plugins en facturascripts.com
 creationdate: 23-11-2018 13:26:56
 lastmod: 31-12-2025
-url: https://facturascripts.com/como-publicar-plugins-en-facturascripts
+url: https://facturascripts.com/publicaciones/como-publicar-plugins-en-facturascripts
 ---
+
 Si has creado un plugin y quieres publicarlo en **facturascripts.com** simplemente ve al **menú Programadores** → [La forja](https://facturascripts.com/forja) y en la pestaña **mis plugins** pulsa el **botón añadir**. Debes haber iniciado sesión para que aparezca el botón añadir. No se pueden publicar plugins de forma anónima.
 
 ![publicar plugin](https://i.imgur.com/DL7UBYc.png)

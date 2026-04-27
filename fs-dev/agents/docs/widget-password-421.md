@@ -4,8 +4,9 @@ permalink: widget-password-421
 title: Widget Password (campo contraseña)
 creationdate: 06-10-2018 00:00:00
 lastmod: 10-11-2025
-url: https://facturascripts.com/widget-password-421
+url: https://facturascripts.com/publicaciones/widget-password-421
 ---
+
 En los archivos XMLView puedes usar el widget password (WidgetPassword) para mostrar y editar contraseñas en formularios. Su comportamiento es idéntico al del [widget de texto](https://facturascripts.com/publicaciones/widget-text-96), salvo que muestra puntos en lugar de los caracteres de la contraseña.
 
 ```xml

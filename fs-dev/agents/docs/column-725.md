@@ -4,8 +4,9 @@ permalink: column-725
 title: Etiqueta Column (XMLView)
 creationdate: 07-05-2018 00:00:00
 lastmod: 13-05-2025
-url: https://facturascripts.com/column-725
+url: https://facturascripts.com/publicaciones/column-725
 ---
+
 La etiqueta `&lt;column&gt;` en **XMLView** se utiliza para definir una columna que se mostrará en la interfaz, así como sus propiedades de tamaño, visibilidad y orden. A continuación se presenta un ejemplo de cómo definir el contenido de una columna utilizando un widget:
 
 ```xml

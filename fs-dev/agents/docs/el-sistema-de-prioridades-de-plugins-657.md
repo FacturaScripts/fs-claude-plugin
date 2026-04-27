@@ -4,8 +4,9 @@ permalink: el-sistema-de-prioridades-de-plugins-657
 title: Sistema de Prioridades de Plugins en FacturaScripts
 creationdate: 02-05-2018 00:00:00
 lastmod: 18-03-2025
-url: https://facturascripts.com/el-sistema-de-prioridades-de-plugins-657
+url: https://facturascripts.com/publicaciones/el-sistema-de-prioridades-de-plugins-657
 ---
+
 En FacturaScripts, es fundamental comprender el sistema de prioridades que rige el funcionamiento de los plugins. **El último plugin activo tiene prioridad sobre los anteriores**. Esto significa que, al consultar una página, se carga el modelo, la vista HTML, XML, un archivo JavaScript o una imagen del plugin con mayor prioridad que contenga el archivo solicitado.
 
 Gracias a este mecanismo, podemos modificar el comportamiento de cualquier página. Simplemente copiamos (o extendemos, si se trata de una clase PHP o vista Twig) el archivo necesario a nuestro plugin, realizamos las modificaciones requeridas y al activar el plugin, que es el último en ser activado, tendrá preferencia sobre los demás.

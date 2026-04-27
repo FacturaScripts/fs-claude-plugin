@@ -4,8 +4,9 @@ permalink: modelonchangeclass-559
 title: ModelOnChangeClass (obsoleto)
 creationdate: 21-03-2019 00:00:00
 lastmod: 18-08-2025
-url: https://facturascripts.com/modelonchangeclass-559
+url: https://facturascripts.com/publicaciones/modelonchangeclass-559
 ---
+
 En ocasiones necesitamos saber cuando ha cambiado el valor de una propiedad de un modelo, y qué valor tenía antes. Para estos casos podemos heredar de la clase **ModelOnChangeClass** en lugar de **ModelClass**.
 
 ## setPreviousData(array $fields = [])

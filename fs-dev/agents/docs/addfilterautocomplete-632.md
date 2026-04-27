@@ -4,8 +4,9 @@ permalink: addfilterautocomplete-632
 title: addFilterAutocomplete()
 creationdate: 01-05-2018 00:00:00
 lastmod: 28-05-2025
-url: https://facturascripts.com/addfilterautocomplete-632
+url: https://facturascripts.com/publicaciones/addfilterautocomplete-632
 ---
+
 Añade un filtro de tipo **autocompletar** a la pestaña del **ListController**. Permite filtrar los resultados aplicando el filtro a la columna indicada. Los resultados para autocompletar los puede extraer de la tabla que le indiquemos.
 
 ## Parámetros:

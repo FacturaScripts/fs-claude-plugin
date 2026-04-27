@@ -4,8 +4,9 @@ permalink: widget-checkbox-35
 title: Widget Checkbox
 creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/widget-checkbox-35
+url: https://facturascripts.com/publicaciones/widget-checkbox-35
 ---
+
 En los **archivos XMLView** podemos usar un widget checkbox, o WidgetCheckbox, para mostrar o editar valores de verdadero o falso.
 
 ```

@@ -4,8 +4,9 @@ permalink: antes-de-empezar-a-programar-580
 title: Antes de Comenzar a Programar
 creationdate: 25-04-2018 00:00:00
 lastmod: 05-10-2025
-url: https://facturascripts.com/antes-de-empezar-a-programar-580
+url: https://facturascripts.com/publicaciones/antes-de-empezar-a-programar-580
 ---
+
 Es fundamental que no realices cambios en los archivos de las carpetas **Core** o **Dinamic**, ya que cualquier modificación se perderá al actualizar el sistema. **Todas las personalizaciones deben implementarse a través de plugins**; por lo tanto, [crea un plugin](https://facturascripts.com/publicaciones/creacion-de-plugins-210) y coloca tus adaptaciones allí.
 
 ## 💬 Chat para Programadores

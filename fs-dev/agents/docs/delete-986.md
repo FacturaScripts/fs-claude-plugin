@@ -4,8 +4,9 @@ permalink: delete-986
 title: $modelo-&gt;delete() - Método para eliminar registros
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/delete-986
+url: https://facturascripts.com/publicaciones/delete-986
 ---
+
 El método `delete()` del modelo se utiliza para eliminar un registro de la base de datos. Este método devuelve `true` si el registro se ha eliminado con éxito, o `false` en caso de que ocurra algún error.
 
 ## Ejemplo: Eliminar un registro específico

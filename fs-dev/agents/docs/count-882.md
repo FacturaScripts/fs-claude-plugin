@@ -4,8 +4,9 @@ permalink: count-882
 title: Método count() de los modelos
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/count-882
+url: https://facturascripts.com/publicaciones/count-882
 ---
+
 El método `count()` de los modelos de FacturaScripts devuelve el número de registros en la tabla.
 
 ## Ejemplo

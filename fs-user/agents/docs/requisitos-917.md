@@ -3,19 +3,20 @@ id: 603
 permalink: requisitos-917
 title: Requisitos
 creationdate: 23-04-2018 00:00:00
-lastmod: 04-12-2025
-url: https://facturascripts.com/requisitos-917
+lastmod: 16-04-2026
+url: https://facturascripts.com/publicaciones/requisitos-917
 ---
-Los requisitos para la versión 2025 son:
 
-- **PHP 8.0** o superior.
+Los requisitos para la versión 2026 son:
+
+- **PHP 8.1** o superior.
 - **Apache 2**.
 - **MySQL 8** o superior. O bien MariaDB 11.2 o superior.
 	- También está soportado PostgreSQL 11 o superior. Aunque su uso es bajo entre los programadores y puede algunos plugins presenten problemas.
 
 Los requisitos recomendados son:
 
-- PHP 8.1
+- PHP 8.3
 - Apache 2.4.
 - MySQL 8 ó MariaDB 11.2.
 

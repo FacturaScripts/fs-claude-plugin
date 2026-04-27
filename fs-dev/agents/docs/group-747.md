@@ -4,8 +4,9 @@ permalink: group-747
 title: Group (XMLView)
 creationdate: 07-05-2018 00:00:00
 lastmod: 18-03-2025
-url: https://facturascripts.com/group-747
+url: https://facturascripts.com/publicaciones/group-747
 ---
+
 La **etiqueta group** sirve para agrupar columnas a mostrar, especialmente en formularios donde muchas veces necesitamos agrupar determinados campos. Los grupos deben ir dentro de la etiqueta ``columns`` y no puede haber grupos dentro de grupos.
 
 ## Las 12 columnas

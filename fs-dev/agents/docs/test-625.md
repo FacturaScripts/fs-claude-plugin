@@ -4,8 +4,9 @@ permalink: test-625
 title: Método test() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/test-625
+url: https://facturascripts.com/publicaciones/test-625
 ---
+
 La función **test()** se utiliza para validar los valores de las propiedades o columnas de un modelo en FacturaScripts. **Devuelve `false`** si detecta problemas en los valores y **`true`** en caso contrario. 
 
 Por ejemplo, devolverá **`false`** si alguna columna del modelo contiene un valor **NULL** y en la base de datos esa columna tiene una restricción **NOT NULL**. Si el modelo `Cliente` tiene el campo `cifnif` en **NULL**, la función **test()** retornará **`false`**, ya que la columna `cifnif` no puede admitir valores nulos.

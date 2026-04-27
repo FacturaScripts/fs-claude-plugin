@@ -4,8 +4,9 @@ permalink: widget-textarea-699
 title: Widget Textarea
 creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/widget-textarea-699
+url: https://facturascripts.com/publicaciones/widget-textarea-699
 ---
+
 El widget de textarea, o WidgetTextarea, permite mostrar y editar contenido como texto plano, pero con varias diferencias respecto al [widget text](https://facturascripts.com/publicaciones/widget-text-96):
 - El texto puede ser **mucho más largo y con múltiples líneas**.
 - Los textos largos son **acortados automáticamente** al mostrarlos en listados.

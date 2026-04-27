@@ -4,8 +4,9 @@ permalink: getmodelfields-769
 title: Método getModelFields() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/getmodelfields-769
+url: https://facturascripts.com/publicaciones/getmodelfields-769
 ---
+
 El método `getModelFields()` del modelo es una herramienta fundamental en FacturaScripts. **Devuelve un array que contiene las columnas de la tabla junto con sus respectivas propiedades**, lo que resulta especialmente útil cuando no conocemos todos los nombres de columnas del modelo.
 
 ## Ejemplo de Uso

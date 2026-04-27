@@ -4,8 +4,9 @@ permalink: herencia-de-plantillas-904
 title: Herencia de plantillas
 creationdate: 16-01-2019 00:00:00
 lastmod: 29-05-2025
-url: https://facturascripts.com/herencia-de-plantillas-904
+url: https://facturascripts.com/publicaciones/herencia-de-plantillas-904
 ---
+
 Para que su plantilla herede de otra plantilla twig, simplemente debe usar la función extends:
 
 ## Herencia simple

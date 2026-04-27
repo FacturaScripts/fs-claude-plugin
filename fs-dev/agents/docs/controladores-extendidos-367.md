@@ -4,8 +4,9 @@ permalink: controladores-extendidos-367
 title: Controladores Extendidos de FacturaScripts
 creationdate: 05-07-2018 00:00:00
 lastmod: 12-05-2025
-url: https://facturascripts.com/controladores-extendidos-367
+url: https://facturascripts.com/publicaciones/controladores-extendidos-367
 ---
+
 Para facilitar el desarrollo en FacturaScripts, se han creado controladores específicos: **ListController** para listados y **EditController** y **PanelController** para la edición de registros. Se recomienda utilizar estos controladores siempre que sea posible, ya que reducen el tiempo de desarrollo y garantizan una integración más fluida con el resto de FacturaScripts. Además, cualquier mejora futura que se implemente estará disponible automáticamente en su desarrollo.
 
 ![Ejemplo de ListController](https://i.imgur.com/ypHJTSg.png)

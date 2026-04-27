@@ -4,8 +4,9 @@ permalink: loadfromcode-677
 title: Métodos load(), loadWhere() y loadWhereEq() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/loadfromcode-677
+url: https://facturascripts.com/publicaciones/loadfromcode-677
 ---
+
 Los modelos tienen los métodos `load()` y `loadWhere()` para recuperar registros. El método `loadFromCode()` permanece como alias por compatibilidad, pero **está en desuso** y debería evitarse en el código nuevo.
 
 ## ⚡ load($code)

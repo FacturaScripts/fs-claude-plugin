@@ -4,8 +4,9 @@ permalink: operaciones-comunes-con-modelos-666
 title: Operaciones comunes con modelos
 creationdate: 28-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/operaciones-comunes-con-modelos-666
+url: https://facturascripts.com/publicaciones/operaciones-comunes-con-modelos-666
 ---
+
 Ya nos ha quedado claro qué es un modelo, ahora vamos a ver lo que podemos hacer con él.
 
 ## Utilizar un modelo

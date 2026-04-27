@@ -4,8 +4,9 @@ permalink: widget-file-359
 title: Widget de Archivos (WidgetFile)
 creationdate: 06-10-2018 00:00:00
 lastmod: 09-04-2026
-url: https://facturascripts.com/widget-file-359
+url: https://facturascripts.com/publicaciones/widget-file-359
 ---
+
 El **Widget de Archivos** (WidgetFile) permite mostrar y adjuntar archivos en los formularios estándar de FacturaScripts.
 
 ## Ejemplo de Implementación

@@ -4,8 +4,9 @@ permalink: exists-139
 title: Método exists() del modelo
 creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
-url: https://facturascripts.com/exists-139
+url: https://facturascripts.com/publicaciones/exists-139
 ---
+
 El método **exists()** del modelo **devuelve true** si el registro correspondiente se encuentra en la **base de datos**. A continuación se muestra un ejemplo:
 
 ```

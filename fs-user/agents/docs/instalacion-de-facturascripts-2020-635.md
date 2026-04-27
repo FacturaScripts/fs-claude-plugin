@@ -4,8 +4,9 @@ permalink: instalacion-de-facturascripts-2020-635
 title: Instalación de FacturaScripts
 creationdate: 23-04-2018 00:00:00
 lastmod: 23-03-2025
-url: https://facturascripts.com/instalacion-de-facturascripts-2020-635
+url: https://facturascripts.com/publicaciones/instalacion-de-facturascripts-2020-635
 ---
+
 FacturaScripts es una aplicación web, como un blog o una tienda online. Para su instalación se necesita un **servidor web** con **PHP** y **MySQL**.
 - [Requisitos para la instalación](https://facturascripts.com/publicaciones/requisitos-917)
 - [Licencia de uso y distribución](https://facturascripts.com/publicaciones/licencia-de-facturascripts-492)

@@ -4,8 +4,9 @@ permalink: acceso-a-la-base-de-datos-818
 title: Acceso a la Base de Datos
 creationdate: 11-05-2018 00:00:00
 lastmod: 01-04-2026
-url: https://facturascripts.com/acceso-a-la-base-de-datos-818
+url: https://facturascripts.com/publicaciones/acceso-a-la-base-de-datos-818
 ---
+
 La clase [DataBase](https://doc.facturascripts.com/classes/FacturaScripts-Core-Base-DataBase.html) nos permite operar directamente con la base de datos de FacturaScripts. Se conecta automáticamente al iniciar FacturaScripts y mantiene **una única instancia** durante toda la ejecución.
 
 ## Limitaciones

@@ -4,8 +4,9 @@ permalink: el-archivo-facturascripts-ini-37
 title: El archivo facturascripts.ini
 creationdate: 27-04-2018 00:00:00
 lastmod: 13-08-2025
-url: https://facturascripts.com/el-archivo-facturascripts-ini-37
+url: https://facturascripts.com/publicaciones/el-archivo-facturascripts-ini-37
 ---
+
 El archivo `facturascripts.ini` es imprescindible para cada plugin, ya que define información clave sobre el mismo. A continuación, se describen los campos que debe contener y las recomendaciones para su correcta utilización.
 
 ## Campos Obligatorios

@@ -4,8 +4,9 @@ permalink: instalacion-desde-el-zip-331
 title: Instalación desde el ZIP
 creationdate: 26-04-2018 00:00:00
 lastmod: 15-01-2026
-url: https://facturascripts.com/instalacion-desde-el-zip-331
+url: https://facturascripts.com/publicaciones/instalacion-desde-el-zip-331
 ---
+
 FacturaScripts es una aplicación web, similar a un blog o una tienda en línea. Para poder usarlo, **necesitas un servidor web** como Apache. Puedes consultar la [lista completa de requisitos](https://facturascripts.com/publicaciones/requisitos-917).
 
 A continuación, se detallan los pasos para realizar la instalación en tu servidor, ya sea en Linux, Windows o macOS:

@@ -4,8 +4,9 @@ permalink: row-actions-315
 title: Row actions
 creationdate: 07-05-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/row-actions-315
+url: https://facturascripts.com/publicaciones/row-actions-315
 ---
+
 Este tipo de row permite definir un grupo de **botones** a mostrar junto al resto de botones de la pestaña. Dependiendo del tipo de pestaña se visualizarán en un sitio distinto.
 
 ## Ejemplo:

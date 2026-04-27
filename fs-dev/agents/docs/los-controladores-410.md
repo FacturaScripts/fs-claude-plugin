@@ -4,8 +4,9 @@ permalink: los-controladores-410
 title: Los Controladores
 creationdate: 27-04-2018 00:00:00
 lastmod: 25-02-2026
-url: https://facturascripts.com/los-controladores-410
+url: https://facturascripts.com/publicaciones/los-controladores-410
 ---
+
 Un **controlador** es, básicamente, una página o opción en el menú de FacturaScripts. Cuando haces clic en el **menú Almacén** → **Productos**, estarás ejecutando el controlador [ListProducto.php](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Controller/ListProducto.php). Para saber qué controlador estás ejecutando, observa la barra de direcciones de tu navegador.
 
 ### Requisitos para los Controladores

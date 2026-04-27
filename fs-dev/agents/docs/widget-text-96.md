@@ -4,8 +4,9 @@ permalink: widget-text-96
 title: Widget de Texto (WidgetText)
 creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/widget-text-96
+url: https://facturascripts.com/publicaciones/widget-text-96
 ---
+
 El widget de tipo **Texto** (`WidgetText`) es el widget predeterminado en FacturaScripts y permite mostrar y editar contenido en formato de texto plano, limitado a un número máximo de caracteres definidos por la propiedad `maxlength`. Si necesitas introducir textos más extensos, te recomendamos utilizar el [widget de área de texto](https://facturascripts.com/publicaciones/widget-textarea-699).
 
 ## Ejemplo de uso

@@ -4,8 +4,9 @@ permalink: widget-autocomplete-946
 title: Guía del Widget Autocomplete
 creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
-url: https://facturascripts.com/widget-autocomplete-946
+url: https://facturascripts.com/publicaciones/widget-autocomplete-946
 ---
+
 El **Widget Autocomplete** en los archivos **XMLView** permite autocompletar valores asociados a otra tabla o a la misma. A diferencia del [widget select](https://facturascripts.com/publicaciones/widget-select-557), este widget no selecciona opciones predefinidas; los usuarios escriben para que el sistema sugiera posibles valores.
 
 ```xml

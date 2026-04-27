@@ -4,8 +4,9 @@ permalink: modals-718
 title: Modals (XMLView)
 creationdate: 07-05-2018 00:00:00
 lastmod: 28-05-2025
-url: https://facturascripts.com/modals-718
+url: https://facturascripts.com/publicaciones/modals-718
 ---
+
 Los formularios modales son vistas complementarias a la vista principal, que permanecen ocultas hasta que se pulsa su **botón de tipo modal**. Estos formularios se declaran de manera muy similar a lo detallado en la sección COLUMNS. Podemos definir todos los modals que necesitemos, simplemente añadiendo grupos (etiqueta group) dentro de la etiqueta modals del XMLView.
 
 ## Ejemplo de modal:

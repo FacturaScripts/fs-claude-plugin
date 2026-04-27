@@ -4,8 +4,9 @@ permalink: los-modelos-228
 title: Los modelos
 creationdate: 27-04-2018 00:00:00
 lastmod: 18-09-2025
-url: https://facturascripts.com/los-modelos-228
+url: https://facturascripts.com/publicaciones/los-modelos-228
 ---
+
 Los modelos en FacturaScripts son clases que representan las tablas de la base de datos y proporcionan una interfaz orientada a objetos para interactuar con los datos. Utilizan el patrón Active Record y están basados en una arquitectura de clase abstracta (`ModelClass`) con un trait (`ModelTrait`) que implementa la funcionalidad básica.
 
 Un modelo es una clase que debe ir en un archivo **con el mismo nombre** y dentro de la **carpeta Model** del plugin.

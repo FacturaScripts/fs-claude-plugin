@@ -4,8 +4,9 @@ permalink: las-vistas-html-69
 title: Las vistas HTML
 creationdate: 01-05-2018 00:00:00
 lastmod: 21-05-2025
-url: https://facturascripts.com/las-vistas-html-69
+url: https://facturascripts.com/publicaciones/las-vistas-html-69
 ---
+
 FacturaScripts utiliza el motor de plantillas **Twig**, un potente sistema que permite el uso de bloques, macros, funciones, extensiones y herencia entre plantillas. Los archivos de las vistas HTML deben tener la extensión **.html.twig** y se deben almacenar en la carpeta **View** del plugin correspondiente.
 
 ## Ejemplo de Plantilla: MyNewView.html.twig

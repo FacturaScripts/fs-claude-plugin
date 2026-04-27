@@ -4,8 +4,9 @@ permalink: listcontroller-232
 title: ListController en FacturaScripts
 creationdate: 30-04-2018 00:00:00
 lastmod: 26-08-2025
-url: https://facturascripts.com/listcontroller-232
+url: https://facturascripts.com/publicaciones/listcontroller-232
 ---
+
 El `ListController` está diseñado para gestionar listados en FacturaScripts, permitiendo mostrar una o varias pestañas, cada una con el listado de registros de un modelo. Utiliza archivos de [XMLView](https://facturascripts.com/publicaciones/las-vistas-xml-xmlview-668) para definir qué columnas mostrar y cómo deben visualizarse.
 
 ![Ejemplo de ListController](https://i.imgur.com/ypHJTSg.png)
