@@ -3,6 +3,8 @@
  * Provides tools for analyzing customer behavior, product sales, billing trends, and business metrics
  */
 import { fsClient } from '../../fs/client.js';
+import { fetchAllPaginated } from '../../utils/paginate.js';
+import { extendedAnalyticsTools, handleExtendedAnalyticsTool } from './kpis-extended.js';
 export const analyticsTools = [
     {
         name: 'get_clientes_morosos',
@@ -270,6 +272,7 @@ export const analyticsTools = [
  */
 export async function registerAnalyticsTools(tools) {
     analyticsTools.forEach((tool) => tools.set(tool.name, tool));
+    extendedAnalyticsTools.forEach((tool) => tools.set(tool.name, tool));
 }
 /**
  * Handle analytics tool calls
@@ -279,34 +282,43 @@ export async function handleAnalyticsTool(name, args) {
     try {
         switch (name) {
             case 'get_clientes_morosos': {
+                // Definición: cliente moroso = recibo con `pagado=false` y `vencimiento < now`.
+                // El core ya calcula `vencido = !pagado && vencimiento<now`, lo usamos como atajo si está disponible.
+                // Nombre/email no viven en /reciboclientes — se enriquecen vía /clientes.
                 const connection = input.connection;
-                // Obtener todos los recibos no pagados
-                const recibos = await fsClient.get('/reciboclientes', { pagado: false, limit: 1000 }, connection);
+                const [recibos, clientes] = await Promise.all([
+                    fetchAllPaginated('/reciboclientes', { pagado: false }, connection),
+                    fetchAllPaginated('/clientes', {}, connection),
+                ]);
+                const clientesPorCodigo = new Map();
+                for (const cli of clientes)
+                    clientesPorCodigo.set(cli.codcliente, cli);
                 const now = new Date();
-                // Filtrar recibos vencidos
                 const recibosPorCliente = {};
                 for (const recibo of recibos) {
-                    const fechaVencimiento = new Date(recibo.fechavencimiento);
-                    if (fechaVencimiento < now) {
-                        const codcliente = recibo.codcliente;
-                        if (!recibosPorCliente[codcliente]) {
-                            recibosPorCliente[codcliente] = {
-                                codcliente,
-                                nombre: recibo.nombre || '',
-                                email: recibo.email || '',
-                                totalDeuda: 0,
-                                recibos: [],
-                            };
-                        }
-                        recibosPorCliente[codcliente].totalDeuda += recibo.importe || 0;
-                        recibosPorCliente[codcliente].recibos.push({
-                            idrecibo: recibo.idrecibo,
-                            fecha: recibo.fecha,
-                            fechavencimiento: recibo.fechavencimiento,
-                            importe: recibo.importe,
-                            pagado: recibo.pagado,
-                        });
+                    const vence = recibo.vencimiento ? new Date(recibo.vencimiento) : null;
+                    const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
+                    if (!estaVencido)
+                        continue;
+                    const codcliente = recibo.codcliente;
+                    if (!recibosPorCliente[codcliente]) {
+                        const cli = clientesPorCodigo.get(codcliente);
+                        recibosPorCliente[codcliente] = {
+                            codcliente,
+                            nombre: cli?.nombre ?? '',
+                            email: cli?.email ?? '',
+                            totalDeuda: 0,
+                            recibos: [],
+                        };
                     }
+                    recibosPorCliente[codcliente].totalDeuda += recibo.importe || 0;
+                    recibosPorCliente[codcliente].recibos.push({
+                        idrecibo: recibo.idrecibo,
+                        fecha: recibo.fecha,
+                        fechavencimiento: recibo.vencimiento,
+                        importe: recibo.importe,
+                        pagado: recibo.pagado,
+                    });
                 }
                 const morososList = Object.values(recibosPorCliente).sort((a, b) => b.totalDeuda - a.totalDeuda);
                 return {
@@ -314,16 +326,18 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_clientes_perdidos': {
+                // Definición: cliente perdido = existe en /clientes pero no tiene factura con `fecha >= now - meses`.
                 const connection = input.connection;
                 const meses = input.meses || 12;
                 // Calcular fecha límite
                 const ahora = new Date();
                 const fechaLimite = new Date(ahora);
                 fechaLimite.setMonth(fechaLimite.getMonth() - meses);
-                // Obtener todos los clientes
-                const clientes = await fsClient.get('/clientes', { limit: 1000 }, connection);
-                // Obtener todas las facturas desde la fecha límite
-                const facturas = await fsClient.get('/facturaclientes', { limit: 1000 }, connection);
+                // Obtener todos los clientes y todas las facturas (paginación completa)
+                const [clientes, facturas] = await Promise.all([
+                    fetchAllPaginated('/clientes', {}, connection),
+                    fetchAllPaginated('/facturaclientes', {}, connection),
+                ]);
                 // Agrupar códigos de clientes que compraron en el período
                 const clientesConCompras = new Set();
                 for (const factura of facturas) {
@@ -370,11 +384,13 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_clientes_sin_compras': {
+                // Definición: cliente sin compras = existe en /clientes pero no aparece como `codcliente` en ninguna factura.
                 const connection = input.connection;
-                // Obtener todos los clientes
-                const clientes = await fsClient.get('/clientes', { limit: 1000 }, connection);
-                // Obtener todas las facturas
-                const facturas = await fsClient.get('/facturaclientes', { limit: 1000 }, connection);
+                // Obtener todos los clientes y todas las facturas (paginación completa)
+                const [clientes, facturas] = await Promise.all([
+                    fetchAllPaginated('/clientes', {}, connection),
+                    fetchAllPaginated('/facturaclientes', {}, connection),
+                ]);
                 // Obtener códigos únicos de clientes que compraron
                 const clientesConFacturas = new Set();
                 for (const factura of facturas) {
@@ -387,29 +403,42 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_clientes_top_facturacion': {
+                // Definición: top N clientes ordenados por suma de `factura.total` (filtrable por ejercicio).
                 const connection = input.connection;
                 const limit = input.limit || 10;
                 const codejercicio = input.codejercicio;
-                // Obtener facturas
-                const params = { limit: 1000 };
+                // Obtener facturas (paginación completa)
+                const params = {};
                 if (codejercicio)
                     params.codejercicio = codejercicio;
-                const facturas = await fsClient.get('/facturaclientes', params, connection);
-                // Agrupar por cliente y sumar totales
+                const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
+                // Agrupar por cliente y sumar totales (incluyendo coste y beneficio para calcular margen)
                 const clientesMap = {};
                 for (const factura of facturas) {
                     const codcliente = factura.codcliente;
-                    if (!clientesMap[codcliente]) {
-                        clientesMap[codcliente] = {
+                    let agregado = clientesMap[codcliente];
+                    if (!agregado) {
+                        agregado = {
                             codcliente,
-                            nombre: factura.nombrecliente,
-                            email: factura.email || '',
+                            nombre: factura.nombrecliente ?? '',
+                            email: factura.email ?? '',
                             totalFacturado: 0,
+                            totalCoste: 0,
+                            totalBeneficio: 0,
+                            margenPorcentaje: 0,
                             numeroFacturas: 0,
                         };
+                        clientesMap[codcliente] = agregado;
                     }
-                    clientesMap[codcliente].totalFacturado += factura.total || 0;
-                    clientesMap[codcliente].numeroFacturas += 1;
+                    agregado.totalFacturado += factura.total || 0;
+                    agregado.totalCoste += factura.totalcoste || 0;
+                    agregado.totalBeneficio += factura.totalbeneficio || 0;
+                    agregado.numeroFacturas += 1;
+                }
+                for (const cli of Object.values(clientesMap)) {
+                    cli.margenPorcentaje = cli.totalFacturado > 0
+                        ? (cli.totalBeneficio / cli.totalFacturado) * 100
+                        : 0;
                 }
                 const topClientes = Object.values(clientesMap)
                     .sort((a, b) => b.totalFacturado - a.totalFacturado)
@@ -419,13 +448,14 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_clientes_frecuencia_compras': {
+                // Definición: por cada cliente, número de facturas, total facturado y ticket promedio (total / nº facturas).
                 const connection = input.connection;
                 const codejercicio = input.codejercicio;
-                // Obtener facturas
-                const params = { limit: 1000 };
+                // Obtener facturas (paginación completa)
+                const params = {};
                 if (codejercicio)
                     params.codejercicio = codejercicio;
-                const facturas = await fsClient.get('/facturaclientes', params, connection);
+                const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
                 // Agrupar por cliente
                 const clientesMap = {};
                 for (const factura of facturas) {
@@ -458,28 +488,44 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_productos_mas_vendidos': {
+                // Definición: top N referencias por suma de `linea.cantidad` (filtrable por ejercicio).
                 const connection = input.connection;
                 const limit = input.limit || 10;
                 const codejercicio = input.codejercicio;
-                // Obtener líneas de facturas
-                const params = { limit: 1000 };
+                // Obtener líneas de facturas (paginación completa)
+                const params = {};
                 if (codejercicio)
                     params.codejercicio = codejercicio;
-                const lineas = await fsClient.get('/lineafacturaclientes', params, connection);
-                // Agrupar por referencia de producto
+                const lineas = await fetchAllPaginated('/lineafacturaclientes', params, connection);
+                // Agrupar por referencia de producto, calculando coste y beneficio por línea (coste*cantidad)
                 const productosMap = {};
                 for (const linea of lineas) {
                     const referencia = linea.referencia;
-                    if (!productosMap[referencia]) {
-                        productosMap[referencia] = {
+                    let agregado = productosMap[referencia];
+                    if (!agregado) {
+                        agregado = {
                             referencia,
-                            descripcion: linea.descripcion,
+                            descripcion: linea.descripcion ?? '',
                             cantidadVendida: 0,
                             importeTotal: 0,
+                            costeTotal: 0,
+                            beneficioTotal: 0,
+                            margenPorcentaje: 0,
                         };
+                        productosMap[referencia] = agregado;
                     }
-                    productosMap[referencia].cantidadVendida += linea.cantidad || 0;
-                    productosMap[referencia].importeTotal += linea.pvptotal || 0;
+                    const cantidad = linea.cantidad || 0;
+                    const pvptotal = linea.pvptotal || 0;
+                    const costeLinea = (linea.coste || 0) * cantidad;
+                    agregado.cantidadVendida += cantidad;
+                    agregado.importeTotal += pvptotal;
+                    agregado.costeTotal += costeLinea;
+                    agregado.beneficioTotal += pvptotal - costeLinea;
+                }
+                for (const prod of Object.values(productosMap)) {
+                    prod.margenPorcentaje = prod.importeTotal > 0
+                        ? (prod.beneficioTotal / prod.importeTotal) * 100
+                        : 0;
                 }
                 const topProductos = Object.values(productosMap)
                     .sort((a, b) => b.cantidadVendida - a.cantidadVendida)
@@ -489,14 +535,15 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_productos_bajo_stock': {
+                // Definición: registros de /stocks con `cantidad <= minstock` (filtrable por almacén).
                 const connection = input.connection;
                 const minstock = input.minstock || 0;
                 const codalmacen = input.codalmacen;
-                // Obtener stocks
-                const params = { limit: 1000 };
+                // Obtener stocks (paginación completa)
+                const params = {};
                 if (codalmacen)
                     params.codalmacen = codalmacen;
-                const stocks = await fsClient.get('/stocks', params, connection);
+                const stocks = await fetchAllPaginated('/stocks', params, connection);
                 // Filtrar por stock bajo
                 const productosBajoStock = stocks
                     .filter((stock) => (stock.cantidad || 0) <= minstock)
@@ -513,22 +560,37 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_productos_no_vendidos': {
+                // Definición: producto que no aparece en ninguna línea de factura cuyo idfactura
+                // pertenezca a una factura con `fecha >= now - dias`. La fecha vive en la cabecera, no en la línea,
+                // por eso cruzamos /facturaclientes (fecha) con /lineafacturaclientes (referencia) por idfactura.
                 const connection = input.connection;
                 const dias = input.dias || 90;
                 // Calcular fecha límite
                 const ahora = new Date();
                 const fechaLimite = new Date(ahora);
                 fechaLimite.setDate(fechaLimite.getDate() - dias);
-                // Obtener todos los productos
-                const productos = await fsClient.get('/productos', { limit: 1000 }, connection);
-                // Obtener líneas de facturas desde la fecha límite
-                const lineas = await fsClient.get('/lineafacturaclientes', { limit: 1000 }, connection);
-                // Obtener referencias vendidas
+                // Obtener productos, facturas y líneas (paginación completa, en paralelo)
+                const [productos, facturas, lineas] = await Promise.all([
+                    fetchAllPaginated('/productos', {}, connection),
+                    fetchAllPaginated('/facturaclientes', {}, connection),
+                    fetchAllPaginated('/lineafacturaclientes', {}, connection),
+                ]);
+                // Identificar las facturas dentro del rango de fechas
+                const facturasEnRango = new Set();
+                for (const factura of facturas) {
+                    const fechaFactura = new Date(factura.fecha);
+                    if (fechaFactura >= fechaLimite) {
+                        facturasEnRango.add(factura.idfactura);
+                    }
+                }
+                // Referencias vendidas dentro del rango (líneas cuya factura está en rango)
                 const productosVendidos = new Set();
                 for (const linea of lineas) {
-                    productosVendidos.add(linea.referencia);
+                    if (facturasEnRango.has(linea.idfactura)) {
+                        productosVendidos.add(linea.referencia);
+                    }
                 }
-                // Productos no vendidos
+                // Productos no vendidos en el rango
                 const productosNoVendidos = productos
                     .filter((prod) => !productosVendidos.has(prod.referencia))
                     .map((prod) => ({
@@ -542,9 +604,10 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_facturas_cliente_por_cifnif': {
+                // Definición: localiza el cliente por CIF/NIF y devuelve todas sus facturas.
                 const connection = input.connection;
                 const cifnif = input.cifnif;
-                // Buscar cliente por CIF/NIF
+                // Buscar cliente por CIF/NIF (un CIF identifica como mucho a un puñado de clientes; limit fijo es suficiente)
                 const clientes = await fsClient.get('/clientes', { cifnif, limit: 100 }, connection);
                 if (clientes.length === 0) {
                     return {
@@ -555,41 +618,49 @@ export async function handleAnalyticsTool(name, args) {
                 }
                 const cliente = clientes[0];
                 const codcliente = cliente.codcliente;
-                // Obtener facturas del cliente
-                const facturas = await fsClient.get('/facturaclientes', { codcliente, limit: 1000 }, connection);
+                // Obtener todas las facturas del cliente (paginación completa)
+                const facturas = await fetchAllPaginated('/facturaclientes', { codcliente }, connection);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(facturas, null, 2) }],
                 };
             }
             case 'get_facturas_con_errores': {
+                // Definición: facturas con inconsistencias detectables sobre las columnas de la cabecera:
+                // total<=0, totaliva<0, neto>total, totalbeneficio negativo, factura no editable y sin numero.
                 const connection = input.connection;
-                // Obtener todas las facturas
-                const facturas = await fsClient.get('/facturaclientes', { limit: 1000 }, connection);
+                // Obtener todas las facturas (paginación completa)
+                const facturas = await fetchAllPaginated('/facturaclientes', {}, connection);
                 const facturasConErrores = [];
                 for (const factura of facturas) {
                     const errores = [];
                     const detalles = {};
-                    // Total 0
-                    if ((factura.total || 0) === 0) {
-                        errores.push('Total cero');
+                    // Total no positivo
+                    if ((factura.total ?? 0) <= 0) {
+                        errores.push('Total cero o negativo');
                         detalles.total = factura.total;
                     }
-                    // Anulada pero con pagos
-                    if (factura.anulada && factura.pagado) {
-                        errores.push('Factura anulada pero marcada como pagada');
-                        detalles.anulada = factura.anulada;
-                        detalles.pagado = factura.pagado;
+                    // IVA negativo (la columna real es totaliva, no iva)
+                    if ((factura.totaliva ?? 0) < 0) {
+                        errores.push('IVA total negativo');
+                        detalles.totaliva = factura.totaliva;
                     }
-                    // IVA negativo
-                    if ((factura.iva || 0) < 0) {
-                        errores.push('IVA negativo');
-                        detalles.iva = factura.iva;
-                    }
-                    // Neto mayor que total (sin IVA)
-                    if ((factura.neto || 0) > (factura.total || 0)) {
+                    // Neto mayor que total (sin IVA): contradicción aritmética
+                    if ((factura.neto ?? 0) > (factura.total ?? 0)) {
                         errores.push('Neto mayor que total');
                         detalles.neto = factura.neto;
                         detalles.total = factura.total;
+                    }
+                    // Beneficio negativo: vendida por debajo de coste
+                    if ((factura.totalbeneficio ?? 0) < 0) {
+                        errores.push('Beneficio negativo (vendida bajo coste)');
+                        detalles.totalbeneficio = factura.totalbeneficio;
+                        detalles.totalcoste = factura.totalcoste;
+                    }
+                    // Pagada pero vencida (caso lógicamente imposible)
+                    if (factura.pagada === true && factura.vencida === true) {
+                        errores.push('Pagada y vencida a la vez');
+                        detalles.pagada = factura.pagada;
+                        detalles.vencida = factura.vencida;
                     }
                     if (errores.length > 0) {
                         facturasConErrores.push({
@@ -607,30 +678,41 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_tiempo_beneficios_cliente': {
+                // Definición: serie temporal mensual (YYYY-MM) con neto, iva y total de las facturas del cliente.
                 const connection = input.connection;
                 const codcliente = input.codcliente;
                 const codejercicio = input.codejercicio;
-                // Obtener facturas del cliente
-                const params = { codcliente, limit: 1000 };
+                // Obtener facturas del cliente (paginación completa)
+                const params = { codcliente };
                 if (codejercicio)
                     params.codejercicio = codejercicio;
-                const facturas = await fsClient.get('/facturaclientes', params, connection);
-                // Agrupar por mes
+                const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
+                // Agrupar por mes (totaliva, totalcoste, totalbeneficio son nombres reales en factura_cliente)
                 const mesesMap = {};
                 for (const factura of facturas) {
                     const fecha = new Date(factura.fecha);
                     const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-                    if (!mesesMap[mes]) {
-                        mesesMap[mes] = {
+                    let agregado = mesesMap[mes];
+                    if (!agregado) {
+                        agregado = {
                             mes,
                             neto: 0,
                             iva: 0,
                             total: 0,
+                            coste: 0,
+                            beneficio: 0,
+                            margenPorcentaje: 0,
                         };
+                        mesesMap[mes] = agregado;
                     }
-                    mesesMap[mes].neto += factura.neto || 0;
-                    mesesMap[mes].iva += factura.iva || 0;
-                    mesesMap[mes].total += factura.total || 0;
+                    agregado.neto += factura.neto || 0;
+                    agregado.iva += factura.totaliva || 0;
+                    agregado.total += factura.total || 0;
+                    agregado.coste += factura.totalcoste || 0;
+                    agregado.beneficio += factura.totalbeneficio || 0;
+                }
+                for (const m of Object.values(mesesMap)) {
+                    m.margenPorcentaje = m.total > 0 ? (m.beneficio / m.total) * 100 : 0;
                 }
                 const evolucion = Object.values(mesesMap).sort((a, b) => a.mes.localeCompare(b.mes));
                 return {
@@ -643,31 +725,42 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'get_tiempo_beneficios_todos_clientes': {
+                // Definición: serie temporal mensual (YYYY-MM) global con neto, iva, total y nº facturas.
                 const connection = input.connection;
                 const codejercicio = input.codejercicio;
-                // Obtener todas las facturas
-                const params = { limit: 1000 };
+                // Obtener todas las facturas (paginación completa)
+                const params = {};
                 if (codejercicio)
                     params.codejercicio = codejercicio;
-                const facturas = await fsClient.get('/facturaclientes', params, connection);
-                // Agrupar por mes
+                const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
+                // Agrupar por mes (totaliva, totalcoste, totalbeneficio son nombres reales en factura_cliente)
                 const mesesMap = {};
                 for (const factura of facturas) {
                     const fecha = new Date(factura.fecha);
                     const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-                    if (!mesesMap[mes]) {
-                        mesesMap[mes] = {
+                    let agregado = mesesMap[mes];
+                    if (!agregado) {
+                        agregado = {
                             periodo: mes,
                             neto: 0,
                             iva: 0,
                             total: 0,
+                            coste: 0,
+                            beneficio: 0,
+                            margenPorcentaje: 0,
                             numeroFacturas: 0,
                         };
+                        mesesMap[mes] = agregado;
                     }
-                    mesesMap[mes].neto += factura.neto || 0;
-                    mesesMap[mes].iva += factura.iva || 0;
-                    mesesMap[mes].total += factura.total || 0;
-                    mesesMap[mes].numeroFacturas += 1;
+                    agregado.neto += factura.neto || 0;
+                    agregado.iva += factura.totaliva || 0;
+                    agregado.total += factura.total || 0;
+                    agregado.coste += factura.totalcoste || 0;
+                    agregado.beneficio += factura.totalbeneficio || 0;
+                    agregado.numeroFacturas += 1;
+                }
+                for (const m of Object.values(mesesMap)) {
+                    m.margenPorcentaje = m.total > 0 ? (m.beneficio / m.total) * 100 : 0;
                 }
                 const evolucion = Object.values(mesesMap).sort((a, b) => a.periodo.localeCompare(b.periodo));
                 return {
@@ -675,9 +768,10 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             case 'exportar_factura_cliente': {
+                // Definición: cabecera + todas las líneas de la factura indicada por idfactura.
                 const connection = input.connection;
                 const idfactura = input.idfactura;
-                // Obtener cabecera de factura
+                // Obtener cabecera de factura (limit:1 está bien, idfactura es único)
                 const facturas = await fsClient.get('/facturaclientes', { idfactura, limit: 1 }, connection);
                 if (facturas.length === 0) {
                     return {
@@ -687,8 +781,8 @@ export async function handleAnalyticsTool(name, args) {
                     };
                 }
                 const factura = facturas[0];
-                // Obtener líneas de factura
-                const lineas = await fsClient.get('/lineafacturaclientes', { idfactura, limit: 1000 }, connection);
+                // Obtener todas las líneas de la factura (paginación completa, una factura puede tener muchas líneas)
+                const lineas = await fetchAllPaginated('/lineafacturaclientes', { idfactura }, connection);
                 const facturaCompleta = {
                     idfactura: factura.idfactura,
                     numero: factura.numero,
@@ -736,7 +830,7 @@ export async function handleAnalyticsTool(name, args) {
                 };
             }
             default:
-                return null;
+                return await handleExtendedAnalyticsTool(name, args);
         }
     }
     catch (error) {
