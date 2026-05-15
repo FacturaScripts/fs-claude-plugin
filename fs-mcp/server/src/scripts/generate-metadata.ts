@@ -502,7 +502,7 @@ const MODEL_CATALOG: ModelEntry[] = [
     {
         name: 'pais',
         table: 'paises',
-        endpoint: '/paises',
+        endpoint: '/pais',
         editView: 'EditPais',
         description: 'País con código ISO, alpha-3 y nombre. Asociado a contactos, empresas y zonas de impuestos.',
     },
@@ -553,7 +553,7 @@ const MODEL_CATALOG: ModelEntry[] = [
     {
         name: 'role_access',
         table: 'roles_access',
-        endpoint: '/roleaccesses',
+        endpoint: '/roleaccess',
         description: 'Permiso de acceso de un rol a una página, con flags allowdelete/allowupdate/onlyownerdata.',
     },
     {

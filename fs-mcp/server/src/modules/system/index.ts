@@ -387,7 +387,7 @@ export async function handleSystemTool(
         const params: Record<string, unknown> = { offset, limit };
         if (args.codrole) params.codrole = args.codrole;
         if (args.pagename) params.pagename = args.pagename;
-        result = await fsClient.get('/roleaccesses', params, connection);
+        result = await fsClient.get('/roleaccess', params, connection);
         break;
       }
 
@@ -451,18 +451,18 @@ export async function handleSystemTool(
 
       case 'create_roleaccess': {
         const { connection: _conn, ...data } = args;
-        result = await fsClient.post('/roleaccesses', data, connection);
+        result = await fsClient.post('/roleaccess', data, connection);
         break;
       }
 
       case 'update_roleaccess': {
         const { connection: _conn, id, ...data } = args;
-        result = await fsClient.put(`/roleaccesses/${id}`, data, connection);
+        result = await fsClient.put(`/roleaccess/${id}`, data, connection);
         break;
       }
 
       case 'delete_roleaccess': {
-        result = await fsClient.delete(`/roleaccesses/${args.id}`, connection);
+        result = await fsClient.delete(`/roleaccess/${args.id}`, connection);
         break;
       }
 

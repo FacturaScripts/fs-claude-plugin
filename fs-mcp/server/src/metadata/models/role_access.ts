@@ -6,7 +6,7 @@ import type { ModelMetadata } from '../types.js';
 export const roleAccessMetadata: ModelMetadata = {
     "name": "role_access",
     "table": "roles_access",
-    "endpoint": "/roleaccesses",
+    "endpoint": "/roleaccess",
     "primaryKey": "id",
     "description": "Permiso de acceso de un rol a una página, con flags allowdelete/allowupdate/onlyownerdata.",
     "source": "core",

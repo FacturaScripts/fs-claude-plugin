@@ -370,7 +370,7 @@ export async function handleGeographicTool(
         const params: Record<string, unknown> = { offset, limit };
         if (args.codpais) params.codpais = args.codpais;
         if (args.nombre) params.nombre = args.nombre;
-        result = await fsClient.get('/paises', params, connection);
+        result = await fsClient.get('/pais', params, connection);
         break;
       }
 
@@ -407,18 +407,18 @@ export async function handleGeographicTool(
 
       case 'create_pais': {
         const { connection: _conn, ...data } = args;
-        result = await fsClient.post('/paises', data, connection);
+        result = await fsClient.post('/pais', data, connection);
         break;
       }
 
       case 'update_pais': {
         const { connection: _conn, codpais, ...data } = args;
-        result = await fsClient.put(`/paises/${codpais}`, data, connection);
+        result = await fsClient.put(`/pais/${codpais}`, data, connection);
         break;
       }
 
       case 'delete_pais': {
-        result = await fsClient.delete(`/paises/${args.codpais}`, connection);
+        result = await fsClient.delete(`/pais/${args.codpais}`, connection);
         break;
       }
 

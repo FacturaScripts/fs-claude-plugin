@@ -3,7 +3,7 @@
 export const paisMetadata = {
     "name": "pais",
     "table": "paises",
-    "endpoint": "/paises",
+    "endpoint": "/pais",
     "primaryKey": "codpais",
     "description": "País con código ISO, alpha-3 y nombre. Asociado a contactos, empresas y zonas de impuestos.",
     "source": "core",
