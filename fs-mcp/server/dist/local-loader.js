@@ -4,7 +4,17 @@
  * Lee módulos desde la ruta indicada por la variable de entorno FS_LOCAL_MODULES_PATH.
  * Si no está definida, intenta cargar desde dist/modules-local/ (útil en desarrollo local).
  *
- * Cada módulo debe ser una carpeta con un index.js que exporte:
+ * Soporta dos estructuras:
+ *
+ *   1. Módulos en la raíz del directorio:
+ *      <modules-dir>/mi-modulo/index.js
+ *
+ *   2. Módulos agrupados en subcarpetas:
+ *      <modules-dir>/MiGrupo/mi-modulo/index.js
+ *      <modules-dir>/MiGrupo/manifest.json     (opcional)
+ *      <modules-dir>/MiGrupo/descriptions.json (opcional)
+ *
+ * En ambos casos, cada módulo debe ser una carpeta con un index.js que exporte:
  *   - registerTools(toolsMap: Map<string, Tool>): Promise<void>
  *   - handleTool(name: string, args: Record<string, unknown>, client: fsClient): Promise<ToolResult | null>
  */
@@ -44,8 +54,84 @@ function readLocalModulesPathFromSettings() {
     return undefined;
 }
 /**
+ * Carga un único módulo desde su directorio.
+ * Registra sus tools en el mapa global y agrega su handler al array.
+ */
+async function loadSingleModule(entryPath, displayName, toolsMap, handlers) {
+    const indexPath = join(entryPath, 'index.js');
+    if (!existsSync(indexPath)) {
+        console.error(`[local-loader] Módulo "${displayName}" no tiene index.js — omitido`);
+        return;
+    }
+    try {
+        const moduleUrl = pathToFileURL(indexPath).href;
+        // Dynamic import — los módulos locales son plain JS (ES modules)
+        const mod = await import(moduleUrl);
+        if (typeof mod['registerTools'] !== 'function' || typeof mod['handleTool'] !== 'function') {
+            console.error(`[local-loader] Módulo "${displayName}" debe exportar registerTools() y handleTool() — omitido`);
+            return;
+        }
+        const registerFn = mod['registerTools'];
+        const handleFn = mod['handleTool'];
+        await registerFn(toolsMap);
+        // Capturamos el client en el closure para que los módulos no necesiten importarlo
+        handlers.push({
+            handleTool: (name, args) => handleFn(name, args, fsClient),
+        });
+        // Si el módulo expone metadata de modelos (campo `modelMetadata`),
+        // la registramos en el registry. Los modelos privados conviven con los
+        // del core y son accesibles vía describe_model, list_models y los Resources.
+        const exportedMetadata = mod['modelMetadata'];
+        let metadataCount = 0;
+        if (Array.isArray(exportedMetadata)) {
+            for (const candidate of exportedMetadata) {
+                if (isValidModelMetadata(candidate)) {
+                    registerModelMetadata(candidate);
+                    metadataCount += 1;
+                }
+                else {
+                    console.error(`[local-loader] Módulo "${displayName}": entrada de modelMetadata inválida — omitida.`);
+                }
+            }
+        }
+        const metaSuffix = metadataCount > 0 ? ` (+${metadataCount} modelos)` : '';
+        console.error(`[local-loader] ✓ Módulo local cargado: ${displayName}${metaSuffix}`);
+    }
+    catch (err) {
+        console.error(`[local-loader] Error cargando módulo "${displayName}":`, err);
+    }
+}
+/**
+ * Comprueba si un directorio es un grupo de módulos (no tiene index.js propio
+ * pero contiene subdirectorios que sí pueden tenerlo).
+ */
+function isModuleGroup(dirPath) {
+    let entries;
+    try {
+        entries = readdirSync(dirPath, { encoding: 'utf8' });
+    }
+    catch {
+        return false;
+    }
+    for (const entry of entries) {
+        const entryPath = join(dirPath, entry);
+        try {
+            if (statSync(entryPath).isDirectory())
+                return true;
+        }
+        catch {
+            // ignorar
+        }
+    }
+    return false;
+}
+/**
  * Carga todos los módulos locales desde FS_LOCAL_MODULES_PATH (o fallback a dist/modules-local).
  * Registra sus tools en el mapa global y devuelve un array de handlers para el dispatcher.
+ *
+ * Soporta dos niveles de organización:
+ *   - Módulos directamente en la raíz: <dir>/modulo/index.js
+ *   - Módulos agrupados en subcarpetas: <dir>/Grupo/modulo/index.js
  */
 export async function loadLocalModules(toolsMap) {
     // Claude Code no interpola las variables de usuario en el entorno del MCP (las pasa como
@@ -82,46 +168,46 @@ export async function loadLocalModules(toolsMap) {
             continue;
         }
         const indexPath = join(entryPath, 'index.js');
-        if (!existsSync(indexPath)) {
-            console.error(`[local-loader] Módulo "${entry}" no tiene index.js — omitido`);
-            continue;
+        if (existsSync(indexPath)) {
+            // Módulo directo en la raíz
+            await loadSingleModule(entryPath, entry, toolsMap, handlers);
         }
-        try {
-            const moduleUrl = pathToFileURL(indexPath).href;
-            // Dynamic import — los módulos locales son plain JS (ES modules)
-            const mod = await import(moduleUrl);
-            if (typeof mod['registerTools'] !== 'function' || typeof mod['handleTool'] !== 'function') {
-                console.error(`[local-loader] Módulo "${entry}" debe exportar registerTools() y handleTool() — omitido`);
+        else if (isModuleGroup(entryPath)) {
+            // Grupo de módulos en subcarpeta — cargar cada módulo del grupo
+            let subEntries;
+            try {
+                subEntries = readdirSync(entryPath, { encoding: 'utf8' });
+            }
+            catch (err) {
+                console.error(`[local-loader] No se pudo leer el grupo "${entry}":`, err);
                 continue;
             }
-            const registerFn = mod['registerTools'];
-            const handleFn = mod['handleTool'];
-            await registerFn(toolsMap);
-            // Capturamos el client en el closure para que los módulos no necesiten importarlo
-            handlers.push({
-                handleTool: (name, args) => handleFn(name, args, fsClient),
-            });
-            // Si el módulo expone metadata de modelos (campo `modelMetadata`),
-            // la registramos en el registry. Los modelos privados conviven con los
-            // del core y son accesibles vía describe_model, list_models y los Resources.
-            const exportedMetadata = mod['modelMetadata'];
-            let metadataCount = 0;
-            if (Array.isArray(exportedMetadata)) {
-                for (const candidate of exportedMetadata) {
-                    if (isValidModelMetadata(candidate)) {
-                        registerModelMetadata(candidate);
-                        metadataCount += 1;
-                    }
-                    else {
-                        console.error(`[local-loader] Módulo "${entry}": entrada de modelMetadata inválida — omitida.`);
-                    }
+            let groupCount = 0;
+            for (const subEntry of subEntries) {
+                const subEntryPath = join(entryPath, subEntry);
+                try {
+                    if (!statSync(subEntryPath).isDirectory())
+                        continue;
                 }
+                catch {
+                    continue;
+                }
+                const subIndexPath = join(subEntryPath, 'index.js');
+                if (!existsSync(subIndexPath))
+                    continue;
+                // Nombre de display incluye el grupo para facilitar el diagnóstico
+                await loadSingleModule(subEntryPath, `${entry}/${subEntry}`, toolsMap, handlers);
+                groupCount += 1;
             }
-            const metaSuffix = metadataCount > 0 ? ` (+${metadataCount} modelos)` : '';
-            console.error(`[local-loader] ✓ Módulo local cargado: ${entry}${metaSuffix}`);
+            if (groupCount > 0) {
+                console.error(`[local-loader] ✓ Grupo "${entry}": ${groupCount} módulo(s) cargado(s)`);
+            }
+            else {
+                console.error(`[local-loader] Grupo "${entry}" sin módulos con index.js — omitido`);
+            }
         }
-        catch (err) {
-            console.error(`[local-loader] Error cargando módulo "${entry}":`, err);
+        else {
+            console.error(`[local-loader] Directorio "${entry}" sin index.js ni submódulos — omitido`);
         }
     }
     if (handlers.length > 0) {

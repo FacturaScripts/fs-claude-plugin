@@ -49,10 +49,12 @@ Lo primero que debes hacer es **familiarizarte con el estado actual del MCP** si
 | `server/src/metadata/descriptions-overrides.json` | Descripciones contextuales del core. Single source of truth (committed). |
 | `server/src/metadata/models/*.ts` | Metadata generada por modelo (CORE). No editar a mano. |
 | `server/src/metadata/index.ts` | Agregador auto-generado. |
-| `<outputBase>/manifest.json` | Manifest del plugin privado (declara los modelos del plugin). |
-| `<outputBase>/descriptions.json` | Descripciones del plugin privado. Por convención, se llama `descriptions.json` (no `<modulo>-descriptions.json`). |
+| `<outputBase>/manifest.json` | Manifest del plugin privado (declara los modelos del plugin). Siempre se llama `manifest.json`, nunca `manifest-nombre.json`. |
+| `<outputBase>/descriptions.json` | Descripciones del plugin privado. Siempre se llama `descriptions.json`, nunca `nombre-descriptions.json`. |
 | `<outputBase>/<modelo>/metadata.js` | Metadata generada del modelo privado. No editar a mano. |
 | `<outputBase>/<modelo>/index.js` | Loader del módulo privado. Re-exporta `modelMetadata` desde `./metadata.js`. |
+
+**Nota sobre módulos en subcarpetas de grupo**: si el módulo está en `<modules-dir>/Grupo/modelo/`, entonces `outputBase` del manifest es `<modules-dir>/Grupo/` y el `manifest.json` y `descriptions.json` viven dentro de esa subcarpeta. Cada grupo tiene sus propios archivos; no hay un manifest ni descriptions global en la raíz del directorio de módulos.
 
 Comandos clave que usarás:
 
@@ -117,6 +119,9 @@ Tres casos:
 2. **Si es CORE**:
    - Edita `server/src/scripts/generate-metadata.ts`: añade una entrada al array `MODEL_CATALOG` con `name`, `table`, `endpoint`, `editView` (si lo hay) y `description`. Coloca la entrada en la categoría temática que corresponda (datos maestros, documentos, contabilidad, etc.).
 3. **Si es PRIVATE**:
+   - Determina dónde vive el módulo: ¿en la raíz del directorio de módulos o dentro de una subcarpeta de grupo?
+     - **Raíz**: `outputBase` es el propio directorio de módulos, `manifest.json` y `descriptions.json` están en la raíz.
+     - **Subcarpeta de grupo** (ej: `MiGrupo/`): `outputBase` es `<modules-dir>/MiGrupo/`, el manifest y descriptions están dentro de esa subcarpeta. Los archivos siempre se llaman `manifest.json` y `descriptions.json` — nunca con prefijo ni sufijo de nombre.
    - Edita `<outputBase>/manifest.json`: añade una entrada al array `models` con `name`, `outputDir` (suele ser un plural, ej: `tasks`), `table`, `endpoint`, `editView` (si lo hay) y `description`.
    - Crea la carpeta `<outputBase>/<outputDir>/` si no existe.
    - Crea o actualiza `<outputBase>/<outputDir>/index.js` siguiendo el patrón de los módulos privados existentes:
@@ -124,7 +129,7 @@ Tres casos:
      - Exporta `registerTools`, `handleTool` y `export const modelMetadata = [<name>Metadata];`.
 4. Redacta descripciones contextuales para **todas** las columnas del modelo (incluidas las FK) y añádelas al archivo de overrides:
    - **Core** → `server/src/metadata/descriptions-overrides.json`.
-   - **Private** → `<outputBase>/descriptions.json`.
+   - **Private** → `<outputBase>/descriptions.json` (el de la raíz o el de la subcarpeta, según dónde viva el módulo).
 
    Las descripciones deben ser concisas, en español, orientadas a reporting y consistentes con las que ya existen en el archivo. Para FK: explica el rol funcional (no "Referencia a X.Y."). Para campos comunes (`fecha`, `total`, `idempresa`, etc.) usa la misma redacción que ya tienen otros modelos similares.
 5. Salta al Paso 3 (regenerar y verificar).
@@ -216,7 +221,7 @@ Cuando el usuario pida algo como *"revisa todos los modelos del core con la vers
    - Eso es lo que `verify_model_columns` usa para el aviso de drift. Por tanto, *regenerar* ya implica *actualizar la versión*.
    - Si el usuario quiere registrar una versión legible adicional (ej: "2026.1"), pregúntale por la cadena que quiere y, opcionalmente, podemos extender el manifest para añadirla — por ahora basta con el commit.
 
-Para refresh masivo de **privados**: el flujo es idéntico pero iterando los modelos del `manifest.json` y al final ejecutando `npm run generate:metadata -- --manifest=...`. No requiere build adicional porque los privados son JS dinámicos.
+Para refresh masivo de **privados**: el flujo es idéntico pero iterando los modelos del `manifest.json` de cada grupo (o de la raíz). Si los módulos están en subcarpetas de grupo, usa el `manifest.json` de cada subcarpeta. Al final ejecuta `npm run generate:metadata -- --manifest=<ruta/al/manifest.json>` por cada grupo. No requiere build adicional porque los privados son JS dinámicos.
 
 ---
 
@@ -270,11 +275,13 @@ Tras cualquier ejecución de la skill, antes de dar por terminado:
 3. Decidir: NUEVO | EXISTENTE_CON_CAMBIOS | SIN_CAMBIOS
 4. Editar:
      - CORE → MODEL_CATALOG + descriptions-overrides.json
-     - PRIVATE → manifest.json + descriptions.json (+ index.js si nuevo)
+     - PRIVATE (raíz) → <modules-dir>/manifest.json + <modules-dir>/descriptions.json (+ index.js si nuevo)
+     - PRIVATE (grupo) → <modules-dir>/Grupo/manifest.json + <modules-dir>/Grupo/descriptions.json (+ index.js si nuevo)
+       Los archivos siempre se llaman manifest.json y descriptions.json, nunca con prefijo/sufijo de nombre.
 5. Regenerar:
      - CORE → npm run generate:metadata -- --fs-path=...
               npm run build
-     - PRIVATE → npm run generate:metadata -- --manifest=...
+     - PRIVATE → npm run generate:metadata -- --manifest=<ruta/manifest.json>
 6. Verificar:
      - node dist/scripts/test-metadata.js
      - node dist/scripts/dump-all-descriptions.js

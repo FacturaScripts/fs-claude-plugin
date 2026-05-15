@@ -4,7 +4,17 @@
  * Lee módulos desde la ruta indicada por la variable de entorno FS_LOCAL_MODULES_PATH.
  * Si no está definida, intenta cargar desde dist/modules-local/ (útil en desarrollo local).
  *
- * Cada módulo debe ser una carpeta con un index.js que exporte:
+ * Soporta dos estructuras:
+ *
+ *   1. Módulos en la raíz del directorio:
+ *      <modules-dir>/mi-modulo/index.js
+ *
+ *   2. Módulos agrupados en subcarpetas:
+ *      <modules-dir>/MiGrupo/mi-modulo/index.js
+ *      <modules-dir>/MiGrupo/manifest.json     (opcional)
+ *      <modules-dir>/MiGrupo/descriptions.json (opcional)
+ *
+ * En ambos casos, cada módulo debe ser una carpeta con un index.js que exporte:
  *   - registerTools(toolsMap: Map<string, Tool>): Promise<void>
  *   - handleTool(name: string, args: Record<string, unknown>, client: fsClient): Promise<ToolResult | null>
  */
@@ -26,6 +36,10 @@ export interface LocalModuleHandler {
 /**
  * Carga todos los módulos locales desde FS_LOCAL_MODULES_PATH (o fallback a dist/modules-local).
  * Registra sus tools en el mapa global y devuelve un array de handlers para el dispatcher.
+ *
+ * Soporta dos niveles de organización:
+ *   - Módulos directamente en la raíz: <dir>/modulo/index.js
+ *   - Módulos agrupados en subcarpetas: <dir>/Grupo/modulo/index.js
  */
 export declare function loadLocalModules(toolsMap: Map<string, Tool>): Promise<LocalModuleHandler[]>;
 export {};

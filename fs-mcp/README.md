@@ -210,15 +210,41 @@ O ve a la configuración del plugin `fs-mcp` en Claude Code y establece el campo
 
 ### Estructura de un módulo local
 
-Cada módulo es una carpeta con un `index.js` dentro de tu directorio de módulos privados:
+El directorio de módulos soporta dos niveles de organización:
+
+**Módulos directamente en la raíz:**
 
 ```
 mis-modulos-fs/
   mi-modulo/
     index.js
+    metadata.js    ← opcional, generado por sync-models
   otro-modulo/
     index.js
 ```
+
+**Módulos agrupados en subcarpetas** (útil para organizar módulos de un mismo plugin):
+
+```
+mis-modulos-fs/
+  MiPlugin/
+    manifest.json      ← configuración del grupo para sync-models
+    descriptions.json  ← descripciones de columnas del grupo
+    mi-modulo/
+      index.js
+      metadata.js
+    otro-modulo/
+      index.js
+      metadata.js
+  OtroPlugin/
+    manifest.json
+    descriptions.json
+    tercer-modulo/
+      index.js
+      metadata.js
+```
+
+Puedes mezclar ambas formas en el mismo directorio. Los archivos `manifest.json` y `descriptions.json` de cada grupo siempre se llaman así — nunca con prefijos ni sufijos de nombre.
 
 El `index.js` debe exportar dos funciones: `registerTools` (declara las herramientas MCP) y `handleTool` (las ejecuta). El parámetro `client` ya viene configurado con las conexiones del plugin.
 
@@ -288,9 +314,18 @@ export async function handleTool(name, args, client) {
 
 Al arrancar el servidor MCP verás en los logs:
 
+**Módulos en raíz:**
 ```
 [local-loader] ✓ Módulo local cargado: mi-modulo (+1 modelos)
 [local-loader] 1 módulo(s) local(es) cargado(s) desde: /ruta/a/mis-modulos-fs
+```
+
+**Módulos en subcarpeta de grupo:**
+```
+[local-loader] ✓ Módulo local cargado: MiPlugin/mi-modulo (+1 modelos)
+[local-loader] ✓ Módulo local cargado: MiPlugin/otro-modulo (+1 modelos)
+[local-loader] ✓ Grupo "MiPlugin": 2 módulo(s) cargado(s)
+[local-loader] 2 módulo(s) local(es) cargado(s) desde: /ruta/a/mis-modulos-fs
 ```
 
 Si hay algún problema con un módulo (falta `index.js`, no exporta las funciones correctas), se registra un aviso y el servidor continúa cargando el resto.
@@ -355,15 +390,15 @@ npm run generate:metadata -- --manifest=/ruta/a/manifest.json
 
 No requiere recompilación: los módulos privados son JavaScript plano que se carga dinámicamente al arrancar.
 
-El `manifest.json` declara qué modelos generar y dónde están sus archivos:
+El `manifest.json` declara qué modelos generar y dónde están sus archivos. Si los módulos están agrupados en una subcarpeta, `outputBase` apunta a esa subcarpeta y el `manifest.json` vive dentro de ella:
 
 ```json
 {
     "moduleName": "mi-plugin",
     "fsPath": "/ruta/a/facturascripts",
     "pluginPath": "/ruta/a/facturascripts/Plugins/MiPlugin",
-    "outputBase": "/ruta/a/mis-modulos-fs",
-    "descriptionsOverridesPath": "/ruta/a/mis-modulos-fs/descriptions.json",
+    "outputBase": "/ruta/a/mis-modulos-fs/MiPlugin",
+    "descriptionsOverridesPath": "/ruta/a/mis-modulos-fs/MiPlugin/descriptions.json",
     "models": [
         {
             "name": "mi_modelo",
@@ -376,6 +411,8 @@ El `manifest.json` declara qué modelos generar y dónde están sus archivos:
     ]
 }
 ```
+
+Si el módulo está directamente en la raíz (sin subcarpeta de grupo), `outputBase` apunta al propio directorio de módulos (`/ruta/a/mis-modulos-fs`).
 
 ### Mantener el catálogo con la skill sync-models
 
