@@ -3,18 +3,17 @@ idproject: 237
 name: PrintChecker
 permalink: printchecker
 creationdate: 02-08-2022
-lastmod: 06-11-2025
+lastmod: 15-05-2026
 version: 3.1
-betaversion: 1.1
+betaversion: 3.2
 mincore: 2025
-maxcore: 2025.5
+maxcore: 2026.2
 compatible: 
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PrintChecker
 ---
-
 Plugin de Control de Impresión para Documentos
 
 Este plugin proporciona una solución eficaz para aquellos que manejan la impresión regular de documentos como facturas y albaranes. Su función principal es evitar confusiones y agilizar el proceso de identificación de documentos que ya han sido impresos.

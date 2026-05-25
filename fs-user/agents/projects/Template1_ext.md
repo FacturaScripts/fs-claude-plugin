@@ -3,18 +3,17 @@ idproject: 472
 name: Template1_ext
 permalink: template1-ext
 creationdate: 19-10-2025
-lastmod: 02-04-2026
-version: 2.32
+lastmod: 02-05-2026
+version: 2.33
 betaversion: 0
 mincore: 2025.43
-maxcore: 2026
+maxcore: 2026.2
 compatible: IeOmitelineas
 min_php: 
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/Template1_ext
 ---
-
 Plantilla para el plugin PlantillasPDF. (QR_code Verifactu centrado). Imagen de Fondo. Formatos Independientes. Asignación formatos clientes. Líneas super comprimidas. En Facturas muestra albaranes agrupados con su Subtotal o no. 
 A la opción de &quot;Mostrar subtotales por Albarán&quot; se ha añadido la posibilidad de &quot;Mostrar solo la 1ª línea descripción de Albaranes en Facturas&quot;, útil en empresas de servicios con una primera línea de descripción del trabajo realizado y las líneas siguientes con artículos. En este caso legalmente se acepta la factura siempre que vayan los albaranes adjuntos a la factura ya que la primera línea tiene que hacer referencia inequívoca al citado albarán con su número, fecha y descripción concluyente. 
 
@@ -40,6 +39,7 @@ Actualización para el formato de documentos de más de una página:
   Posibilidad de establecer El tipo de Fuente, el Tamaño, y el Color de los datos: Empresa, Cliente, Factura, Líneas, y Pie de página, de forma independiente y para cada Formato de Impresión.
 - IMAGEN TRANSPARENTE EN FONDO o IMAGEN EN ZONA DELANTERA.
  Posibilidad de elegir Opacidad y posición.
+- Sin Logo (ignora el logo general y de formato)
 
 NOVEDAD:
 - Posibilidad de asignar un Formato de Impresión de Facturas predefinido a cada uno de nuestros Clientes.

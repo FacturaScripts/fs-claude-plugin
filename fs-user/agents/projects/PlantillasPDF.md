@@ -3,18 +3,17 @@ idproject: 47
 name: PlantillasPDF
 permalink: plantillaspdf
 creationdate: 12-04-2019
-lastmod: 13-04-2026
-version: 6.41
+lastmod: 14-05-2026
+version: 6.7
 betaversion: 6.51
-mincore: 2025.81
-maxcore: 2026
+mincore: 2026
+maxcore: 2026.2
 compatible: Verifactu,Ticketbai,Proyectos,RemesasSEPA
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PlantillasPDF
 ---
-
 Permite configurar o personalizar los diseños PDF de facturas, albaranes, pedidos y presupuestos.
 
 Con este plugin podemos elegir entre cinco plantillas prediseñadas. Y para cada una de estas plantillas podemos configurar:

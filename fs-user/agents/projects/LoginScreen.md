@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/LoginScreen
 ---
-
 Pantalla de inicio de sesion alternativo.
 
 El plugin LoginScreen para FacturaScripts permite personalizar la pantalla de inicio de sesión del sistema. Con este complemento puedes modificar fácilmente el diseño visual, añadir el logotipo de tu empresa, cambiar colores y mensajes de bienvenida, adaptando la experiencia de acceso a la identidad corporativa de tu negocio. 

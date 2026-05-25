@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/OptimizadorImagenes
 ---
-
 Optimizador de Imágenes para FacturaScript 
 Un plugin indispensable,  diseñado para la optimización de imágenes. Con este complemento, podrás mejorar significativamente el rendimiento de tu web al reducir el peso de las imágenes de tu carpeta Myfiles entre un 50% y 70%.
 

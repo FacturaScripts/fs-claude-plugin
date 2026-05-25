@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/fspreventivo
 ---
-
 Permite llevar el control de revisiones preventivas de instalaciones, edificios, etc.
 Se configura el tipo de trabajo a revisar y las tareas que lleva cada tipo de trabajo.
 Por ejemplo para una instalación de alarma:

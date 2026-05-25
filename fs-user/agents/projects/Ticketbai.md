@@ -4,17 +4,16 @@ name: Ticketbai
 permalink: ticketbai
 creationdate: 21-03-2022
 lastmod: 27-04-2026
-version: 2.7
-betaversion: 2.71
+version: 2.71
+betaversion: 1.9
 mincore: 2025.81
-maxcore: 2026
+maxcore: 2026.2
 compatible: PlantillasPDF
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Ticketbai
 ---
-
 Implementación de Ticket-bai para FacturaScripts. Permite firmar electrónicamente las facturas de venta, enviarlas a la hacienda foral correspondiente (Álaba, Bizkaia o Guipúzcoa) y guardar el correspondiente código QR.
 
 ¿Qué es ticketbai?

@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/Ubicaciones
 ---
-
 Sistema de localización de productos en almacenes para Facturascripts. Este plugin facilita el conocimiento y el control de las ubicaciones de nuestros productos dentro de un almacén, pudiendo ubicarlos hasta en cinco niveles de clasificación.
 
 - Pasillo: cada una de las zonas de paso del almacén.

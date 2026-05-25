@@ -4,17 +4,16 @@ name: NeoTheme
 permalink: neotheme
 creationdate: 31-03-2021
 lastmod: 17-04-2026
-version: 2.9
-betaversion: 3
-mincore: 2025
-maxcore: 2026
+version: 3
+betaversion: 2.7
+mincore: 2025.6
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/NeoTheme
 ---
-
 Modifica el aspecto visual de FacturaScripts para usar una barra superior y un menú lateral:
 - Barra lateral: muestra todas las opciones de menú (administrador, almacén, compras...), el icono del usuario y un buscador general.
 

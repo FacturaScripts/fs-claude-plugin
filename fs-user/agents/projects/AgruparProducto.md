@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/AgruparProducto
 ---
-
 Crear diferentes agrupaciones en base a una cantidad de producto. Permite vender el mismo producto por distintas agrupaciones de cantidades. A estas agrupaciones se les pueden asignar descuentos especiales,  un código EAN personalizado e indicar cual es la agrupación que se utiliza por defecto al vender, asignándole a la línea del documento la cantidad de la agrupación.
 
 Por ejemplo para un producto &quot;PILA&quot;:

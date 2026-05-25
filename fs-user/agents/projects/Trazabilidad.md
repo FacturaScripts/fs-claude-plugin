@@ -3,18 +3,17 @@ idproject: 211
 name: Trazabilidad
 permalink: trazabilidad
 creationdate: 29-04-2022
-lastmod: 09-02-2026
-version: 2.12
+lastmod: 22-05-2026
+version: 2.22
 betaversion: 2.1
-mincore: 2025.6
-maxcore: 2026
+mincore: 2025.8
+maxcore: 2026.2
 compatible: StockAvanzado
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Trazabilidad
 ---
-
 Permite el control de trazabilidad de números de serie o lotes en compras y ventas:
 - Desde el almacén puede marcar los productos que tendrán trazabilidad.
 - Al hacer albaranes o facturas de compra se añade una nueva pestaña trazabilidad donde puede añadir los números de serie o lotes.

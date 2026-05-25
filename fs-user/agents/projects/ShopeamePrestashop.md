@@ -1,0 +1,17 @@
+---
+idproject: 564
+name: ShopeamePrestashop
+permalink: shopeameprestashop
+creationdate: 20-03-2026
+lastmod: 20-03-2026
+version: 0
+betaversion: 0
+mincore: 
+maxcore: 
+compatible: 
+min_php: 
+require: 
+require_php: 
+url: https://facturascripts.com/plugins/ShopeamePrestashop
+---
+Este plugin sirve para conectar Prestahshop con Shopeame, mejorando la sincronización de los datos.

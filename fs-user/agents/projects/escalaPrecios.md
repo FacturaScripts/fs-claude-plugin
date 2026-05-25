@@ -3,18 +3,17 @@ idproject: 358
 name: escalaPrecios
 permalink: escalaprecios
 creationdate: 16-02-2024
-lastmod: 29-03-2026
-version: 2.5
-betaversion: 1.7
-mincore: 2025
-maxcore: 2025.9
+lastmod: 16-05-2026
+version: 2.7
+betaversion: 2.6
+mincore: 2026
+maxcore: 2026.2
 compatible: 
-min_php: 8.2
+min_php: 8.0
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/escalaPrecios
 ---
-
 Plugin para asignar precios a productos en función de la cantidad comprada.
 Podrás establecer hasta qué cantidad se mantiene un precio.
 Por ejemplo podrás decir &quot;Hasta 5 unidades el precio es de 100 Euros&quot;, &quot;Hasta 10 unidades (entre 5 y 10) el precio es de 90 Euros&quot;. El precio siempre se especifica por unidad.

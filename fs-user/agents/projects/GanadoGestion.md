@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/GanadoGestion
 ---
-
 Plugin para la gestión de una granja de ganado. Permite gestionar las altas (nacimientos, compras), salidas (ventas, sacrificios) y los movimientos a pastos.
 Gestiona las fechas posibles de parto y las &quot;prohibiciones&quot; para parir como novillas, partos recientes.
 Genera los libros oficiales de la Junta de Extremadura y de la Junta de Castilla y León

@@ -3,18 +3,17 @@ idproject: 64
 name: CRM
 permalink: crm
 creationdate: 31-10-2019
-lastmod: 13-04-2026
+lastmod: 13-05-2026
 version: 3.42
-betaversion: 3.1
+betaversion: 3.44
 mincore: 2025.81
-maxcore: 2026
+maxcore: 2026.1
 compatible: Informes
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CRM
 ---
-
 Permite gestionar contactos, listas, campañas, notas y oportunidades de negocio. Perfecto para llevar la adquisición de clientes junto al resto de gestiones de la empresa con FacturaScripts.
 
 Permite:

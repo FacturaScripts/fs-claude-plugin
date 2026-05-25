@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/fsPVPenCompras
 ---
-
 Con este plugin se visualizará en los documentos de compra los diferentes precios de venta del producto.
 En la línea del producto se visualizará el precio de venta. Se puede elegir si dicho precio se muestra con o sin IVA
 En la parte superior del documento se muestra una tabla con los precios según las diferentes tarifas siempre antes de impuestos.

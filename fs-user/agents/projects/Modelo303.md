@@ -7,14 +7,13 @@ lastmod: 25-03-2026
 version: 2.91
 betaversion: 2.61
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo303
 ---
-
 Modelos 303 y 390 de la Hacienda española para la declaración trimestral y anual de IVA para autónomos y pymes. También conocida como regularización de IVA (o regularizacion).
 
 Instale este plugin para poder hacer el cálculo de lo que debe pagar a hacienda en concepto de regularización de IVA. Se calcula automáticamente el IVA soportado y el repercutido. Obtenga una estimación y genere los correspondientes asientos contables.

@@ -7,14 +7,13 @@ lastmod: 03-09-2025
 version: 2.2
 betaversion: 1.3
 mincore: 2025.3
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/IeAyudaFacturacion
 ---
-
 Facilita la facturación periódica de albaranes existentes:
 1. En la lista de albaranes aparecen, por defecto, sólo los pendientes de facturar ordenados por código de cliente. Así podemos ir facturando albaranes independientes o agrupando por cliente de una forma más rápida. Siempre se pueden cambiar los filtros y órdenes de forma manual.
 2. Al generar documentos agrupados (por ejemplo facturas), vuelve a la vista original (albaranes). Esto nos permite facturar más rápido, ya que no hay que volver a la lista de nuevo y filtrar u ordenar de nuevo. Esta funcionalidad afecta a las agrupaciones de cualquier documento (presupuestos, pedidos, albaranes).

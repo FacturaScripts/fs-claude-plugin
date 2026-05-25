@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 04-04-2025
 url: https://facturascripts.com/publicaciones/guardar-una-cookie-994
 ---
-
 Para guardar o modificar una cookie, debemos utilizar los objetos `Cookie` y `response` del controlador.
 
 ## Cargar el Namespace

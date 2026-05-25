@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/CalculadoraPisos
 ---
-
 Plugin gratuito perteneciente a la colección &quot;Patrimonial&quot;. Con CalculadoraPisos dispones de una herramienta especifica para analizar las oportunidades del mercado en inversión inmobiliaria. Dentro de las sociedades patrimoniales es necesario llevar una correcta gestión de los ratios del Cash-Flow y el ROCE de cada inmueble que analices. Además, puedes llevar un registro de los gastos e ingresos una vez que pasa a ser propiedad.

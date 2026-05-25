@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PedidosPendientes
 ---
-
 PedidosPendientes es un plugin para FacturaScripts diseñado para facilitar el control y seguimiento de los pedidos de compra y venta, ayudando a conocer en todo momento qué material ha sido servido y qué productos siguen pendientes.
 
 El plugin añade un estado automático de servido a cada pedido, calculado a partir de las líneas del documento y su conversión a albaranes o facturas. De esta forma, los pedidos se identifican claramente como pendientes, parcialmente servidos o completados, evitando confusiones y mejorando la gestión diaria tanto en compras como en ventas.

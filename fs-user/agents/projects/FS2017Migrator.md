@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FS2017Migrator
 ---
-
 Permite migrar los datos de FacturaScripts 2017 a la nueva estructura de FacturaScripts. Una vez realizada la migración no se puede seguir trabajando con la versión 2017 (obviamente).
 
 Pasos para una correcta migración:

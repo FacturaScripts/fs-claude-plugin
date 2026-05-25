@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ConsultasAI
 ---
-
 Solicita consultas de todo tipo utilizando lenguaje natural, incluso con voz. Puedes pedir cosas como dime las ventas de Enero, Compárame las ventas por meses. Dime los diez días de más venta. Dame el teléfono el cliente Pepe y todo lo que se te ocurra. Simplemente configurando bien el prompt puedes obtener cualquier cosa que desees pidiéndola por voz (si tienes micro claro).
 Tienes que tener una clave API de chatGpt puedes obtenerla desde https://openai.com/es-ES/api/.
 Se instala como cualquier plugin. Luego tienes que activarlo. 

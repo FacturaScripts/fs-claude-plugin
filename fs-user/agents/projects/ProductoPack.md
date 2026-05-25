@@ -3,18 +3,17 @@ idproject: 107
 name: ProductoPack
 permalink: productopack
 creationdate: 04-11-2020
-lastmod: 22-09-2025
-version: 2
+lastmod: 12-05-2026
+version: 2.01
 betaversion: 1.45
-mincore: 2025
-maxcore: 2025.81
+mincore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ProductoPack
 ---
-
 Permite indicar que una variante de un producto es un pack (o lista) de otros productos. Al añadir la variante de producto pack a un documento agrega la lista de productos que lo componen en lugar de la variante pack.
 
 IMPORTANTE: Para poder crear los packs, es necesario haber dado de alta con anterioridad todos los productos y sus variantes.

@@ -14,6 +14,5 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/fsrettotal
 ---
-
 Sencillo plugin para calcular las retenciones en los documentos sobre el total del documento (Base + IVA).
 En la ficha del cliente o proveedor tendremos la opción de marcar si queremos dicha retención sobre la base o sobre el total.

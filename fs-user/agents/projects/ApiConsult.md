@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ApiConsult
 ---
-
 ApiConsult es un plugin que permite conectarse fácilmente a servicios de consulta de nombres mediante el número de cédula (Registro Civil) o RUC (SRI) de Ecuador.
 
 Este plugin es totalmente gratuito y sin límite de tiempo.

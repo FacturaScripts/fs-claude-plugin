@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/Obra
 ---
-
 Permite añadir obras y diferenciar las compras de mercancía por obra.

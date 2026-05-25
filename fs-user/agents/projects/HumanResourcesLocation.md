@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/HumanResourcesLocation
 ---
-
 Extensión de Geolocalización para el Fichaje
 
 Añade la funcionalidad de geolocalización al sistema de fichaje de tu plugin de recursos humanos. Esta extensión permite registrar la ubicación exacta de los empleados al fichar, mejorando el control y la transparencia en la gestión de asistencia.

@@ -3,18 +3,17 @@ idproject: 68
 name: Modelo347
 permalink: modelo347
 creationdate: 03-01-2020
-lastmod: 25-02-2026
+lastmod: 18-05-2026
 version: 3.52
-betaversion: 3.1
+betaversion: 3.6
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo347
 ---
-
 El Modelo 347 de la hacienda española es un modelo informativo para la declaración anual de operaciones con terceros. Instale este plugin para obtener los datos necesarios para rellenar el modelo.
 
 # ¿Quién está obligado a presentar el modelo 347?

@@ -3,18 +3,17 @@ idproject: 72
 name: Etiquetas
 permalink: etiquetas
 creationdate: 22-02-2020
-lastmod: 14-04-2026
-version: 2.81
-betaversion: 2.91
-mincore: 2025.6
-maxcore: 2025.9
+lastmod: 07-05-2026
+version: 3.01
+betaversion: 2.93
+mincore: 2025.8
+maxcore: 2026.2
 compatible: Tickets,TarifasAvanzadas
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Etiquetas
 ---
-
 Permite imprimir etiquetas de códigos de barras de productos. Desde almacén, albaranes o facturas. Además de poder generar códigos de barras para los productos que todavía no tienen.
 
 Permite imprimir en impresoras normales con papel de A4 de etiquetas. Formatos:

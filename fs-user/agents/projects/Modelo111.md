@@ -3,18 +3,17 @@ idproject: 192
 name: Modelo111
 permalink: modelo111
 creationdate: 16-03-2022
-lastmod: 27-02-2026
+lastmod: 18-05-2026
 version: 2.3
-betaversion: 2.1
+betaversion: 2.4
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo111
 ---
-
 El Modelo 111 es una declaración trimestral de las retenciones del IRPF practicadas a trabajadores, profesionales y empresarios. También puede sacar el modelo 190 que es lo mismo pero anual.
 
 # ¿Quién tiene que presentar el modelo 111 o 190?

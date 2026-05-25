@@ -3,18 +3,17 @@ idproject: 353
 name: Turnos
 permalink: turnos
 creationdate: 30-01-2024
-lastmod: 23-02-2026
-version: 2.72
+lastmod: 17-05-2026
+version: 2.73
 betaversion: 2.24
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.2
 compatible: Calendario
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Turnos
 ---
-
 Con este plugin puedes dar de alta nuevos turnos para tus clientes, editar la información existente y gestionar su estado de forma simple y ordenada.
 
 Los turnos permiten definir una fecha, horario y duración, facilitando una planificación más precisa de la agenda y evitando solapamientos innecesarios.

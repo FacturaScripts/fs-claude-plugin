@@ -7,14 +7,13 @@ lastmod: 11-03-2026
 version: 2.2
 betaversion: 1.91
 mincore: 2025.5
-maxcore: 2026
+maxcore: 2026.2
 compatible: PrePagos,Traducciones
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PortalCliente
 ---
-
 Añade un panel de gestión para clientes, donde sus clientes podrán hacer multitud de tareas de gestión entre ellos y su empresa. Dele el control de sus acciones a sus clientes, un portal abierto 24 horas 7 días a la semana para que sus clientes no dependan de usted y puedan hacer uso de sus datos.
 
 Características

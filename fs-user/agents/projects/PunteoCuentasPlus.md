@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PunteoCuentasPlus
 ---
-
 Añade nuevas funcionalidades al punteo de subcuentas incluido en el Core de Facturascripts.
     - Muestra el total punteado y el total pendiente de puntear de la subcuenta
     - Permite filtrar por punteado o no punteado

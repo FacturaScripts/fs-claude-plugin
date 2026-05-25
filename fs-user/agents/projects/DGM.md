@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/DGM
 ---
-
 PLUGIN Doria Global Media Facturación electrónica

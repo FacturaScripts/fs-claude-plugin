@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/CartaPortes
 ---
-
 Facilita la generación y descarga rápida de cartas de porte para el transporte de productos. Esta herramienta asegura que todas las operaciones de transporte estén documentadas y gestionadas conforme a las normativas vigentes, mejorando la trazabilidad y el control de los envíos.
 
 La carta de portes es un documento esencial en la cadena logística. Sirve como prueba de la carga transportada, la entrega que se realizará y el estado de las mercancías. Además, certifica la existencia de un contrato de transporte entre el porteador y el cargador, y acredita la propiedad de los bienes transportados.

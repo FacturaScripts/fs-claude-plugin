@@ -7,14 +7,13 @@ lastmod: 30-03-2026
 version: 1.3
 betaversion: 0
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: CRM
 require_php: 
 url: https://facturascripts.com/plugins/GrupoClientesCRM
 ---
-
 Añade el campo grupo de clientes a los contactos del CRM, para poder vincular contactos con grupos de clientes. Además, al convertir el contacto en cliente, se le asigna el grupo de clientes seleccionado.
 
 ¿Para qué sirve?

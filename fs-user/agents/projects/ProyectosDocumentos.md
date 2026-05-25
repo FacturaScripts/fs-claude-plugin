@@ -1,0 +1,17 @@
+---
+idproject: 562
+name: ProyectosDocumentos
+permalink: proyectosdocumentos
+creationdate: 17-03-2026
+lastmod: 17-03-2026
+version: 1
+betaversion: 0
+mincore: 2025
+maxcore: 2026
+compatible: 
+min_php: 
+require: 
+require_php: 
+url: https://facturascripts.com/plugins/ProyectosDocumentos
+---
+Fork actualizado de DocumentosProyectos. Permite añadir archivos a proyectos. Compatible con FacturaScripts 2025. Requiere el plugin Proyectos.

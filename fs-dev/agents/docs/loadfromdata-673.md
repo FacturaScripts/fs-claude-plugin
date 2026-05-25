@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
 url: https://facturascripts.com/publicaciones/loadfromdata-673
 ---
-
 El método `loadFromData()` de un modelo asigna los valores de un array proporcionado al objeto.
 
 ### Parámetros

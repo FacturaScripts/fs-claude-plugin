@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/MultiEmpresa
 ---
-
 Plugin que añade los recursos necesarios (tablas, campos, vistas, etc.) para trabajar con múltiples empresas dentro de una misma instalación. Este plugin permite definir valores por defecto diferenciados manteniendo una jerarquía de prioridades entre configuraciones para:
 
 - Cada empresa

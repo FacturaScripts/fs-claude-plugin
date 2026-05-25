@@ -7,14 +7,13 @@ lastmod: 23-04-2026
 version: 2.21
 betaversion: 0
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CalculoDensidad
 ---
-
 Añade campos de dimensiones para calcular el peso y precio de productos según sus densidades, o también novedad: por kg/metro.  Por densidad:productos cúbicos y cilíndricos, macizos o huecos según espesor de pared.  Y por kg/m: cualquier producto del que sepamos este dato.
 
 CÁLCULO DE LOS KG POR DENSIDAD (al introducir medidas en mm):

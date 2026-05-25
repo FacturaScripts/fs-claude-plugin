@@ -14,6 +14,5 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PagoSimplificado
 ---
-
 Permite realizar el cobro y pago de recibos de manera visual, mediante botones que permiten simplificar tanto la liquidación del recibo como cambiar la fecha, forma de pago e importe en el momento de la operación.
 De manera automática, si se realiza el cobro/pago por importe inferior al recibo, se genera un nuevo recibo por la diferencia.

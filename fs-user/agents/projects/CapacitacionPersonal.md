@@ -3,18 +3,17 @@ idproject: 248
 name: CapacitacionPersonal
 permalink: capacitacionpersonal
 creationdate: 31-08-2022
-lastmod: 23-02-2026
-version: 2.52
+lastmod: 17-05-2026
+version: 2.53
 betaversion: 2.42
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.2
 compatible: Calendario
-min_php: 8
+min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CapacitacionPersonal
 ---
-
 Capacitación Personal es el complemento ideal para llevar un control completo de la formación de tu equipo dentro de FacturaScripts. Con este plugin podrás gestionar todas las capacitaciones y cursos del personal de manera fácil, organizada y profesional.
 
 Permite crear, editar y eliminar capacitaciones, vinculándolas directamente con los agentes de tu empresa. Cada curso queda registrado con su información detallada, permitiendo consultar el historial completo de lo que ha realizado cada empleado.

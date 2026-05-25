@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
 url: https://facturascripts.com/publicaciones/save-782
 ---
-
 La función `save()` del modelo se utiliza para guardar un registro en la base de datos. **Devuelve `true`** si el registro se ha guardado correctamente y **`false`** en caso contrario.
 
 ## Ejemplo

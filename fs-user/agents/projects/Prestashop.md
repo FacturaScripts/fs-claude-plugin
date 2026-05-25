@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/Prestashop
 ---
-
 Plugin: Sincronización de Pedidos PrestaShop a FacturaScripts
 
 Este plugin permite sincronizar los pedidos de varias tiendas PrestaShop con FacturaScripts utilizando la API WebService de PrestaShop. Puedes configurar múltiples tiendas y gestionar la activación o desactivación de cada una, manteniendo los pedidos actualizados en FacturaScripts.

@@ -6,7 +6,6 @@ creationdate: 25-04-2018 00:00:00
 lastmod: 26-08-2025
 url: https://facturascripts.com/publicaciones/que-version-de-symfony-utiliza-facturascripts-539
 ---
-
 La respuesta breve es **ninguna**. FacturaScripts no se basa en el núcleo de Symfony, ya que hemos desarrollado nuestro propio núcleo para abordar necesidades diferentes a las que resuelve Symfony.
 
 ## ⚙️ Componentes de Symfony utilizados

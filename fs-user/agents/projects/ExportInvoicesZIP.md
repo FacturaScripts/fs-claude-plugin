@@ -3,18 +3,17 @@ idproject: 324
 name: ExportInvoicesZIP
 permalink: exportinvoiceszip
 creationdate: 09-09-2023
-lastmod: 20-01-2026
+lastmod: 15-05-2026
 version: 3.8
-betaversion: 0
+betaversion: 4
 mincore: 2025.51
-maxcore: 2025.71
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExportInvoicesZIP
 ---
-
 ExportInvoicesZIP: Gestión Rápida y Eficiente de Facturas
 
 El plugin ExportInvoicesZIP está diseñado para agilizar la descarga de facturas en PDF y ahorrar tiempo. Ideal para empresas con grandes volúmenes de documentos.

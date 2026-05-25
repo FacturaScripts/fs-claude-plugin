@@ -14,6 +14,5 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/SqlEditor
 ---
-
 Permite ejecutar sentencias Sql desde facturascrips. No permite sentencias de acción (insert, delete...).
 20-01-2019 Revisión de funcionamiento. Añadido Readme

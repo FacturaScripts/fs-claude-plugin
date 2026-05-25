@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/triwus
 ---
-
 El plugin triwus para FacturaScripts, sincroniza automáticamente el stock de productos del almacén de tu tienda online creada con la plataforma Triwus, asegurando que tus inventarios estén siempre actualizados en tiempo real. 
 
 También permite crear automáticamente los albaranes y/o facturas de las ventas realizadas en tu tienda online.

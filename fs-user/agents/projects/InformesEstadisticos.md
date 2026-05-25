@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/InformesEstadisticos
 ---
-
 Mediante este plugin para FacturaScripts podrá obtener informes estadísticos en formato PDF, en base a los datos de los documentos de compra y venta introducidos en la aplicación y según su ejercicio, pudiendo comparar los datos un ejercicio anterior.
 
 Los informes se agrupan diferentes grupos según su origen o funcionalidad: 

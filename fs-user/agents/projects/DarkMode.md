@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/DarkMode
 ---
-
 Añade un icono arriba a la derecha para alternar entre Dark Mode (el tema oscuro) y Light Mode (el tema claro). Además en el Light Mode también se modifica la apariencia por defecto de FacturaScripts, añadiendo un poco de contraste entre los campos y el fondo.

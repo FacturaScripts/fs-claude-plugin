@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ZonasComerciales
 ---
-
 Añade un nuevo campo para determinar la zona comercial a clientes, proveedores y productos para poder gestionarlos por dicha información.
 
 Se añade un aviso a nivel de ventas cuando se añade un producto a un documento de venta que pertenece a una zona comercial distinta de la zona del cliente.

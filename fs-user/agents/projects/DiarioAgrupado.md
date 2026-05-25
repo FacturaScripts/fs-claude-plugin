@@ -7,14 +7,13 @@ lastmod: 14-04-2026
 version: 2.81
 betaversion: 2.7
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: Informes
 require_php: 
 url: https://facturascripts.com/plugins/DiarioAgrupado
 ---
-
 Modifica el diario contable para agrupar por cuenta y mes, de forma que podemos ver más cómodamente el mayor de cuentas, subcuentas o bien el diario general.
 
 Recuerde:

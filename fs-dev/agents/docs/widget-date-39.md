@@ -6,7 +6,6 @@ creationdate: 06-10-2018 00:00:00
 lastmod: 31-10-2025
 url: https://facturascripts.com/publicaciones/widget-date-39
 ---
-
 En los **archivos XMLView**, se puede utilizar un widget de fecha, denominado **WidgetDate**, para mostrar o editar fechas en el formato predeterminado **dd-mm-yyyy** (por ejemplo: 01-01-2022).
 
 ```xml

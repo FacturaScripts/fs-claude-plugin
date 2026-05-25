@@ -7,14 +7,13 @@ lastmod: 26-08-2025
 version: 1.4
 betaversion: 1.3
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EjecucionVentas
 ---
-
 Añade la columna ejecutado (número con decimales) a las líneas de facturas, albaranes, pedidos y presupuestos de venta. Permite especificar ahí el porcentaje de ejecución de ese concepto (cuánto se ha completado).
 
 # Cálculo

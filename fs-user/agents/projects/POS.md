@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/POS
 ---
-
 Agrega un punto de venta (TPV, Point of Sale) que permite crear facturas, albaranes, pedidos o presupuestos de venta.
 
 Características: 

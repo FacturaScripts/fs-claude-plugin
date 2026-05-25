@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ecommerce
 ---
-
 Convierte a FacturaScripts en una tienda online. Incluye las pasarelas de pago: paypal y stripe.
 
 PLUGIN ABANDONADO

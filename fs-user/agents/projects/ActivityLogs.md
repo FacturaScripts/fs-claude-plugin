@@ -7,14 +7,13 @@ lastmod: 24-09-2025
 version: 1.5
 betaversion: 0
 mincore: 2025.4
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ActivityLogs
 ---
-
 Descubre ActivityLogs: El Plugin que Te Da el Control Total del Comportamiento de tus Usuarios
 
 ¿Sabes realmente cómo usan tus empleados tu sistema de facturación? ActivityLogs es la solución que estabas esperando. Con este potente plugin, podrás registrar en detalle todas las acciones de los usuarios, dándote acceso a información valiosa que antes estaba oculta.

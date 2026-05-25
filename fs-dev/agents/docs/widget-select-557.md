@@ -6,7 +6,6 @@ creationdate: 06-10-2018 00:00:00
 lastmod: 03-01-2026
 url: https://facturascripts.com/publicaciones/widget-select-557
 ---
-
 El widget select, o WidgetSelect, permite mostrar valores que están relacionados con otras tablas (*o con la misma*). Un ejemplo muy sencillo es un selector de país.
 
 ```

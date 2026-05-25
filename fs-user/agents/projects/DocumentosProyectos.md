@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/DocumentosProyectos
 ---
-
 Este plugin complementa el Plugin de Proyectos  para FacturaScripts y permite añadir archivos relacionados.
 
 Crea una sección en la parte lateral de la visualización de un proyecto, permitiendo adjuntar archivos con descripción y que estos queden tanto en la biblioteca como en el proyecto relacionados.

@@ -4,17 +4,16 @@ name: RemesasSEPA
 permalink: remesassepa
 creationdate: 02-12-2019
 lastmod: 13-04-2026
-version: 2.9
-betaversion: 3.1
+version: 3.1
+betaversion: 2.6
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/RemesasSEPA
 ---
-
 Añade gestión de Remesas bancarias en formatos SEPA CORE, COR1 y B2B. Con este plugin podemos agrupar fácilmente los recibos pendientes de facturas de cliente en remesas, generar el fichero xml y subirlo al banco.
 
 Características:

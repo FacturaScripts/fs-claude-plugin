@@ -7,14 +7,13 @@ lastmod: 23-02-2026
 version: 1.53
 betaversion: 0
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.2
 compatible: 
 min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/ExtraDataFactura
 ---
-
 ExtraDataFactura - Personaliza tus Facturas con Campos Dinámicos
 
 ExtraDataFactura es el complemento ideal para FacturaScripts que te permite agregar hasta 6 campos personalizados a tus facturas sin modificar la estructura original de tus plantillas PDF.

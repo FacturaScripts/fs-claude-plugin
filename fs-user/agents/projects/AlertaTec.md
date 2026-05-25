@@ -14,6 +14,5 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/AlertaTec
 ---
-
 Permite monitorizar la conexión hacia equipos como router o computadoras. Envía notificaciones de correo cuando se ha perdido la comunicación hacia alguno de los equipos registrados. Usa el cron de Facturascripts, requiere conocimiento de cron en el hosting o equipo contenedor.
 Los registros de verificación se han probado a través de la api de facturascripts. Aunque también existe un controller publico a través del cual se pueden enviar los registros con el método GET.

@@ -3,18 +3,17 @@ idproject: 104
 name: Produccion
 permalink: produccion
 creationdate: 19-10-2020
-lastmod: 12-01-2026
+lastmod: 28-04-2026
 version: 2.01
-betaversion: 2.02
+betaversion: 2.03
 mincore: 2025.51
-maxcore: 2025.81
+maxcore: 2026.1
 compatible: 
 min_php: 8.0
 require: StockAvanzado
 require_php: 
 url: https://facturascripts.com/plugins/Produccion
 ---
-
 Permite crear recetas para producir/fabricar productos a partir de otros productos del almacén, los llamados ingredientes.
 
 Ejemplo: puedes definir que el producto mueble-caoba se construye con los ingredientes:

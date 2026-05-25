@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/SamplePlugin
 ---
-
 Plugin con multitud de interfaces para probar a fondo la parte gráfica de FacturaScripts 2018 y encontrar bugs más fácilmente.

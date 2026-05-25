@@ -7,14 +7,13 @@ lastmod: 23-02-2026
 version: 1.7
 betaversion: 0
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.2
 compatible: PortalCliente
 min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ResetTokenMail
 ---
-
 ResetTokenMail – Recuperación de contraseña moderna con token
 
 Reemplaza el sistema de recuperación de contraseña de FacturaScripts pensado para instalaciones locales, y lo actualiza por un sistema moderno y seguro basado en token por correo electrónico. 

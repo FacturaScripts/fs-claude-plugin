@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PrevisionPagos
 ---
-
 El plugin PrevisiónPagos añade al ERP una herramienta esencial para la gestión de tesorería, permitiendo registrar y controlar pagos futuros que no están gestionados por el sistema de recibos de proveedor. Estos pagos previstos actúan como recordatorios de obligaciones que la empresa deberá asumir en una fecha concreta, complementando los vencimientos reales existentes.
 
 A través de este sistema es posible introducir apuntes de gastos futuros tales como alquileres, cuotas, compras de material o cualquier otro pago que se quiera anticipar sin necesidad de generar un documento o recibo. El objetivo es ofrecer una visión más completa y realista de los compromisos económicos de la empresa, incluyendo tanto los vencimientos reales como los pagos previstos externos al flujo habitual del ERP.

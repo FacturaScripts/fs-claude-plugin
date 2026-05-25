@@ -7,14 +7,13 @@ lastmod: 26-03-2026
 version: 3.4
 betaversion: 3.5
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: zip
 url: https://facturascripts.com/plugins/Backup
 ---
-
 Permite crear y restaurar copias de seguridad de la base de datos (sólo MySQL) y los archivos de FacturaScripts. Imprescindible para no perder datos en caso de problemas.
 
 Menú:

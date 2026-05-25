@@ -3,10 +3,9 @@ id: 669
 permalink: modelos-de-solo-visionado-o-multiples-tablas-777
 title: Modelos de Más de Una Tabla
 creationdate: 11-05-2018 00:00:00
-lastmod: 16-04-2026
+lastmod: 24-05-2026
 url: https://facturascripts.com/publicaciones/modelos-de-solo-visionado-o-multiples-tablas-777
 ---
-
 En ocasiones, es necesario mostrar listados que consulten **más de una tabla**. Si el [widget select](https://facturascripts.com/publicaciones/widget-select-557) o el [widget autocomplete](https://facturascripts.com/publicaciones/widget-autocomplete-946) no resuelven nuestro problema, podemos utilizar **JoinModel** para solucionarlo.
 
 ## ¿Qué es un JoinModel?

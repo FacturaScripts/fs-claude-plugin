@@ -3,18 +3,17 @@ idproject: 371
 name: Calendario
 permalink: calendario
 creationdate: 19-06-2024
-lastmod: 23-02-2026
-version: 3.11
+lastmod: 22-05-2026
+version: 3.12
 betaversion: 2.5
-mincore: 2025
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.2
 compatible: Turnos,CapacitacionPersonal
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Calendario
 ---
-
 Calendario Integrado de Eventos
 
 Este plugin centraliza y muestra eventos en un calendario unificado, integrando información proveniente de distintos plugins compatibles para ofrecer una visión clara, ordenada y práctica de la actividad diaria.

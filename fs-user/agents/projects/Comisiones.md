@@ -7,14 +7,13 @@ lastmod: 11-12-2025
 version: 2.23
 betaversion: 1.4
 mincore: 2025.61
-maxcore: 2025.81
+maxcore: 2026.1
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Comisiones
 ---
-
 Con este plugin podrá asignar comisiones de venta a sus agentes o comerciales y realizar la liquidación de las mismas.
 
 Las comisiones se pueden asignar por agente, por cliente, por familia e incluso por producto, es decir, puede asignar:

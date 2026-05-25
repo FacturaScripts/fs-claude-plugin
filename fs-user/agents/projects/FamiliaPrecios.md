@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FamiliaPrecios
 ---
-
 Plugin que permite el cambio de precios de manera masiva en los productos pertenecientes a las familias. Facilita el cambio masivo de precios de una familia o de varias ahorrando tiempo en la gestión de los mismos.
 
 A la funcionalidad se accede a través del listado de familias. A la derecha del botón de impresión aparecerá un nuevo botón con el símbolo del $. Una vez seleccionada la familia o familias en las que se desea cambiar el precio de sus productos se debe realizar click en el botón del $.

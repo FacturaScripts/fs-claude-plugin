@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FlexyTheme
 ---
-
 Tema para FacturaScripts basado en Flexy Bootstrap Admin Free.
 
 Integra diseño moderno y limpio implementando un menu lateral ademas de un menu de aplicacion en la parte superior, de igual manera cuenta concompatibilidad completa con Bootstrap 4.6 y diseño responsivo. Ideal para personalizar la apariencia de tu instalación de FacturaScripts sin comprometer la funcionalidad del núcleo.

@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/EbillingEc
 ---
-
 Facturación Electrónica Ecuador.
 Documentos Soportados:
  Factura de Venta. 

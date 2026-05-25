@@ -3,18 +3,17 @@ idproject: 286
 name: PreciosMasivos
 permalink: preciosmasivos
 creationdate: 02-02-2023
-lastmod: 01-12-2025
-version: 2.51
+lastmod: 22-05-2026
+version: 2.53
 betaversion: 0
-mincore: 2025
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PreciosMasivos
 ---
-
 Precios Masivos permite actualizar el COSTO, MARGEN, PRECIO DE VENTA E IMPUESTOS.
 
 Una vez filtrados o no los productos del listado podremos:

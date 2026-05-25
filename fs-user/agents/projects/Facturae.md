@@ -3,18 +3,17 @@ idproject: 120
 name: Facturae
 permalink: facturae
 creationdate: 16-05-2021
-lastmod: 21-04-2026
-version: 3.31
-betaversion: 3.4
-mincore: 2025.6
-maxcore: 2026
+lastmod: 18-05-2026
+version: 3.41
+betaversion: 3.42
+mincore: 2025.81
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Facturae
 ---
-
 Añade soporte para la factura electrónica española: el formato facturae 3.2.
 
 Este plugin añade la pestaña facturae a las facturas de cliente. Desde esta factura puede rellenar todos los campos necesarios para la administración, como la oficina contable, el órgano gestor, la unidad tramitadora y el órgano proponente. Una vez completado el formulario, puede seleccionar su certificado, su contraseña y firmar la factura.

@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
 url: https://facturascripts.com/publicaciones/exists-139
 ---
-
 El método **exists()** del modelo **devuelve true** si el registro correspondiente se encuentra en la **base de datos**. A continuación se muestra un ejemplo:
 
 ```

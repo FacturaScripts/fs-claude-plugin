@@ -3,18 +3,17 @@ idproject: 477
 name: TallerVehiculos
 permalink: tallervehiculos
 creationdate: 09-11-2025
-lastmod: 18-02-2026
-version: 1.1
+lastmod: 23-05-2026
+version: 1.2
 betaversion: 0
-mincore: 2025.6
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.2
 compatible: PlantillasPDF
-min_php: 8
+min_php: 8.1
 require: Servicios
 require_php: 
 url: https://facturascripts.com/plugins/TallerVehiculos
 ---
-
 Personaliza el plugin servicios (SAT) haciéndolo más amigable para talleres de reparación de vehículos, incorporando nuevas características:
 
 Almacen/Fabricantes incorpora un nuevo campo &quot;Fabrica vehículos&quot; que puede ser usado en filtros. Además para seleccionar el fabricante de un vehículo sólo se incluirán en el desplegable los fabricantes marcados afirmativamente en este nuevo campo.

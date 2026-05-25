@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FSVarios
 ---
-
 Pequeñas funciones para Facturascripts basadas en peticiones recibidas:
 - Calcula la letra del NIF en clientes y proveedores.
 - A partir del código postal devuelve la población y provincia (si se encuentra en la lista de poblaciones). Se entrega fichero de poblaciones con sus códigos postales y provincias de España en formato CSV para su importación.

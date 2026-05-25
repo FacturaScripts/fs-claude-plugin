@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/dlmRefProveedor
 ---
-
 El plugin dlmRefProveedor, añade a presupuestos, pedidos, albaranes y facturas de compra la columna ref proveedor.
 
 De esta forma cuando seleccionemos un producto que tenga asignada referencia de proveedor, para el proveedor sobre el que estamos creando el documento de compra, aparecerá la referencia correspondiente en la nueva columna.

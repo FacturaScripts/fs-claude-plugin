@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PagosMultiples
 ---
-
 Plugin de pagos/cobros multiples de recibos que permite realizar cobros y pagos de agrupaciones de recibos, de un mismo o varios clientes/proveedores, agrupando el proceso en un único asiento contable. El sistema permite seleccionar la cuenta bancaria destino, así como gestionar el cobro en forma de talones bancarios.
 
 Los talones bancarios pueden darse por cobrados o incluir la fecha de vencimiento, llevando el saldo a las cuentas contables para cartera de efectos pendientes de cobro. En una nueva opción se muestra el listado de talones junto con su estado, donde poder controlar los talones que han de ser llevados al cobro. Llegado el momento podemos generar el asiento del ingreso de manera sencilla, mediante un botón.

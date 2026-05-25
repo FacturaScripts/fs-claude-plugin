@@ -7,14 +7,13 @@ lastmod: 12-04-2026
 version: 2.65
 betaversion: 0
 mincore: 2025.4
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Citas
 ---
-
 El plugin Citas para FacturaScripts es la solución definitiva para gestionar agendas y reservas de manera integrada y automatizada. Con él podrás organizar citas de forma sencilla, seleccionando cliente, sala o ubicación para optimizar recursos y evitar solapamientos en tus instalaciones. Además, permite definir fecha y hora, asignar un agente responsable para equilibrar cargas de trabajo y garantizar trazabilidad. Los servicios facturables (productos del catálogo) se añaden directamente a la cita con cantidad, precio y descripción, y se transfieren a factura con un solo clic, agilizando la gestión de cobros.
 
 Entre sus funcionalidades destacan:

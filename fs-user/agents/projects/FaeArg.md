@@ -3,18 +3,17 @@ idproject: 439
 name: FaeArg
 permalink: faearg
 creationdate: 07-04-2025
-lastmod: 23-02-2026
+lastmod: 20-05-2026
 version: 1.22
-betaversion: 0
+betaversion: 1.24
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.2
 compatible: 
 min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FaeArg
 ---
-
 FaeArg - Facturación Electrónica Argentina para FacturaScripts
 
 

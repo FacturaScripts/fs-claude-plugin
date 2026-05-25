@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ExtendedReport
 ---
-
 Este software permite realizar informes utilizando archivos XML y a partir de un nuevo modelo de datos.
 
 Este plugin no añade por si mismo nuevas opciones a la aplicación si no que añade la estructura necesaria para poder crear desde otros plugins informes personalizados y parametrizados mediante archivos XML.

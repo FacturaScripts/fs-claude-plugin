@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 15-04-2026
 url: https://facturascripts.com/publicaciones/obtener-parametros-de-la-url-formularios-o-cookies-496
 ---
-
 Todos los **controladores de FacturaScripts** cuentan con el método [request()](https://facturascripts.com/publicaciones/objeto-request-como-recibir-datos-de-formularios-url-cookies-etc), que permite acceder a los parámetros de la URL (`$_GET`), formularios (`$_POST`) o cookies (`$_COOKIE`). 
 
 En el entorno de [Controller](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Template/Controller.php), la [Request](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Request.php#L26) engloba toda la información de la petición HTTP. Cada componente principal de la petición se divide internamente en objetos del tipo [SubRequest](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Internal/SubRequest.php). Algunas de las principales propiedades del objeto **request** (que son instancias de `SubRequest`) son:

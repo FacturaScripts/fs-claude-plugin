@@ -14,7 +14,6 @@ require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/DocumentosFirma
 ---
-
 Permite firmar documentos de forma biométrica en el navegador.
 =&gt; Añade dos pestañas a la Biblioteca de FacturaScripts Plantillas y Documentos. 
 =&gt; Puedes crear plantillas de Documentos (como RGPD, Contratos...) mediante un editor WYSIWYG para tenerlos siempre disponibles para firmar con un contacto, cliente o proveedor. 

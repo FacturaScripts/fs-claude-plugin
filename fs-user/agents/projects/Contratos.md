@@ -7,14 +7,13 @@ lastmod: 31-10-2025
 version: 2.1
 betaversion: 1.5
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Contratos
 ---
-
 Este plugin trata de cubrir la necesidad de gestionar aquellos contratos de servicios periodicos firmados con empresas de los cuales no queremos generar automaticamente albaran pero si llevar un control de cuando finalizan con el fin de hablar con el cliente sobre su renovación.
 
 Viene a cubrir un plugin que existia en la versión 2017 de Facturascripts pero que en la versión 2021 ha desaparecido.

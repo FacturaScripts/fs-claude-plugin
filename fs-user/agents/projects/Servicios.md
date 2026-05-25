@@ -3,18 +3,17 @@ idproject: 93
 name: Servicios
 permalink: servicios
 creationdate: 08-09-2020
-lastmod: 05-02-2026
-version: 3.92
-betaversion: 3.6
-mincore: 2025.6
-maxcore: 2026
+lastmod: 14-05-2026
+version: 4.21
+betaversion: 4.13
+mincore: 2026
+maxcore: 2026.2
 compatible: Proyectos,StockAvanzado
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Servicios
 ---
-
 Permite gestionar servicios (SAT) en negocios como talleres, tiendas de informática, de reparación de móviles, electrodomésticos, etc.
 
 Además de poder crear/editar/eliminar servicios, estos pueden ir vinculados a una máquina, que es cualquier cosa sobre la que se haga el servicio, por ejemplo un coche, un ordenador o un teléfono móvil. Esto nos permite guardar más detalles sobre esa máquina, ver el historial completo de servicios de esa máquina, etc.

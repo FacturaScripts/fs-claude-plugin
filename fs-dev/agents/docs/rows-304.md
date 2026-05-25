@@ -6,7 +6,6 @@ creationdate: 07-05-2018 00:00:00
 lastmod: 28-05-2025
 url: https://facturascripts.com/publicaciones/rows-304
 ---
-
 Dentro de la etiqueta rows de los **archivos XMLView** va la configuración u opciones especiales de la interfaz, como por ejemplo los colores a aplicar a las filas, botones a añadir a la interfaz, etc. Estas opciones las definimos mediante **etiquetas row**.
 
 ```

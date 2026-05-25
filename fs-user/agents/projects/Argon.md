@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/Argon
 ---
-
 #Tema argon para facturascripts 2018

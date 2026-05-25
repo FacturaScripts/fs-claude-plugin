@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 10-01-2026
 url: https://facturascripts.com/publicaciones/primarycolumnvalue-328
 ---
-
 El método `id()` devuelve el valor de la columna primaria del modelo, que se define mediante el método [primaryColumn()](https://facturascripts.com/publicaciones/primarycolumn-492). Ese valor único identifica un registro en la base de datos y es imprescindible para operaciones de actualización y eliminación.
 
 Ten en cuenta:

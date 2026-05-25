@@ -7,14 +7,13 @@ lastmod: 26-03-2026
 version: 3.4
 betaversion: 2.7
 mincore: 2025.3
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: TarifasAvanzadas
 require_php: 
 url: https://facturascripts.com/plugins/IeBeneficios
 ---
-
 Añade el cálculo de costes y beneficios por documento de venta y compra. Éstos datos sólo serán visibles si se activa la opción &quot;Acceso a beneficios de documentos&quot; en la ficha del **usuario**
 
 Se han añadido 2 campos en las líneas de documentos de venta:

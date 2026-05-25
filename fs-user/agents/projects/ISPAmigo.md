@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ISPAmigo
 ---
-
 Un plugin que permite llevar registro de información referente a un proveedor de servicios de Internet. Permite cargar una plantilla pdf que contenga un contrato y ubicar en los espacios correspondientes las informaciones de la empresa, cliente y del registro del contrato correspondiente.
 
 También permite llevar un registro de todos los Routers Mikrotik a través de su usuario, clave y puerto de la api y mostrar en una lista todas las cuentas pppoe implementadas dentro del Router.

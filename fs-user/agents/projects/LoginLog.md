@@ -7,14 +7,13 @@ lastmod: 03-11-2025
 version: 1.6
 betaversion: 1.3
 mincore: 2025
-maxcore: 2025.81
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/LoginLog
 ---
-
 Permite registrar todos los inicios de sesión de los usuarios en Facturascripts y guardarlos en el Log, incluyendo la hora, la fecha, el usuario que hizo la entrada y la dirección IP de conexión. 
 
 El registro de entradas de usuarios en el Log, es una funcionalidad esencial para presentar la documentación probatoria de uso del Kit Digital en tu empresa.

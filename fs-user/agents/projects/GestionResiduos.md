@@ -4,17 +4,16 @@ name: GestionResiduos
 permalink: gestionresiduos
 creationdate: 16-11-2023
 lastmod: 25-04-2026
-version: 1
-betaversion: 2
+version: 2
+betaversion: 0
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/GestionResiduos
 ---
-
 Informe de RAEE (Residuos de Aparatos Elóctricos y Electrónicos) para distribuidores y productores de AEE.
 
 El plugin añade dos campos a la ficha del producto:

@@ -7,14 +7,13 @@ lastmod: 19-02-2026
 version: 2.8
 betaversion: 2.4
 mincore: 2025.6
-maxcore: 2025.9
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: soap,openssl
 url: https://facturascripts.com/plugins/InformeSII
 ---
-
 Añade los informes necesarios para el &quot;Suministro Inmediato de Información&quot; (SII) para la agencia tributaria española (AEAT):
 - Los contribuyentes obligados al SII (y aquellos que voluntariamente decidan utilizarlo) deben enviar el detalle de los registros de facturación en un plazo de cuatro días a través de la Sede electrónica de la Agencia Tributaria. 
 - No tienen la obligación de presentar los modelos 347 (operaciones con terceras personas), 340 (libros registro) y 390 (resumen anual del IVA).

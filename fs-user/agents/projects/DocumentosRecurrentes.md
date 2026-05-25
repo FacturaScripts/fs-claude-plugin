@@ -3,18 +3,17 @@ idproject: 109
 name: DocumentosRecurrentes
 permalink: documentosrecurrentes
 creationdate: 11-11-2020
-lastmod: 22-02-2026
-version: 3.06
+lastmod: 14-05-2026
+version: 3.08
 betaversion: 0
-mincore: 2025.8
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/DocumentosRecurrentes
 ---
-
 Permite generar facturas, albaranes, pedidos o presupuestos (de compra o de venta) que se repiten cada x tiempo, ya sean días, semanas, meses o años. La forma más fácil de hacer compras o ventas periódicas.
 
 Imagina que cada mes haces la misma factura al mismo cliente, ahora podrás crearla una sola vez. Ve a ventas &gt; recurrentes, pulsa el botón nuevo, selecciona el tipo factura, el cliente, cantidad 1, plazo meses, fecha de inicio, introduce las líneas y listo. Cada mes se generará una factura para ese cliente con las líneas indicadas.

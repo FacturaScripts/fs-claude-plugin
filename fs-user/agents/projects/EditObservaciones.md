@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/EditObservaciones
 ---
-
 Plugin que permite editar las Observaciones de las facturas aun cuando ya estan bloqueadas

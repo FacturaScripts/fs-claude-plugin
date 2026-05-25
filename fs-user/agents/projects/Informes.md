@@ -7,14 +7,13 @@ lastmod: 30-03-2026
 version: 3.91
 betaversion: 3.82
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.2
 compatible: Modelo303,Modelo115,Modelo111,CRM
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Informes
 ---
-
 Añade informes adicionales de impuestos, productos, clientes, resultados anuales, estado de tesorería y desgloses de compras y ventas. Disponibles en el menú informes.
 
 Informe resultados:

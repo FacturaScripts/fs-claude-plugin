@@ -14,7 +14,6 @@ require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/EtiquetasEnvio
 ---
-
 Permite generar etiquetas de envío en base a la dirección de envío de facturas, albaranes, pedidos y presupuestos de venta. Añade la opción de &quot;Etiqueta Envío&quot; al botón de imprimir.
 
 # Requisitos

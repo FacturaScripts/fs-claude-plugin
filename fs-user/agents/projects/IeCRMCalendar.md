@@ -7,14 +7,13 @@ lastmod: 03-09-2025
 version: 3.3
 betaversion: 0
 mincore: 2025.3
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: CRM
 require_php: 
 url: https://facturascripts.com/plugins/IeCRMCalendar
 ---
-
 Implementa en FacturaScripts un calendario sobre el plugin CRM (plugin requerido), accesible desde el menú CRM, Calendario.
 
 Añade los campos Desde y Hasta (fecha y hora) a las notas, y muestra en el calendario un evento por cada una que tenga completados estos campos.

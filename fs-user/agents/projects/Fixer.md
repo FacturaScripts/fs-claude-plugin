@@ -3,18 +3,17 @@ idproject: 71
 name: Fixer
 permalink: fixer
 creationdate: 12-02-2020
-lastmod: 30-12-2025
+lastmod: 22-05-2026
 version: 2.22
-betaversion: 1.9
+betaversion: 2.3
 mincore: 2025.4
-maxcore: 2025.9
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Fixer
 ---
-
 Incluye herramientas para corregir automáticamente errores conocidos con versiones antiguas, un asistente para regenerar la contabilidad de los ejercicios abiertos y un editor de SQL.
 
 - Corrige problemas de vínculos o estados en presupuestos, pedidos, albaranes o facturas.

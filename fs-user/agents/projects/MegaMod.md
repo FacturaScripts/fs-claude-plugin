@@ -7,14 +7,13 @@ lastmod: 20-03-2026
 version: 1.3
 betaversion: 1.1
 mincore: 2025.81
-maxcore: 2025.9
+maxcore: 2026.1
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MegaMod
 ---
-
 Este plugin permite hacer cambios masivos en productos y asientos.
 
 # Cambios en productos

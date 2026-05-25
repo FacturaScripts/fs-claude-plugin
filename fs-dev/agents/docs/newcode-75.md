@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
 url: https://facturascripts.com/publicaciones/newcode-75
 ---
-
 La función `$modelo-&gt;newCode()` obtiene el siguiente número disponible para el campo específico que se solicite. Esta funcionalidad es útil para evitar la generación de duplicados en las entradas del sistema.
 
 ### Uso

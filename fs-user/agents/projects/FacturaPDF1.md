@@ -7,14 +7,13 @@ lastmod: 23-02-2026
 version: 2.4
 betaversion: 2.1
 mincore: 2025.1
-maxcore: 2026
+maxcore: 2026.2
 compatible: Verifactu
 min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FacturaPDF1
 ---
-
 FacturaPDF1 es un formato gratuito de factura alternativo al que viene por defecto en FacturaScripts (NO requiere tener instalado el plugin PlantillasPDF). 
 Es visualmente más simple y configurable, a la vez que deja algo más de espacio para las líneas de detalle de la factura. 
 
@@ -49,4 +48,4 @@ Este formato ofrece las siguientes características (configurables desde el men�
 
 Para sugerencias, ayudas en la traducción, o para informar de algún error, pueden contactar con el autor del plugin (botón &quot;Contacto&quot; en la parte superior de esta misma página).
 
-NOTA: a partir de la versión v2.0 del plugin FacturaPDF1, este sólo es compatible con FacturaScripts 2025 o superior. Para versiones de FacturaScripts de la v2023 a la v2024.96 se usará la versión v1.1 del plugin.
+NOTA: a partir de la versión v2.0 del plugin FacturaPDF1, este solo es compatible con FacturaScripts 2025 o superior. Para versiones de FacturaScripts de la v2023 a la v2024.96 se usará la versión v1.1 del plugin.

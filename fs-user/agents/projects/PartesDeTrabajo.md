@@ -7,14 +7,13 @@ lastmod: 09-12-2025
 version: 1.3
 betaversion: 1
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PartesDeTrabajo
 ---
-
 Con este plugin podrá conectar FacturaScripts con la aplicación de Partes de Trabajo en la Nube:
 - Podrá ver los partes de trabajo directamente desde FacturaScripts.
 - Podrá importar los partes como albaranes en FacturaScripts.

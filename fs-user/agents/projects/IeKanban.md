@@ -7,14 +7,13 @@ lastmod: 03-09-2025
 version: 1.2
 betaversion: 0
 mincore: 2025.3
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: CRM
 require_php: 
 url: https://facturascripts.com/plugins/IeKanban
 ---
-
 IeKanban es un desarrollo para Facturascripts con el que pretendemos mejorar el manejo de las notas del CRM. Lo que hace es presentar estas notas en un tablero Kanban, un sistema como el de Trello. Es ideal para fanáticos de la productividad.
 
 Requisitos: Plugin CRM instalado y activado.

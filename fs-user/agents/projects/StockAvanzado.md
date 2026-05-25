@@ -3,18 +3,17 @@ idproject: 91
 name: StockAvanzado
 permalink: stockavanzado
 creationdate: 25-07-2020
-lastmod: 24-04-2026
-version: 3.31
-betaversion: 4.1
-mincore: 2025.6
-maxcore: 2026
+lastmod: 20-05-2026
+version: 4.1
+betaversion: 4.3
+mincore: 2026
+maxcore: 2026.2
 compatible: CSVimport
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/StockAvanzado
 ---
-
 Permite ver los movimientos de stock de cada producto del almacén, tanto en la ficha del producto como en la del almacén. De esta forma usted puede ver de cuantas unidades han entrado con cada compra y cuantas unidades han salido del almacén con cada venta. Y si hace clic en un movimiento se abre el albarán o la factura relacionada.
 
 Hacer inventarios:

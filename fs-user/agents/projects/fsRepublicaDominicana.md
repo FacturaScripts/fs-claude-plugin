@@ -7,14 +7,13 @@ lastmod: 19-02-2026
 version: 1.34
 betaversion: 1.25
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.1
 compatible: 
 min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/fsRepublicaDominicana
 ---
-
 Plugin base para generar los comprobantes fiscales NCF para República Dominicana
 
 - Requisitos de Instalación

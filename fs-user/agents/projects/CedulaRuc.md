@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/CedulaRuc
 ---
-
 Plugin que permite conectarse a un servicio de consulta de nombres a través de la cédula o del ruc del Registro Civil y del Sri respectivamente de Ecuador.
 Aunque el plugin es gratis, las consultas tienen un costo (los servicios web del registro civil y del sri también son de pago):
 Los planes para consumo del servicio web tienen un costo de $5 mensual con un límite de 100 consultas + $0.06 por consulta adicional.

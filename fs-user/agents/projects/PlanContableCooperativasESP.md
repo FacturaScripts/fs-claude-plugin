@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PlanContableCooperativasESP
 ---
-
 Sustituye el Plan Contable por defecto que trae Facturascripts,  por el plan contable para pymes adaptado para las cooperativas españolas, con las subcuentas de 10 dígitos y la configuración inicial de las cuentas especiales.
 
 NOTA: Se debe instalar antes de importar el plan contable en Facturascripts.

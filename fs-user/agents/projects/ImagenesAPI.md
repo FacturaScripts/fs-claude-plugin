@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/ImagenesAPI
 ---
-
 Permite acceder a las imagenes de un producto mediante un nuevo endpoint de la API

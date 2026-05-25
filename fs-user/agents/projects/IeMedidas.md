@@ -7,14 +7,13 @@ lastmod: 27-10-2025
 version: 2.7
 betaversion: 2.2
 mincore: 2025.3
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/IeMedidas
 ---
-
 En el menú &quot;Administrador &gt; Panel de Control &gt; Unidad de medida&quot; permite configurar una medida en los productos: kgs, gs, mts, ls... Esta medida es utilizada en ventas, sumando el total del documento.
 
 No funciona por variantes, sólo a productos, y no afecta al cálculo de precios.

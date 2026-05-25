@@ -7,14 +7,13 @@ lastmod: 27-10-2025
 version: 1.7
 betaversion: 1.2
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ImportadorStripe
 ---
-
 # Importador Stripe
 Plugin para FacturaScripts:
 - https://facturascripts.com/plugins/importadorstripe

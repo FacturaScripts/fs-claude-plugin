@@ -6,7 +6,6 @@ creationdate: 07-05-2018 00:00:00
 lastmod: 01-04-2026
 url: https://facturascripts.com/publicaciones/widget-238
 ---
-
 El **widget** es un componente que pertenece a una columna y se encarga de representar el contenido. Cada columna puede contener únicamente un widget.
 
 ```xml

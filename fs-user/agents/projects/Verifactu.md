@@ -3,18 +3,17 @@ idproject: 448
 name: Verifactu
 permalink: verifactu
 creationdate: 27-05-2025
-lastmod: 05-02-2026
-version: 0.84
+lastmod: 08-05-2026
+version: 0.86
 betaversion: 0
-mincore: 2025.71
-maxcore: 2025.9
+mincore: 2026.1
+maxcore: 2026.2
 compatible: PlantillasPDF
 min_php: 
 require: 
 require_php: soap
 url: https://facturascripts.com/plugins/Verifactu
 ---
-
 Este plugin añade soporte para Verifactu: Veri-factu es el sistema de la AEAT (Agencia Tributaria Española) para la recepción automática de facturas emitidas. Forma parte del marco legal establecido por la Ley Antifraude y afectará a todas las empresas y autónomos que emiten facturas en España.
 
 ¿Es obligatorio?

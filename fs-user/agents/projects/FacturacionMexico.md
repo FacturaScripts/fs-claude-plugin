@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FacturacionMexico
 ---
-
 Añade soporte para generar CFDI de Ingreso, CFDI de egreso, apegándose a las especificaciones del SAT.
 
 

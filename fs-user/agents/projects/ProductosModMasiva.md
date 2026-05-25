@@ -3,18 +3,17 @@ idproject: 299
 name: ProductosModMasiva
 permalink: productosmodmasiva
 creationdate: 22-03-2023
-lastmod: 01-12-2025
-version: 2.51
+lastmod: 22-05-2026
+version: 2.52
 betaversion: 0
-mincore: 2025
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ProductosModMasiva
 ---
-
 La funcionalidad de Modificación Masiva de Productos permite ajustar de manera eficiente y simultánea varios campos clave de tus productos, tales como &quot;Se vende&quot;, &quot;Se compra&quot;, &quot;Público&quot;, &quot;Bloqueado&quot;, &quot;Permitir venta sin stock&quot; y &quot;No controlar stock&quot;.
 
 Características Principales:

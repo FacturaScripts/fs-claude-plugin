@@ -6,7 +6,6 @@ creationdate: 30-04-2018 00:00:00
 lastmod: 29-12-2025
 url: https://facturascripts.com/publicaciones/clear-396
 ---
-
 El método **clear()** &#39;limpia&#39; las propiedades del modelo y asigna valores por defecto. **Se ejecuta automáticamente en el constructor del modelo**, lo que significa que cada vez que se crea una nueva instancia de un modelo utilizando `new`, también se ejecuta `clear()` para asignar los valores predeterminados.
 
 ## Comportamiento predeterminado

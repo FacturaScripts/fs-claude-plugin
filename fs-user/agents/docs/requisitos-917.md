@@ -6,7 +6,6 @@ creationdate: 23-04-2018 00:00:00
 lastmod: 16-04-2026
 url: https://facturascripts.com/publicaciones/requisitos-917
 ---
-
 Los requisitos para la versión 2026 son:
 
 - **PHP 8.1** o superior.

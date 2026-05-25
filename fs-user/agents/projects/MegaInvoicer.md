@@ -7,14 +7,13 @@ lastmod: 15-10-2025
 version: 2
 betaversion: 0
 mincore: 2025.4
-maxcore: 2026
+maxcore: 2026.2
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MegaInvoicer
 ---
-
 Este asistente permite facturar de forma masiva los albaranes seleccionados, tanto albaranes de compra como albaranes de venta.
 
 Permite facturar cada albarán individualmente o agruparlos por proveedor o cliente.

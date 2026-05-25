@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/Woocommerce
 ---
-
 Plugin: Sincronización de Pedidos Woocommerce a FacturaScripts
 
 Este plugin permite sincronizar los pedidos de varias tiendas Woocommerce con FacturaScripts utilizando la API Rest de Woocommerce. Puedes configurar múltiples tiendas y gestionar la activación o desactivación de cada una, manteniendo los pedidos actualizados en FacturaScripts.

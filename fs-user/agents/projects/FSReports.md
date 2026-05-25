@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FSReports
 ---
-
 Listados para FacturaScripts.
 
 Se incluyen los siguientes listados (Menú informes):

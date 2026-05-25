@@ -6,7 +6,6 @@ creationdate: 01-05-2018 00:00:00
 lastmod: 07-04-2026
 url: https://facturascripts.com/publicaciones/las-vistas-xml-xmlview-668
 ---
-
 Los controladores extendidos como [ListController](https://facturascripts.com/publicaciones/listcontroller-232) y [EditController](https://facturascripts.com/publicaciones/editcontroller-642), utilizan **archivos XML** para definir las columnas, grupos, widgets y botones a mostrar en una pestaña. De esta forma podemos personalizar rápidamente un listado o formulario sin necesidad de editar PHP. Estos archivos se deben almacenar en la **carpeta XMLView** del plugin.
 
 ## Estructura del XML

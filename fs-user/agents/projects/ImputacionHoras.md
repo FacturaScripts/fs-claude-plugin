@@ -14,7 +14,6 @@ require: Proyectos
 require_php: 
 url: https://facturascripts.com/plugins/ImputacionHoras
 ---
-
 Optimiza la gestión de tiempo y tareas de tu equipo con el plugin Imputación de Horas. Este complemento permite registrar y organizar las horas trabajadas por los usuarios, generar albaranes automáticamente a partir de las imputaciones, y mantener un control detallado sobre los proyectos y tareas.
 
 **Características principales**

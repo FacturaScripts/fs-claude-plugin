@@ -3,18 +3,17 @@ idproject: 61
 name: Proyectos
 permalink: proyectos
 creationdate: 26-08-2019
-lastmod: 06-04-2026
-version: 4.52
+lastmod: 07-05-2026
+version: 5
 betaversion: 4.51
-mincore: 2025.81
-maxcore: 2026
+mincore: 2026
+maxcore: 2026.2
 compatible: FacturasProgramadas
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Proyectos
 ---
-
 Permite gestionar proyectos con fechas de inicio y de finalización, cliente relacionado (si lo hubiese) y estado.
 
 - Los proyectos además pueden ser privados, en cuyo caso podremos dar permisos por usuarios.

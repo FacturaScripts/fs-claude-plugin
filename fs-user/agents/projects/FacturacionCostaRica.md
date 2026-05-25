@@ -14,5 +14,4 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/FacturacionCostaRica
 ---
-
 Plugin &quot;FacturacionCostaRica&quot; para el CORE 2018 con el propósito de realizar ajuste de FacturaScritps para Costa Rica e implementar Factura Electronica con ayuda de CRLibre (https://github.com/CRLibre/API_Hacienda), me pueden contactar al correo jairo@cruz.cr

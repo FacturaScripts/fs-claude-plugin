@@ -14,7 +14,6 @@ require:
 require_php: 
 url: https://facturascripts.com/plugins/PrintTicket
 ---
-
 Permite la generación de tickets para imprimirlos usando impresoras térmicas. Se usa en conjunto con la aplicación de impresión fsprinter https://facturascripts.com/remote-printer
 
 El plugin te permite agregar de igual forma líneas con el texto que desees en el encabezado o pie del ticket, esto lo puedes hacer desde el menú 
