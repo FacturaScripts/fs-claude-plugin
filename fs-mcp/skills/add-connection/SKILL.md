@@ -48,7 +48,11 @@ Una vez que proporciones los datos, verificaré que sean válidos:
 ### 3. Añade la conexión
 
 **Si el plugin MCP está instalado:**
-Usaré la herramienta `add_connection` para guardar la conexión de forma segura en `${CLAUDE_PLUGIN_DATA}/connections.json`
+Usaré la herramienta `add_connection` para guardar la conexión. La ruta donde se guarda depende de la configuración `FS_CONNECTIONS_FILE`:
+- Si está configurada (recomendado en Cowork): usa esa ruta persistente
+- Si no está configurada: usa `${CLAUDE_PLUGIN_DATA}/connections.json` (en Cowork esta ruta es temporal y se pierde al cerrar la app)
+
+> 💡 **Cowork vs Code**: En Claude Code (CLI y Desktop) las conexiones persisten automáticamente. En **Cowork**, para que persistan entre sesiones debes configurar `FS_CONNECTIONS_FILE` en los ajustes del plugin apuntando a una ruta fija (ej: `/Users/tu-usuario/.claude/plugins/data/fs-mcp-fs-claude-plugin/connections.json`). Esto comparte las conexiones con Claude Code.
 
 **Si el plugin MCP no está disponible:**
 Te mostraré cómo editar manualmente el archivo `connections.json` con el siguiente formato:
@@ -98,6 +102,20 @@ Cuando ejecutes este skill, seguiremos estos pasos:
 - Si la clave ya existe, se actualizará
 - Si es la primera conexión, se establecerá automáticamente como predeterminada
 - Si hay problemas al guardar, se te mostrarán instrucciones para hacerlo manualmente
+
+## Persistencia entre sesiones (Cowork)
+
+Si usas Cowork Desktop y las conexiones desaparecen al cerrar la app, sigue estos pasos:
+
+1. Abre los **ajustes del plugin fs-mcp** en Cowork
+2. Busca el campo **"Ruta del archivo de conexiones"** (`FS_CONNECTIONS_FILE`)
+3. Introduce la ruta al `connections.json` de Claude Code:
+   ```
+   /Users/TU-USUARIO/.claude/plugins/data/fs-mcp-fs-claude-plugin/connections.json
+   ```
+4. Guarda y reinicia Cowork
+
+Esto hace que Code y Cowork compartan exactamente el mismo archivo de conexiones.
 
 ## Próximos Pasos
 

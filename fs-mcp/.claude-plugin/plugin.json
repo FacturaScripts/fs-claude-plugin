@@ -15,13 +15,19 @@
       "command": "node",
       "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"],
       "env": {
-        "FS_CONNECTIONS_FILE": "${CLAUDE_PLUGIN_DATA}/connections.json",
+        "FS_CONNECTIONS_FILE": "${FS_CONNECTIONS_FILE}",
         "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}",
         "FS_LOCAL_MODULES_PATH": "${FS_LOCAL_MODULES_PATH}"
       }
     }
   },
   "userConfig": {
+    "FS_CONNECTIONS_FILE": {
+      "title": "Ruta del archivo de conexiones",
+      "description": "Ruta absoluta al archivo connections.json con tus conexiones (ej: /Users/tu-usuario/.config/fs-mcp/connections.json). Si se deja vacío, se usará la carpeta interna del plugin (los datos no persisten entre sesiones en Cowork).",
+      "type": "string",
+      "sensitive": false
+    },
     "FS_DEFAULT_CONNECTION": {
       "title": "Conexión por defecto",
       "description": "Clave de la conexión por defecto (ej: 'empresa1'). Puedes añadir conexiones con el skill 'fs-mcp:add-connection'.",
