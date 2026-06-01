@@ -14,8 +14,15 @@ class ConnectionManager {
   private config: ConnectionsConfig;
 
   constructor() {
+    // Ignorar la variable si contiene un placeholder sin expandir (ej: "${FS_CONNECTIONS_FILE}")
+    const rawConnectionsFile = process.env.FS_CONNECTIONS_FILE;
+    const resolvedConnectionsFile =
+      rawConnectionsFile && !rawConnectionsFile.startsWith("${")
+        ? rawConnectionsFile
+        : null;
+
     const connectionsFile =
-      process.env.FS_CONNECTIONS_FILE ||
+      resolvedConnectionsFile ||
       path.join(process.env.CLAUDE_PLUGIN_DATA || "./", "connections.json");
 
     this.connectionsPath = connectionsFile;
