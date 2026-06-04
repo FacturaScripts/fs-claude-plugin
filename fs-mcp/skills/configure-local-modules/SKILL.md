@@ -1,11 +1,11 @@
 ---
 name: configure-local-modules
-description: Configura la ruta de módulos MCP locales privados para el plugin fs-mcp
+description: Configura la ruta de módulos MCP locales privados en ~/.fs-claude.json
 ---
 
 # Configurar Módulos Locales Privados
 
-Este skill te ayuda a configurar la variable `FS_LOCAL_MODULES_PATH` para que el plugin `fs-mcp` cargue herramientas MCP privadas desde tu máquina, sin subirlas al repositorio. También te guía para crear un módulo nuevo, tanto en la raíz como dentro de una subcarpeta de grupo.
+Este skill configura la ruta de módulos MCP privados en `~/.fs-claude.json` (el archivo de configuración unificado de fs-claude), y te guía para crear módulos nuevos.
 
 ## ¿Para qué sirve?
 
@@ -13,74 +13,72 @@ Los módulos locales son herramientas MCP que **solo tú usas** — endpoints pr
 
 ## Cómo funciona
 
-El plugin lee la variable de entorno `FS_LOCAL_MODULES_PATH` al arrancar. Si apunta a un directorio válido, carga automáticamente todos los módulos que encuentre dentro, tanto en la raíz como dentro de subcarpetas de grupo.
+El servidor MCP lee `settings.localModulesPath` de `~/.fs-claude.json` al arrancar. Si la ruta existe, carga automáticamente todos los módulos dentro. No requiere configuración de variables de entorno.
 
 ---
 
 ## Pasos para configurar
 
-### 1. Pregunta la ruta
+### 1. Detectar la configuración actual
 
-Antes de continuar, necesito saber:
+Ejecuta este comando para saber si ya tienes una ruta configurada:
 
-```
-¿Cuál es la ruta absoluta a tu carpeta de módulos locales?
-Ejemplo: /Users/tu-usuario/fs-mcp-modules-privados
-```
+```python
+import json
+from pathlib import Path
 
-### 2. Verificar que la ruta existe
-
-Comprueba que el directorio existe en el sistema de archivos. Si no existe, créalo:
-
-```bash
-mkdir -p /ruta/a/tu/carpeta
-```
-
-### 3. Configurar la variable en Claude Code
-
-Una vez tengas la ruta, tienes dos formas de configurarla:
-
-#### Opción A — A través de la configuración del plugin (recomendado)
-
-En Claude Code, ejecuta:
-
-```
-/plugin-config fs-mcp
+fs_claude = Path.home() / '.fs-claude.json'
+if fs_claude.exists():
+    config = json.loads(fs_claude.read_text(encoding='utf-8'))
+    path = config.get('settings', {}).get('localModulesPath', '')
+    print(f"Ruta configurada: {path}" if path else "Sin ruta configurada")
+else:
+    print("~/.fs-claude.json no existe aún")
 ```
 
-Busca el campo **"Ruta de módulos locales privados"** (`FS_LOCAL_MODULES_PATH`) e introduce la ruta absoluta a tu carpeta.
+### 2a. Si ya hay una ruta configurada
 
-Esta opción almacena el valor de forma **local en tu máquina** y nunca se sube a GitHub.
+Usa esa ruta directamente. Confirma al usuario que el servidor MCP la cargará al reiniciar y muestra su contenido actual.
 
-#### Opción B — Editar el plugin.json localmente (solo uso personal)
+### 2b. Si NO hay ruta configurada
 
-Si el plugin lo tienes en local y **no lo vas a subir a GitHub**, puedes editar directamente:
+Pregunta al usuario si quiere:
+- **Usar una carpeta existente**: proporciona la ruta absoluta
+- **Crear la carpeta por defecto**: se crea `~/fs-claude-mcp-private/` automáticamente
 
+Para crear la carpeta por defecto y registrarla:
+
+```python
+import json
+from pathlib import Path
+
+fs_claude = Path.home() / '.fs-claude.json'
+modules_dir = Path.home() / 'fs-claude-mcp-private'
+
+# Crear el directorio si no existe
+modules_dir.mkdir(exist_ok=True)
+print(f"Carpeta creada: {modules_dir}")
+
+# Actualizar ~/.fs-claude.json
+config = json.loads(fs_claude.read_text(encoding='utf-8')) if fs_claude.exists() else {
+    "version": "1.0",
+    "connections": {"default": "", "connections": {}},
+    "settings": {"sortClassMembers": True, "updateCopyright": True}
+}
+config.setdefault('settings', {})['localModulesPath'] = str(modules_dir)
+fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
+print(f"Ruta guardada en: {fs_claude}")
 ```
-<ruta-del-plugin>/.claude-plugin/plugin.json
-```
 
-Busca la línea:
-```json
-"FS_LOCAL_MODULES_PATH": "${FS_LOCAL_MODULES_PATH}"
-```
+Para usar una ruta existente, reemplaza `modules_dir` con la ruta que proporcione el usuario.
 
-Y cambia el valor por tu ruta:
-```json
-"FS_LOCAL_MODULES_PATH": "/ruta/absoluta/a/tu/carpeta"
-```
+### 3. Reiniciar el servidor MCP
 
-⚠️ **No hagas esto si el plugin.json está en un repositorio compartido** — tu ruta local acabaría en el repo de otros.
+Después de configurar la ruta, reinicia Claude para que el servidor MCP la cargue:
+- **Claude Code CLI**: cierra la sesión y ejecuta `claude` de nuevo
+- **Claude Desktop**: cierra y vuelve a abrir la app
 
-### 4. Reiniciar el servidor MCP
-
-Después de configurar la variable, reinicia el servidor MCP:
-
-- En Claude Code: cierra y vuelve a abrir la sesión, o usa `/mcp restart`
-- En el terminal: detén el proceso y vuelve a ejecutar `node dist/index.js`
-
-Al arrancar verás en los logs algo como:
-
+Al arrancar verás en los logs:
 ```
 [local-loader] ✓ Módulo local cargado: mi-modulo
 [local-loader] 1 módulo(s) local(es) cargado(s) desde: /ruta/a/tu/carpeta
@@ -90,12 +88,12 @@ Al arrancar verás en los logs algo como:
 
 ## Estructura de módulos locales
 
-El directorio de módulos soporta **dos niveles de organización**:
+El directorio soporta **dos niveles de organización**:
 
 ### Opción 1 — Módulos directamente en la raíz
 
 ```
-fs-mcp-modules-privados/
+fs-claude-mcp-private/
   mi-modulo/
     index.js       ← único archivo necesario
     metadata.js    ← opcional, si se genera con sync-models
@@ -103,12 +101,10 @@ fs-mcp-modules-privados/
     index.js
 ```
 
-Los módulos de la raíz tienen su propio `manifest.json` y `descriptions.json` también en la raíz (si usan sync-models).
-
 ### Opción 2 — Módulos agrupados en subcarpetas
 
 ```
-fs-mcp-modules-privados/
+fs-claude-mcp-private/
   MiGrupo/
     manifest.json      ← configuración del grupo (para sync-models)
     descriptions.json  ← descripciones de columnas del grupo (para sync-models)
@@ -117,16 +113,14 @@ fs-mcp-modules-privados/
       metadata.js
     otro-modulo/
       index.js
-      metadata.js
   OtroGrupo/
     manifest.json
     descriptions.json
     tercer-modulo/
       index.js
-      metadata.js
 ```
 
-Los módulos dentro de una subcarpeta se cargan igual que los de la raíz. Puedes mezclar ambas formas en el mismo directorio.
+Puedes mezclar ambas formas en el mismo directorio.
 
 ---
 
@@ -138,17 +132,15 @@ Cuando el usuario quiera añadir un módulo nuevo, **pregunta siempre**:
 > - En la raíz: el módulo va directamente en `<modules-dir>/nombre-modulo/`
 > - En un grupo: el módulo va en `<modules-dir>/NombreGrupo/nombre-modulo/`
 
-Si elige grupo, pregunta el nombre del grupo (carpeta). Si ya existe el grupo, el `manifest.json` y `descriptions.json` del grupo deben **actualizarse** añadiendo el nuevo modelo. Si no existe el grupo, se crean ambos archivos nuevos.
+Si elige grupo, pregunta el nombre del grupo (carpeta). Si ya existe el grupo, el `manifest.json` y `descriptions.json` deben **actualizarse** añadiendo el nuevo modelo. Si no existe el grupo, se crean ambos archivos nuevos.
 
-**Importante sobre los archivos de configuración**:
-- Siempre se llaman `manifest.json` y `descriptions.json` — nunca `manifest-nombre.json` ni `nombre-descriptions.json`.
-- Si ya existen en la raíz o en la subcarpeta, se **editan** para añadir el nuevo modelo; no se crean duplicados.
+**Reglas sobre los archivos de configuración**:
+- Siempre se llaman `manifest.json` y `descriptions.json` — nunca con sufijos de nombre.
+- Si ya existen, se **editan** para añadir el nuevo modelo; no se crean duplicados.
 
 ---
 
 ## El `index.js` de un módulo
-
-El `index.js` debe exportar dos funciones:
 
 ```javascript
 // Registra las tools de este módulo en el servidor MCP
@@ -183,18 +175,16 @@ export async function handleTool(name, args, client) {
 }
 ```
 
-El parámetro `client` ya viene configurado con las conexiones que tienes en el plugin — no necesitas importar nada.
+El parámetro `client` ya viene configurado con las conexiones de `~/.fs-claude.json` — no necesitas importar nada.
 
 ---
 
 ## Flujo de este skill
 
-Cuando ejecutes este skill seguiré estos pasos:
+1. **Detección**: Compruebo si `~/.fs-claude.json` ya tiene `settings.localModulesPath`
+2. **Configuración**: Si no hay ruta, pregunto si usar una existente o crear `~/fs-claude-mcp-private/`
+3. **Escritura**: Actualizo `~/.fs-claude.json` con la ruta elegida
+4. **Módulo nuevo (si aplica)**: Pregunto si va en la raíz o en un grupo, y edito/creo los archivos
+5. **Reinicio**: Indico al usuario que reinicie Claude para cargar los módulos
 
-1. **Recopilación**: Te preguntaré la ruta de tu carpeta de módulos
-2. **Verificación**: Comprobaré que el directorio existe y tiene la estructura correcta
-3. **Configuración**: Te guiaré para configurar la variable en Claude Code
-4. **Módulo nuevo (si aplica)**: Preguntaré si va en la raíz o en un grupo, y editaré/crearé los archivos correspondientes
-5. **Confirmación**: Verificaré que el servidor MCP arranca cargando los módulos
-
-¿Listo? Dime la ruta absoluta de tu carpeta de módulos locales y lo configuramos.
+¿Listo? Dime si tienes ya una carpeta de módulos o si quiero que cree la carpeta por defecto.

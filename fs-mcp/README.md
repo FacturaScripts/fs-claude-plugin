@@ -33,14 +33,36 @@ Si tienes varias empresas o instalaciones, puedes añadir varias conexiones y ca
 
 ---
 
-## Variables de entorno
+## Configuración (`~/.fs-claude.json`)
 
-| Variable | Descripción |
+Toda la configuración del plugin se gestiona desde el archivo `~/.fs-claude.json`, en el directorio home del usuario. Es cross-platform y se encuentra automáticamente en cualquier SO.
+
+```json
+{
+  "version": "1.0",
+  "connections": {
+    "default": "empresa-principal",
+    "connections": {
+      "empresa-principal": {
+        "name": "Mi empresa",
+        "url": "https://facturascripts.miempresa.com",
+        "token": "..."
+      }
+    }
+  },
+  "settings": {
+    "localModulesPath": "/ruta/a/mis-modulos-privados"
+  }
+}
+```
+
+| Clave | Descripción |
 |---|---|
-| `FS_DEFAULT_CONNECTION` | Clave de la conexión por defecto (ej: `empresa-principal`). Opcional: si no se configura, hay que pasar `connection` en cada llamada. |
-| `FS_LOCAL_MODULES_PATH` | Ruta absoluta a la carpeta con módulos MCP privados. Opcional. Ver [Módulos locales privados](#módulos-locales-privados). |
+| `connections.default` | Clave de la conexión por defecto |
+| `connections.connections` | Mapa de conexiones configuradas |
+| `settings.localModulesPath` | Ruta a la carpeta de módulos MCP privados (opcional) |
 
-Se configuran a través de los ajustes del plugin en Claude Code. Los valores se almacenan localmente y nunca se suben a GitHub.
+> Las variables de entorno `FS_CONNECTIONS_FILE` y `FS_DEFAULT_CONNECTION` siguen disponibles como overrides opcionales en los ajustes del plugin, pero no son necesarias para el uso normal.
 
 ---
 
@@ -50,7 +72,7 @@ Se configuran a través de los ajustes del plugin en Claude Code. Los valores se
 |---|---|
 | `fs-mcp:add-connection` | Guía interactiva para añadir o actualizar una conexión a FacturaScripts |
 | `fs-mcp:list-connections` | Lista y gestiona las conexiones configuradas |
-| `fs-mcp:configure-local-modules` | Configura la variable `FS_LOCAL_MODULES_PATH` para cargar módulos MCP privados |
+| `fs-mcp:configure-local-modules` | Configura `settings.localModulesPath` en `~/.fs-claude.json` para cargar módulos MCP privados |
 | `fs-mcp:sync-models` | Mantiene el catálogo de modelos: detecta columnas nuevas/modificadas/eliminadas, redacta descripciones, regenera metadata y compila. Soporta core y plugins privados, ruta local o GitHub. |
 
 ---
@@ -198,15 +220,15 @@ Además de herramientas, el servidor expone los modelos como **MCP Resources** b
 
 El servidor MCP soporta **módulos locales privados**: herramientas adicionales que solo existen en tu máquina y nunca se suben al repositorio. Son útiles para integrar endpoints de plugins privados, integraciones específicas de tu empresa o cualquier funcionalidad que no quieras compartir públicamente.
 
-### Configurar FS_LOCAL_MODULES_PATH
+### Configurar la ruta de módulos
 
-Usa la skill para configurar la variable:
+Usa la skill para configurar la ruta en `~/.fs-claude.json`:
 
 ```
 /fs-mcp:configure-local-modules
 ```
 
-O ve a la configuración del plugin `fs-mcp` en Claude Code y establece el campo **"Ruta de módulos locales privados"** con la ruta absoluta a tu carpeta (ej: `/Users/tu-usuario/mis-modulos-fs`). Este valor se almacena localmente y nunca se sube a GitHub.
+La skill detecta si ya tienes una ruta configurada. Si no, puedes indicar una carpeta existente o dejar que cree automáticamente `~/fs-claude-mcp-private/`. La ruta se guarda en `settings.localModulesPath` de `~/.fs-claude.json` y el servidor la carga al arrancar sin necesidad de variables de entorno.
 
 ### Estructura de un módulo local
 

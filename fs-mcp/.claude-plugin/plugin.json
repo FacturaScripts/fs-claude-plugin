@@ -1,6 +1,6 @@
 {
   "name": "fs-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Servidor MCP de FacturaScripts con soporte para múltiples instalaciones.",
   "author": {
     "name": "Daniel Fernández Giménez",
@@ -16,27 +16,20 @@
       "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"],
       "env": {
         "FS_CONNECTIONS_FILE": "${FS_CONNECTIONS_FILE}",
-        "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}",
-        "FS_LOCAL_MODULES_PATH": "${FS_LOCAL_MODULES_PATH}"
+        "FS_DEFAULT_CONNECTION": "${FS_DEFAULT_CONNECTION}"
       }
     }
   },
   "userConfig": {
     "FS_CONNECTIONS_FILE": {
-      "title": "Ruta del archivo de conexiones",
-      "description": "Ruta absoluta al archivo connections.json con tus conexiones (ej: /Users/tu-usuario/.config/fs-mcp/connections.json). Si se deja vacío, se usará la carpeta interna del plugin (los datos no persisten entre sesiones en Cowork).",
+      "title": "Ruta del archivo de conexiones (override)",
+      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-claude.json. Normalmente déjalo vacío.",
       "type": "string",
       "sensitive": false
     },
     "FS_DEFAULT_CONNECTION": {
-      "title": "Conexión por defecto",
-      "description": "Clave de la conexión por defecto (ej: 'empresa1'). Puedes añadir conexiones con el skill 'fs-mcp:add-connection'.",
-      "type": "string",
-      "sensitive": false
-    },
-    "FS_LOCAL_MODULES_PATH": {
-      "title": "Ruta de módulos locales privados",
-      "description": "Ruta absoluta a la carpeta con tus módulos MCP privados (ej: /Users/tu-usuario/fs-mcp-modules-private). Si se deja vacío, no se cargarán módulos locales.",
+      "title": "Conexión por defecto (override)",
+      "description": "Clave de la conexión por defecto. Normalmente se gestiona desde ~/.fs-claude.json con el skill 'fs-mcp:add-connection'.",
       "type": "string",
       "sensitive": false
     }

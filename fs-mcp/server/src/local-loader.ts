@@ -42,25 +42,18 @@ export interface LocalModuleHandler {
 }
 
 /**
- * Claude Code no interpola las opciones de usuario (FS_LOCAL_MODULES_PATH) en las variables de
- * entorno del MCP. Las pasa como template literal sin resolver (ej: "${FS_LOCAL_MODULES_PATH}").
- * Este helper lee el valor real desde ~/.claude/settings.json como fallback.
+ * Lee la ruta de módulos privados desde ~/.fs-claude.json (settings.localModulesPath).
+ * Es la fuente de verdad unificada para toda la configuración del plugin.
  */
-function readLocalModulesPathFromSettings(): string | undefined {
+function readLocalModulesPathFromFsConfig(): string | undefined {
   try {
-    const settingsPath = join(homedir(), '.claude', 'settings.json');
-    if (!existsSync(settingsPath)) return undefined;
+    const fsClaudePath = join(homedir(), '.fs-claude.json');
+    if (!existsSync(fsClaudePath)) return undefined;
 
-    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as Record<string, unknown>;
-    const pluginConfigs = settings['pluginConfigs'] as Record<string, unknown> | undefined;
-    if (!pluginConfigs) return undefined;
-
-    // Buscar en todas las entradas de pluginConfigs la opción FS_LOCAL_MODULES_PATH
-    for (const config of Object.values(pluginConfigs)) {
-      const options = (config as Record<string, unknown>)['options'] as Record<string, unknown> | undefined;
-      const path = options?.['FS_LOCAL_MODULES_PATH'] as string | undefined;
-      if (path && path.trim() !== '') return path.trim();
-    }
+    const config = JSON.parse(readFileSync(fsClaudePath, 'utf-8')) as Record<string, unknown>;
+    const settings = config['settings'] as Record<string, unknown> | undefined;
+    const localModulesPath = settings?.['localModulesPath'] as string | undefined;
+    if (localModulesPath && localModulesPath.trim() !== '') return localModulesPath.trim();
   } catch {
     // Silencioso: si no puede leer la configuración, continúa sin módulos locales
   }
@@ -158,22 +151,22 @@ function isModuleGroup(dirPath: string): boolean {
 }
 
 /**
- * Carga todos los módulos locales desde FS_LOCAL_MODULES_PATH (o fallback a dist/modules-local).
- * Registra sus tools en el mapa global y devuelve un array de handlers para el dispatcher.
+ * Carga todos los módulos locales desde la ruta configurada en ~/.fs-claude.json
+ * (settings.localModulesPath), con fallback a dist/modules-local si no está configurada.
  *
  * Soporta dos niveles de organización:
  *   - Módulos directamente en la raíz: <dir>/modulo/index.js
  *   - Módulos agrupados en subcarpetas: <dir>/Grupo/modulo/index.js
  */
 export async function loadLocalModules(toolsMap: Map<string, Tool>): Promise<LocalModuleHandler[]> {
-  // Claude Code no interpola las variables de usuario en el entorno del MCP (las pasa como
-  // "${FS_LOCAL_MODULES_PATH}" literalmente). Detectamos ese caso y leemos desde settings.json.
+  // Prioridad 1: FS_LOCAL_MODULES_PATH env var (compatibilidad, solo si está interpolada)
   const envPath = process.env['FS_LOCAL_MODULES_PATH'];
   const isInterpolated = envPath !== undefined && envPath.trim() !== '' && !envPath.includes('${');
 
+  // Prioridad 2: ~/.fs-claude.json → settings.localModulesPath
   const resolvedPath = isInterpolated
     ? envPath!.trim()
-    : readLocalModulesPathFromSettings();
+    : readLocalModulesPathFromFsConfig();
 
   const localModulesDir = resolvedPath ?? join(__dirname, 'modules-local');
 

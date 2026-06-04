@@ -34,8 +34,8 @@ export interface LocalModuleHandler {
     handleTool(name: string, args: Record<string, unknown>): Promise<ToolResult | null>;
 }
 /**
- * Carga todos los módulos locales desde FS_LOCAL_MODULES_PATH (o fallback a dist/modules-local).
- * Registra sus tools en el mapa global y devuelve un array de handlers para el dispatcher.
+ * Carga todos los módulos locales desde la ruta configurada en ~/.fs-claude.json
+ * (settings.localModulesPath), con fallback a dist/modules-local si no está configurada.
  *
  * Soporta dos niveles de organización:
  *   - Módulos directamente en la raíz: <dir>/modulo/index.js
