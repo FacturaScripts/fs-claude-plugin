@@ -9,7 +9,7 @@ Plugin para [Claude Code](https://claude.ai/code) que integra el ERP [FacturaScr
 En Claude Code ejecuta:
 
 ```
-/install-plugin https://github.com/FacturaScripts/fs-claude-plugin
+/plugin add marketplace FacturaScripts/fs-claude-plugin
 ```
 
 O clona el repositorio e instálalo desde la ruta local:
@@ -19,7 +19,7 @@ git clone https://github.com/FacturaScripts/fs-claude-plugin
 ```
 
 ```
-/install-plugin /ruta/local/al/repositorio
+/plugin install /ruta/local/al/repositorio
 ```
 
 > El plugin incluye los archivos `dist/` precompilados del servidor MCP. No necesitas Node.js para usarlo.
