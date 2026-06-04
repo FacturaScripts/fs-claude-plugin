@@ -4,7 +4,28 @@ Plugin para [Claude Code](https://claude.ai/code) que integra el ERP [FacturaScr
 
 ## Instalación desde el Marketplace
 
-### 1. Instalar el marketplace
+Puedes instalar el plugin desde **Claude Desktop** (interfaz gráfica) o desde **Claude Code CLI** (terminal).
+
+---
+
+### Opción A — Claude Desktop (interfaz gráfica)
+
+1. Abre Claude Desktop y ve a la pestaña **Cowork** o **Code**.
+2. Haz clic en el icono de **Personalización** (ajustes/engranaje).
+3. Pulsa el símbolo **+** (añadir plugin).
+4. Selecciona **Nuevo plugin**.
+5. Elige **Añadir marketplace** e introduce la URL del repositorio:
+
+```
+https://github.com/FacturaScripts/fs-claude-plugin
+```
+
+6. Confirma la instalación. Claude Desktop descargará el marketplace automáticamente.
+7. Una vez instalado podrá ver los plugins disponibles para habilitarlos y poder usarlos.
+
+---
+
+### Opción B — Claude Code CLI (terminal)
 
 En Claude Code ejecuta:
 
@@ -23,6 +44,8 @@ git clone https://github.com/FacturaScripts/fs-claude-plugin
 ```
 
 > El plugin incluye los archivos `dist/` precompilados del servidor MCP. No necesitas Node.js para usarlo.
+
+---
 
 ### 2. Activar los plugins
 
