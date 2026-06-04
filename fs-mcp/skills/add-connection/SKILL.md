@@ -5,7 +5,7 @@ description: Guía para añadir una nueva conexión de FacturaScripts al archivo
 
 # Añadir Conexión a FacturaScripts
 
-Este skill te guía paso a paso para configurar una nueva conexión a una instancia de FacturaScripts en el plugin `fs-mcp`.
+Este skill configura una nueva conexión a una instancia de FacturaScripts. Las conexiones se guardan en `~/.fs-claude.json`, un archivo en el directorio home del usuario que **funciona en cualquier sistema operativo** (macOS, Linux, Windows) y es leído automáticamente por el servidor MCP sin necesidad de configuración adicional.
 
 ## ¿Qué necesitas?
 
@@ -36,36 +36,97 @@ La última pregunta es especialmente relevante en estos casos:
 - Servidores de desarrollo con certificados auto-firmados
 - Cualquier instalación donde el navegador muestre advertencia de certificado
 
-### 2. Procesa la información
+### 2. Detecta el entorno
 
-Una vez que proporciones los datos, verificaré que sean válidos:
-- La clave no debe estar vacía
-- El nombre es obligatorio
-- La URL debe ser válida
-- El token no puede estar vacío
-- Si la URL empieza por `https://` y apunta a `localhost`, una IP privada o un dominio sin certificado público, se sugerirá automáticamente desactivar la verificación SSL
+Una vez recopilados los datos, ejecuta estos comandos para obtener la ruta correcta según el sistema operativo:
+
+```bash
+# Detectar sistema operativo y directorio home
+python3 -c "import os, sys; home = os.path.expanduser('~'); print(os.path.join(home, '.fs-claude.json'))"
+```
+
+Esto devuelve la ruta exacta a `~/.fs-claude.json` en cualquier SO:
+- macOS/Linux: `/Users/username/.fs-claude.json` o `/home/username/.fs-claude.json`
+- Windows: `C:\Users\username\.fs-claude.json`
 
 ### 3. Añade la conexión
 
-**Si el plugin MCP está instalado:**
-Usaré la herramienta `add_connection` para guardar la conexión. La ruta donde se guarda depende de la configuración `FS_CONNECTIONS_FILE`:
-- Si está configurada (recomendado en Cowork): usa esa ruta persistente
-- Si no está configurada: usa `${CLAUDE_PLUGIN_DATA}/connections.json` (en Cowork esta ruta es temporal y se pierde al cerrar la app)
+**Opción A — Si el plugin MCP está instalado y activo:**
 
-> 💡 **Cowork vs Code**: En Claude Code (CLI y Desktop) las conexiones persisten automáticamente. En **Cowork**, para que persistan entre sesiones debes configurar `FS_CONNECTIONS_FILE` en los ajustes del plugin apuntando a una ruta fija (ej: `/Users/tu-usuario/.claude/plugins/data/fs-mcp-fs-claude-plugin/connections.json`). Esto comparte las conexiones con Claude Code.
+Usa la herramienta `add_connection` directamente. El servidor MCP guarda automáticamente en `~/.fs-claude.json`.
 
-**Si el plugin MCP no está disponible:**
-Te mostraré cómo editar manualmente el archivo `connections.json` con el siguiente formato:
+**Opción B — Si el plugin MCP no está disponible todavía:**
+
+Ejecuta este script Python para crear o actualizar `~/.fs-claude.json`:
+
+```python
+import json, sys
+from pathlib import Path
+
+fs_claude = Path.home() / '.fs-claude.json'
+
+# Leer configuración existente o crear nueva
+if fs_claude.exists():
+    config = json.loads(fs_claude.read_text(encoding='utf-8'))
+else:
+    config = {
+        "version": "1.0",
+        "connections": {"default": "", "connections": {}},
+        "settings": {"sortClassMembers": True, "updateCopyright": True}
+    }
+
+# Asegurarse de que existe la sección connections
+if "connections" not in config:
+    config["connections"] = {"default": "", "connections": {}}
+
+# Añadir la nueva conexión (sustituir CLAVE, NOMBRE, URL, TOKEN con los valores reales)
+clave = "CLAVE"
+config["connections"]["connections"][clave] = {
+    "name": "NOMBRE",
+    "url": "URL",
+    "token": "TOKEN"
+    # Añadir "rejectUnauthorized": False si el certificado SSL no es válido
+}
+
+# Establecer como default si es la primera o si el usuario lo solicitó
+if not config["connections"].get("default"):
+    config["connections"]["default"] = clave
+
+fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
+print(f"Conexión guardada en: {fs_claude}")
+```
+
+### 4. Confirma la operación
+
+Tras guardar la conexión, muestra al usuario la ruta del archivo y el contenido de la sección `connections` (ocultando el token por seguridad).
+
+### 5. Reinicio del servidor MCP
+
+Para que Claude cargue las conexiones del archivo recién actualizado, es necesario **reiniciar Claude**:
+- **Claude Code CLI**: cierra la sesión actual y ejecuta `claude` de nuevo
+- **Claude Desktop**: cierra la aplicación y vuelve a abrirla
+- **Claude Cowork**: cierra y reabre la app
+
+> El servidor MCP lee `~/.fs-claude.json` al arrancar. No requiere configurar `FS_CONNECTIONS_FILE` manualmente; el archivo se encuentra automáticamente en cualquier plataforma.
+
+## Estructura del archivo `~/.fs-claude.json`
 
 ```json
 {
-  "default": "clave-conexion",
+  "version": "1.0",
   "connections": {
-    "clave-conexion": {
-      "name": "Nombre Descriptivo",
-      "url": "https://facturascripts.miempresa.com",
-      "token": "tu-token-api-aqui"
+    "default": "clave-conexion",
+    "connections": {
+      "clave-conexion": {
+        "name": "Nombre Descriptivo",
+        "url": "https://facturascripts.miempresa.com",
+        "token": "tu-token-api-aqui"
+      }
     }
+  },
+  "settings": {
+    "sortClassMembers": true,
+    "updateCopyright": true
   }
 }
 ```
@@ -74,54 +135,49 @@ Para instalaciones locales o con certificado auto-firmado, añade `"rejectUnauth
 
 ```json
 {
-  "default": "local",
+  "version": "1.0",
   "connections": {
-    "local": {
-      "name": "FacturaScripts Local",
-      "url": "https://localhost",
-      "token": "tu-token-api-aqui",
-      "rejectUnauthorized": false
+    "default": "local",
+    "connections": {
+      "local": {
+        "name": "FacturaScripts Local",
+        "url": "https://localhost",
+        "token": "tu-token-api-aqui",
+        "rejectUnauthorized": false
+      }
     }
+  },
+  "settings": {
+    "sortClassMembers": true,
+    "updateCopyright": true
   }
 }
 ```
 
 > ⚠️ **Nota de seguridad**: `rejectUnauthorized: false` desactiva la verificación del certificado SSL. Úsalo únicamente en instalaciones locales o de desarrollo de confianza, nunca en producción con datos reales accesibles desde internet.
 
-## Flujo Interactivo
+## Gestión de errores
 
-Cuando ejecutes este skill, seguiremos estos pasos:
-
-1. **Recopilación**: Te haré preguntas sobre la nueva conexión
-2. **Validación**: Verificaré que todos los datos sean correctos
-3. **Almacenamiento**: Guardaré la conexión usando el MCP o te indicaré cómo hacerlo manualmente
-4. **Confirmación**: Confirmaré que la conexión se ha añadido correctamente
-
-## Gestión de Errores
-
-- Si la clave ya existe, se actualizará
+- Si la clave ya existe, se actualizará con los nuevos datos
 - Si es la primera conexión, se establecerá automáticamente como predeterminada
-- Si hay problemas al guardar, se te mostrarán instrucciones para hacerlo manualmente
+- Si hay problemas con Python, el archivo se puede editar manualmente con cualquier editor de texto
 
-## Persistencia entre sesiones (Cowork)
+## Configuración adicional en `~/.fs-claude.json`
 
-Si usas Cowork Desktop y las conexiones desaparecen al cerrar la app, sigue estos pasos:
+La sección `settings` permite personalizar el comportamiento de los plugins de FacturaScripts para Claude:
 
-1. Abre los **ajustes del plugin fs-mcp** en Cowork
-2. Busca el campo **"Ruta del archivo de conexiones"** (`FS_CONNECTIONS_FILE`)
-3. Introduce la ruta al `connections.json` de Claude Code:
-   ```
-   /Users/TU-USUARIO/.claude/plugins/data/fs-mcp-fs-claude-plugin/connections.json
-   ```
-4. Guarda y reinicia Cowork
+| Clave | Tipo | Por defecto | Descripción |
+|-------|------|-------------|-------------|
+| `sortClassMembers` | boolean | `true` | Reordena automáticamente los miembros de clases PHP al editar |
+| `updateCopyright` | boolean | `true` | Actualiza el año del copyright automáticamente al editar |
 
-Esto hace que Code y Cowork compartan exactamente el mismo archivo de conexiones.
+Para desactivar una función, cambia su valor a `false` en el archivo.
 
-## Próximos Pasos
+## Próximos pasos
 
-Una vez hayas añadido la conexión, puedes:
+Una vez hayas añadido la conexión:
 - Listar todas tus conexiones: `fs-mcp:list-connections`
-- Cambiar la conexión por defecto
+- Cambiar la conexión por defecto usando la herramienta `set_default_connection`
 - Usar el MCP con cualquiera de tus conexiones configuradas
 
-¿Preparado? Proporcioname la información de tu conexión y la configuraré por ti.
+¿Preparado? Proporcióname la información de tu conexión y la configuraré por ti.

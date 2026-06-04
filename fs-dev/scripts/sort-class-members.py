@@ -15,9 +15,23 @@ que el archivo pertenece al core o a un plugin del ERP.
 
 Uso: sort-class-members.py <file_path>
 """
+import json
 import re
 import sys
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+
+def _is_sort_enabled() -> bool:
+    """Comprueba si sortClassMembers está activado en ~/.fs-claude.json (por defecto: True)."""
+    fs_claude = Path.home() / '.fs-claude.json'
+    if not fs_claude.exists():
+        return True
+    try:
+        config = json.loads(fs_claude.read_text(encoding='utf-8'))
+        return bool(config.get('settings', {}).get('sortClassMembers', True))
+    except Exception:
+        return True
 
 # Grupos de ordenación en el orden final deseado
 GROUPS = [
@@ -464,6 +478,8 @@ def process_file(file_path: str) -> None:
 
 
 def main() -> None:
+    if not _is_sort_enabled():
+        sys.exit(0)
     if len(sys.argv) != 2:
         print(f"Uso: {sys.argv[0]} <file_path>", file=sys.stderr)
         sys.exit(1)

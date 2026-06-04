@@ -19,8 +19,22 @@ En modo archivo nuevo (--new):
 
 Uso: update-copyright.py <file_path> <current_year> [--new]
 """
+import json
 import re
 import sys
+from pathlib import Path
+
+
+def _is_copyright_update_enabled() -> bool:
+    """Comprueba si updateCopyright está activado en ~/.fs-claude.json (por defecto: True)."""
+    fs_claude = Path.home() / '.fs-claude.json'
+    if not fs_claude.exists():
+        return True
+    try:
+        config = json.loads(fs_claude.read_text(encoding='utf-8'))
+        return bool(config.get('settings', {}).get('updateCopyright', True))
+    except Exception:
+        return True
 
 
 def update_copyright_year(content: str, current_year: int, is_new_file: bool = False) -> str:
@@ -68,6 +82,8 @@ def update_copyright_year(content: str, current_year: int, is_new_file: bool = F
 
 
 def main() -> None:
+    if not _is_copyright_update_enabled():
+        sys.exit(0)
     if len(sys.argv) < 3 or len(sys.argv) > 4:
         print(f"Uso: {sys.argv[0]} <file_path> <current_year> [--new]", file=sys.stderr)
         sys.exit(1)

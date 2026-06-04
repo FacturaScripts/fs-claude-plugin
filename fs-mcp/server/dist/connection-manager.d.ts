@@ -2,9 +2,15 @@ import type { ConnectionConfig } from "./types/facturascripts.js";
 /**
  * Gestor centralizado de conexiones multi-instancia a FacturaScripts
  * Lee y persiste configuración desde/hacia archivo JSON
+ *
+ * Prioridad de ubicación:
+ * 1. ~/.fs-claude.json (automático, cross-platform, sin configuración necesaria)
+ * 2. FS_CONNECTIONS_FILE env var (compatibilidad con configuraciones existentes)
+ * 3. ${CLAUDE_PLUGIN_DATA}/connections.json (fallback)
  */
 declare class ConnectionManager {
     private connectionsPath;
+    private useFsClaudeFormat;
     private config;
     constructor();
     /**
@@ -14,7 +20,7 @@ declare class ConnectionManager {
      */
     private loadConnections;
     /**
-     * Crea un archivo connections.json vacío con estructura base
+     * Crea el archivo de conexiones vacío con la estructura adecuada al formato
      */
     private createEmptyConnectionsFile;
     /**

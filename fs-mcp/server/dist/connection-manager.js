@@ -1,21 +1,35 @@
 import fs from "fs";
+import os from "os";
 import path from "path";
 /**
  * Gestor centralizado de conexiones multi-instancia a FacturaScripts
  * Lee y persiste configuración desde/hacia archivo JSON
+ *
+ * Prioridad de ubicación:
+ * 1. ~/.fs-claude.json (automático, cross-platform, sin configuración necesaria)
+ * 2. FS_CONNECTIONS_FILE env var (compatibilidad con configuraciones existentes)
+ * 3. ${CLAUDE_PLUGIN_DATA}/connections.json (fallback)
  */
 class ConnectionManager {
     connectionsPath;
+    useFsClaudeFormat;
     config;
     constructor() {
-        // Ignorar la variable si contiene un placeholder sin expandir (ej: "${FS_CONNECTIONS_FILE}")
+        // Prioridad 1: ~/.fs-claude.json — encontrado automáticamente en cualquier SO
+        const fsClaudePath = path.join(os.homedir(), ".fs-claude.json");
+        // Prioridad 2: FS_CONNECTIONS_FILE env var (ignorar placeholders sin expandir)
         const rawConnectionsFile = process.env.FS_CONNECTIONS_FILE;
         const resolvedConnectionsFile = rawConnectionsFile && !rawConnectionsFile.startsWith("${")
             ? rawConnectionsFile
             : null;
-        const connectionsFile = resolvedConnectionsFile ||
-            path.join(process.env.CLAUDE_PLUGIN_DATA || "./", "connections.json");
-        this.connectionsPath = connectionsFile;
+        this.connectionsPath = resolvedConnectionsFile || fsClaudePath;
+        this.useFsClaudeFormat = this.connectionsPath === fsClaudePath;
+        if (resolvedConnectionsFile) {
+            console.error(`[fs-mcp] Usando archivo de conexiones desde FS_CONNECTIONS_FILE: ${resolvedConnectionsFile}`);
+        }
+        else {
+            console.error(`[fs-mcp] Usando archivo de configuración unificado: ${fsClaudePath}`);
+        }
         this.config = this.loadConnections();
     }
     /**
@@ -34,15 +48,18 @@ class ConnectionManager {
             }
             const rawData = fs.readFileSync(this.connectionsPath, "utf-8");
             const parsed = JSON.parse(rawData);
-            // Si el archivo está vacío o tiene formato incorrecto, devolver configuración vacía
-            if (!parsed || !parsed.connections) {
+            // Formato ~/.fs-claude.json: las conexiones están en la clave "connections"
+            const connectionsData = this.useFsClaudeFormat
+                ? parsed.connections ?? emptyConfig
+                : parsed;
+            if (!connectionsData || !connectionsData.connections) {
                 return emptyConfig;
             }
-            if (Object.keys(parsed.connections).length === 0) {
-                console.error("[fs-mcp] No hay conexiones configuradas en connections.json\n" +
+            if (Object.keys(connectionsData.connections).length === 0) {
+                console.error("[fs-mcp] No hay conexiones configuradas\n" +
                     "[fs-mcp] Usa fs-mcp:add-connection para añadir una conexión.");
             }
-            return parsed;
+            return connectionsData;
         }
         catch (error) {
             console.error(`[fs-mcp] Error al cargar conexiones: ${error instanceof Error ? error.message : String(error)}`);
@@ -50,18 +67,27 @@ class ConnectionManager {
         }
     }
     /**
-     * Crea un archivo connections.json vacío con estructura base
+     * Crea el archivo de conexiones vacío con la estructura adecuada al formato
      */
     createEmptyConnectionsFile() {
-        const emptyConfig = {
-            default: "",
-            connections: {},
-        };
         const dir = path.dirname(this.connectionsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(this.connectionsPath, JSON.stringify(emptyConfig, null, 2), "utf-8");
+        if (this.useFsClaudeFormat) {
+            // Crear ~/.fs-claude.json con estructura completa
+            const fsClaudeConfig = {
+                version: "1.0",
+                connections: { default: "", connections: {} },
+                settings: { sortClassMembers: true, updateCopyright: true },
+            };
+            fs.writeFileSync(this.connectionsPath, JSON.stringify(fsClaudeConfig, null, 2), "utf-8");
+        }
+        else {
+            // Formato plano legacy
+            const emptyConfig = { default: "", connections: {} };
+            fs.writeFileSync(this.connectionsPath, JSON.stringify(emptyConfig, null, 2), "utf-8");
+        }
     }
     /**
      * Persiste la configuración actual al archivo JSON
@@ -71,7 +97,27 @@ class ConnectionManager {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(this.connectionsPath, JSON.stringify(this.config, null, 2), "utf-8");
+        if (this.useFsClaudeFormat) {
+            // Leer el archivo completo para preservar "settings" y otras claves
+            let existingConfig = {
+                version: "1.0",
+                connections: { default: "", connections: {} },
+                settings: { sortClassMembers: true, updateCopyright: true },
+            };
+            if (fs.existsSync(this.connectionsPath)) {
+                try {
+                    existingConfig = JSON.parse(fs.readFileSync(this.connectionsPath, "utf-8"));
+                }
+                catch {
+                    // Mantener estructura vacía si hay error de lectura
+                }
+            }
+            existingConfig.connections = this.config;
+            fs.writeFileSync(this.connectionsPath, JSON.stringify(existingConfig, null, 2), "utf-8");
+        }
+        else {
+            fs.writeFileSync(this.connectionsPath, JSON.stringify(this.config, null, 2), "utf-8");
+        }
     }
     /**
      * Obtiene una conexión por clave o la conexión por defecto

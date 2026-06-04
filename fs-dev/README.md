@@ -136,3 +136,41 @@ Ordena automáticamente los miembros de las clases PHP según el estándar de Fa
 10. Métodos privados
 
 Esto garantiza que el código siempre siga el mismo orden, facilitando la revisión y la consistencia entre plugins.
+
+---
+
+## Configuración personalizada (`~/.fs-claude.json`)
+
+Puedes desactivar cualquiera de los dos scripts automáticos creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
+
+- **macOS / Linux**: `/Users/tu-usuario/.fs-claude.json`
+- **Windows**: `C:\Users\tu-usuario\.fs-claude.json`
+
+### Opciones disponibles
+
+```json
+{
+  "settings": {
+    "sortClassMembers": true,
+    "updateCopyright": true
+  }
+}
+```
+
+| Variable | Tipo | Por defecto | Descripción |
+|----------|------|-------------|-------------|
+| `sortClassMembers` | boolean | `true` | Activa o desactiva la ordenación automática de miembros en clases PHP |
+| `updateCopyright` | boolean | `true` | Activa o desactiva la actualización automática del año de copyright |
+
+### Ejemplo: desactivar la ordenación de clases
+
+```json
+{
+  "settings": {
+    "sortClassMembers": false,
+    "updateCopyright": true
+  }
+}
+```
+
+Si el archivo no existe, ambos scripts se ejecutan con su comportamiento por defecto (activados). Los cambios surten efecto en la siguiente edición de archivo, sin necesidad de reiniciar Claude.
