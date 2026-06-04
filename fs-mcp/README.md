@@ -2,6 +2,16 @@
 
 Plugin para [Claude Code](https://claude.ai/code) que proporciona un servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) para conectar Claude directamente con la API REST de FacturaScripts. Permite consultar y modificar datos en tiempo real: facturas, clientes, productos, contabilidad, stock, etc.
 
+## Requisitos
+
+- **Node.js ≥ 18** instalado en tu máquina (Linux, macOS o Windows). El servidor MCP es un proceso Node.js; sin él el plugin no arrancará independientemente del sistema operativo.
+  - Linux: `sudo apt install nodejs` / `sudo dnf install nodejs` o desde [nodejs.org](https://nodejs.org)
+  - macOS: `brew install node` o desde [nodejs.org](https://nodejs.org)
+  - Windows: instalador desde [nodejs.org](https://nodejs.org)
+- FacturaScripts con la **API REST habilitada** y un token de acceso generado en *Administración → API → Tokens*.
+
+---
+
 ## Índice
 
 - [Configuración inicial](#configuración-inicial)

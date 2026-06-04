@@ -43,7 +43,7 @@ git clone https://github.com/FacturaScripts/fs-claude-plugin
 /plugin install /ruta/local/al/repositorio
 ```
 
-> El plugin incluye los archivos `dist/` precompilados del servidor MCP. No necesitas Node.js para usarlo.
+> El plugin incluye los archivos `dist/` precompilados del servidor MCP. Aun así, **Node.js debe estar instalado** en tu máquina para que el servidor MCP pueda ejecutarse.
 
 ---
 
@@ -73,7 +73,7 @@ Puedes activar uno, dos o los tres según tu perfil. No es necesario activarlos 
 
 - [Claude Code](https://claude.ai/code) con soporte de plugins
 - FacturaScripts con API REST habilitada (solo para el plugin `fs-mcp`)
-- Node.js ≥ 18 (solo si recompilas el servidor MCP desde el código fuente)
+- **Node.js ≥ 18** instalado en tu máquina (Linux, macOS o Windows) — necesario para ejecutar el servidor MCP
 
 ---
 
