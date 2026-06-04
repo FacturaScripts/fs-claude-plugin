@@ -24,22 +24,44 @@ FacturaScripts requiere PHP 8.0+ y sigue PSR-12. Tiene su propio framework con c
 ### Namespace y autoloading
 
 ```php
-// Core
+// Core (solo para clases base: abstract, traits, finales y utilidades)
 namespace FacturaScripts\Core\Model;
 namespace FacturaScripts\Core\Controller;
 namespace FacturaScripts\Core\Lib;
 
-// Plugins (SIEMPRE usar este namespace)
-namespace FacturaScripts\Plugins\MiPlugin\Model;
-namespace FacturaScripts\Plugins\MiPlugin\Controller;
-
-// Dinamic (generado automáticamente, NUNCA editar)
-// Pero SÍ importar desde aquí para incluir extensiones
-use FacturaScripts\Dinamic\Model\Cliente;
-use FacturaScripts\Dinamic\Controller\EditCliente;
+// Plugins (los plugins también usan l carpeta Dinamic) excepto si tienen clases finales, abstract, traits o utilidades
+namespace FacturaScripts\Dinamic\Model;
+namespace FacturaScripts\Dinamic\Controller;
 ```
 
-**IMPORTANTE:** Al instanciar modelos de otros plugins o del core, usa `Dinamic\Model\` para que las extensiones se apliquen correctamente.
+### Regla Dinamic — OBLIGATORIA
+
+`Dinamic/` es una carpeta generada automáticamente por FacturaScripts en tiempo de ejecución que contiene copias de todas las clases del Core con las extensiones de plugins aplicadas. **Nunca la edites**, pero **siempre importa desde ella** cuando uses clases concretas del core.
+
+**Regla:** toda clase de `Core\` que no sea `abstract`, `trait` ni `final` debe importarse desde `Dinamic\`.
+
+```php
+// ✅ CORRECTO — modelos y controladores concretos siempre desde Dinamic
+use FacturaScripts\Dinamic\Model\Cliente;
+use FacturaScripts\Dinamic\Model\FacturaCliente;
+use FacturaScripts\Dinamic\Model\Producto;
+use FacturaScripts\Dinamic\Controller\EditCliente;
+
+// ✅ CORRECTO — clases base abstractas, traits y utilidades se usan desde Core
+use FacturaScripts\Core\Model\Base\ModelClass;              // abstract
+use FacturaScripts\Core\Model\Base\ModelTrait;              // trait
+use FacturaScripts\Core\Lib\ExtendedController\ListController;  // abstract
+use FacturaScripts\Core\Lib\ExtendedController\EditController;  // abstract
+use FacturaScripts\Core\Tools;                              // utilidad interna del core
+use FacturaScripts\Core\Base\DataBase;                      // utilidad interna del core
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;         // utilidad interna del core
+
+// ❌ INCORRECTO — nunca importar modelos/controladores concretos desde Core
+use FacturaScripts\Core\Model\Cliente;         // se pierden las extensiones de plugins
+use FacturaScripts\Core\Model\FacturaCliente;  // idem
+```
+
+**IMPORTANTE:** El IDE puede reportar que la clase `Dinamic\Model\Cliente` no existe — es normal. La carpeta `Dinamic/` se reconstruye en tiempo de ejecución y el IDE no la ve siempre. Ignora ese aviso: en producción la clase siempre estará disponible.
 
 ### La clase Tools — Utilidades esenciales
 
@@ -334,7 +356,7 @@ Notificación de entrega:
 - **Siempre** `use FacturaScripts\Core\Tools` para utilidades
 - **Siempre** sanitiza con `Tools::noHtml()` o `Tools::fixHtml()` antes de guardar
 - **Siempre** usa `Tools::trans()` para textos traducibles
-- **Siempre** importa desde `Dinamic\Model\` cuando instancies modelos externos
+- **Siempre** importa modelos y controladores concretos del core desde `Dinamic\` (no desde `Core\`) — ver sección "Regla Dinamic"
 - **Nunca** edites `Core/` ni `Dinamic/`
 - **Nunca** uses `echo`, `print_r`, `var_dump` — usa `Tools::log()`
 - **Nunca** uses funciones PHP para fechas — usa `Tools::date()`, `Tools::dateTime()`

@@ -21,6 +21,24 @@ Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes 
 
 Esta es la regla más importante de FacturaScripts. Cualquier modificación al core o a otro plugin se hace exclusivamente mediante extensiones.
 
+## Regla Dinamic — OBLIGATORIA en todos los `use`
+
+Cuando dentro de un Closure (o en cualquier parte de la extensión) necesites instanciar o referenciar una clase concreta del core, **siempre usa `Dinamic\`**, nunca `Core\`.
+
+```php
+// ✅ CORRECTO — dentro de un Closure, usa Dinamic para modelos concretos
+use FacturaScripts\Dinamic\Model\Cliente;
+
+// ✅ CORRECTO — utilidades internas y clases abstract/trait permanecen en Core
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;  // utilidad interna
+use Closure;
+
+// ❌ INCORRECTO
+use FacturaScripts\Core\Model\Cliente;
+```
+
+El IDE puede avisar que `Dinamic\Model\Cliente` no existe — es normal, se genera en tiempo de ejecución.
+
 ## Conocimiento del framework
 
 ### Tipos de extensiones

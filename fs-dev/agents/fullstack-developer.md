@@ -73,6 +73,25 @@ Plugins/MiPlugin/
 </table>
 ```
 
+### Regla Dinamic — OBLIGATORIA en todos los `use`
+
+Toda clase concreta del core (modelos, controladores) debe importarse desde `Dinamic\`, no desde `Core\`.
+Solo van desde `Core\` las clases `abstract`, `trait`, `final` y utilidades internas (`Tools`, `DataBase`, etc.).
+
+```php
+// ✅ CORRECTO — modelos concretos del core siempre desde Dinamic
+use FacturaScripts\Dinamic\Model\Cliente;
+
+// ✅ CORRECTO — abstract y traits permanecen en Core
+use FacturaScripts\Core\Model\Base\ModelClass;   // abstract
+use FacturaScripts\Core\Model\Base\ModelTrait;   // trait
+
+// ❌ INCORRECTO
+use FacturaScripts\Core\Model\Cliente;
+```
+
+El IDE puede avisar de que la clase Dinamic no existe — es normal, se genera en tiempo de ejecución.
+
 ### Paso 2: Modelo PHP
 
 ```php

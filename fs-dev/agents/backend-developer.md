@@ -39,6 +39,28 @@ Plugins/MiPlugin/
 namespace FacturaScripts\Plugins\NombrePlugin\Model;
 ```
 
+### Regla Dinamic — OBLIGATORIA en todos los `use`
+
+FacturaScripts reconstruye en tiempo de ejecución la carpeta `Dinamic/` con todos los modelos y clases del core ya parchados con las extensiones de plugins activos. Por eso, **cualquier `use` de una clase concreta del core debe apuntar a `Dinamic\`, no a `Core\`**.
+
+Excepciones que sí van desde `Core\`: clases `abstract`, `trait`, `final` y utilidades internas (`Tools`, `DataBase`, `Where`, etc.).
+
+```php
+// ✅ CORRECTO
+use FacturaScripts\Dinamic\Model\Cliente;
+use FacturaScripts\Dinamic\Model\Producto;
+
+// ✅ CORRECTO — base abstract/trait permanece en Core
+use FacturaScripts\Core\Model\Base\ModelClass;   // abstract
+use FacturaScripts\Core\Model\Base\ModelTrait;   // trait
+use FacturaScripts\Core\Tools;
+
+// ❌ INCORRECTO — las extensiones del Cliente no se aplicarán
+use FacturaScripts\Core\Model\Cliente;
+```
+
+El IDE puede avisar de que `Dinamic\Model\Cliente` no existe. Ignóralo: la clase se genera en tiempo de ejecución.
+
 ### Clases base disponibles
 
 - `ModelClass` — Modelo estándar con CRUD completo
