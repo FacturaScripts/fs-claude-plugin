@@ -91,6 +91,8 @@ Toda la configuración del plugin se gestiona desde el archivo `~/.fs-claude.jso
 
 Todas las herramientas aceptan `connection` (clave de conexión a usar), `limit` y `offset` para paginación. El valor por defecto de `limit` es 50.
 
+Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfactura`, `codejercicio`, `pagada`, etc.) los aplican realmente sobre la consulta a la API. Los filtros de **texto libre** (`nombre`, `descripción`) hacen **búsqueda parcial** (no es necesario escribir el valor completo); el resto hace coincidencia exacta. Cuando se indican varios filtros se combinan con `AND`.
+
 ### Gestión de conexiones
 
 | Herramienta | Descripción |
@@ -177,7 +179,7 @@ Todas las herramientas aceptan `connection` (clave de conexión a usar), `limit`
 | `get_pagos_pendientes_proveedor` | Facturas de proveedor pendientes de pago |
 | `get_tiempo_beneficios_cliente` | Evolución histórica del margen por cliente |
 | `get_tiempo_beneficios_todos_clientes` | Evolución histórica del margen agregado de todos los clientes |
-| `exportar_factura_cliente` | Exporta una factura de cliente en el formato indicado (PDF, etc.) |
+| `exportar_factura_cliente` | Devuelve los datos completos de una factura de cliente (cabecera, email del cliente y todas sus líneas) listos para exportar |
 
 ### Operaciones CRUD
 
@@ -315,7 +317,20 @@ export async function handleTool(name, args, client) {
 
 ### Filtros y paginación en módulos privados
 
-La API de FacturaScripts acepta filtros con el formato `filter[campo]=valor` y ordenación con `sort[campo]=ASC|DESC`:
+La API de FacturaScripts acepta filtros con el formato `filter[campo]=valor` y ordenación con `sort[campo]=ASC|DESC`. **Importante:** los parámetros sueltos (`?campo=valor`) se ignoran en silencio; hay que envolverlos siempre en `filter[...]`.
+
+El nombre del campo admite sufijos para usar operadores distintos a la igualdad:
+
+| Sufijo | Operador | Ejemplo |
+|---|---|---|
+| _(ninguno)_ | `=` | `filter[codcliente]=2` |
+| `_like` | `LIKE` (búsqueda parcial; el core envuelve el valor con `%…%` si no trae comodines) | `filter[nombre_like]=daniel` |
+| `_gt` / `_gte` | `>` / `>=` | `filter[total_gte]=100` |
+| `_lt` / `_lte` | `<` / `<=` | `filter[fecha_lte]=2025-12-31` |
+| `_neq` | `!=` | `filter[codserie_neq]=R` |
+| `_null` / `_notnull` | `IS NULL` / `IS NOT NULL` | `filter[idfacturarect_null]=1` |
+
+> Si un filtro referencia una columna que no existe en el modelo, la API responde con error `api: fields not allowed: <campo>` (no lo ignora).
 
 ```javascript
 export async function handleTool(name, args, client) {
