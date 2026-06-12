@@ -103,7 +103,7 @@ export const accountingTools: Tool[] = [
         },
         descripcion: {
           type: 'string',
-          description: 'Descripción del asiento',
+          description: 'Descripción del asiento (búsqueda parcial)',
         },
         fecha: {
           type: 'string',
@@ -173,7 +173,7 @@ export const accountingTools: Tool[] = [
         },
         descripcion: {
           type: 'string',
-          description: 'Descripción de la cuenta',
+          description: 'Descripción de la cuenta (búsqueda parcial)',
         },
       },
       required: ['connection'],
@@ -208,7 +208,7 @@ export const accountingTools: Tool[] = [
         },
         descripcion: {
           type: 'string',
-          description: 'Descripción de la subcuenta',
+          description: 'Descripción de la subcuenta (búsqueda parcial)',
         },
       },
       required: ['connection'],
@@ -731,7 +731,7 @@ export async function handleAccountingTool(
           offset: params.offset,
           limit: params.limit,
           codejercicio: params.codejercicio,
-          descripcion: params.descripcion,
+          descripcion_like: params.descripcion,
           fecha: params.fecha,
         },
         params.connection,
@@ -767,7 +767,7 @@ export async function handleAccountingTool(
           limit: params.limit,
           codcuenta: params.codcuenta,
           codejercicio: params.codejercicio,
-          descripcion: params.descripcion,
+          descripcion_like: params.descripcion,
         },
         params.connection,
       );
@@ -785,7 +785,7 @@ export async function handleAccountingTool(
           limit: params.limit,
           codsubcuenta: params.codsubcuenta,
           codejercicio: params.codejercicio,
-          descripcion: params.descripcion,
+          descripcion_like: params.descripcion,
         },
         params.connection,
       );

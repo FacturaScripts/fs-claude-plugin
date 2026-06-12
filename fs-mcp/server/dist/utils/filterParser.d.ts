@@ -54,4 +54,25 @@ export declare function buildQueryParams(params: {
     filters?: string;
     [key: string]: unknown;
 }): Record<string, string | number>;
+/**
+ * Convierte un objeto de parámetros plano en la sintaxis de query que espera la API REST
+ * de FacturaScripts.
+ *
+ * La API solo lee los filtros bajo la clave `filter[...]` (ver APIModel::listAll). Los
+ * parámetros sueltos (ej. `?idfactura=741`) se ignoran en silencio. Esta función envuelve
+ * cada campo de filtro como `filter[campo]=valor`, respetando:
+ *
+ * - Claves reservadas (`offset`, `limit`, `sort`, `operation`): se pasan tal cual.
+ * - Claves que ya vienen en notación de corchetes (`filter[`, `operation[`, `sort[`):
+ *   se pasan verbatim, permitiendo operadores u operaciones lógicas explícitas.
+ * - Resto de claves: se envuelven como `filter[clave]`.
+ *
+ * Los valores `null`/`undefined` se omiten. Los booleanos se convierten a `'1'`/`'0'`
+ * (coherente con el envío de formularios en el cliente).
+ *
+ * @example
+ * toApiQueryParams({ idfactura: 741, codcliente: 'CLI001', limit: 50 })
+ * // { 'filter[idfactura]': '741', 'filter[codcliente]': 'CLI001', limit: '50' }
+ */
+export declare function toApiQueryParams(params?: Record<string, unknown>): Record<string, string>;
 //# sourceMappingURL=filterParser.d.ts.map

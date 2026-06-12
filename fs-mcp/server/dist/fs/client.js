@@ -1,6 +1,7 @@
 import axios from "axios";
 import https from "https";
 import { connectionManager } from "../connection-manager.js";
+import { toApiQueryParams } from "../utils/filterParser.js";
 /**
  * Cliente HTTP para la API REST de FacturaScripts
  * Soporta múltiples conexiones y manejo de errores contextualizado
@@ -71,12 +72,16 @@ class FacturaScriptsClient {
         return params;
     }
     /**
-     * Realiza una petición GET a la API de FacturaScripts
+     * Realiza una petición GET a la API de FacturaScripts.
+     * Los parámetros se serializan a la sintaxis de filtros que espera la API
+     * (`filter[campo]=valor`); los parámetros sueltos serían ignorados por el servidor.
      */
     async get(endpoint, params, connectionKey) {
         try {
             const instance = this.getAxiosInstance(connectionKey);
-            const response = await instance.get(endpoint, { params });
+            const response = await instance.get(endpoint, {
+                params: toApiQueryParams(params),
+            });
             return response.data;
         }
         catch (error) {

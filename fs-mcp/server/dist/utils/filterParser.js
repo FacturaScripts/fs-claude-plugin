@@ -124,4 +124,49 @@ export function buildQueryParams(params) {
     }
     return result;
 }
+/**
+ * Claves reservadas de la API REST de FacturaScripts que NO deben envolverse en `filter[...]`.
+ * Se pasan tal cual a la query string.
+ */
+const RESERVED_QUERY_KEYS = new Set(['offset', 'limit', 'sort', 'operation']);
+/**
+ * Convierte un objeto de parámetros plano en la sintaxis de query que espera la API REST
+ * de FacturaScripts.
+ *
+ * La API solo lee los filtros bajo la clave `filter[...]` (ver APIModel::listAll). Los
+ * parámetros sueltos (ej. `?idfactura=741`) se ignoran en silencio. Esta función envuelve
+ * cada campo de filtro como `filter[campo]=valor`, respetando:
+ *
+ * - Claves reservadas (`offset`, `limit`, `sort`, `operation`): se pasan tal cual.
+ * - Claves que ya vienen en notación de corchetes (`filter[`, `operation[`, `sort[`):
+ *   se pasan verbatim, permitiendo operadores u operaciones lógicas explícitas.
+ * - Resto de claves: se envuelven como `filter[clave]`.
+ *
+ * Los valores `null`/`undefined` se omiten. Los booleanos se convierten a `'1'`/`'0'`
+ * (coherente con el envío de formularios en el cliente).
+ *
+ * @example
+ * toApiQueryParams({ idfactura: 741, codcliente: 'CLI001', limit: 50 })
+ * // { 'filter[idfactura]': '741', 'filter[codcliente]': 'CLI001', limit: '50' }
+ */
+export function toApiQueryParams(params) {
+    const result = {};
+    if (!params) {
+        return result;
+    }
+    for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        const serialized = typeof value === 'boolean' ? (value ? '1' : '0') : String(value);
+        // Claves reservadas o ya en notación de corchetes: se pasan verbatim.
+        if (RESERVED_QUERY_KEYS.has(key) || key.includes('[')) {
+            result[key] = serialized;
+            continue;
+        }
+        // Resto: se envuelve como filtro de igualdad.
+        result[`filter[${key}]`] = serialized;
+    }
+    return result;
+}
 //# sourceMappingURL=filterParser.js.map

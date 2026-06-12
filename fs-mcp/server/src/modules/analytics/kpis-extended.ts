@@ -9,7 +9,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { fetchAllPaginated } from '../../utils/paginate.js';
+import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 
 // ============================================================================
 // Helpers comunes
@@ -554,13 +554,19 @@ export async function handleExtendedAnalyticsTool(
                 // Definición: cruza /lineafacturaclientes con /productos para obtener codfamilia y agregar.
                 // Usa coste y pvptotal de las propias líneas (snapshot del momento de la venta).
                 const codejercicio = input.codejercicio as string | undefined;
-                const lineaParams: Record<string, unknown> = {};
-                if (codejercicio) lineaParams.codejercicio = codejercicio;
 
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated<any>('/lineafacturaclientes', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated<any>('/lineafacturaclientes', {}, connection),
                     fetchAllPaginated<any>('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l: any) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
 
                 const familiaPorReferencia = new Map<string, string>();
                 for (const p of productos) familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
@@ -604,13 +610,19 @@ export async function handleExtendedAnalyticsTool(
             case 'get_ventas_por_fabricante': {
                 // Definición: cruza /lineafacturaclientes con /productos para obtener codfabricante y agregar.
                 const codejercicio = input.codejercicio as string | undefined;
-                const lineaParams: Record<string, unknown> = {};
-                if (codejercicio) lineaParams.codejercicio = codejercicio;
 
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated<any>('/lineafacturaclientes', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated<any>('/lineafacturaclientes', {}, connection),
                     fetchAllPaginated<any>('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l: any) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
 
                 const fabricantePorReferencia = new Map<string, string>();
                 for (const p of productos) fabricantePorReferencia.set(p.referencia, p.codfabricante ?? '(sin fabricante)');
@@ -720,10 +732,16 @@ export async function handleExtendedAnalyticsTool(
                 // por beneficio absoluto y por margen porcentual.
                 const limit = (input.limit as number) || 10;
                 const codejercicio = input.codejercicio as string | undefined;
-                const params: Record<string, unknown> = {};
-                if (codejercicio) params.codejercicio = codejercicio;
 
-                const lineas = await fetchAllPaginated<any>('/lineafacturaclientes', params, connection);
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+
+                const lineasTodas = await fetchAllPaginated<any>('/lineafacturaclientes', {}, connection);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l: any) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 const map: Record<string, {
                     referencia: string;
                     descripcion: string;
@@ -948,13 +966,19 @@ export async function handleExtendedAnalyticsTool(
             case 'get_compras_por_familia': {
                 // Definición: cruza /lineafacturaproveedores con /productos para agregar gasto por familia.
                 const codejercicio = input.codejercicio as string | undefined;
-                const lineaParams: Record<string, unknown> = {};
-                if (codejercicio) lineaParams.codejercicio = codejercicio;
 
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated<any>('/lineafacturaproveedores', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaproveedores', codejercicio, connection)
+                    : undefined;
+
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated<any>('/lineafacturaproveedores', {}, connection),
                     fetchAllPaginated<any>('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l: any) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
 
                 const familiaPorReferencia = new Map<string, string>();
                 for (const p of productos) familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');

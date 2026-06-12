@@ -21,4 +21,17 @@ export declare function fetchAllPaginated<T>(resource: string, params?: Record<s
     pageSize?: number;
     maxRecords?: number;
 }): Promise<T[]>;
+/**
+ * Devuelve el conjunto de `idfactura` de las facturas de un ejercicio.
+ *
+ * Los modelos de líneas (`/lineafacturaclientes`, `/lineafacturaproveedores`) NO tienen
+ * columna `codejercicio`, por lo que no se pueden filtrar por ejercicio directamente en la
+ * API. Este helper obtiene los ids de factura del ejercicio desde la cabecera (que sí tiene
+ * la columna) para poder filtrar las líneas en memoria por `idfactura`.
+ *
+ * @param resourceFacturas recurso de cabeceras (ej. '/facturaclientes', '/facturaproveedores').
+ * @param codejercicio     código de ejercicio a filtrar.
+ * @param connection       clave de la conexión a usar (opcional).
+ */
+export declare function idsFacturasPorEjercicio(resourceFacturas: string, codejercicio: string, connection?: string): Promise<Set<number>>;
 //# sourceMappingURL=paginate.d.ts.map

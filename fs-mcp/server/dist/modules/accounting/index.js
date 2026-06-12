@@ -54,7 +54,7 @@ export const accountingTools = [
                 },
                 descripcion: {
                     type: 'string',
-                    description: 'Descripción del asiento',
+                    description: 'Descripción del asiento (búsqueda parcial)',
                 },
                 fecha: {
                     type: 'string',
@@ -122,7 +122,7 @@ export const accountingTools = [
                 },
                 descripcion: {
                     type: 'string',
-                    description: 'Descripción de la cuenta',
+                    description: 'Descripción de la cuenta (búsqueda parcial)',
                 },
             },
             required: ['connection'],
@@ -156,7 +156,7 @@ export const accountingTools = [
                 },
                 descripcion: {
                     type: 'string',
-                    description: 'Descripción de la subcuenta',
+                    description: 'Descripción de la subcuenta (búsqueda parcial)',
                 },
             },
             required: ['connection'],
@@ -548,7 +548,7 @@ export async function handleAccountingTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 codejercicio: params.codejercicio,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
                 fecha: params.fecha,
             }, params.connection);
             return {
@@ -574,7 +574,7 @@ export async function handleAccountingTool(name, args) {
                 limit: params.limit,
                 codcuenta: params.codcuenta,
                 codejercicio: params.codejercicio,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
             }, params.connection);
             return {
                 content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -587,7 +587,7 @@ export async function handleAccountingTool(name, args) {
                 limit: params.limit,
                 codsubcuenta: params.codsubcuenta,
                 codejercicio: params.codejercicio,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
             }, params.connection);
             return {
                 content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],

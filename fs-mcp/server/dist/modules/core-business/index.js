@@ -66,7 +66,7 @@ export const coreBusinessTools = [
                 },
                 nombre: {
                     type: 'string',
-                    description: 'Filtrar por nombre',
+                    description: 'Filtrar por nombre (búsqueda parcial)',
                 },
                 cifnif: {
                     type: 'string',
@@ -100,7 +100,7 @@ export const coreBusinessTools = [
                 },
                 descripcion: {
                     type: 'string',
-                    description: 'Filtrar por descripción',
+                    description: 'Filtrar por descripción (búsqueda parcial)',
                 },
                 codfamilia: {
                     type: 'string',
@@ -168,7 +168,7 @@ export const coreBusinessTools = [
                 },
                 descripcion: {
                     type: 'string',
-                    description: 'Filtrar por descripción',
+                    description: 'Filtrar por descripción (búsqueda parcial)',
                 },
             },
             required: ['connection'],
@@ -368,7 +368,7 @@ export const coreBusinessTools = [
                 },
                 nombre: {
                     type: 'string',
-                    description: 'Filtrar por nombre',
+                    description: 'Filtrar por nombre (búsqueda parcial)',
                 },
                 email: {
                     type: 'string',
@@ -1407,7 +1407,7 @@ export async function handleCoreBusinessTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 cifnif: params.cifnif,
                 email: params.email,
             }, params.connection);
@@ -1421,7 +1421,7 @@ export async function handleCoreBusinessTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 codproveedor: params.codproveedor,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 cifnif: params.cifnif,
             }, params.connection);
             return {
@@ -1434,7 +1434,7 @@ export async function handleCoreBusinessTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 referencia: params.referencia,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
                 codfamilia: params.codfamilia,
                 codalmacen: params.codalmacen,
             }, params.connection);
@@ -1460,7 +1460,7 @@ export async function handleCoreBusinessTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 codfamilia: params.codfamilia,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
             }, params.connection);
             return {
                 content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1546,7 +1546,7 @@ export async function handleCoreBusinessTool(name, args) {
                 offset: params.offset,
                 limit: params.limit,
                 codcontacto: params.codcontacto,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 email: params.email,
             }, params.connection);
             return {

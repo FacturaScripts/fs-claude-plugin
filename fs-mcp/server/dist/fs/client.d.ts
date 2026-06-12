@@ -14,7 +14,9 @@ declare class FacturaScriptsClient {
      */
     private toFormData;
     /**
-     * Realiza una petición GET a la API de FacturaScripts
+     * Realiza una petición GET a la API de FacturaScripts.
+     * Los parámetros se serializan a la sintaxis de filtros que espera la API
+     * (`filter[campo]=valor`); los parámetros sueltos serían ignorados por el servidor.
      */
     get<T>(endpoint: string, params?: Record<string, unknown>, connectionKey?: string): Promise<T>;
     /**

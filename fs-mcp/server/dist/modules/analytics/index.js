@@ -3,7 +3,7 @@
  * Provides tools for analyzing customer behavior, product sales, billing trends, and business metrics
  */
 import { fsClient } from '../../fs/client.js';
-import { fetchAllPaginated } from '../../utils/paginate.js';
+import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 import { extendedAnalyticsTools, handleExtendedAnalyticsTool } from './kpis-extended.js';
 export const analyticsTools = [
     {
@@ -492,11 +492,16 @@ export async function handleAnalyticsTool(name, args) {
                 const connection = input.connection;
                 const limit = input.limit || 10;
                 const codejercicio = input.codejercicio;
+                // Las líneas no tienen columna codejercicio: si se filtra por ejercicio,
+                // obtenemos los idfactura del ejercicio desde la cabecera y filtramos en memoria.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
                 // Obtener líneas de facturas (paginación completa)
-                const params = {};
-                if (codejercicio)
-                    params.codejercicio = codejercicio;
-                const lineas = await fetchAllPaginated('/lineafacturaclientes', params, connection);
+                const lineasTodas = await fetchAllPaginated('/lineafacturaclientes', {}, connection);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 // Agrupar por referencia de producto, calculando coste y beneficio por línea (coste*cantidad)
                 const productosMap = {};
                 for (const linea of lineas) {
@@ -781,6 +786,19 @@ export async function handleAnalyticsTool(name, args) {
                     };
                 }
                 const factura = facturas[0];
+                // Obtener el email del cliente del documento. Si no existe cliente o no tiene email, queda vacío.
+                let emailCliente = '';
+                if (factura.codcliente) {
+                    try {
+                        const clientes = await fsClient.get('/clientes', { codcliente: factura.codcliente, limit: 1 }, connection);
+                        if (clientes.length > 0 && clientes[0].email) {
+                            emailCliente = clientes[0].email;
+                        }
+                    }
+                    catch {
+                        // Si falla la consulta del cliente, dejamos el email vacío.
+                    }
+                }
                 // Obtener todas las líneas de la factura (paginación completa, una factura puede tener muchas líneas)
                 const lineas = await fetchAllPaginated('/lineafacturaclientes', { idfactura }, connection);
                 const facturaCompleta = {
@@ -790,6 +808,7 @@ export async function handleAnalyticsTool(name, args) {
                     codcliente: factura.codcliente,
                     nombrecliente: factura.nombrecliente,
                     cifnif: factura.cifnif,
+                    email: emailCliente,
                     neto: factura.neto,
                     iva: factura.iva,
                     total: factura.total,

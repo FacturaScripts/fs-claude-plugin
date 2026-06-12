@@ -51,4 +51,26 @@ export async function fetchAllPaginated(resource, params = {}, connection, optio
     }
     return results;
 }
+/**
+ * Devuelve el conjunto de `idfactura` de las facturas de un ejercicio.
+ *
+ * Los modelos de líneas (`/lineafacturaclientes`, `/lineafacturaproveedores`) NO tienen
+ * columna `codejercicio`, por lo que no se pueden filtrar por ejercicio directamente en la
+ * API. Este helper obtiene los ids de factura del ejercicio desde la cabecera (que sí tiene
+ * la columna) para poder filtrar las líneas en memoria por `idfactura`.
+ *
+ * @param resourceFacturas recurso de cabeceras (ej. '/facturaclientes', '/facturaproveedores').
+ * @param codejercicio     código de ejercicio a filtrar.
+ * @param connection       clave de la conexión a usar (opcional).
+ */
+export async function idsFacturasPorEjercicio(resourceFacturas, codejercicio, connection) {
+    const facturas = await fetchAllPaginated(resourceFacturas, { codejercicio }, connection);
+    const ids = new Set();
+    for (const factura of facturas) {
+        if (factura.idfactura !== undefined && factura.idfactura !== null) {
+            ids.add(factura.idfactura);
+        }
+    }
+    return ids;
+}
 //# sourceMappingURL=paginate.js.map

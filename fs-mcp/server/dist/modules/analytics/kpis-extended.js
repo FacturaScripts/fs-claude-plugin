@@ -7,7 +7,7 @@
  *
  * Las definiciones de negocio que aplican van comentadas en cada handler.
  */
-import { fetchAllPaginated } from '../../utils/paginate.js';
+import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 // ============================================================================
 // Helpers comunes
 // ============================================================================
@@ -509,13 +509,17 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 // Definición: cruza /lineafacturaclientes con /productos para obtener codfamilia y agregar.
                 // Usa coste y pvptotal de las propias líneas (snapshot del momento de la venta).
                 const codejercicio = input.codejercicio;
-                const lineaParams = {};
-                if (codejercicio)
-                    lineaParams.codejercicio = codejercicio;
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated('/lineafacturaclientes', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated('/lineafacturaclientes', {}, connection),
                     fetchAllPaginated('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 const familiaPorReferencia = new Map();
                 for (const p of productos)
                     familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
@@ -549,13 +553,17 @@ export async function handleExtendedAnalyticsTool(name, args) {
             case 'get_ventas_por_fabricante': {
                 // Definición: cruza /lineafacturaclientes con /productos para obtener codfabricante y agregar.
                 const codejercicio = input.codejercicio;
-                const lineaParams = {};
-                if (codejercicio)
-                    lineaParams.codejercicio = codejercicio;
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated('/lineafacturaclientes', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated('/lineafacturaclientes', {}, connection),
                     fetchAllPaginated('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 const fabricantePorReferencia = new Map();
                 for (const p of productos)
                     fabricantePorReferencia.set(p.referencia, p.codfabricante ?? '(sin fabricante)');
@@ -644,10 +652,14 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 // por beneficio absoluto y por margen porcentual.
                 const limit = input.limit || 10;
                 const codejercicio = input.codejercicio;
-                const params = {};
-                if (codejercicio)
-                    params.codejercicio = codejercicio;
-                const lineas = await fetchAllPaginated('/lineafacturaclientes', params, connection);
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaclientes', codejercicio, connection)
+                    : undefined;
+                const lineasTodas = await fetchAllPaginated('/lineafacturaclientes', {}, connection);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 const map = {};
                 for (const l of lineas) {
                     const ref = l.referencia;
@@ -835,13 +847,17 @@ export async function handleExtendedAnalyticsTool(name, args) {
             case 'get_compras_por_familia': {
                 // Definición: cruza /lineafacturaproveedores con /productos para agregar gasto por familia.
                 const codejercicio = input.codejercicio;
-                const lineaParams = {};
-                if (codejercicio)
-                    lineaParams.codejercicio = codejercicio;
-                const [lineas, productos] = await Promise.all([
-                    fetchAllPaginated('/lineafacturaproveedores', lineaParams, connection),
+                // Las líneas no tienen codejercicio: filtramos en memoria por idfactura del ejercicio.
+                const idsEjercicio = codejercicio
+                    ? await idsFacturasPorEjercicio('/facturaproveedores', codejercicio, connection)
+                    : undefined;
+                const [lineasTodas, productos] = await Promise.all([
+                    fetchAllPaginated('/lineafacturaproveedores', {}, connection),
                     fetchAllPaginated('/productos', {}, connection),
                 ]);
+                const lineas = idsEjercicio
+                    ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
+                    : lineasTodas;
                 const familiaPorReferencia = new Map();
                 for (const p of productos)
                     familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');

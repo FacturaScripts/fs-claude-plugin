@@ -190,7 +190,7 @@ export const coreBusinessTools: Tool[] = [
         },
         nombre: {
           type: 'string',
-          description: 'Filtrar por nombre',
+          description: 'Filtrar por nombre (búsqueda parcial)',
         },
         cifnif: {
           type: 'string',
@@ -224,7 +224,7 @@ export const coreBusinessTools: Tool[] = [
         },
         descripcion: {
           type: 'string',
-          description: 'Filtrar por descripción',
+          description: 'Filtrar por descripción (búsqueda parcial)',
         },
         codfamilia: {
           type: 'string',
@@ -292,7 +292,7 @@ export const coreBusinessTools: Tool[] = [
         },
         descripcion: {
           type: 'string',
-          description: 'Filtrar por descripción',
+          description: 'Filtrar por descripción (búsqueda parcial)',
         },
       },
       required: ['connection'],
@@ -492,7 +492,7 @@ export const coreBusinessTools: Tool[] = [
         },
         nombre: {
           type: 'string',
-          description: 'Filtrar por nombre',
+          description: 'Filtrar por nombre (búsqueda parcial)',
         },
         email: {
           type: 'string',
@@ -2047,7 +2047,7 @@ export async function handleCoreBusinessTool(
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 cifnif: params.cifnif,
                 email: params.email,
               },
@@ -2066,7 +2066,7 @@ export async function handleCoreBusinessTool(
                 offset: params.offset,
                 limit: params.limit,
                 codproveedor: params.codproveedor,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 cifnif: params.cifnif,
               },
               params.connection,
@@ -2084,7 +2084,7 @@ export async function handleCoreBusinessTool(
                 offset: params.offset,
                 limit: params.limit,
                 referencia: params.referencia,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
                 codfamilia: params.codfamilia,
                 codalmacen: params.codalmacen,
               },
@@ -2120,7 +2120,7 @@ export async function handleCoreBusinessTool(
                 offset: params.offset,
                 limit: params.limit,
                 codfamilia: params.codfamilia,
-                descripcion: params.descripcion,
+                descripcion_like: params.descripcion,
               },
               params.connection,
             );
@@ -2246,7 +2246,7 @@ export async function handleCoreBusinessTool(
                 offset: params.offset,
                 limit: params.limit,
                 codcontacto: params.codcontacto,
-                nombre: params.nombre,
+                nombre_like: params.nombre,
                 email: params.email,
               },
               params.connection,
