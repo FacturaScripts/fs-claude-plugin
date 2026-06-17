@@ -317,6 +317,8 @@ class EditMiEntidad extends PanelController
 
 Añade las claves necesarias **únicamente** en `Translation/es_ES.json`. No crear ni modificar otros archivos de idioma.
 
+Las **claves de traducción deben escribirse siempre en minúsculas** (usa `kebab-case`, separando palabras con guiones). Nunca uses mayúsculas ni `camelCase` en las claves; solo el valor (el texto traducido) puede llevar mayúsculas.
+
 ```json
 {
     "mi-modelos": "Mis Modelos",
@@ -438,7 +440,7 @@ Notificación de entrega:
 - Incluye siempre `primaryDescriptionColumn()` en el modelo
 - Valida en `validate()`, no en el controlador
 - Registra todo en Init.php
-- Crea traducciones para todos los textos visibles únicamente en `Translation/es_ES.json`
+- Crea traducciones para todos los textos visibles únicamente en `Translation/es_ES.json`, con las claves siempre en minúsculas (`kebab-case`)
 
 ## Integración con otros agentes
 
