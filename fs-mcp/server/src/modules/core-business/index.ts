@@ -6,6 +6,31 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
 
+/**
+ * Resuelve el idproducto (clave primaria) de un producto a partir de su referencia.
+ *
+ * La API REST de FacturaScripts direcciona el recurso `productos` por su clave
+ * primaria `idproducto`, no por la `referencia`. Como el usuario trabaja con la
+ * referencia, primero consultamos el producto para obtener su idproducto.
+ */
+async function resolveIdProducto(
+  referencia: string,
+  connection?: string,
+): Promise<number> {
+  const productos = await fsClient.get<Array<{ idproducto: number }>>(
+    '/productos',
+    { referencia, limit: 1 },
+    connection,
+  );
+
+  const producto = Array.isArray(productos) ? productos[0] : undefined;
+  if (!producto) {
+    throw new Error(`No se encontró ningún producto con la referencia "${referencia}".`);
+  }
+
+  return producto.idproducto;
+}
+
 interface ClientesParams {
   connection: string;
   offset?: number;
@@ -779,6 +804,7 @@ interface CreateProductoParams {
 interface UpdateProductoParams {
   connection: string;
   referencia: string;
+  idproducto?: number;
   descripcion?: string;
   pvp?: number;
   precio?: number;
@@ -808,6 +834,7 @@ interface UpdateProductoParams {
 interface DeleteProductoParams {
   connection: string;
   referencia: string;
+  idproducto?: number;
 }
 
 interface CreateContactoParams {
@@ -1339,7 +1366,8 @@ export const coreBusinessWriteTools: Tool[] = [
       type: 'object' as const,
       properties: {
         connection: { type: 'string', description: 'Clave de conexión' },
-        referencia: { type: 'string', description: 'Referencia del producto a actualizar' },
+        referencia: { type: 'string', description: 'Referencia del producto a actualizar (se usa para localizar el idproducto)' },
+        idproducto: { type: 'number', description: 'ID del producto (clave primaria). Si se indica, se usa directamente y se evita la búsqueda por referencia' },
         descripcion: { type: 'string', description: 'Nueva descripción' },
         pvp: { type: 'number', description: 'Nuevo PVP' },
         precio: { type: 'number', description: 'Precio base del modelo' },
@@ -1375,7 +1403,8 @@ export const coreBusinessWriteTools: Tool[] = [
       type: 'object' as const,
       properties: {
         connection: { type: 'string', description: 'Clave de conexión' },
-        referencia: { type: 'string', description: 'Referencia del producto a eliminar' },
+        referencia: { type: 'string', description: 'Referencia del producto a eliminar (se usa para localizar el idproducto)' },
+        idproducto: { type: 'number', description: 'ID del producto (clave primaria). Si se indica, se usa directamente y se evita la búsqueda por referencia' },
       },
       required: ['connection', 'referencia'],
     },
@@ -2354,14 +2383,16 @@ export async function handleCoreBusinessTool(
 
           case 'update_producto': {
             const params = input as any as UpdateProductoParams;
-            const { connection, referencia, ...data } = params;
-            const result = await fsClient.put(`/productos/${referencia}`, data, connection);
+            const { connection, referencia, idproducto, ...data } = params;
+            const id = idproducto ?? await resolveIdProducto(referencia, connection);
+            const result = await fsClient.put(`/productos/${id}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_producto': {
             const params = input as any as DeleteProductoParams;
-            const result = await fsClient.delete(`/productos/${params.referencia}`, params.connection);
+            const id = params.idproducto ?? await resolveIdProducto(params.referencia, params.connection);
+            const result = await fsClient.delete(`/productos/${id}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
