@@ -171,28 +171,6 @@ export const configurationTools = [
         },
     },
     {
-        name: 'get_publications',
-        description: 'Obtiene publicaciones de FacturaScripts',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                connection: {
-                    type: 'string',
-                    description: 'Clave de conexión a usar (opcional, usa la por defecto si no se especifica)',
-                },
-                offset: {
-                    type: 'number',
-                    description: 'Desplazamiento de paginación (por defecto: 0)',
-                },
-                limit: {
-                    type: 'number',
-                    description: 'Límite de paginación (por defecto: 100)',
-                },
-            },
-            required: [],
-        },
-    },
-    {
         name: 'get_totalmodeles',
         description: 'Obtiene total de modelos de FacturaScripts',
         inputSchema: {
@@ -694,10 +672,6 @@ export async function handleConfigurationTool(name, args) {
             }
             case 'get_pages': {
                 result = await fsClient.get('/pages', { offset, limit }, connection);
-                break;
-            }
-            case 'get_publications': {
-                result = await fsClient.get('/publications', { offset, limit }, connection);
                 break;
             }
             case 'get_totalmodeles': {

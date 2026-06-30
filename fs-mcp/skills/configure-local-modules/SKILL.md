@@ -154,6 +154,9 @@ export async function registerTools(toolsMap) {
         connection: { type: 'string', description: 'Clave de conexión' },
         limit: { type: 'number', description: 'Máximo de resultados', default: 50 },
         offset: { type: 'number', description: 'Paginación', default: 0 },
+        // Declara cada filtro como un parámetro propio (recomendado):
+        idproject: { type: 'number', description: 'Filtrar por proyecto' },
+        nombre: { type: 'string', description: 'Filtrar por nombre (búsqueda parcial)' },
       },
       required: [],
     },
@@ -167,6 +170,8 @@ export async function handleTool(name, args, client) {
   const result = await client.get('/mi-endpoint', {
     limit: args.limit ?? 50,
     offset: args.offset ?? 0,
+    idproject: args.idproject,        // se envía como filter[idproject]
+    nombre_like: args.nombre,         // se envía como filter[nombre_like] (LIKE)
   }, args.connection);
 
   return {
@@ -176,6 +181,27 @@ export async function handleTool(name, args, client) {
 ```
 
 El parámetro `client` ya viene configurado con las conexiones de `~/.fs-claude.json` — no necesitas importar nada.
+
+### ⚠️ Filtros: cómo funcionan (importante)
+
+La API REST de FacturaScripts **solo aplica filtros con la sintaxis `filter[campo]=valor`**. Los parámetros sueltos en la URL (`?idproject=1`) se **ignoran en silencio** (la consulta devuelve todo). Para evitar este error, `client.get(endpoint, params, connection)` **envuelve automáticamente** cada clave de `params` como `filter[clave]=valor`, salvo las reservadas `offset`, `limit`, `sort` y `operation` (que se pasan tal cual) y las claves que ya vengan en notación de corchetes (`filter[...]`).
+
+Por tanto, basta con pasar cada campo de filtro directamente en el objeto `params` (patrón recomendado, idéntico al de las tools del servidor principal). Los valores `null`/`undefined` se omiten automáticamente, así que puedes pasar `args.idproject` aunque sea opcional.
+
+**Operadores** — añade un sufijo al nombre del campo:
+
+| Sufijo | Operador | Ejemplo (clave en `params`) |
+|---|---|---|
+| _(ninguno)_ | `=` | `idproject: 1` |
+| `_like` | `LIKE` (búsqueda parcial; el core envuelve con `%…%`) | `nombre_like: 'forja'` |
+| `_gt` / `_gte` | `>` / `>=` | `price_gte: 100` |
+| `_lt` / `_lte` | `<` / `<=` | `creationdate_lte: '2025-12-31'` |
+| `_neq` | `!=` | `type_neq: 'private'` |
+| `_null` / `_notnull` | `IS NULL` / `IS NOT NULL` | `idparent_null: 1` |
+
+> Si filtras por una columna que no existe en el modelo, la API responde con error `api: fields not allowed: <campo>`.
+
+Para ordenar usa `sort[campo]`: `{ 'sort[creationdate]': 'DESC' }`.
 
 ---
 
