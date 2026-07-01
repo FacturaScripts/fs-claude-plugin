@@ -4,10 +4,10 @@ name: Fixer
 permalink: fixer
 creationdate: 12-02-2020
 lastmod: 22-05-2026
-version: 2.22
-betaversion: 2.3
+version: 2.3
+betaversion: 1.9
 mincore: 2025.4
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

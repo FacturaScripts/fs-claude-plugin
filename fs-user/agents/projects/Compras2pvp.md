@@ -3,11 +3,11 @@ idproject: 196
 name: Compras2pvp
 permalink: compras2pvp
 creationdate: 28-03-2022
-lastmod: 25-08-2025
-version: 1.3
+lastmod: 05-06-2026
+version: 1.4
 betaversion: 1.1
-mincore: 2025
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

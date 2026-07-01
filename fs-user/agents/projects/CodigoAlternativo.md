@@ -3,11 +3,11 @@ idproject: 553
 name: CodigoAlternativo
 permalink: codigoalternativo
 creationdate: 03-03-2026
-lastmod: 07-03-2026
-version: 1.01
+lastmod: 01-06-2026
+version: 1.03
 betaversion: 0
-mincore: 2025.7
-maxcore: 2025.9
+mincore: 2026
+maxcore: 2026.3
 compatible: TPVneo
 min_php: 8
 require: 

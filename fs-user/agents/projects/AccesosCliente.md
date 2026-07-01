@@ -3,15 +3,21 @@ idproject: 367
 name: AccesosCliente
 permalink: accesoscliente
 creationdate: 27-05-2024
-lastmod: 10-11-2025
-version: 2
+lastmod: 26-06-2026
+version: 3.1
 betaversion: 1
 mincore: 2025
-maxcore: 2025.61
+maxcore: 2026.3
 compatible: Proyectos
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AccesosCliente
 ---
-Plugin diseñado para facilitar la gestión de contraseñas de los clientes. Con este plugin, podrás almacenar y organizar de manera segura todas las credenciales importantes de tus clientes, esto se puede hacer tanto en el apartado del cliente como en un proyecto si se dispone del plugin proyectos. Esto no solo mejora la eficiencia en la gestión de contraseñas, sino que también permite un acceso rápido y controlado a la información cuando sea necesario.
+Gestor de contraseñas para clientes y proyectos.
+
+Guarda los accesos (usuario, contraseña, URL y notas) CIFRADOS con AES-256-GCM. La contraseña no se precarga en el formulario: se revela o se copia bajo demanda comprobando permisos y registrando cada acceso en un historial de auditoría (quién, cuándo, qué acción e IP).
+
+Incluye generador de contraseñas seguras con medidor de fortaleza, categorías, fecha de caducidad con aviso de renovación, botones de copiado de usuario y contraseña, control por permisos de proyecto y pestaña de accesos en la ficha de cliente y de proyecto.
+
+Funciona con o sin el plugin Proyectos. Compatible con FacturaScripts 2025 y 2026.

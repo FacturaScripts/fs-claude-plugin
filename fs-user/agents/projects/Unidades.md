@@ -3,11 +3,11 @@ idproject: 346
 name: Unidades
 permalink: unidades
 creationdate: 04-01-2024
-lastmod: 24-08-2025
-version: 1.2
+lastmod: 28-05-2026
+version: 1.21
 betaversion: 1.1
 mincore: 2025
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

@@ -3,11 +3,11 @@ idproject: 578
 name: UdsPreciosEnLineas
 permalink: udspreciosenlineas
 creationdate: 08-04-2026
-lastmod: 16-04-2026
-version: 1.11
+lastmod: 29-05-2026
+version: 1.12
 betaversion: 0
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 7.4
 require: 

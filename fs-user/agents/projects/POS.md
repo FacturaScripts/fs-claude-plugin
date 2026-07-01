@@ -7,7 +7,7 @@ lastmod: 12-01-2026
 version: 2.74
 betaversion: 2.73
 mincore: 2025.6
-maxcore: 2025.9
+maxcore: 2026.3
 compatible: SKU,TarifasAvanzadas
 min_php: 8.4
 require: 

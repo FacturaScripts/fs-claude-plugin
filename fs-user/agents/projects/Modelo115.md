@@ -4,10 +4,10 @@ name: Modelo115
 permalink: modelo115
 creationdate: 06-05-2020
 lastmod: 18-05-2026
-version: 1.6
-betaversion: 1.61
+version: 1.61
+betaversion: 1.4
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

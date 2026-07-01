@@ -3,7 +3,7 @@ id: 2283
 permalink: como-marcar-una-factura-como-pagada-desde-api
 title: Cómo marcar una factura como pagada desde API
 creationdate: 09-10-2025 16:05:38
-lastmod: 09-10-2025
+lastmod: 18-06-2026
 url: https://facturascripts.com/publicaciones/como-marcar-una-factura-como-pagada-desde-api
 ---
 Para marcar una factura como pagada desde API debemos usar los endpoints:

@@ -4,10 +4,10 @@ name: TarifasAvanzadas
 permalink: tarifasavanzadas
 creationdate: 07-07-2020
 lastmod: 15-05-2026
-version: 2.4
-betaversion: 2.44
-mincore: 2025.81
-maxcore: 2026.2
+version: 2.44
+betaversion: 2.41
+mincore: 2026
+maxcore: 2026.3
 compatible: CSVimport
 min_php: 
 require: 

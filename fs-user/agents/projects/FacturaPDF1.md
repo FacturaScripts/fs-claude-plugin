@@ -7,7 +7,7 @@ lastmod: 23-02-2026
 version: 2.4
 betaversion: 2.1
 mincore: 2025.1
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: Verifactu
 min_php: 8
 require: 

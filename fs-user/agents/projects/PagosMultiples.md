@@ -3,11 +3,11 @@ idproject: 207
 name: PagosMultiples
 permalink: pagosmultiples
 creationdate: 28-04-2022
-lastmod: 07-01-2026
-version: 2.02
+lastmod: 09-06-2026
+version: 2.03
 betaversion: 0
-mincore: 2025.51
-maxcore: 2025.81
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 8
 require: 

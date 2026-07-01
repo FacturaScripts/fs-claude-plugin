@@ -3,11 +3,11 @@ idproject: 216
 name: EjecucionVentas
 permalink: ejecucionventas
 creationdate: 07-05-2022
-lastmod: 26-08-2025
-version: 1.4
+lastmod: 01-06-2026
+version: 1.5
 betaversion: 1.3
-mincore: 2025
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

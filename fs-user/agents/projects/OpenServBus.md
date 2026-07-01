@@ -7,14 +7,14 @@ lastmod: 27-03-2026
 version: 3.45
 betaversion: 3.3
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/OpenServBus
 ---
-Este plugin está abandonado por el autor, solo se mantiene activo pero no tendrá mejoras.
+Nuevo mantenedor para este plugin.
 
 El All in One que complementa a FacturaScripts para la gestión de empresas de transporte de viajeros. Es el complemento necesario para que FacturaScripts ayude y mejore el funcionamiento de empresas de autobuses y autocares. Le permitirá optimizar sus procesos administrativos y comerciales. Podrá controlar todos los servicios en una sola gestión: Discrecional, Fijos, Escolares, Líneas Regulares, Movimientos en vacío, etc. Desde la creación de presupuestos pasando por la asignación de recursos, taller, administración, tesorería (incluyendo) la generación de los apuntes contables ...... todo a un simple clic de ratón. Contempla la mecanización completa de todas las áreas de la empresa: comercial, trafico, facturación, tesorería, almacén, taller, dirección.
 

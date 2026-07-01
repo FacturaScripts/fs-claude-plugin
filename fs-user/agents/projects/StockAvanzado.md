@@ -3,13 +3,13 @@ idproject: 91
 name: StockAvanzado
 permalink: stockavanzado
 creationdate: 25-07-2020
-lastmod: 20-05-2026
-version: 4.1
+lastmod: 26-05-2026
+version: 4.4
 betaversion: 4.3
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: CSVimport
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/StockAvanzado

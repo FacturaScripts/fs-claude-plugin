@@ -4,10 +4,10 @@ name: Modelo347
 permalink: modelo347
 creationdate: 03-01-2020
 lastmod: 18-05-2026
-version: 3.52
-betaversion: 3.6
+version: 3.6
+betaversion: 3.1
 mincore: 2025.6
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

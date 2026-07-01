@@ -3,11 +3,11 @@ idproject: 472
 name: Template1_ext
 permalink: template1-ext
 creationdate: 19-10-2025
-lastmod: 02-05-2026
-version: 2.33
+lastmod: 18-06-2026
+version: 2.37
 betaversion: 0
 mincore: 2025.43
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: IeOmitelineas
 min_php: 
 require: PlantillasPDF

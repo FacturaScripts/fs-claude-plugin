@@ -3,11 +3,11 @@ idproject: 364
 name: IeGeneraPedidos
 permalink: iegenerapedidos
 creationdate: 10-05-2024
-lastmod: 17-04-2026
-version: 1.2
+lastmod: 29-06-2026
+version: 1.21
 betaversion: 0
 mincore: 2025.3
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

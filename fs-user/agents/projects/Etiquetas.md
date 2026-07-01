@@ -3,11 +3,11 @@ idproject: 72
 name: Etiquetas
 permalink: etiquetas
 creationdate: 22-02-2020
-lastmod: 07-05-2026
-version: 3.01
+lastmod: 12-06-2026
+version: 3.1
 betaversion: 2.93
-mincore: 2025.8
-maxcore: 2026.2
+mincore: 2026
+maxcore: 2026.3
 compatible: Tickets,TarifasAvanzadas
 min_php: 
 require: 

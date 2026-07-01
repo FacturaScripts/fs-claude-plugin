@@ -3,7 +3,7 @@ id: 785
 permalink: secuencias-de-documentos-184
 title: Secuencias de documentos
 creationdate: 30-04-2019 00:00:00
-lastmod: 17-04-2026
+lastmod: 06-06-2026
 url: https://facturascripts.com/publicaciones/secuencias-de-documentos-184
 ---
 No se pueden modificar los numeros de facturas manualmente, pero con las secuencias de documentos podemos cambiar la numeración de facturas, albaranes, pedidos y presupuestos, así como el patrón con el que se genera el código identificador. Para editar las secuencias haga clic en el **menú Administrador**, **Panel de control**, pestaña **secuencias**.
@@ -22,7 +22,7 @@ No se pueden modificar los numeros de facturas manualmente, pero con las secuenc
 	- **{HORA}**: se sustituye por la hora del documento en formato H:i:s en formato 24h, por ejemplo 15:46:21.
 	- **{FECHAHORA}**: se sustituye por la fecha y hora del documento en formato d-m-Y H:i:s, por ejemplo 27-11-2027 18:33:15.
 	- **{ANYO}**: se sustituye por el año del documento, por ejemplo 2027.
-	- **{ANYO2}**: se sustituye por el año del documento, por ejemplo 2027.
+	- **{ANYO2}**: se sustituye por el año del documento, por ejemplo 27.
 	- **{DIA}**: se sustituye por el día del documento, por ejemplo 25.
 	- **{EJE}**: se sustituye por el ejercicio del documento. Por ejemplo: 2027.
 	- **{EJE2}**: se sustituye por los dos últimos caracteres del ejercicio del documento. Por ejemplo: 19.

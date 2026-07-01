@@ -7,7 +7,7 @@ lastmod: 14-04-2026
 version: 2.81
 betaversion: 2.7
 mincore: 2025
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: Informes

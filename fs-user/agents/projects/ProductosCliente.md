@@ -3,12 +3,12 @@ idproject: 584
 name: ProductosCliente
 permalink: productoscliente
 creationdate: 26-04-2026
-lastmod: 22-05-2026
-version: 1.02
+lastmod: 13-06-2026
+version: 1.1
 betaversion: 0
 mincore: 2025
-maxcore: 2026.2
-compatible: 
+maxcore: 2026.3
+compatible: BasicImportExport
 min_php: 
 require: 
 require_php: 
@@ -17,8 +17,8 @@ url: https://facturascripts.com/plugins/ProductosCliente
 El plugin ProductosCliente permite definir para cada producto una referencia, descripción, precio y/o descuento especiales según el cliente al que le vendemos.
 
 Ejemplos:
-	- Un cliente nos pide que en sus presupuestos, albaranes y facturas aparezcan sus referencias de producto (las mismas que usa el cliente internamente en su sistema), o incluso sus descripciones de producto (más detalladas que las nuestras, o en otro idioma, por ejemplo), ya sea para todos los productos que le vendamos o solamente para unos pocos en concreto.
-	- Queremos aplicar descuentos a ciertos productos, con un precio distinto para cada cliente, de forma muy sencilla (sin necesidad de crear y asignar tarifas).
+  - Un cliente nos pide que en sus presupuestos, albaranes y facturas aparezcan sus referencias de producto (las mismas que usa el cliente internamente en su sistema), o incluso sus descripciones de producto (más detalladas que las nuestras, o en otro idioma, por ejemplo), ya sea para todos los productos que le vendamos o solamente para unos pocos en concreto.
+  - Queremos aplicar descuentos a ciertos productos, con un precio distinto para cada cliente, de forma muy sencilla (sin necesidad de crear y asignar tarifas).
 
 Para ello, el plugin añade una nueva sección llamada &quot;Especial por cliente&quot; debajo de cada producto (en la pantalla habitual de los productos, menú Almacén / Productos, seleccionando cualquier producto).
 En un principio esta sección está vacía (ningún cliente tiene nada especial para ese producto), pero le podemos añadir tantos &quot;casos especiales&quot; como queramos, simplemente haciendo clic en el botón &quot;Añadir&quot; y escogiendo para qué cliente será el caso especial.
@@ -42,6 +42,11 @@ Por el momento, este plugin sólo crea casos especiales a nivel de producto, no 
 Si no trabajamos con variantes esto no nos afecta.
 Si trabajamos con productos que tienen 2 o más variantes, deberemos tener en cuenta que las referencias, descripciones, precios y descuentos especiales que creemos en la pantalla del producto serán así para todas las variantes de ese producto.
 Aún en ese caso, sigue siendo correcto definir un descuento especial por cliente para todas las variantes de un producto, o un precio fijo especial por cliente para todas las variantes de un producto, si estas no deben tener precios distintos entre ellas.
+
+
+IMPORTACIÓN DE CASOS ESPECIALES DESDE UN ARCHIVO CSV
+Existe la posibilidad de importar las características especiales de los productos por cliente desde un archivo CSV. 
+Para ello, utilice el plugin gratuito BasicImportExport: https://facturascripts.com/plugins/basicimportexport
 
 
 ACTUALIZACIONES DEL PLUGIN

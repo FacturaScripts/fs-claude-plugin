@@ -3,17 +3,17 @@ id: 2436
 permalink: boton-opciones
 title: Botón opciones
 creationdate: 30-12-2025 16:52:11
-lastmod: 17-04-2026
+lastmod: 26-06-2026
 url: https://facturascripts.com/publicaciones/boton-opciones
 ---
-Todos los listados y formularios de FacturaScripts se pueden personalizar desde el **botón opciones**, situado arriba a la izquierda. Pulsa el botón y selecciona la pestaña o sección a personalizar.
+Todos los listados y formularios de FacturaScripts se pueden personalizar desde el **botón opciones**, situado arriba a la izquierda. Pulsa el botón y selecciona la pestaña o sección a personalizar, no es posible personalizar el color de los listados.
 
-![botón opciones, maquetación y permisos](https://facturascripts.com/MyFiles/2025/12/3788.png?myft=57c971a92732eac84e8a7d24045139de4d1bd022)
+![botón opciones, maquetación y permisos](https://i.imgur.com/5IgiWwP.png)
 
 ## Columnas
 La pantalla de personalización es una tabla con varias columnas, la primera son los **títulos** de las columnas del listado o formulario, después la **visualización**, **nivel**, **solamente lectura**, **decimales**, **ancho** y **orden**.
 
-![opciones listado](https://facturascripts.com/MyFiles/2025/12/3789.png?myft=5152dbc32b68a7f98f131ed9ede2f9889cb54a63)
+![opciones listado](https://i.imgur.com/VzylYB7.png)
 
 ### 👀 Visualización
 Las opciones de vincualización son:

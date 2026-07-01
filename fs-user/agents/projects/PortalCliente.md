@@ -7,7 +7,7 @@ lastmod: 11-03-2026
 version: 2.2
 betaversion: 1.91
 mincore: 2025.5
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: PrePagos,Traducciones
 min_php: 8
 require: 

@@ -3,13 +3,13 @@ idproject: 69
 name: CSVimport
 permalink: csvimport
 creationdate: 15-01-2020
-lastmod: 25-05-2026
+lastmod: 26-05-2026
 version: 6.32
-betaversion: 6.4
+betaversion: 6.41
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: StockAvanzado,TarifasAvanzadas,ConciliacionBancaria
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CSVimport

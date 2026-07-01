@@ -3,11 +3,11 @@ idproject: 328
 name: MegaInvoicer
 permalink: megainvoicer
 creationdate: 27-09-2023
-lastmod: 15-10-2025
-version: 2
+lastmod: 27-05-2026
+version: 2.1
 betaversion: 0
-mincore: 2025.4
-maxcore: 2026.2
+mincore: 2026.3
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

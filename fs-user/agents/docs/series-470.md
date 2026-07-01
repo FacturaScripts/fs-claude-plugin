@@ -3,7 +3,7 @@ id: 779
 permalink: series-470
 title: Las series de facturación
 creationdate: 08-01-2019 00:00:00
-lastmod: 21-04-2026
+lastmod: 11-06-2026
 url: https://facturascripts.com/publicaciones/series-470
 ---
 Las series son una forma de separar la facturación, ya sea por tipo de actividad o por otro motivo. Toda factura debe pertenecer a una serie. Puede configurar las series desde el **menú Contabilidad**, **Series**.
@@ -25,6 +25,8 @@ FacturaScripts crea una **serie general**, una **simplificadas** (*para las fact
 
 ### Serie predeterminada por usuario
 A nivel de usuario también se puede asignar una serie perdeterminada, de forma que cuando el usuario crea una factura se selecciona automáticamente esa serie.
+
+![Serie predeterminada para usuario](https://i.imgur.com/0ZDOEy3.png)
 
 ### Series para clientes y proveedores
 También podemos asignar una serie predeterminada a un cliente/proveedor desde el propio cliente/proveedor, en el **campo serie** del apartado de **términos comerciales**. Así las facturas que hagamos al cliente/proveedor se les asignará la serie seleccionada.

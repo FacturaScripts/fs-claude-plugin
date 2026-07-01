@@ -7,7 +7,7 @@ lastmod: 07-05-2026
 version: 5
 betaversion: 4.51
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: FacturasProgramadas
 min_php: 
 require: 

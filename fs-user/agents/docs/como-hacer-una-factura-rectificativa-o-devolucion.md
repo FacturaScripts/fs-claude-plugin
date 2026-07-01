@@ -3,7 +3,7 @@ id: 963
 permalink: como-hacer-una-factura-rectificativa-o-devolucion
 title: Cómo hacer una factura rectificativa o devolución
 creationdate: 31-07-2021 10:27:40
-lastmod: 09-04-2026
+lastmod: 08-06-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-rectificativa-o-devolucion
 ---
 Para cancelar una factura o realizar una rectificación o devolución, sigue estos pasos:

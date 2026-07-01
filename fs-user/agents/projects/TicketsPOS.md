@@ -7,7 +7,7 @@ lastmod: 31-01-2026
 version: 1.2
 betaversion: 0.1
 mincore: 2025.5
-maxcore: 2025.81
+maxcore: 2026.3
 compatible: 
 min_php: 8.3
 require: POS,Tickets

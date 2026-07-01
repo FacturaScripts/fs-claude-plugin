@@ -3,12 +3,12 @@ idproject: 448
 name: Verifactu
 permalink: verifactu
 creationdate: 27-05-2025
-lastmod: 08-05-2026
-version: 0.86
+lastmod: 24-06-2026
+version: 1.1
 betaversion: 0
 mincore: 2026.1
-maxcore: 2026.2
-compatible: PlantillasPDF
+maxcore: 2026.3
+compatible: PlantillasPDF,CSVimport,Servicios
 min_php: 
 require: 
 require_php: soap
@@ -25,8 +25,3 @@ Sí, es obligatorio para todas las empresas y autónomos ubicados en España, au
 ❎ Excepciones:
 - Los autónomos o empresas residentes en el país vasco quedan excluidas de Verifactu. Deben usar Ticketbai.
 - Las empresas acogidas en el Suministro Inmediato de Información (SII) también están excluidas.
-
-🧪 Modo de pruebas:
-- En el modo de pruebas las facturas se mandan al entorno de pruebas de hacienda, que es como el real, pero sin riesgos.
-- El modo de pruebas está forzado en el plugin hasta nuevo aviso. Para evitar que metas la pata y mandes facturas de prueba al entorno real de hacienda.
-- Cuando el modo real este disponible, simplemente desactiva el modo de pruebas y ya está ✅

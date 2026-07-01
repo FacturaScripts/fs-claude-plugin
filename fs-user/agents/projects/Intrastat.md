@@ -3,11 +3,11 @@ idproject: 419
 name: Intrastat
 permalink: intrastat
 creationdate: 16-01-2025
-lastmod: 06-05-2026
-version: 2.02
+lastmod: 09-06-2026
+version: 2.03
 betaversion: 0
-mincore: 2025.8
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 8
 require: 

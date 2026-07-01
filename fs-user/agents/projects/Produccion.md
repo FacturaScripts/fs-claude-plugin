@@ -3,11 +3,11 @@ idproject: 104
 name: Produccion
 permalink: produccion
 creationdate: 19-10-2020
-lastmod: 28-04-2026
-version: 2.01
-betaversion: 2.03
-mincore: 2025.51
-maxcore: 2026.1
+lastmod: 29-06-2026
+version: 2.05
+betaversion: 2.08
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 8.0
 require: StockAvanzado

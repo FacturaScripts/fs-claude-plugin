@@ -3,19 +3,28 @@ idproject: 350
 name: ExtendedReport
 permalink: extendedreport
 creationdate: 22-01-2024
-lastmod: 18-02-2026
+lastmod: 29-06-2026
 version: 2.01
-betaversion: 0
+betaversion: 2.11
 mincore: 2025.6
-maxcore: 2025.81
+maxcore: 2026.3
 compatible: 
-min_php: 8
+min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExtendedReport
 ---
-Este software permite realizar informes utilizando archivos XML y a partir de un nuevo modelo de datos.
+Plugin para **FacturaScripts** que proporciona el motor necesario para crear informes a medida dentro de otros plugins.
 
-Este plugin no añade por si mismo nuevas opciones a la aplicación si no que añade la estructura necesaria para poder crear desde otros plugins informes personalizados y parametrizados mediante archivos XML.
+Permite generar documentos en **PDF**, exportarlos en **CSV** y visualizarlos en pantalla como **HTML**, a partir de dos piezas que el desarrollador crea en su propio plugin:
 
-Este plugin necesita de conocimientos avanzados de programación para poder utilizarse.
+- Un **modelo de datos PHP** que obtiene las filas a representar.
+- Un **diseño XML** que describe cómo se presenta la información.
+
+## ⚠️ A quién va dirigido
+
+Este plugin **no está pensado para el usuario final**. No añade ninguna opción de menú ni funcionalidad directamente usable. Es una herramienta para **desarrolladores** que crean plugins y quieren incluir informes propios sin partir de cero.
+Para usarlo necesitas conocimientos de:
+- Creación de plugins en FacturaScripts.
+- PHP orientado a objetos.
+- Estructura básica de los archivos XML del core (XMLView).

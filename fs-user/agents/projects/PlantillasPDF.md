@@ -3,13 +3,13 @@ idproject: 47
 name: PlantillasPDF
 permalink: plantillaspdf
 creationdate: 12-04-2019
-lastmod: 14-05-2026
-version: 6.7
+lastmod: 19-06-2026
+version: 6.71
 betaversion: 6.51
-mincore: 2026
-maxcore: 2026.2
+mincore: 2026.1
+maxcore: 2026.3
 compatible: Verifactu,Ticketbai,Proyectos,RemesasSEPA
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PlantillasPDF

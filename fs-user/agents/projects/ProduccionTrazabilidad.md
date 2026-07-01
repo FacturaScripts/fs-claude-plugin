@@ -3,11 +3,11 @@ idproject: 317
 name: ProduccionTrazabilidad
 permalink: producciontrazabilidad
 creationdate: 21-06-2023
-lastmod: 28-04-2026
-version: 2.01
-betaversion: 2.02
-mincore: 2025
-maxcore: 2026.1
+lastmod: 20-06-2026
+version: 2.03
+betaversion: 2.04
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 8.0
 require: Produccion,Trazabilidad

@@ -45,7 +45,7 @@ Migrations::runPluginMigration()
     ↓
 ¿Ya ejecutada? (verifica migrations.json)
     ↓ No
-Migration-&gt;run() (ejecuta las operaciones SQL)
+Migration->run() (ejecuta las operaciones SQL)
     ↓
 Marcar como ejecutada en migrations.json
 ```
@@ -74,7 +74,7 @@ Plugins/
 Crea un archivo en `Plugins/MiPlugin/Migration/` con un nombre descriptivo:
 
 ```php
-&lt;?php
+<?php
 namespace FacturaScripts\Plugins\MiPlugin\Migration;
 
 use FacturaScripts\Core\Template\MigrationClass;
@@ -85,7 +85,7 @@ class RellenarEstadoPedidos extends MigrationClass
      * Identificador único de la migración.
      * Debe ser descriptivo e incluir versión o fecha.
      */
-    const MIGRATION_NAME = &#39;rellenar_estado_pedidos_v1.2.0&#39;;
+    const MIGRATION_NAME = 'rellenar_estado_pedidos_v1.2.0';
 
     /**
      * Ejecuta la lógica de la migración
@@ -93,14 +93,14 @@ class RellenarEstadoPedidos extends MigrationClass
     public function run(): void
     {
         // Verificar que la tabla existe
-        if (!$this-&gt;db()-&gt;tableExists(&#39;pedidoscli&#39;)) {
+        if (!$this->db()->tableExists('pedidoscli')) {
             return;
         }
 
-        // Rellenar el nuevo campo &#39;estado&#39; con valor por defecto
+        // Rellenar el nuevo campo 'estado' con valor por defecto
         // para pedidos que no lo tengan
-        $sql = &quot;UPDATE pedidoscli SET estado = &#39;pendiente&#39; WHERE estado IS NULL OR estado = &#39;&#39;&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        $sql = "UPDATE pedidoscli SET estado = 'pendiente' WHERE estado IS NULL OR estado = ''";
+        $this->db()->exec($sql);
     }
 }
 ```
@@ -110,7 +110,7 @@ class RellenarEstadoPedidos extends MigrationClass
 En el método `update()` de tu plugin:
 
 ```php
-&lt;?php
+<?php
 namespace FacturaScripts\Plugins\MiPlugin;
 
 use FacturaScripts\Core\Base\InitClass;
@@ -142,39 +142,39 @@ class Init extends InitClass
 
 ### Ejemplo 1: Rellenar un nuevo campo con valor por defecto
 
-**Contexto**: Versión 1.2.0 añade el campo &#39;prioridad&#39; a la tabla clientes. Los clientes existentes necesitan un valor por defecto.
+**Contexto**: Versión 1.2.0 añade el campo 'prioridad' a la tabla clientes. Los clientes existentes necesitan un valor por defecto.
 
 ```php
-&lt;?php
+<?php
 namespace FacturaScripts\Plugins\MiPlugin\Migration;
 
 use FacturaScripts\Core\Template\MigrationClass;
 
 /**
- * Rellena el nuevo campo &#39;prioridad&#39; con valor por defecto para clientes existentes.
+ * Rellena el nuevo campo 'prioridad' con valor por defecto para clientes existentes.
  *
  * Versión: 1.2.0
  * Fecha: 2025-02-05
  *
  * Contexto de ejecución:
  * - Usuario actualiza de v1.1.0 a v1.2.0
- * - DbUpdater ya creó el campo &#39;prioridad&#39; (NULL en registros existentes)
+ * - DbUpdater ya creó el campo 'prioridad' (NULL en registros existentes)
  * - Esta migración rellena el campo para clientes existentes
  * - Nuevos clientes tendrán el valor asignado normalmente desde la aplicación
  */
 class RellenarPrioridadClientes extends MigrationClass
 {
-    const MIGRATION_NAME = &#39;rellenar_prioridad_clientes_v1.2.0&#39;;
+    const MIGRATION_NAME = 'rellenar_prioridad_clientes_v1.2.0';
 
     public function run(): void
     {
-        if (!$this-&gt;db()-&gt;tableExists(&#39;clientes&#39;)) {
+        if (!$this->db()->tableExists('clientes')) {
             return;
         }
 
-        // Establecer prioridad &#39;normal&#39; para clientes existentes sin prioridad
-        $sql = &quot;UPDATE clientes SET prioridad = &#39;normal&#39; WHERE prioridad IS NULL OR prioridad = &#39;&#39;&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        // Establecer prioridad 'normal' para clientes existentes sin prioridad
+        $sql = "UPDATE clientes SET prioridad = 'normal' WHERE prioridad IS NULL OR prioridad = ''";
+        $this->db()->exec($sql);
     }
 }
 ```
@@ -182,7 +182,7 @@ class RellenarPrioridadClientes extends MigrationClass
 ### Ejemplo 2: Normalizar datos existentes
 
 ```php
-&lt;?php
+<?php
 namespace FacturaScripts\Plugins\MiPlugin\Migration;
 
 use FacturaScripts\Core\Template\MigrationClass;
@@ -192,17 +192,17 @@ use FacturaScripts\Core\Template\MigrationClass;
  */
 class NormalizarCodigosPostales extends MigrationClass
 {
-    const MIGRATION_NAME = &#39;normalizar_codigos_postales_v2.0.0&#39;;
+    const MIGRATION_NAME = 'normalizar_codigos_postales_v2.0.0';
 
     public function run(): void
     {
-        if (!$this-&gt;db()-&gt;tableExists(&#39;direcciones&#39;)) {
+        if (!$this->db()->tableExists('direcciones')) {
             return;
         }
 
         // Normalizar formato de códigos postales
-        $sql = &quot;UPDATE direcciones SET codpostal = UPPER(TRIM(codpostal)) WHERE codpostal IS NOT NULL&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        $sql = "UPDATE direcciones SET codpostal = UPPER(TRIM(codpostal)) WHERE codpostal IS NOT NULL";
+        $this->db()->exec($sql);
     }
 }
 ```
@@ -213,14 +213,14 @@ class NormalizarCodigosPostales extends MigrationClass
 
 ```php
 // ✓ BIEN: Descriptivo con versión y acción sobre datos
-const MIGRATION_NAME = &#39;rellenar_campo_prioridad_v1.5.0&#39;;
-const MIGRATION_NAME = &#39;migrar_estados_pedidos_v2.0.0&#39;;
-const MIGRATION_NAME = &#39;limpiar_referencias_huerfanas_2025_02_05&#39;;
+const MIGRATION_NAME = 'rellenar_campo_prioridad_v1.5.0';
+const MIGRATION_NAME = 'migrar_estados_pedidos_v2.0.0';
+const MIGRATION_NAME = 'limpiar_referencias_huerfanas_2025_02_05';
 
 // ✗ MAL: Poco descriptivo
-const MIGRATION_NAME = &#39;fix1&#39;;
-const MIGRATION_NAME = &#39;update&#39;;
-const MIGRATION_NAME = &#39;migration&#39;;
+const MIGRATION_NAME = 'fix1';
+const MIGRATION_NAME = 'update';
+const MIGRATION_NAME = 'migration';
 ```
 
 ### 2. Verificaciones de seguridad
@@ -229,12 +229,12 @@ const MIGRATION_NAME = &#39;migration&#39;;
 public function run(): void
 {
     // Siempre verificar que las tablas existen
-    if (!$this-&gt;db()-&gt;tableExists(&#39;mi_tabla&#39;)) {
+    if (!$this->db()->tableExists('mi_tabla')) {
         return;
     }
 
     // Verificar columnas si es necesario
-    $columns = $this-&gt;db()-&gt;getColumns(&#39;mi_tabla&#39;);
+    $columns = $this->db()->getColumns('mi_tabla');
 
     // Tu lógica aquí
 }
@@ -248,22 +248,22 @@ Aunque las migraciones se ejecutan una sola vez, escribe código defensivo:
 // ✓ BIEN: Verifica antes de actualizar
 public function run(): void
 {
-    if (!$this-&gt;db()-&gt;tableExists(&#39;clientes&#39;)) {
+    if (!$this->db()->tableExists('clientes')) {
         return;
     }
 
     // Solo actualizar registros que necesitan cambio
-    $sql = &quot;UPDATE clientes SET tipo = &#39;particular&#39;
-            WHERE tipo IS NULL OR tipo = &#39;&#39;&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $sql = "UPDATE clientes SET tipo = 'particular'
+            WHERE tipo IS NULL OR tipo = ''";
+    $this->db()->exec($sql);
 }
 
 // ✗ MAL: Sin verificaciones
 public function run(): void
 {
     // Podría fallar si la tabla no existe
-    $sql = &quot;UPDATE clientes SET tipo = &#39;particular&#39;&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $sql = "UPDATE clientes SET tipo = 'particular'";
+    $this->db()->exec($sql);
 }
 ```
 
@@ -271,17 +271,17 @@ public function run(): void
 
 ```php
 // Usar sintaxis SQL estándar compatible con MySQL y PostgreSQL
-$sql = &quot;UPDATE clientes SET activo = 1 WHERE activo IS NULL&quot;;
+$sql = "UPDATE clientes SET activo = 1 WHERE activo IS NULL";
 
 // Para operaciones específicas de un motor, detectar primero
-if ($this-&gt;db()-&gt;getEngine() === &#39;mysql&#39;) {
-    $sql = &quot;UPDATE tabla SET fecha = DATE_ADD(fecha, INTERVAL 1 DAY)&quot;;
+if ($this->db()->getEngine() === 'mysql') {
+    $sql = "UPDATE tabla SET fecha = DATE_ADD(fecha, INTERVAL 1 DAY)";
 } else {
-    $sql = &quot;UPDATE tabla SET fecha = fecha + INTERVAL &#39;1 day&#39;&quot;;
+    $sql = "UPDATE tabla SET fecha = fecha + INTERVAL '1 day'";
 }
 
 // Usar métodos de la clase DataBase cuando sea posible
-$valor = $this-&gt;db()-&gt;var2str(&#39;valor&#39;);  // Escapa correctamente para el motor
+$valor = $this->db()->var2str('valor');  // Escapa correctamente para el motor
 ```
 
 ### 5. Documentación
@@ -298,7 +298,7 @@ $valor = $this-&gt;db()-&gt;var2str(&#39;valor&#39;);  // Escapa correctamente p
  */
 class FixFacturasDuplicadas extends MigrationClass
 {
-    const MIGRATION_NAME = &#39;fix_facturas_duplicadas_v1.5.0&#39;;
+    const MIGRATION_NAME = 'fix_facturas_duplicadas_v1.5.0';
 
     // ...
 }
@@ -330,8 +330,8 @@ Las migraciones se ejecutan tras instalar/actualizar, ten en cuenta:
 public function run(): void
 {
     // Esta migración solo afecta a datos existentes
-    $sql = &quot;UPDATE clientes SET prioridad = &#39;alta&#39; WHERE total_anual &gt; 100000&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $sql = "UPDATE clientes SET prioridad = 'alta' WHERE total_anual > 100000";
+    $this->db()->exec($sql);
 }
 
 // ✗ EVITAR: Migraciones que dependen de acciones del usuario
@@ -339,7 +339,7 @@ public function run(): void
 {
     // MAL: Si el usuario no ha creado clientes aún, esto no hace nada útil
     // y la migración ya no se volverá a ejecutar
-    if ($this-&gt;db()-&gt;select(&quot;SELECT COUNT(*) as total FROM clientes&quot;)[0][&#39;total&#39;] == 0) {
+    if ($this->db()->select("SELECT COUNT(*) as total FROM clientes")[0]['total'] == 0) {
         return; // No hace nada si no hay clientes
     }
 }

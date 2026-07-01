@@ -3,15 +3,27 @@ idproject: 362
 name: PagoRecibosRedsys
 permalink: pagorecibosredsys
 creationdate: 03-04-2024
-lastmod: 22-11-2024
-version: 1.3
+lastmod: 26-06-2026
+version: 2.1
 betaversion: 1.3
-mincore: 2024
-maxcore: 2024.92
+mincore: 2025
+maxcore: 2026.3
 compatible: PortalCliente
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PagoRecibosRedsys
 ---
-Plugin diseñado para facilitar el proceso de pago de facturas mediante la integración con la pasarela de pago de Redsys, una plataforma altamente reconocida y ampliamente utilizada en el ámbito financiero español. Este plugin permite la generación de enlaces de pago que se pueden enviar mediante email o copiar y pegar para mandar al cliente, estos enlaces contienen la información de las facturas a las que están asociados estos recibos y, una vez enviados, estos se marcan como pagados. Su compatibilidad abarca una amplia gama de entidades bancarias en España, asegurando una experiencia fluida y segura para los usuarios. Recurso indispensable para empresas y usuarios individuales que buscan optimizar sus operaciones financieras, ofreciendo una vía eficiente y confiable para gestionar el pago de sus obligaciones comerciales, además, Redsys garantiza la seguridad de las transacciones y la integridad de los datos.
+Cobra facturas, presupuestos, pedidos y albaranes con tarjeta a través de Redsys, usando el modelo de Redirección con 3D Secure / SCA real (la pasarela alojada de Redsys gestiona la tarjeta y la autenticación; sin DIRECTPAYMENT, el fallo que provocaba rechazos bancarios en versiones antiguas).
+
+Funciones principales:
+- Enlaces de pago por cada documento, enviables por email, con página que muestra empresa, concepto, cliente e importe.
+- Confirmación doble y fiable: notificación servidor-a-servidor (MERCHANT_URL) y retorno firmado del navegador, ambos verificados e idempotentes. Marca los recibos como pagados.
+- Cobro desde la ficha: en una factura, enlace de pago de uno o varios recibos seleccionados; en un presupuesto, cobro que al pagarse genera un anticipo.
+- Anticipos propios (sin depender de plugins externos) que se convierten en recibos al aplicarlos a una factura.
+- Devoluciones parciales o totales por REST, asociadas al cobro y a sus recibos.
+- Pago desde el PortalCliente: el cliente paga sus facturas pendientes con esta pasarela.
+- Entornos de pruebas y producción separados (cada uno con su FUC, terminal y clave).
+- Multidioma: español, inglés, catalán, gallego, euskera, francés, portugués, alemán e italiano.
+
+Compatible con FacturaScripts 2025 y 2026. PHP 8.1+.

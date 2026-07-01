@@ -3,11 +3,11 @@ idproject: 88
 name: DobleAgente
 permalink: dobleagente
 creationdate: 23-06-2020
-lastmod: 30-11-2025
-version: 3.7
+lastmod: 03-06-2026
+version: 3.8
 betaversion: 3.5
-mincore: 2025.4
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: Comisiones

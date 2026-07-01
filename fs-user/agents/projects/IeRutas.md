@@ -3,11 +3,11 @@ idproject: 426
 name: IeRutas
 permalink: ierutas
 creationdate: 21-02-2025
-lastmod: 03-09-2025
-version: 1.2
+lastmod: 11-06-2026
+version: 1.3
 betaversion: 0
-mincore: 2025.3
-maxcore: 2026.2
+mincore: 2025
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

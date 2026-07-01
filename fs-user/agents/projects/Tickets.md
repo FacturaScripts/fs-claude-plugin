@@ -3,13 +3,13 @@ idproject: 140
 name: Tickets
 permalink: tickets
 creationdate: 07-08-2021
-lastmod: 27-03-2026
-version: 2.8
+lastmod: 26-05-2026
+version: 3
 betaversion: 2.4
-mincore: 2025.6
-maxcore: 2026.2
+mincore: 2026
+maxcore: 2026.3
 compatible: PrePagos
-min_php: 
+min_php: 8.1
 require: 
 require_php: intl
 url: https://facturascripts.com/plugins/Tickets

@@ -3,11 +3,11 @@ idproject: 78
 name: Modelo303
 permalink: modelo303
 creationdate: 16-04-2020
-lastmod: 25-03-2026
+lastmod: 17-06-2026
 version: 2.91
-betaversion: 2.61
+betaversion: 3
 mincore: 2025.6
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

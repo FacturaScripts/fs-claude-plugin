@@ -4,12 +4,12 @@ name: AIDocumentos
 permalink: aidocumentos
 creationdate: 10-03-2026
 lastmod: 18-05-2026
-version: 6.5
-betaversion: 7.1
+version: 7.1
+betaversion: 0
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
-min_php: 8.0
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AIDocumentos

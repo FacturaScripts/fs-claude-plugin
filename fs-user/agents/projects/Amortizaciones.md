@@ -3,11 +3,11 @@ idproject: 319
 name: Amortizaciones
 permalink: amortizaciones
 creationdate: 14-08-2023
-lastmod: 10-11-2025
-version: 2.01
+lastmod: 28-05-2026
+version: 2.03
 betaversion: 0
-mincore: 2025.51
-maxcore: 2025.81
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 8
 require: 

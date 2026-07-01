@@ -3,14 +3,14 @@ idproject: 606
 name: Caja
 permalink: caja
 creationdate: 24-05-2026
-lastmod: 24-05-2026
-version: 1.3
-betaversion: 0
+lastmod: 29-06-2026
+version: 2.77
+betaversion: 2.73
 mincore: 2025
-maxcore: 2026.1
-compatible: 
+maxcore: 2026.3
+compatible: Anticipos
 min_php: 
-require: 
+require: Tickets
 require_php: 
 url: https://facturascripts.com/plugins/Caja
 ---

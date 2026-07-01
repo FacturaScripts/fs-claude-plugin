@@ -3,18 +3,18 @@ idproject: 351
 name: InformesEstadisticos
 permalink: informesestadisticos
 creationdate: 22-01-2024
-lastmod: 18-02-2026
+lastmod: 29-06-2026
 version: 2.03
-betaversion: 0
+betaversion: 2.05
 mincore: 2025.6
-maxcore: 2025.81
+maxcore: 2026.3
 compatible: 
-min_php: 8
+min_php: 8.0
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/InformesEstadisticos
 ---
-Mediante este plugin para FacturaScripts podrá obtener informes estadísticos en formato PDF, en base a los datos de los documentos de compra y venta introducidos en la aplicación y según su ejercicio, pudiendo comparar los datos un ejercicio anterior.
+Mediante este plugin para FacturaScripts podrá obtener informes estadísticos en formato HTML, PDF y/o CSV, en base a los datos de los documentos de compra y venta introducidos en la aplicación y según su ejercicio, pudiendo comparar los datos un ejercicio anterior.
 
 Los informes se agrupan diferentes grupos según su origen o funcionalidad: 
     - Clientes: Ventas realizadas con márgenes respecto a otros ejercicios.

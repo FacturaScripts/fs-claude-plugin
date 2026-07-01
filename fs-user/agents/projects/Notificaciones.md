@@ -7,7 +7,7 @@ lastmod: 06-05-2026
 version: 2.2
 betaversion: 1.8
 mincore: 2026.1
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: RemesasSEPA,InformeSII,Verifactu,Ticketbai,TPVneo,Modelo111,Modelo115,Modelo130,Modelo303,Modelo347
 min_php: 
 require: 

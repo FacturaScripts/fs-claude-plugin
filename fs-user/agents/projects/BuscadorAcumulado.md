@@ -3,12 +3,12 @@ idproject: 603
 name: BuscadorAcumulado
 permalink: buscadoracumulado
 creationdate: 15-05-2026
-lastmod: 19-05-2026
-version: 2
+lastmod: 18-06-2026
+version: 2.44
 betaversion: 0
 mincore: 2025
-maxcore: 2026.2
-compatible: Comentarioprivado
+maxcore: 2026.3
+compatible: Comentarioprivado,Prepagos
 min_php: 
 require: 
 require_php: 
@@ -20,7 +20,7 @@ Muy útil para hacer búsquedas en las vistas principales y también en sus list
 
 Cada vez que se van acotando los resultados, se muestran solo las líneas acordes al contexto en cada pestaña y se indica en las pestañas el número de documentos o líneas encontradas así como dentro de la vista en el texto de información los encontrados del total, por ejemplo: 12 documentos de 45 ó 140 líneas de 1500...etc
 
-Funciona en todos los listados del sistema (facturas, albaranes, pedidos, clientes, proveedores, artículos, etc.) sin necesidad de configuración.
+Funciona en todos los listados del sistema (facturas, albaranes, pedidos, clientes, proveedores, artículos, etc.) sin necesidad de configuración, además de mostrar el número de documentos de la vista principal acorde a la busqueda también actualiza el número de líneas de sus pestañas relacionadas. Por ejemplo Vista Facturas y sus otras pestañas Líneas y Recibos.
 
 **Búsqueda acumulativa:**
 - Pulsa el botón de capas (🗂) junto al buscador para activar el modo. El botón se pone en amarillo cuando está activo.
@@ -50,20 +50,10 @@ Selecciona el operador desde el desplegable junto al buscador antes de escribir 
 - Filtras la vista principal → las vistas relacionadas muestran automáticamente solo los registros de los resultados filtrados.
 - Las vistas relacionadas muestran un badge con el contador de registros (&quot;Recibos: 12 de 180&quot;, &quot;Variantes: 5 de 43&quot;...).
 
-**Tipos de vista relacionada:**
-
-| Vista | Comportamiento | Ejemplos |
-|---|---|---|
-| Líneas de documento | Buscador acumulado completo + sincronización bidireccional | Líneas de pedido, factura, albarán |
-| Detalle con FK* | Solo botón limpiar 🗂✕ — reciben el filtro del padre automáticamente | Recibos, Variantes, Stock, Direcciones, Cuentas bancarias |
-| Detalle sin FK* | Solo botón limpiar 🗂✕ — vista independiente en el mismo controlador | Grupos de clientes |
-
-*FK (Foreign Key): clave foránea en base de datos. Es el campo que relaciona una tabla hija con su tabla padre. Por ejemplo `idfactura` en recibos apunta a la factura padre, `idproducto` en variantes apunta al producto padre.
-
 **Selector de campo:**
 - Con el modo activo, aparece una fila de casillas con los campos buscables del listado.
 - Por defecto está marcado **Todos** — busca en todos los campos como siempre.
-- Marca una casilla para limitar la siguiente búsqueda a ese campo. La casilla activa aparece en negrita.
+- Marca una casilla para limitar la siguiente búsqueda a ese campo. La casilla activa aparece en negrita, por ejemplo Cliente
 - El campo seleccionado persiste hasta que lo cambies, permitiendo acumular términos en el mismo campo o combinar campos distintos: `[Cliente] &quot;norte&quot; AND [Observaciones] &quot;urgente&quot;`.
 - Sin modo activo las casillas no aparecen — no afectan al funcionamiento normal del buscador.
 
@@ -71,12 +61,14 @@ Selecciona el operador desde el desplegable junto al buscador antes de escribir 
 - Si tienes instalado el plugin Comentarioprivado, el campo &quot;Comentario privado&quot; aparece como columna buscable en los listados de albaranes, facturas, pedidos y presupuestos de venta.
 - BuscadorAcumulado lo detecta automáticamente e incluye ese campo en todas las búsquedas acumuladas — sin ninguna configuración adicional.
 - Permite buscar y cruzar anotaciones internas con cualquier otro campo del documento usando AND, OR y NOT.
+Por ejemplo: buscar en comentarioprivado el texto: &quot;pasar a cobrar&quot;, ó &quot;faltan artículos&quot; junto con otras búsquedas acumuladas...
 
 **Coordinación con los botones del core:**
 - &quot;Todos&quot; y cargar un filtro guardado limpian también la acumulación.
 - &quot;Limpiar filtros&quot; y la papelera solo limpian los filtros del panel — el stack acumulado se mantiene.
 
+** Desde la v2.1 compatible con busquedas mediante filtros de panel y/o botones de búsquedas guardadas.
 
 **Combina Potencia con Simplicidad al hacer las busquedas acumuladas**
 
-**Ir a la documentación para ver como funciona el plugin.**
+**Ir a la documentación para ver como funciona en profundidad el plugin.**

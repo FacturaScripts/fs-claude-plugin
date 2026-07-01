@@ -3,7 +3,7 @@ id: 950
 permalink: usuarios-y-permisos
 title: Usuarios y permisos
 creationdate: 17-07-2021 09:27:33
-lastmod: 17-04-2026
+lastmod: 26-06-2026
 url: https://facturascripts.com/publicaciones/usuarios-y-permisos
 ---
 Para usar FacturaScripts es necesario un usuario y contraseña, así se evita que cualquiera pueda acceder a sus datos. Puede gestionar la lista de usuarios de FacturaScripts desde el **menú Administrador** → **Usuarios**.

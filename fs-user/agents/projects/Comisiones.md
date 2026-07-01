@@ -3,13 +3,13 @@ idproject: 191
 name: Comisiones
 permalink: comisiones
 creationdate: 12-03-2022
-lastmod: 11-12-2025
-version: 2.23
+lastmod: 03-06-2026
+version: 2.3
 betaversion: 1.4
-mincore: 2025.61
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
-min_php: 8
+min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Comisiones

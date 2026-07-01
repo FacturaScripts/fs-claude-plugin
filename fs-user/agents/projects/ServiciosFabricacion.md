@@ -3,11 +3,11 @@ idproject: 188
 name: ServiciosFabricacion
 permalink: serviciosfabricacion
 creationdate: 28-02-2022
-lastmod: 05-05-2026
-version: 2.81
+lastmod: 03-06-2026
+version: 2.9
 betaversion: 2.6
-mincore: 2025.8
-maxcore: 2026.2
+mincore: 2026
+maxcore: 2026.3
 compatible: StockAvanzado
 min_php: 
 require: Servicios

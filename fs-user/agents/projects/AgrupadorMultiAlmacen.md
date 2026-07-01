@@ -3,11 +3,11 @@ idproject: 157
 name: AgrupadorMultiAlmacen
 permalink: agrupadormultialmacen
 creationdate: 25-10-2021
-lastmod: 05-09-2025
+lastmod: 05-06-2026
 version: 1.6
-betaversion: 1.4
+betaversion: 1.7
 mincore: 2025.3
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: StockAvanzado

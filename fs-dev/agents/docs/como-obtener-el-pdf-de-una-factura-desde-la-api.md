@@ -3,7 +3,7 @@ id: 1778
 permalink: como-obtener-el-pdf-de-una-factura-desde-la-api
 title: Obtener el PDF de una factura desde la API
 creationdate: 14-06-2024 21:13:15
-lastmod: 11-10-2025
+lastmod: 18-06-2026
 url: https://facturascripts.com/publicaciones/como-obtener-el-pdf-de-una-factura-desde-la-api
 ---
 A partir de la versión **2024.5** de FacturaScripts ya es posible descargar el PDF de una factura de cliente a través de la API. Simplemente hay que hacer una petición **GET** al endpoint ``api/3/exportarFacturaCliente/123``, reemplazando 123 por el id de la factura.

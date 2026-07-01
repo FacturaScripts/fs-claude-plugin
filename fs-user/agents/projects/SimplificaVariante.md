@@ -3,13 +3,13 @@ idproject: 549
 name: SimplificaVariante
 permalink: simplificavariante
 creationdate: 21-02-2026
-lastmod: 21-02-2026
-version: 1
+lastmod: 28-05-2026
+version: 1.01
 betaversion: 0
-mincore: 2025.7
-maxcore: 2025.81
+mincore: 2026
+maxcore: 2026.3
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/SimplificaVariante

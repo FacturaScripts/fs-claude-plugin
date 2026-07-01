@@ -61,9 +61,9 @@ Una vez instalado:
 
 ## Si usas FacturaScripts en tu PC (ServBay)
 
-1. Abre ServBay y ve al apartado &quot;Paquetes&quot; en el lateral izquierdo.
-2. Selecciona PHP en la seccion de &quot;Lenguajes&quot; y comprueba si ya tienes instalada la versión de PHP deseada, si no, simplemente dale a descargar en la felcha verde.
-3. Ahora ve a la sección &quot;Sitios web&quot; del lateral izquierdo, haz clic en tu instalación web de FS y busca el campo &quot;Versión de PHP&quot; y selecciona la deseada.
+1. Abre ServBay y ve al apartado "Paquetes" en el lateral izquierdo.
+2. Selecciona PHP en la seccion de "Lenguajes" y comprueba si ya tienes instalada la versión de PHP deseada, si no, simplemente dale a descargar en la felcha verde.
+3. Ahora ve a la sección "Sitios web" del lateral izquierdo, haz clic en tu instalación web de FS y busca el campo "Versión de PHP" y selecciona la deseada.
 
 Nota: En la configuración de ServBay tambien puede establecer la versión de PHP que quiera usar por defecto, ya que ServBay permite tener múltiples versiones de PHP a la vez y usar una u otra en cada instalacion como se quiera.
 

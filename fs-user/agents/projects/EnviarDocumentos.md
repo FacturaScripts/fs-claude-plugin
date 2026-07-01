@@ -3,11 +3,11 @@ idproject: 118
 name: EnviarDocumentos
 permalink: enviardocumentos
 creationdate: 25-03-2021
-lastmod: 22-05-2026
-version: 2
-betaversion: 2.1
+lastmod: 28-05-2026
+version: 2.11
+betaversion: 1.7
 mincore: 2025.8
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

@@ -20,13 +20,15 @@ $this-&gt;response-&gt;json([&#39;mis_datos&#39; =&gt; &#39;1234&#39;]);
 $this-&gt;response()-&gt;json([&#39;mis_datos&#39; =&gt; &#39;1234&#39;]);
 ```
 
-## Constantes de Código de Estado HTTP
+## 🔢 Constantes de Código de Estado HTTP
 - HTTP_OK (200)
 - HTTP_BAD_REQUEST (400)
 - HTTP_UNAUTHORIZED (401)
 - HTTP_FORBIDDEN (403)
 - HTTP_NOT_FOUND (404)
 - HTTP_METHOD_NOT_ALLOWED (405)
+- HTTP_CONFLICT (409)
+- HTTP_UNPROCESSABLE_ENTITY (422)
 - HTTP_INTERNAL_SERVER_ERROR (500)
 
 ## Propiedades Públicas
@@ -34,7 +36,7 @@ $this-&gt;response()-&gt;json([&#39;mis_datos&#39; =&gt; &#39;1234&#39;]);
 
 ## Métodos Públicos
 
-### header(string $name, string $value): self
+### ✉️ header(string $name, string $value): self
 Establece una cabecera HTTP para la respuesta.
 
 ```php
@@ -106,14 +108,14 @@ Indica al navegador que elimine una cookie estableciendo su tiempo de expiració
 $this-&gt;response-&gt;withoutCookie(&#39;session&#39;);
 ```
 
-### json(array $data): void
+### 📦 json(array $data): void
 Prepara y envía una respuesta en formato JSON. Establece la cabecera Content-Type a application/json.
 
 ```php
 $this-&gt;response-&gt;json([&#39;hola&#39; =&gt; &#39;mundo&#39;]);
 ```
 
-### view(string $view, array $data = []): void
+### 🖼️ view(string $view, array $data = []): void
 Renderiza una vista de plantilla y la establece como contenido de la respuesta. Envía la respuesta con Content-Type: text/html.
 
 ```php
@@ -143,7 +145,7 @@ Prepara una respuesta para forzar la descarga de un fichero. Establece las cabec
 $this-&gt;response-&gt;download(FS_FOLDER . &#39;/MyFiles/public/fatura-230.xml&#39;, &#39;fatura230.xml&#39;);
 ```
 
-### pdf(string $content, string $file_name = &#39;&#39;): void
+### 🧾 pdf(string $content, string $file_name = &#39;&#39;): void
 Prepara y envía una respuesta con contenido PDF. Establece las cabeceras apropiadas para mostrar un PDF en el navegador.
 
 ```php
@@ -154,7 +156,7 @@ $miContenidoPdf = file_get_contents(FS_FOLDER . &#39;/MyFiles/public/miArchivo.p
 $this-&gt;response-&gt;pdf($miContenidoPdf, &#39;miArchivo.pdf&#39;);
 ```
 
-### send(): void
+### 📤 send(): void
 Envía la respuesta completa (código de estado, cabeceras, cookies y contenido) al cliente.
 
 ```php
@@ -163,10 +165,11 @@ $this-&gt;response
     -&gt;setContent(&#39;OK&#39;)
     -&gt;header(&#39;Content-Type&#39;, &#39;text/plain&#39;)
     -&gt;send();
-
-// normalmente &#39;send()&#39; se llama automáticamente dependiendo del método de Response
-// revisar Core/Response.php para ver en qué métodos se llama &#39;send()&#39;
 ```
+
+Los métodos `json()`, `view()`, `file()`, `download()` y `pdf()` ya llaman a `send()` automáticamente. En cambio `header()`, `setContent()`, `setHttpCode()`, `cookie()` y `redirect()` solo preparan la respuesta, por lo que hay que terminar llamando a `send()`.
+
+Además, `send()` es idempotente: la respuesta solo se envía una vez, las llamadas posteriores no hacen nada.
 
 ### 🚫 disableSend(bool $disable = true): self
 Deshabilita el envío de la respuesta. Útil para tests o para manipular la respuesta antes de enviarla.

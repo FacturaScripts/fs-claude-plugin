@@ -3,7 +3,7 @@ id: 2149
 permalink: como-hacer-una-factura-rectificativa-por-api
 title: Cómo hacer una factura rectificativa por API
 creationdate: 18-06-2025 18:55:50
-lastmod: 30-12-2025
+lastmod: 18-06-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-rectificativa-por-api
 ---
 Desde la versión **2024.94** de FacturaScripts es posible crear facturas rectificativas con una sola petición POST a la API, utilizando el endpoint **crearFacturaRectificativaCliente**.

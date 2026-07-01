@@ -3,11 +3,11 @@ idproject: 146
 name: Modelo130
 permalink: modelo130
 creationdate: 22-08-2021
-lastmod: 18-05-2026
-version: 3.8
-betaversion: 3.9
-mincore: 2025.6
-maxcore: 2026.2
+lastmod: 10-06-2026
+version: 3.91
+betaversion: 3.6
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

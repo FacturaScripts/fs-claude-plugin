@@ -3,11 +3,11 @@ idproject: 175
 name: Informes
 permalink: informes
 creationdate: 28-12-2021
-lastmod: 30-03-2026
+lastmod: 15-06-2026
 version: 3.91
-betaversion: 3.82
+betaversion: 4
 mincore: 2025.6
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: Modelo303,Modelo115,Modelo111,CRM
 min_php: 
 require: 

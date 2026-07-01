@@ -3,13 +3,13 @@ idproject: 358
 name: escalaPrecios
 permalink: escalaprecios
 creationdate: 16-02-2024
-lastmod: 16-05-2026
-version: 2.7
+lastmod: 24-06-2026
+version: 3
 betaversion: 2.6
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: 
-min_php: 8.0
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/escalaPrecios

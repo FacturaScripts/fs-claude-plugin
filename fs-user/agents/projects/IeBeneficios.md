@@ -3,11 +3,11 @@ idproject: 217
 name: IeBeneficios
 permalink: iebeneficios
 creationdate: 07-05-2022
-lastmod: 26-03-2026
-version: 3.4
+lastmod: 27-05-2026
+version: 3.5
 betaversion: 2.7
-mincore: 2025.3
-maxcore: 2026.2
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: TarifasAvanzadas

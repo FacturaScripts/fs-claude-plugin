@@ -3,7 +3,7 @@ id: 605
 permalink: instalacion-desde-el-zip-331
 title: Instalación desde el ZIP
 creationdate: 26-04-2018 00:00:00
-lastmod: 20-05-2026
+lastmod: 11-06-2026
 url: https://facturascripts.com/publicaciones/instalacion-desde-el-zip-331
 ---
 FacturaScripts es una aplicación web, similar a un blog o una tienda en línea. Para poder usarlo, **necesitas un servidor web** como Apache. Puedes consultar la [lista completa de requisitos](https://facturascripts.com/publicaciones/requisitos-917).
@@ -15,7 +15,7 @@ A continuación, se detallan los pasos para realizar la instalación en tu servi
 3. Abre una nueva pestaña en tu **navegador** e introduce la URI de tu sitio web. Si lo has instalado localmente, esta suele ser `http://localhost/NOMBRE_CARPETA`, donde `NOMBRE_CARPETA` es el nombre de la carpeta de FacturaScripts.
 4. Aparecerá la pantalla del instalador de FacturaScripts. Completa el formulario y finaliza la instalación.
 
-![Instalador de FacturaScripts](https://i.imgur.com/lUnJP8a.png)
+![Instalador de FacturaScripts](https://i.imgur.com/MClpqEz.png)
 
 ## 🔑 Usuario y contraseña
 Una vez instalado FacturaScripts, se crea automáticamente un usuario administrador con las siguientes credenciales:

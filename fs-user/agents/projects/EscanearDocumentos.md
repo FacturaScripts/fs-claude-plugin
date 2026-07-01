@@ -3,11 +3,11 @@ idproject: 334
 name: EscanearDocumentos
 permalink: escaneardocumentos
 creationdate: 07-11-2023
-lastmod: 22-04-2026
-version: 3.7
+lastmod: 02-06-2026
+version: 3.8
 betaversion: 3.5
 mincore: 2025.8
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

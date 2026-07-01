@@ -3,11 +3,11 @@ idproject: 259
 name: PrePagos
 permalink: prepagos
 creationdate: 05-10-2022
-lastmod: 11-05-2026
-version: 2.5
-betaversion: 2.12
-mincore: 2025.6
-maxcore: 2026.2
+lastmod: 12-06-2026
+version: 2.6
+betaversion: 3
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

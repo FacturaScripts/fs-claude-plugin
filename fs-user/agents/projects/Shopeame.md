@@ -3,11 +3,11 @@ idproject: 101
 name: Shopeame
 permalink: shopeame
 creationdate: 08-10-2020
-lastmod: 23-04-2026
-version: 1.6
-betaversion: 1.53
+lastmod: 23-06-2026
+version: 1.7
+betaversion: 1.8
 mincore: 2025.6
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

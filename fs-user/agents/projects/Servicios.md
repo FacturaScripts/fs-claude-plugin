@@ -7,7 +7,7 @@ lastmod: 14-05-2026
 version: 4.21
 betaversion: 4.13
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: Proyectos,StockAvanzado
 min_php: 
 require: 

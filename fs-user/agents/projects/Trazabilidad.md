@@ -7,7 +7,7 @@ lastmod: 22-05-2026
 version: 2.22
 betaversion: 2.1
 mincore: 2025.8
-maxcore: 2026.2
+maxcore: 2026.3
 compatible: StockAvanzado
 min_php: 
 require: 

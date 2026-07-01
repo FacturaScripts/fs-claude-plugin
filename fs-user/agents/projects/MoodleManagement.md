@@ -3,11 +3,11 @@ idproject: 555
 name: MoodleManagement
 permalink: moodlemanagement
 creationdate: 06-03-2026
-lastmod: 01-04-2026
-version: 1.1
+lastmod: 30-06-2026
+version: 2
 betaversion: 0.9
-mincore: 2025.6
-maxcore: 2026.2
+mincore: 2025.8
+maxcore: 2026.3
 compatible: 
 min_php: 8
 require: 

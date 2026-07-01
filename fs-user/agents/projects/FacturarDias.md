@@ -3,11 +3,11 @@ idproject: 289
 name: FacturarDias
 permalink: facturardias
 creationdate: 12-02-2023
-lastmod: 25-08-2025
-version: 1.5
+lastmod: 03-06-2026
+version: 1.6
 betaversion: 1.4
-mincore: 2025
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 

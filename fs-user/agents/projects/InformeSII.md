@@ -3,13 +3,13 @@ idproject: 280
 name: InformeSII
 permalink: informesii
 creationdate: 03-01-2023
-lastmod: 19-02-2026
-version: 2.8
+lastmod: 16-06-2026
+version: 2.91
 betaversion: 2.4
-mincore: 2025.6
-maxcore: 2026.1
+mincore: 2026
+maxcore: 2026.3
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: soap,openssl
 url: https://facturascripts.com/plugins/InformeSII

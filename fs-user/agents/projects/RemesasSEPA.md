@@ -3,11 +3,11 @@ idproject: 65
 name: RemesasSEPA
 permalink: remesassepa
 creationdate: 02-12-2019
-lastmod: 13-04-2026
+lastmod: 15-06-2026
 version: 3.1
-betaversion: 2.6
+betaversion: 3.2
 mincore: 2025.6
-maxcore: 2026.1
+maxcore: 2026.3
 compatible: 
 min_php: 
 require: 
