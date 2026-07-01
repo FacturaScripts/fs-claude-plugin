@@ -70,8 +70,14 @@ Plugins/MiPlugin/
         <name>mi_tabla_pkey</name>
         <type>PRIMARY KEY (id)</type>
     </constraint>
+    <index>
+        <name>mi_tabla_fecha_idx</name>
+        <columns>fecha</columns>
+    </index>
 </table>
 ```
+
+Además de `<constraint>` (PRIMARY KEY, FOREIGN KEY, UNIQUE), el XML de tabla admite `<index>` para índices normales sobre columnas usadas en `WHERE`, `ORDER BY` o `JOIN`. Para índices compuestos o casos avanzados, invoca al agente `sql-expert`.
 
 ### Regla Dinamic — OBLIGATORIA en todos los `use`
 

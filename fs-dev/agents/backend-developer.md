@@ -222,7 +222,7 @@ Construir componentes backend robustos siguiendo los patrones de FacturaScripts.
 
 Áreas de desarrollo:
 - Definir modelo PHP con propiedades tipadas
-- Crear esquema XML de tabla con constraints
+- Crear esquema XML de tabla con constraints (`PRIMARY KEY`/`FOREIGN KEY`/`UNIQUE`) e índices (`<index>`)
 - Implementar validaciones en `validate()`
 - Configurar valores por defecto en `clear()`
 - Crear workers para procesamiento asíncrono

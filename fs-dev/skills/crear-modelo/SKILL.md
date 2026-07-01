@@ -113,8 +113,14 @@ Archivo: `Plugins/MiPlugin/Table/nombre_tabla.xml`
         <name>nombre_tabla_pkey</name>
         <type>PRIMARY KEY (id)</type>
     </constraint>
+    <index>
+        <name>nombre_tabla_creation_date_idx</name>
+        <columns>creation_date</columns>
+    </index>
 </table>
 ```
+
+El `<index>` es opcional: úsalo cuando una columna (no clave) se use habitualmente en `WHERE`, `ORDER BY` o `JOIN`, para mejorar el rendimiento de las consultas.
 
 ## Tipos de columna más comunes
 
@@ -159,6 +165,7 @@ $modelo->delete();
 - Usar solo minúsculas en nombres de columnas y en formato snake_case
 - El XML va en `Table/`, no en `Data/Table/`
 - La tabla se crea automáticamente, no hace falta SQL manual
+- Además de `<constraint>` (PRIMARY KEY, FOREIGN KEY, UNIQUE), el XML admite la etiqueta `<index>` para índices normales. Para índices compuestos o casos avanzados, invoca al agente `sql-expert`
 
 
 ## Para más información
