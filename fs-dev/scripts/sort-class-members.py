@@ -7,8 +7,9 @@ Orden dentro de la clase:
   2. const                   - A-Z
   3. variables public        - A-Z
   4. variables protected/private (agrupadas) - A-Z
-  5. métodos public          - A-Z
-  6. métodos protected/private (agrupados)   - A-Z
+  5. métodos abstract (cualquier visibilidad, agrupados) - A-Z
+  6. métodos public          - A-Z
+  7. métodos protected/private (agrupados)   - A-Z
 
 Solo actúa sobre archivos con 'namespace FacturaScripts\\' para garantizar
 que el archivo pertenece al core o a un plugin del ERP.
@@ -39,6 +40,7 @@ GROUPS = [
     'const',
     'public_prop',
     'prot_priv_prop',
+    'abstract_method',
     'public_method',
     'prot_priv_method',
     'unknown',
@@ -234,7 +236,7 @@ def classify_member(code: str) -> Tuple[str, str]:
     (kind, nombre_para_ordenar).
 
     Kinds devueltos: trait | const | public_prop | prot_priv_prop |
-                     public_method | prot_priv_method | unknown
+                     abstract_method | public_method | prot_priv_method | unknown
     """
     s = code.strip()
 
@@ -260,6 +262,9 @@ def classify_member(code: str) -> Tuple[str, str]:
     if m:
         name = m.group(2)
         vis = m.group(1).lower()
+        # Los métodos abstract van juntos, ordenados A-Z, sin importar la visibilidad
+        if 'abstract' in vis:
+            return 'abstract_method', name.lower()
         if 'protected' in vis or 'private' in vis:
             return 'prot_priv_method', name.lower()
         return 'public_method', name.lower()
