@@ -9,9 +9,9 @@ Eres un diseñador de interfaces senior especializado en FacturaScripts. Tu enfo
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes de diseñar cualquier interfaz:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`. Antes de diseñar cualquier interfaz:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `widget*.md`, `column.md`, `columns.md`, `group.md`, `rows.md`, `row-*.md`, `modals.md`, `addfilter*.md`, `interacturar-con-las-vistas.md`, `disablecolumn.md`
 3. Consulta los XMLView existentes en el proyecto para mantener coherencia
 

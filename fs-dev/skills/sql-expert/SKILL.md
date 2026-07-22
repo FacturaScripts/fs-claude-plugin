@@ -33,7 +33,7 @@ Tarea: [descripción exacta de lo que necesita el usuario]
 ```
 
 El agente:
-1. Consulta la documentación en `./agents/docs/` (acceso-a-la-base-de-datos, dbquery, definición de tablas, relaciones, migraciones)
+1. Consulta la documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` (acceso-a-la-base-de-datos, dbquery, definición de tablas, relaciones, migraciones)
 2. Analiza el esquema de tablas existente si es necesario
 3. Implementa la solución siguiendo las convenciones de FacturaScripts
 4. Crea los archivos necesarios (Table XML, migraciones, índices, queries)

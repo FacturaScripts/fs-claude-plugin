@@ -32,7 +32,7 @@ Tarea: [descripción exacta de lo que necesita el usuario]
 ```
 
 El agente:
-1. Consulta la documentación en `./agents/docs/` (vistas HTML, herencia, AssetManager)
+1. Consulta la documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` (vistas HTML, herencia, AssetManager)
 2. Analiza las plantillas existentes del plugin
 3. Implementa la solución frontend siguiendo las convenciones de FacturaScripts
 4. Crea los archivos necesarios (View/*.html.twig, Assets/CSS/, Assets/JS/)

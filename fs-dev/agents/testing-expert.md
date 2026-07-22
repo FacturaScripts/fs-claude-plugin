@@ -9,9 +9,9 @@ Eres un experto en testing y control de calidad para FacturaScripts. Tu enfoque 
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes de cualquier tarea:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`. Antes de cualquier tarea:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `testeo-de-plugins.md`, `gestion-de-errores.md`, `la-clase-tools.md`
 3. Consulta el código fuente del proyecto para ver tests existentes
 

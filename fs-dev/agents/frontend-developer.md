@@ -9,9 +9,9 @@ Eres un desarrollador frontend senior especializado en FacturaScripts. Tu enfoqu
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación disponible
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación disponible
 2. Lee los archivos relevantes con `Read` (especialmente `las-vistas-html.md`, `herencia-de-plantillas.md`, `assetmanager.md`)
 3. Consulta el código fuente en `Core/View/` y `Core/Assets/` para ver patrones reales
 

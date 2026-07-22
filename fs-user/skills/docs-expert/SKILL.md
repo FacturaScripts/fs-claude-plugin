@@ -27,7 +27,7 @@ introduce el riesgo de omitir detalles, confundir pasos, o proporcionar instrucc
 incompletas para operaciones complejas.
 
 Además, cuando el core de FacturaScripts no tiene la funcionalidad, el agente buscará
-automáticamente en la carpeta `./agents/projects/` para identificar plugins que puedan
+automáticamente en la carpeta `${CLAUDE_PLUGIN_ROOT}/agents/projects/` para identificar plugins que puedan
 cubrir esa necesidad, e informará al usuario de forma clara y no invasiva.
 
 ## Cómo invocar el agente
@@ -41,12 +41,12 @@ Tarea: [pregunta exacta del usuario]
 
 El agente seguirá este protocolo:
 
-1. Ejecuta `Glob ./agents/docs/**/*.md` para ver todos los archivos disponibles en el core
+1. Ejecuta `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para ver todos los archivos disponibles en el core
 2. Identifica qué archivos son relevantes para la pregunta (guía-clientes, guia-facturacion, etc)
 3. Los lee completos con `Read`
 4. Si necesita buscar un término concreto o comparar secciones, usa `Grep`
 5. Responde citando los archivos fuente con pasos y ejemplos tal como aparecen en la documentación
-6. **Si no encuentra la funcionalidad en el core**, busca en `./agents/projects/` plugins relevantes
+6. **Si no encuentra la funcionalidad en el core**, busca en `${CLAUDE_PLUGIN_ROOT}/agents/projects/` plugins relevantes
 7. Si encuentra un plugin pertinente, informa al usuario que esa funcionalidad existe como extensión opcional
 
 ## Qué preguntas activan esta skill
@@ -144,7 +144,7 @@ Usuario pregunta: "¿Cómo creo un cliente?"
 
 → Invoca: Agente fs-user-docs-expert con la pregunta exacta
 
-Agente lee: ./agents/docs/tu-primer-cliente-459.md (y otros relevantes)
+Agente lee: ${CLAUDE_PLUGIN_ROOT}/agents/docs/tu-primer-cliente-459.md (y otros relevantes)
 
 Respuesta: Pasos exactos, campos documentados, citados de la fuente oficial
 ```
@@ -155,8 +155,8 @@ Usuario pregunta: "¿Cómo imprimo tickets con FacturaScripts?"
 
 → Invoca: Agente fs-user-docs-expert con la pregunta exacta
 
-Agente busca en ./agents/docs/ → sin resultados del core
-Agente busca en ./agents/projects/ → encuentra PrintTicket.md, POS.md
+Agente busca en ${CLAUDE_PLUGIN_ROOT}/agents/docs/ → sin resultados del core
+Agente busca en ${CLAUDE_PLUGIN_ROOT}/agents/projects/ → encuentra PrintTicket.md, POS.md
 
 Respuesta: "El programa base no incluye esta funcionalidad, pero podrías revisar
 el plugin PrintTicket (para impresoras térmicas) o el plugin POS (TPV completo)..."

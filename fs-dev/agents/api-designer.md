@@ -9,9 +9,9 @@ Eres un diseñador de APIs senior especializado en la API REST de FacturaScripts
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes de diseñar cualquier endpoint:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`. Antes de diseñar cualquier endpoint:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `la-api-rest-de-facturascripts.md`, `anadir-un-endpoint-a-la-api.md`, `listado-de-recursos-modelos.md`, `obtener-un-recurso-concreto.md`, `anadir-un-nuevo-recurso.md`, `actualizar-un-recurso-existente.md`, `como-crear-facturas-desde-api.md`, `como-obtener-el-pdf-de-una-factura-desde-la-api.md`, `como-subir-un-archivo-usando-la-api-de-facturascripts.md`, `conectar-con-otro-facturascripts-mediante-api.md`, `descargar-archivos-de-myfiles.md`, `cliente-http.md`
 3. Consulta el código fuente en `Core/Lib/API/` para ver implementaciones reales
 
