@@ -3,6 +3,7 @@
  * Provides tools for analyzing customer behavior, product sales, billing trends, and business metrics
  */
 import { fsClient } from '../../fs/client.js';
+import { parseFsDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 import { extendedAnalyticsTools, handleExtendedAnalyticsTool } from './kpis-extended.js';
 export const analyticsTools = [
@@ -296,7 +297,7 @@ export async function handleAnalyticsTool(name, args) {
                 const now = new Date();
                 const recibosPorCliente = {};
                 for (const recibo of recibos) {
-                    const vence = recibo.vencimiento ? new Date(recibo.vencimiento) : null;
+                    const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
                     const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
                     if (!estaVencido)
                         continue;
@@ -341,7 +342,7 @@ export async function handleAnalyticsTool(name, args) {
                 // Agrupar códigos de clientes que compraron en el período
                 const clientesConCompras = new Set();
                 for (const factura of facturas) {
-                    const fechaFactura = new Date(factura.fecha);
+                    const fechaFactura = parseFsDate(factura.fecha);
                     if (fechaFactura >= fechaLimite) {
                         clientesConCompras.add(factura.codcliente);
                     }
@@ -355,14 +356,14 @@ export async function handleAnalyticsTool(name, args) {
                         let diasSinCompras = Infinity;
                         for (const factura of facturas) {
                             if (factura.codcliente === cliente.codcliente) {
-                                const fechaFactura = new Date(factura.fecha);
-                                if (!ultimaCompra || new Date(ultimaCompra) < fechaFactura) {
+                                const fechaFactura = parseFsDate(factura.fecha);
+                                if (!ultimaCompra || parseFsDate(ultimaCompra) < fechaFactura) {
                                     ultimaCompra = factura.fecha;
                                 }
                             }
                         }
                         if (ultimaCompra) {
-                            const días = Math.floor((ahora.getTime() - new Date(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24));
+                            const días = Math.floor((ahora.getTime() - parseFsDate(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24));
                             diasSinCompras = días;
                         }
                         clientesPerdidos.push({
@@ -583,7 +584,7 @@ export async function handleAnalyticsTool(name, args) {
                 // Identificar las facturas dentro del rango de fechas
                 const facturasEnRango = new Set();
                 for (const factura of facturas) {
-                    const fechaFactura = new Date(factura.fecha);
+                    const fechaFactura = parseFsDate(factura.fecha);
                     if (fechaFactura >= fechaLimite) {
                         facturasEnRango.add(factura.idfactura);
                     }
@@ -695,7 +696,7 @@ export async function handleAnalyticsTool(name, args) {
                 // Agrupar por mes (totaliva, totalcoste, totalbeneficio son nombres reales en factura_cliente)
                 const mesesMap = {};
                 for (const factura of facturas) {
-                    const fecha = new Date(factura.fecha);
+                    const fecha = parseFsDate(factura.fecha);
                     const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
                     let agregado = mesesMap[mes];
                     if (!agregado) {
@@ -741,7 +742,7 @@ export async function handleAnalyticsTool(name, args) {
                 // Agrupar por mes (totaliva, totalcoste, totalbeneficio son nombres reales en factura_cliente)
                 const mesesMap = {};
                 for (const factura of facturas) {
-                    const fecha = new Date(factura.fecha);
+                    const fecha = parseFsDate(factura.fecha);
                     const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
                     let agregado = mesesMap[mes];
                     if (!agregado) {
