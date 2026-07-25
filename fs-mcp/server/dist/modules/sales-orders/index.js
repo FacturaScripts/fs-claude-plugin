@@ -3,6 +3,7 @@
  * Incluye: Presupuestos, Pedidos, Albaranes, Facturas y Recibos de clientes
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const salesOrdersTools = [
     {
         name: 'get_presupuestoclientes',
@@ -737,6 +738,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_presupuestoclientes': {
             const params = input;
             const result = await fsClient.get('/presupuestoclientes', {
+                ...dateRangeFilters('get_presupuestoclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -763,6 +765,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_pedidoclientes': {
             const params = input;
             const result = await fsClient.get('/pedidoclientes', {
+                ...dateRangeFilters('get_pedidoclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -789,6 +792,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_albaranclientes': {
             const params = input;
             const result = await fsClient.get('/albaranclientes', {
+                ...dateRangeFilters('get_albaranclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -814,6 +818,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_facturaclientes': {
             const params = input;
             const result = await fsClient.get('/facturaclientes', {
+                ...dateRangeFilters('get_facturaclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -842,6 +847,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_reciboclientes': {
             const params = input;
             const result = await fsClient.get('/reciboclientes', {
+                ...dateRangeFilters('get_reciboclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -856,6 +862,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_pagoclientes': {
             const params = input;
             const result = await fsClient.get('/pagoclientes', {
+                ...dateRangeFilters('get_pagoclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 idrecibo: params.idrecibo,
@@ -915,6 +922,7 @@ export async function handleSalesOrdersTool(name, args) {
         case 'get_cuentabancoclientes': {
             const params = input;
             const result = await fsClient.get('/cuentabancoclientes', {
+                ...dateRangeFilters('get_cuentabancoclientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,

@@ -1,4 +1,5 @@
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const accountingTools = [
     {
         name: 'get_ejercicios',
@@ -533,6 +534,7 @@ export async function handleAccountingTool(name, args) {
         case 'get_ejercicios': {
             const params = input;
             const result = await fsClient.get('/ejercicios', {
+                ...dateRangeFilters('get_ejercicios', input),
                 offset: params.offset,
                 limit: params.limit,
                 codejercicio: params.codejercicio,
@@ -545,6 +547,7 @@ export async function handleAccountingTool(name, args) {
         case 'get_asientos': {
             const params = input;
             const result = await fsClient.get('/asientos', {
+                ...dateRangeFilters('get_asientos', input),
                 offset: params.offset,
                 limit: params.limit,
                 codejercicio: params.codejercicio,

@@ -3,6 +3,7 @@
  * Provides tools for accessing communication and notification data
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const communicationTools = [
     {
         name: 'get_emailsentes',
@@ -175,7 +176,7 @@ export async function handleCommunicationTool(name, args) {
         let result;
         switch (name) {
             case 'get_emailsentes': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_emailsentes', args) };
                 if (args.destinatario)
                     params.destinatario = args.destinatario;
                 if (args.asunto)
@@ -186,11 +187,11 @@ export async function handleCommunicationTool(name, args) {
                 break;
             }
             case 'get_emailnotifications': {
-                result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
+                result = await fsClient.get('/emailnotifications', { offset, limit, ...dateRangeFilters('get_emailnotifications', args) }, connection);
                 break;
             }
             case 'get_attachedfiles': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_attachedfiles', args) };
                 if (args.modelo)
                     params.modelo = args.modelo;
                 if (args.modelid)
@@ -199,7 +200,7 @@ export async function handleCommunicationTool(name, args) {
                 break;
             }
             case 'get_attachedfilerelations': {
-                result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
+                result = await fsClient.get('/attachedfilerelations', { offset, limit, ...dateRangeFilters('get_attachedfilerelations', args) }, connection);
                 break;
             }
             case 'create_emailnotification': {

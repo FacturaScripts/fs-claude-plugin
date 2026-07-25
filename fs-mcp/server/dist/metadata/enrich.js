@@ -20,7 +20,7 @@ import { getAllModelMetadata, getModelMetadata as registryGetMeta } from './regi
  *   - create_X / update_X / delete_X → X es snake_case singular del modelo.
  *   - get_X → X es el endpoint REST sin barra (suele ser plural concatenado).
  */
-function resolveModelFromToolName(toolName) {
+export function resolveModelFromToolName(toolName) {
     const match = toolName.match(/^(get|create|update|delete)_(.+)$/);
     if (!match)
         return undefined;

@@ -3,6 +3,7 @@
  * Provides tools for accessing system logs, tasks, and events
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const systemTools = [
     {
         name: 'get_logmessages',
@@ -344,7 +345,7 @@ export async function handleSystemTool(name, args) {
         let result;
         switch (name) {
             case 'get_logmessages': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_logmessages', args) };
                 if (args.channel)
                     params.channel = args.channel;
                 if (args.level)
@@ -355,11 +356,11 @@ export async function handleSystemTool(name, args) {
                 break;
             }
             case 'get_cronjobes': {
-                result = await fsClient.get('/cronjobes', { offset, limit }, connection);
+                result = await fsClient.get('/cronjobes', { offset, limit, ...dateRangeFilters('get_cronjobes', args) }, connection);
                 break;
             }
             case 'get_workeventes': {
-                result = await fsClient.get('/workeventes', { offset, limit }, connection);
+                result = await fsClient.get('/workeventes', { offset, limit, ...dateRangeFilters('get_workeventes', args) }, connection);
                 break;
             }
             case 'get_roles': {
@@ -390,7 +391,7 @@ export async function handleSystemTool(name, args) {
                 break;
             }
             case 'get_users': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_users', args) };
                 if (args.nick)
                     params.nick = args.nick;
                 if (args.email)

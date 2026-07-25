@@ -18,6 +18,7 @@ import { registerSystemTools, handleSystemTool } from './modules/system/index.js
 import { registerAnalyticsTools, handleAnalyticsTool } from './modules/analytics/index.js';
 import { registerSchemaTools, handleSchemaTool } from './modules/schema/index.js';
 import { listSchemaResources, readSchemaResource } from './resources/schema-resources.js';
+import { addDateRangeParams } from './metadata/dateRange.js';
 import { enrichAllTools } from './metadata/enrich.js';
 import { bootstrapCoreMetadata, getAllModelMetadata } from './metadata/registry.js';
 import { loadLocalModules } from './local-loader.js';
@@ -125,6 +126,10 @@ async function registerAllTools() {
     await registerCommunicationTools(tools);
     await registerSystemTools(tools);
     await registerAnalyticsTools(tools);
+    // Tools del core, ANTES de cargar las locales: solo a éstas se les inyectan los
+    // filtros de rango de fecha (paso 8), porque son las únicas cuyos handlers los
+    // reenvían. Los módulos locales ya ofrecen rangos por su propio parámetro `filter`.
+    const coreToolNames = new Set(tools.keys());
     // 4. Cargar módulos locales privados: registran sus tools y, si los exponen,
     // sus modelos en el registry de metadata.
     localModuleHandlers = await loadLocalModules(tools);
@@ -140,6 +145,11 @@ async function registerAllTools() {
     const stats = enrichAllTools(tools);
     console.error(`[fs-mcp] Tools enriquecidas: ${stats.toolsEnriched}/${stats.toolsProcessed} ` +
         `(+${stats.descriptionsAdded} descripciones, +${stats.maxLengthsAdded} maxLength, +${stats.enumsAdded} enums)`);
+    // 8. Añadir a las tools get_* los filtros de rango (<columna>_gte / <columna>_lte)
+    // de sus columnas de fecha. Los handlers reenvían esos mismos parámetros usando
+    // la misma regla (metadata/dateRange.ts), así esquema y reenvío no pueden divergir.
+    const dateRangeParams = addDateRangeParams(tools, coreToolNames);
+    console.error(`[fs-mcp] Filtros de rango de fecha añadidos: ${dateRangeParams}`);
 }
 /**
  * List resources handler: expone la metadata de modelos como MCP Resources

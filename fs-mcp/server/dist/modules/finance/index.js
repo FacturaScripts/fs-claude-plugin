@@ -1,4 +1,5 @@
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const financeTools = [
     {
         name: 'get_cuentabancos',
@@ -446,6 +447,7 @@ export async function handleFinanceTool(name, args) {
         case 'get_regularizacionimpuestos': {
             const params = input;
             const result = await fsClient.get('/regularizacionimpuestos', {
+                ...dateRangeFilters('get_regularizacionimpuestos', input),
                 offset: params.offset,
                 limit: params.limit,
                 codejercicio: params.codejercicio,

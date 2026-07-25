@@ -28,7 +28,7 @@ interface EnrichStats {
  *   - create_X / update_X / delete_X → X es snake_case singular del modelo.
  *   - get_X → X es el endpoint REST sin barra (suele ser plural concatenado).
  */
-declare function resolveModelFromToolName(toolName: string): ModelMetadata | undefined;
+export declare function resolveModelFromToolName(toolName: string): ModelMetadata | undefined;
 /**
  * Determina si una description existente es trivial (vacía o solo el nombre del campo).
  * Por ahora solo se considera trivial la cadena vacía o nula.
