@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const configurationTools: Tool[] = [
   {
@@ -702,7 +703,7 @@ export async function handleConfigurationTool(
       }
 
       case 'get_empresas': {
-        result = await fsClient.get('/empresas', { offset, limit }, connection);
+        result = await fsClient.get('/empresas', { offset, limit, ...dateRangeFilters('get_empresas', args) }, connection);
         break;
       }
 
@@ -712,7 +713,7 @@ export async function handleConfigurationTool(
       }
 
       case 'get_apikeyes': {
-        result = await fsClient.get('/apikeyes', { offset, limit }, connection);
+        result = await fsClient.get('/apikeyes', { offset, limit, ...dateRangeFilters('get_apikeyes', args) }, connection);
         break;
       }
 
@@ -722,7 +723,7 @@ export async function handleConfigurationTool(
       }
 
       case 'get_pageoptions': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_pageoptions', args) };
         if (args.name) params.name = args.name;
         if (args.nick) params.nick = args.nick;
         result = await fsClient.get('/pageoptions', params, connection);

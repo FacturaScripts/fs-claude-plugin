@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const geographicTools: Tool[] = [
   {
@@ -367,7 +368,7 @@ export async function handleGeographicTool(
 
     switch (name) {
       case 'get_pais': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_pais', args) };
         if (args.codpais) params.codpais = args.codpais;
         if (args.nombre) params.nombre = args.nombre;
         result = await fsClient.get('/pais', params, connection);
@@ -375,7 +376,7 @@ export async function handleGeographicTool(
       }
 
       case 'get_provincias': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_provincias', args) };
         if (args.codpais) params.codpais = args.codpais;
         if (args.provincia) params.provincia = args.provincia;
         result = await fsClient.get('/provincias', params, connection);
@@ -383,7 +384,7 @@ export async function handleGeographicTool(
       }
 
       case 'get_ciudades': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_ciudades', args) };
         if (args.ciudad) params.ciudad = args.ciudad;
         if (args.codpais) params.codpais = args.codpais;
         if (args.codpostal) params.codpostal = args.codpostal;
@@ -392,7 +393,7 @@ export async function handleGeographicTool(
       }
 
       case 'get_codigopostales': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_codigopostales', args) };
         if (args.codpostal) params.codpostal = args.codpostal;
         if (args.ciudad) params.ciudad = args.ciudad;
         result = await fsClient.get('/codigopostales', params, connection);
@@ -400,7 +401,7 @@ export async function handleGeographicTool(
       }
 
       case 'get_puntointeresciudades': {
-        result = await fsClient.get('/puntointeresciudades', { offset, limit }, connection);
+        result = await fsClient.get('/puntointeresciudades', { offset, limit, ...dateRangeFilters('get_puntointeresciudades', args) }, connection);
         break;
       }
 

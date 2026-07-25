@@ -3,6 +3,7 @@
  * Provides tools for accessing geographic and location data
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const geographicTools = [
     {
         name: 'get_pais',
@@ -354,7 +355,7 @@ export async function handleGeographicTool(name, args) {
         let result;
         switch (name) {
             case 'get_pais': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_pais', args) };
                 if (args.codpais)
                     params.codpais = args.codpais;
                 if (args.nombre)
@@ -363,7 +364,7 @@ export async function handleGeographicTool(name, args) {
                 break;
             }
             case 'get_provincias': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_provincias', args) };
                 if (args.codpais)
                     params.codpais = args.codpais;
                 if (args.provincia)
@@ -372,7 +373,7 @@ export async function handleGeographicTool(name, args) {
                 break;
             }
             case 'get_ciudades': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_ciudades', args) };
                 if (args.ciudad)
                     params.ciudad = args.ciudad;
                 if (args.codpais)
@@ -383,7 +384,7 @@ export async function handleGeographicTool(name, args) {
                 break;
             }
             case 'get_codigopostales': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_codigopostales', args) };
                 if (args.codpostal)
                     params.codpostal = args.codpostal;
                 if (args.ciudad)
@@ -392,7 +393,7 @@ export async function handleGeographicTool(name, args) {
                 break;
             }
             case 'get_puntointeresciudades': {
-                result = await fsClient.get('/puntointeresciudades', { offset, limit }, connection);
+                result = await fsClient.get('/puntointeresciudades', { offset, limit, ...dateRangeFilters('get_puntointeresciudades', args) }, connection);
                 break;
             }
             case 'create_pais': {

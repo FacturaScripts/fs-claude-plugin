@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PresupuestoclientesParams {
   connection: string;
@@ -907,6 +908,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/presupuestoclientes',
               {
+                ...dateRangeFilters('get_presupuestoclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -943,6 +945,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/pedidoclientes',
               {
+                ...dateRangeFilters('get_pedidoclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -979,6 +982,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/albaranclientes',
               {
+                ...dateRangeFilters('get_albaranclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -1014,6 +1018,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/facturaclientes',
               {
+                ...dateRangeFilters('get_facturaclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -1052,6 +1057,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/reciboclientes',
               {
+                ...dateRangeFilters('get_reciboclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -1071,6 +1077,7 @@ export async function handleSalesOrdersTool(
             const result = await fsClient.get(
               '/pagoclientes',
               {
+                ...dateRangeFilters('get_pagoclientes', input as Record<string, unknown>),
                 offset: params.offset,
                 limit: params.limit,
                 idrecibo: params.idrecibo,
@@ -1144,6 +1151,7 @@ export async function handleSalesOrdersTool(
       const result = await fsClient.get(
         '/cuentabancoclientes',
         {
+          ...dateRangeFilters('get_cuentabancoclientes', input as Record<string, unknown>),
           offset: params.offset,
           limit: params.limit,
           codcliente: params.codcliente,

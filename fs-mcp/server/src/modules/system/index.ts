@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const systemTools: Tool[] = [
   {
@@ -357,7 +358,7 @@ export async function handleSystemTool(
 
     switch (name) {
       case 'get_logmessages': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_logmessages', args) };
         if (args.channel) params.channel = args.channel;
         if (args.level) params.level = args.level;
         if (args.fecha) params.fecha = args.fecha;
@@ -366,12 +367,12 @@ export async function handleSystemTool(
       }
 
       case 'get_cronjobes': {
-        result = await fsClient.get('/cronjobes', { offset, limit }, connection);
+        result = await fsClient.get('/cronjobes', { offset, limit, ...dateRangeFilters('get_cronjobes', args) }, connection);
         break;
       }
 
       case 'get_workeventes': {
-        result = await fsClient.get('/workeventes', { offset, limit }, connection);
+        result = await fsClient.get('/workeventes', { offset, limit, ...dateRangeFilters('get_workeventes', args) }, connection);
         break;
       }
 
@@ -400,7 +401,7 @@ export async function handleSystemTool(
       }
 
       case 'get_users': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_users', args) };
         if (args.nick) params.nick = args.nick;
         if (args.email) params.email = args.email;
         if (args.enabled !== undefined) params.enabled = args.enabled;

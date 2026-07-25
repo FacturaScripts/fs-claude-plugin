@@ -3,6 +3,7 @@
  * Incluye: Clientes, Proveedores, Productos, Familias, Fabricantes, Almacenes, etc.
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 /**
  * Resuelve el idproducto (clave primaria) de un producto a partir de su referencia.
  *
@@ -1421,6 +1422,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_clientes': {
             const params = input;
             const result = await fsClient.get('/clientes', {
+                ...dateRangeFilters('get_clientes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcliente: params.codcliente,
@@ -1435,6 +1437,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_proveedores': {
             const params = input;
             const result = await fsClient.get('/proveedores', {
+                ...dateRangeFilters('get_proveedores', input),
                 offset: params.offset,
                 limit: params.limit,
                 codproveedor: params.codproveedor,
@@ -1448,6 +1451,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_productos': {
             const params = input;
             const result = await fsClient.get('/productos', {
+                ...dateRangeFilters('get_productos', input),
                 offset: params.offset,
                 limit: params.limit,
                 referencia: params.referencia,
@@ -1549,6 +1553,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_agentes': {
             const params = input;
             const result = await fsClient.get('/agentes', {
+                ...dateRangeFilters('get_agentes', input),
                 offset: params.offset,
                 limit: params.limit,
                 codagente: params.codagente,
@@ -1560,6 +1565,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_contactos': {
             const params = input;
             const result = await fsClient.get('/contactos', {
+                ...dateRangeFilters('get_contactos', input),
                 offset: params.offset,
                 limit: params.limit,
                 codcontacto: params.codcontacto,
@@ -1583,6 +1589,7 @@ export async function handleCoreBusinessTool(name, args) {
         case 'get_productoproveedores': {
             const params = input;
             const result = await fsClient.get('/productoproveedores', {
+                ...dateRangeFilters('get_productoproveedores', input),
                 offset: params.offset,
                 limit: params.limit,
                 referencia: params.referencia,

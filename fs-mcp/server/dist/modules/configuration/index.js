@@ -3,6 +3,7 @@
  * Provides tools for accessing system configuration and settings
  */
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const configurationTools = [
     {
         name: 'get_series',
@@ -683,7 +684,7 @@ export async function handleConfigurationTool(name, args) {
                 break;
             }
             case 'get_empresas': {
-                result = await fsClient.get('/empresas', { offset, limit }, connection);
+                result = await fsClient.get('/empresas', { offset, limit, ...dateRangeFilters('get_empresas', args) }, connection);
                 break;
             }
             case 'get_apiaccess': {
@@ -691,7 +692,7 @@ export async function handleConfigurationTool(name, args) {
                 break;
             }
             case 'get_apikeyes': {
-                result = await fsClient.get('/apikeyes', { offset, limit }, connection);
+                result = await fsClient.get('/apikeyes', { offset, limit, ...dateRangeFilters('get_apikeyes', args) }, connection);
                 break;
             }
             case 'get_agenciatransportes': {
@@ -699,7 +700,7 @@ export async function handleConfigurationTool(name, args) {
                 break;
             }
             case 'get_pageoptions': {
-                const params = { offset, limit };
+                const params = { offset, limit, ...dateRangeFilters('get_pageoptions', args) };
                 if (args.name)
                     params.name = args.name;
                 if (args.nick)

@@ -1,5 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
   connection: string;
@@ -595,6 +596,7 @@ export async function handleFinanceTool(
       const result = await fsClient.get(
         '/regularizacionimpuestos',
         {
+          ...dateRangeFilters('get_regularizacionimpuestos', input as Record<string, unknown>),
           offset: params.offset,
           limit: params.limit,
           codejercicio: params.codejercicio,

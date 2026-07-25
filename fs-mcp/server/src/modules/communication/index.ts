@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const communicationTools: Tool[] = [
   {
@@ -188,7 +189,7 @@ export async function handleCommunicationTool(
 
     switch (name) {
       case 'get_emailsentes': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_emailsentes', args) };
         if (args.destinatario) params.destinatario = args.destinatario;
         if (args.asunto) params.asunto = args.asunto;
         if (args.fecha) params.fecha = args.fecha;
@@ -197,12 +198,12 @@ export async function handleCommunicationTool(
       }
 
       case 'get_emailnotifications': {
-        result = await fsClient.get('/emailnotifications', { offset, limit }, connection);
+        result = await fsClient.get('/emailnotifications', { offset, limit, ...dateRangeFilters('get_emailnotifications', args) }, connection);
         break;
       }
 
       case 'get_attachedfiles': {
-        const params: Record<string, unknown> = { offset, limit };
+        const params: Record<string, unknown> = { offset, limit, ...dateRangeFilters('get_attachedfiles', args) };
         if (args.modelo) params.modelo = args.modelo;
         if (args.modelid) params.modelid = args.modelid;
         result = await fsClient.get('/attachedfiles', params, connection);
@@ -210,7 +211,7 @@ export async function handleCommunicationTool(
       }
 
       case 'get_attachedfilerelations': {
-        result = await fsClient.get('/attachedfilerelations', { offset, limit }, connection);
+        result = await fsClient.get('/attachedfilerelations', { offset, limit, ...dateRangeFilters('get_attachedfilerelations', args) }, connection);
         break;
       }
 

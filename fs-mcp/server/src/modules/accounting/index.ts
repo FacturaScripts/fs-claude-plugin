@@ -1,5 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
   connection: string;
@@ -711,6 +712,7 @@ export async function handleAccountingTool(
       const result = await fsClient.get(
         '/ejercicios',
         {
+          ...dateRangeFilters('get_ejercicios', input as Record<string, unknown>),
           offset: params.offset,
           limit: params.limit,
           codejercicio: params.codejercicio,
@@ -728,6 +730,7 @@ export async function handleAccountingTool(
       const result = await fsClient.get(
         '/asientos',
         {
+          ...dateRangeFilters('get_asientos', input as Record<string, unknown>),
           offset: params.offset,
           limit: params.limit,
           codejercicio: params.codejercicio,
