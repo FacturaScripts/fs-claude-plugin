@@ -9,6 +9,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { parseFsDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 
 // ============================================================================
@@ -665,10 +666,10 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_comparativa_ventas_periodos': {
                 // Definición: suma facturas en cada rango y calcula crecimiento % entre ambos.
-                const fia = new Date(input.fecha_inicio_actual as string);
-                const ffa = new Date(input.fecha_fin_actual as string);
-                const fian = new Date(input.fecha_inicio_anterior as string);
-                const ffan = new Date(input.fecha_fin_anterior as string);
+                const fia = parseFsDate(input.fecha_inicio_actual as string);
+                const ffa = parseFsDate(input.fecha_fin_actual as string);
+                const fian = parseFsDate(input.fecha_inicio_anterior as string);
+                const ffan = parseFsDate(input.fecha_fin_anterior as string);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 
@@ -676,7 +677,7 @@ export async function handleExtendedAnalyticsTool(
                 const anterior = nuevoAgregadoMonetario();
 
                 for (const f of facturas) {
-                    const fecha = new Date(f.fecha);
+                    const fecha = parseFsDate(f.fecha);
                     if (fecha >= fia && fecha <= ffa) acumularFactura(actual, f);
                     else if (fecha >= fian && fecha <= ffan) acumularFactura(anterior, f);
                 }
@@ -793,11 +794,11 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_funnel_ventas': {
                 // Definición: cuenta presupuestos, pedidos, albaranes y facturas en un rango y suma sus totales.
-                const fechaInicio = input.fecha_inicio ? new Date(input.fecha_inicio as string) : null;
-                const fechaFin = input.fecha_fin ? new Date(input.fecha_fin as string) : null;
+                const fechaInicio = input.fecha_inicio ? parseFsDate(input.fecha_inicio as string) : null;
+                const fechaFin = input.fecha_fin ? parseFsDate(input.fecha_fin as string) : null;
 
                 const enRango = (f: any) => {
-                    const fecha = new Date(f.fecha);
+                    const fecha = parseFsDate(f.fecha);
                     if (fechaInicio && fecha < fechaInicio) return false;
                     if (fechaFin && fecha > fechaFin) return false;
                     return true;
@@ -844,7 +845,7 @@ export async function handleExtendedAnalyticsTool(
                 const now = new Date();
 
                 const result = presupuestos.map(p => {
-                    const finoferta = p.finoferta ? new Date(p.finoferta) : null;
+                    const finoferta = p.finoferta ? parseFsDate(p.finoferta) : null;
                     const vencido = finoferta !== null && finoferta < now;
                     return {
                         idpresupuesto: p.idpresupuesto,
@@ -895,7 +896,7 @@ export async function handleExtendedAnalyticsTool(
                     fecha: p.fecha,
                     total: p.total,
                     totalbeneficio: p.totalbeneficio,
-                    diasDesdeFecha: diasEntre(new Date(p.fecha), now),
+                    diasDesdeFecha: diasEntre(parseFsDate(p.fecha), now),
                 }));
 
                 detalle.sort((a, b) => b.diasDesdeFecha - a.diasDesdeFecha);
@@ -921,7 +922,7 @@ export async function handleExtendedAnalyticsTool(
                     codagente: a.codagente,
                     fecha: a.fecha,
                     total: a.total,
-                    diasDesdeEntrega: diasEntre(new Date(a.fecha), now),
+                    diasDesdeEntrega: diasEntre(parseFsDate(a.fecha), now),
                 }));
 
                 detalle.sort((a, b) => b.diasDesdeEntrega - a.diasDesdeEntrega);
@@ -1017,7 +1018,7 @@ export async function handleExtendedAnalyticsTool(
                 }> = {};
 
                 for (const recibo of recibos) {
-                    const vence = recibo.vencimiento ? new Date(recibo.vencimiento) : null;
+                    const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
                     const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
                     if (!estaVencido) continue;
 
@@ -1061,7 +1062,7 @@ export async function handleExtendedAnalyticsTool(
                 }> = {};
 
                 for (const f of facturas) {
-                    const mes = mesISO(new Date(f.fecha));
+                    const mes = mesISO(parseFsDate(f.fecha));
                     if (!map[mes]) map[mes] = { mes, neto: 0, iva: 0, total: 0, numeroFacturas: 0 };
                     map[mes].neto += f.neto || 0;
                     map[mes].iva += f.totaliva || 0;
@@ -1092,7 +1093,7 @@ export async function handleExtendedAnalyticsTool(
 
                 for (const r of recibos) {
                     if (!r.vencimiento) continue;
-                    const vence = new Date(r.vencimiento);
+                    const vence = parseFsDate(r.vencimiento);
                     const dias = diasEntre(vence, now);
                     const importe = r.importe || 0;
 
@@ -1122,7 +1123,7 @@ export async function handleExtendedAnalyticsTool(
 
                 for (const r of recibos) {
                     if (!r.vencimiento) continue;
-                    const vence = new Date(r.vencimiento);
+                    const vence = parseFsDate(r.vencimiento);
                     const dias = diasEntre(vence, now);
                     const importe = r.importe || 0;
 
@@ -1152,9 +1153,9 @@ export async function handleExtendedAnalyticsTool(
 
                 for (const r of recibos) {
                     if (!r.fecha || !r.fechapago) continue;
-                    const emit = new Date(r.fecha);
+                    const emit = parseFsDate(r.fecha);
                     if (emit < fechaCorte) continue;
-                    const pago = new Date(r.fechapago);
+                    const pago = parseFsDate(r.fechapago);
                     const dias = diasEntre(emit, pago);
                     if (dias < 0) continue;
 
@@ -1203,7 +1204,7 @@ export async function handleExtendedAnalyticsTool(
 
                 for (const r of cobrosPendientes) {
                     if (!r.vencimiento) continue;
-                    const vence = new Date(r.vencimiento);
+                    const vence = parseFsDate(r.vencimiento);
                     if (vence < now || vence > horizonte) continue;
                     const k = claveSemana(vence);
                     if (!semanas[k]) semanas[k] = { semana: k, cobros: 0, pagos: 0, neto: 0 };
@@ -1211,7 +1212,7 @@ export async function handleExtendedAnalyticsTool(
                 }
                 for (const r of pagosPendientes) {
                     if (!r.vencimiento) continue;
-                    const vence = new Date(r.vencimiento);
+                    const vence = parseFsDate(r.vencimiento);
                     if (vence < now || vence > horizonte) continue;
                     const k = claveSemana(vence);
                     if (!semanas[k]) semanas[k] = { semana: k, cobros: 0, pagos: 0, neto: 0 };
@@ -1328,7 +1329,7 @@ export async function handleExtendedAnalyticsTool(
 
                 const facturasEnRango = new Set<number>();
                 for (const f of facturas) {
-                    if (new Date(f.fecha) >= fechaLimite) facturasEnRango.add(f.idfactura);
+                    if (parseFsDate(f.fecha) >= fechaLimite) facturasEnRango.add(f.idfactura);
                 }
 
                 const ventasPorReferencia = new Map<string, number>();
@@ -1384,7 +1385,7 @@ export async function handleExtendedAnalyticsTool(
 
                 const facturasEnRango = new Set<number>();
                 for (const f of facturas) {
-                    if (new Date(f.fecha) >= fechaLimite) facturasEnRango.add(f.idfactura);
+                    if (parseFsDate(f.fecha) >= fechaLimite) facturasEnRango.add(f.idfactura);
                 }
 
                 const referenciasVendidas = new Set<string>();
@@ -1473,8 +1474,15 @@ export async function handleExtendedAnalyticsTool(
                     agg.totalFacturado += f.total || 0;
                     agg.totalBeneficio += f.totalbeneficio || 0;
                     agg.numeroFacturas += 1;
-                    if (!agg.primeraCompra || f.fecha < agg.primeraCompra) agg.primeraCompra = f.fecha;
-                    if (!agg.ultimaCompra || f.fecha > agg.ultimaCompra) agg.ultimaCompra = f.fecha;
+                    // Las fechas llegan como d-m-Y: compararlas como cadenas ordena por DÍA,
+                    // no cronológicamente (31-01-2023 saldría "posterior" a 01-02-2023).
+                    const fFecha = parseFsDate(f.fecha);
+                    if (!agg.primeraCompra || fFecha < parseFsDate(agg.primeraCompra)) {
+                        agg.primeraCompra = f.fecha;
+                    }
+                    if (!agg.ultimaCompra || fFecha > parseFsDate(agg.ultimaCompra)) {
+                        agg.ultimaCompra = f.fecha;
+                    }
                 }
 
                 const result = Object.values(map);
@@ -1482,7 +1490,7 @@ export async function handleExtendedAnalyticsTool(
                     r.ticketMedio = r.numeroFacturas > 0 ? r.totalFacturado / r.numeroFacturas : 0;
                     r.margenPorcentaje = porcentaje(r.totalBeneficio, r.totalFacturado);
                     if (r.primeraCompra && r.ultimaCompra) {
-                        r.diasActivo = diasEntre(new Date(r.primeraCompra), new Date(r.ultimaCompra));
+                        r.diasActivo = diasEntre(parseFsDate(r.primeraCompra), parseFsDate(r.ultimaCompra));
                     }
                 }
 
@@ -1519,8 +1527,8 @@ export async function handleExtendedAnalyticsTool(
             case 'get_clientes_nuevos_vs_recurrentes': {
                 // Definición: dado un periodo, separa facturación entre clientes cuya primera compra
                 // CAE en el periodo (nuevos) vs clientes con compras anteriores (recurrentes).
-                const fIni = new Date(input.fecha_inicio as string);
-                const fFin = new Date(input.fecha_fin as string);
+                const fIni = parseFsDate(input.fecha_inicio as string);
+                const fFin = parseFsDate(input.fecha_fin as string);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 
@@ -1528,7 +1536,7 @@ export async function handleExtendedAnalyticsTool(
                 const primeraCompraPorCliente = new Map<string, Date>();
                 for (const f of facturas) {
                     const cod = f.codcliente;
-                    const fecha = new Date(f.fecha);
+                    const fecha = parseFsDate(f.fecha);
                     const actual = primeraCompraPorCliente.get(cod);
                     if (!actual || fecha < actual) primeraCompraPorCliente.set(cod, fecha);
                 }
@@ -1541,7 +1549,7 @@ export async function handleExtendedAnalyticsTool(
                 const clientesRecurrentes = new Set<string>();
 
                 for (const f of facturas) {
-                    const fecha = new Date(f.fecha);
+                    const fecha = parseFsDate(f.fecha);
                     if (fecha < fIni || fecha > fFin) continue;
                     const primera = primeraCompraPorCliente.get(f.codcliente);
                     if (!primera) continue;
@@ -1631,7 +1639,7 @@ export async function handleExtendedAnalyticsTool(
                 const clientesActivos = new Set<string>();
 
                 for (const f of facturas) {
-                    const fecha = new Date(f.fecha);
+                    const fecha = parseFsDate(f.fecha);
                     if (fecha >= inicioActual && fecha <= now) {
                         acumularFactura(actual, f);
                         clientesActivos.add(f.codcliente);
@@ -1645,7 +1653,7 @@ export async function handleExtendedAnalyticsTool(
                 let cobrosVencidos = 0;
                 for (const r of recibosCobrar) {
                     cobrosPendientes += r.importe || 0;
-                    const vence = r.vencimiento ? new Date(r.vencimiento) : null;
+                    const vence = r.vencimiento ? parseFsDate(r.vencimiento) : null;
                     if (r.vencido === true || (vence !== null && vence < now)) {
                         cobrosVencidos += r.importe || 0;
                     }
@@ -1655,7 +1663,7 @@ export async function handleExtendedAnalyticsTool(
                 let pagosVencidos = 0;
                 for (const r of recibosPagar) {
                     pagosPendientes += r.importe || 0;
-                    const vence = r.vencimiento ? new Date(r.vencimiento) : null;
+                    const vence = r.vencimiento ? parseFsDate(r.vencimiento) : null;
                     if (r.vencido === true || (vence !== null && vence < now)) {
                         pagosVencidos += r.importe || 0;
                     }

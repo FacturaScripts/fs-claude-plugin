@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { parseFsDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 import { extendedAnalyticsTools, handleExtendedAnalyticsTool } from './kpis-extended.js';
 
@@ -419,7 +420,7 @@ export async function handleAnalyticsTool(
               const recibosPorCliente: Record<string, ClienteMoroso> = {};
 
               for (const recibo of recibos) {
-                const vence = recibo.vencimiento ? new Date(recibo.vencimiento) : null;
+                const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
                 const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
                 if (!estaVencido) continue;
 
@@ -473,7 +474,7 @@ export async function handleAnalyticsTool(
               // Agrupar códigos de clientes que compraron en el período
               const clientesConCompras = new Set<string>();
               for (const factura of facturas as any[]) {
-                const fechaFactura = new Date(factura.fecha);
+                const fechaFactura = parseFsDate(factura.fecha);
                 if (fechaFactura >= fechaLimite) {
                   clientesConCompras.add(factura.codcliente);
                 }
@@ -489,8 +490,8 @@ export async function handleAnalyticsTool(
 
                   for (const factura of facturas as any[]) {
                     if (factura.codcliente === cliente.codcliente) {
-                      const fechaFactura = new Date(factura.fecha);
-                      if (!ultimaCompra || new Date(ultimaCompra) < fechaFactura) {
+                      const fechaFactura = parseFsDate(factura.fecha);
+                      if (!ultimaCompra || parseFsDate(ultimaCompra) < fechaFactura) {
                         ultimaCompra = factura.fecha;
                       }
                     }
@@ -498,7 +499,7 @@ export async function handleAnalyticsTool(
 
                   if (ultimaCompra) {
                     const días = Math.floor(
-                      (ahora.getTime() - new Date(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24),
+                      (ahora.getTime() - parseFsDate(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24),
                     );
                     diasSinCompras = días;
                   }
@@ -778,7 +779,7 @@ export async function handleAnalyticsTool(
               // Identificar las facturas dentro del rango de fechas
               const facturasEnRango = new Set<number>();
               for (const factura of facturas as any[]) {
-                const fechaFactura = new Date(factura.fecha);
+                const fechaFactura = parseFsDate(factura.fecha);
                 if (fechaFactura >= fechaLimite) {
                   facturasEnRango.add(factura.idfactura);
                 }
@@ -930,7 +931,7 @@ export async function handleAnalyticsTool(
               const mesesMap: Record<string, EvolucionMensual> = {};
 
               for (const factura of facturas as any[]) {
-                const fecha = new Date(factura.fecha);
+                const fecha = parseFsDate(factura.fecha);
                 const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 
                 let agregado = mesesMap[mes];
@@ -989,7 +990,7 @@ export async function handleAnalyticsTool(
               const mesesMap: Record<string, EvolucionNegocio> = {};
 
               for (const factura of facturas as any[]) {
-                const fecha = new Date(factura.fecha);
+                const fecha = parseFsDate(factura.fecha);
                 const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 
                 let agregado = mesesMap[mes];
