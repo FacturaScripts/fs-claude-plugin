@@ -3,7 +3,7 @@ id: 1998
 permalink: no-se-actualizan-los-saldos-de-las-cuentas
 title: No se actualizan los saldos de las cuentas
 creationdate: 13-01-2025 00:10:35
-lastmod: 20-01-2026
+lastmod: 22-07-2026
 url: https://facturascripts.com/publicaciones/no-se-actualizan-los-saldos-de-las-cuentas
 ---
 Si tras hacer un asiento no se actualizan los **saldos de las cuentas** o **subcuentas**, probablemente tenga trabajos en segundo plano pendientes. Puede comprobar esto desde el **menú Administrador → Logs**. En la pestaña **eventos de trabajo** puede ver todos, incluídos los que todavía no se han completado.

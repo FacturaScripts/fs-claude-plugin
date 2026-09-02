@@ -3,13 +3,13 @@ idproject: 487
 name: SafeIPLogin
 permalink: safeiplogin
 creationdate: 27-11-2025
-lastmod: 18-04-2026
-version: 2.02
-betaversion: 0
-mincore: 2025.8
-maxcore: 2026.3
+lastmod: 20-08-2026
+version: 2.03
+betaversion: 
+mincore: 2026.41
+maxcore: 2026.6
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/SafeIPLogin

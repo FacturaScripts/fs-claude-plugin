@@ -3,23 +3,27 @@ idproject: 114
 name: HumanResources
 permalink: humanresources
 creationdate: 16-02-2021
-lastmod: 25-06-2026
-version: 2.12
-betaversion: 0
+lastmod: 10-08-2026
+version: 2.15
+betaversion: 2.16
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/HumanResources
 ---
-Plugin de recursos humanos diseñado para gestionar eficientemente la información y control de empleados dentro de la empresa. Permite registrar y administrar datos personales y laborales, incluyendo contratos, turnos de trabajo, bajas médicas, vacaciones, cursos de formación y más. Además, facilita el control de anticipos económicos otorgados a los empleados, gestionando cantidades que deberán ser liquidadas posteriormente, como gastos de viajes o compra de material.
+**Gestión integral de empleados**, con el **registro horario que exige la ley** listo desde el primer fichaje.
 
-En el ámbito de nóminas, permite asignar conceptos salariales a los empleados y generar su contabilización, aunque NO ES un software para el cálculo y gestión completa de nóminas.
+Centraliza toda la información laboral de tu personal: datos personales, contratos, turnos, bajas médicas, vacaciones, cursos de formación y mucho más.
 
-También incorpora un avanzado control de asistencia, registrando entradas, salidas y ausencias justificadas (médico, viajes, asuntos propios, etc.), generando informes detallados que combinan esta información con los turnos de trabajo asignados.
+📋 **Registro horario legal** (art. 34.9 ET) — cada entrada y salida queda fechada y sellada por el sistema; cualquier modificación exige indicar un motivo y queda auditada. Genera el informe mensual en PDF, listo para firmar y archivar ante una Inspección de Trabajo.
 
-El plugin incluye un panel para el empleado, desde donde cada trabajador puede gestionar y consultar sus marcajes de asistencia, visualizar sus vacaciones (pendientes y disfrutadas), consultar su horario laboral y conocer el total de horas trabajadas, indicando si hay excedentes o faltantes para cumplir con sus turnos. Además, el empleado tiene acceso a todos sus documentos personales, incluyendo contratos, nóminas y justificantes de no asistencia.
+⏱️ **Control de asistencia avanzado** — entradas, salidas y ausencias justificadas (médico, viajes, asuntos propios...), con informes que comparan lo fichado frente a los turnos asignados.
 
-Este plugin es una solución completa para optimizar la gestión del personal, mejorar el seguimiento de asistencia y facilitar la administración de anticipos, registros laborales y documentación del empleado dentro de la empresa.
+💶 **Anticipos y conceptos salariales** — controla los anticipos entregados a empleados (viajes, material...) y su liquidación. Permite asignar conceptos salariales y contabilizarlos — aunque **no** es un software de cálculo de nóminas.
+
+👤 **Panel del empleado** — cada trabajador consulta sus marcajes, vacaciones, horario y horas trabajadas (con excedentes o faltantes), además de sus documentos: contratos, nóminas y justificantes.
+
+Una solución completa para gestionar tu personal, recursos humanos, cumplir con la normativa de registro horario y dejar atrás las hojas de cálculo dispersas.

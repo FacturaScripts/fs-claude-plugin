@@ -3,11 +3,11 @@ idproject: 202
 name: PartesDeTrabajo
 permalink: partesdetrabajo
 creationdate: 01-04-2022
-lastmod: 09-12-2025
-version: 1.3
+lastmod: 01-09-2026
+version: 1.6
 betaversion: 1
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

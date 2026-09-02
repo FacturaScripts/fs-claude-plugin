@@ -3,11 +3,11 @@ idproject: 559
 name: AiScan
 permalink: aiscan
 creationdate: 13-03-2026
-lastmod: 09-06-2026
-version: 7.3
+lastmod: 27-08-2026
+version: 8.2
 betaversion: 7.4
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 8.1
 require: 

@@ -5,7 +5,7 @@ permalink: obras
 creationdate: 30-06-2026
 lastmod: 30-06-2026
 version: 1.02
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2026.2
 compatible: 

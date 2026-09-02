@@ -3,13 +3,13 @@ idproject: 106
 name: AgruparProducto
 permalink: agruparproducto
 creationdate: 03-11-2020
-lastmod: 22-09-2025
-version: 2
+lastmod: 21-08-2026
+version: 2.01
 betaversion: 1.32
-mincore: 2025
-maxcore: 2026.3
+mincore: 2026.5
+maxcore: 2026.6
 compatible: 
-min_php: 8.0
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AgruparProducto

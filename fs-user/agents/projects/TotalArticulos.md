@@ -5,7 +5,7 @@ permalink: totalarticulos
 creationdate: 27-11-2025
 lastmod: 27-11-2025
 version: 2
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2025.61
 compatible: 

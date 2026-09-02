@@ -5,9 +5,9 @@ permalink: criteriocaja
 creationdate: 18-08-2025
 lastmod: 17-11-2025
 version: 2.04
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.41
 compatible: 
 min_php: 8
 require: 

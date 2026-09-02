@@ -5,9 +5,9 @@ permalink: tpvredsys
 creationdate: 21-11-2025
 lastmod: 15-02-2026
 version: 1.23
-betaversion: 0
+betaversion: 
 mincore: 2025.51
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

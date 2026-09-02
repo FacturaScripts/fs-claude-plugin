@@ -5,7 +5,7 @@ permalink: dlmrefproveedor
 creationdate: 20-09-2023
 lastmod: 17-10-2023
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2022.5
 maxcore: 2024.1
 compatible: 

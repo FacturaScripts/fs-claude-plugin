@@ -3,11 +3,11 @@ idproject: 500
 name: Preciobruto
 permalink: preciobruto
 creationdate: 16-12-2025
-lastmod: 20-05-2026
-version: 1.4
-betaversion: 0
+lastmod: 23-07-2026
+version: 1.5
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

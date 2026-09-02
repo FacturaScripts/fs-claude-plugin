@@ -3,11 +3,11 @@ idproject: 588
 name: AvisoCliente
 permalink: avisocliente
 creationdate: 30-04-2026
-lastmod: 30-04-2026
-version: 1
-betaversion: 0
-mincore: 2025.81
-maxcore: 2026.1
+lastmod: 22-07-2026
+version: 1.1
+betaversion: 
+mincore: 2026
+maxcore: 2026.5
 compatible: 
 min_php: 
 require: 

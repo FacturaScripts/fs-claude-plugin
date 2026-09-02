@@ -3,13 +3,13 @@ idproject: 43
 name: Ubicaciones
 permalink: ubicaciones
 creationdate: 13-03-2019
-lastmod: 01-12-2025
-version: 4.01
+lastmod: 24-07-2026
+version: 4.02
 betaversion: 3.4
-mincore: 2025.5
-maxcore: 2026.3
+mincore: 2026
+maxcore: 2026.5
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Ubicaciones

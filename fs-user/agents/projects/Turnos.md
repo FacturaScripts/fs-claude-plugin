@@ -7,7 +7,7 @@ lastmod: 17-05-2026
 version: 2.73
 betaversion: 2.24
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.5
 compatible: Calendario
 min_php: 
 require: 

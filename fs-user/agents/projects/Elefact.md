@@ -3,11 +3,11 @@ idproject: 356
 name: Elefact
 permalink: elefact
 creationdate: 06-02-2024
-lastmod: 12-11-2025
-version: 1.4
+lastmod: 19-07-2026
+version: 1.5
 betaversion: 1.3
-mincore: 2025.43
-maxcore: 2026.3
+mincore: 2026.1
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

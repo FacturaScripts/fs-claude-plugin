@@ -3,18 +3,18 @@ idproject: 603
 name: BuscadorAcumulado
 permalink: buscadoracumulado
 creationdate: 15-05-2026
-lastmod: 18-06-2026
-version: 2.44
-betaversion: 0
+lastmod: 28-08-2026
+version: 2.68
+betaversion: 2.63
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: Comentarioprivado,Prepagos
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/BuscadorAcumulado
 ---
-Añade un modo de búsqueda acumulativa a cualquier listado de FacturaScripts. Cuando está activo, cada búsqueda se suma a la anterior en lugar de reemplazarla, permitiendo acotar resultados de forma progresiva sin perder el contexto, y además sincronizable entre vistas y con operadores lógicos.
+Añade un modo de búsqueda acumulativa a cualquier listado de FacturaScripts. Cuando está activo, cada búsqueda se suma a la anterior en lugar de reemplazarla, permitiendo acotar resultados de forma progresiva sin perder el contexto, y además sincronizable entre vistas (pestañas relacionadas) y con operadores lógicos.
 
 Muy útil para hacer búsquedas en las vistas principales y también en sus listados asociados. Por ejemplo Facturas y sus líneas de Productos: Esto nos permite buscar por ejemplo entre varios clientes que nos han comprado un rodamiento, entre fecha tal, estado tal, y que no sea el 6005 por ejemplo. Hacemos las búsqueda en cada vista que sea necesario, Clientes en la vista principal y el resto de la búsqueda en líneas, cada vez que pulsamos Enter el sistema va acotando y reduciendo la búsqueda de forma acumulada hasta llegar al resultado final. Pudiendo además buscar por campo Todos ó por uno específico: por ejemplo el campo Comentario Privado o Descripción. 
 
@@ -67,8 +67,12 @@ Por ejemplo: buscar en comentarioprivado el texto: &quot;pasar a cobrar&quot;, �
 - &quot;Todos&quot; y cargar un filtro guardado limpian también la acumulación.
 - &quot;Limpiar filtros&quot; y la papelera solo limpian los filtros del panel — el stack acumulado se mantiene.
 
-** Desde la v2.1 compatible con busquedas mediante filtros de panel y/o botones de búsquedas guardadas.
+** Desde la v2.1. Compatible con búsquedas mediante filtros de panel y/o botones de búsquedas guardadas.
 
-**Combina Potencia con Simplicidad al hacer las busquedas acumuladas**
+** Desde la v2.5. Posibilidad de hacer búsquedas de campos vacíos o que estén llenos.
+
+** Desde la v.2.63 uso de campos Joinmodels.
+
+**Combina Potencia con Simplicidad al hacer las búsquedas acumuladas**
 
 **Ir a la documentación para ver como funciona en profundidad el plugin.**

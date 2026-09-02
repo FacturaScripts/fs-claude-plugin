@@ -3,11 +3,11 @@ idproject: 285
 name: Traducciones
 permalink: traducciones
 creationdate: 31-01-2023
-lastmod: 22-05-2026
-version: 1.73
+lastmod: 17-08-2026
+version: 1.8
 betaversion: 1.61
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: PlantillasPDF
 min_php: 
 require: 

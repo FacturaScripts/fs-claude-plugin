@@ -5,9 +5,9 @@ permalink: template1-ext
 creationdate: 19-10-2025
 lastmod: 18-06-2026
 version: 2.37
-betaversion: 0
+betaversion: 
 mincore: 2025.43
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: IeOmitelineas
 min_php: 
 require: PlantillasPDF
@@ -32,6 +32,7 @@ Actualización para el formato de documentos de más de una página:
 - Plantilla con textos en múltiples idiomas  (es necesaria una versión mínima 6.3 del plugin PlantillasPDF)
 
 -Nueva actualización para que respete y muestre en el pie los vencimientos de los recibos aunque esté marcada como pagada.
+
 -Añadida una casilla en los ajustes del plugin para &quot;Mostrar más dígitos del banco (8 primeros + X + 4 últimos)&quot;.
 -Nueva casilla &quot;Ocultar descuento total&quot; por Formato: opción para ocultar la línea &quot;Descuento total&quot; del pie del documento (nueva versión plantillaspdf).
 

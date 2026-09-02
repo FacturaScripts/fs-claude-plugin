@@ -5,9 +5,9 @@ permalink: nombreclientedocspdf
 creationdate: 31-01-2026
 lastmod: 11-02-2026
 version: 1.5
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

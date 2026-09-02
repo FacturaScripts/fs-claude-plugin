@@ -5,9 +5,9 @@ permalink: actualizardatoscliente
 creationdate: 22-10-2024
 lastmod: 12-08-2025
 version: 1.2
-betaversion: 0
+betaversion: 
 mincore: 2025.4
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

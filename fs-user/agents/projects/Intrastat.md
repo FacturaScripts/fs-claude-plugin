@@ -3,13 +3,13 @@ idproject: 419
 name: Intrastat
 permalink: intrastat
 creationdate: 16-01-2025
-lastmod: 09-06-2026
-version: 2.03
-betaversion: 0
-mincore: 2026
-maxcore: 2026.3
+lastmod: 20-08-2026
+version: 2.05
+betaversion: 
+mincore: 2026.5
+maxcore: 2026.6
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Intrastat

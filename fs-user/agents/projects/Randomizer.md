@@ -3,11 +3,11 @@ idproject: 6
 name: Randomizer
 permalink: randomizer
 creationdate: 03-11-2018
-lastmod: 14-08-2025
-version: 4
+lastmod: 16-08-2026
+version: 4.1
 betaversion: 3.4
-mincore: 2025
-maxcore: 2026.3
+mincore: 2026
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

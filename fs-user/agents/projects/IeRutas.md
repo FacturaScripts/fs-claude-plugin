@@ -5,9 +5,9 @@ permalink: ierutas
 creationdate: 21-02-2025
 lastmod: 11-06-2026
 version: 1.3
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

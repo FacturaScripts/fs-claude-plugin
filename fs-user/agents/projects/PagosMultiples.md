@@ -5,9 +5,9 @@ permalink: pagosmultiples
 creationdate: 28-04-2022
 lastmod: 09-06-2026
 version: 2.03
-betaversion: 0
+betaversion: 
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.41
 compatible: 
 min_php: 8
 require: 

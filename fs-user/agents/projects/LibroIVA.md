@@ -5,12 +5,12 @@ permalink: libroiva
 creationdate: 20-02-2026
 lastmod: 20-02-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2026.3
 compatible: 
 min_php: 
-require: 
+require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/LibroIVA
 ---

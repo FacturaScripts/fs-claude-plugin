@@ -3,11 +3,11 @@ idproject: 589
 name: VencimientosRecibos
 permalink: vencimientosrecibos
 creationdate: 01-05-2026
-lastmod: 13-06-2026
-version: 1.1
-betaversion: 0
+lastmod: 28-08-2026
+version: 1.2
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: BuscadorAcumulado
 min_php: 
 require: 
@@ -23,3 +23,5 @@ En el menú Compras → Facturas, dentro de la pestaña Recibos, aparece el bot�
 
 - Recibos de cliente:
 En el menú Ventas → Facturas, dentro de la pestaña Recibos, aparece el mismo botón &quot;VtosPDF&quot;. Al pulsarlo genera un PDF equivalente con los recibos de facturas de clientes filtrados.
+
+En ambos casos aparece un Subtotal con el importe sumado de todos los recibos por día de vencimiento.

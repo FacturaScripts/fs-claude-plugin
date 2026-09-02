@@ -5,11 +5,11 @@ permalink: consultasai
 creationdate: 03-05-2025
 lastmod: 03-05-2025
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2024.5
 maxcore: 2024.95
 compatible: 
-min_php: 
+min_php: 7
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ConsultasAI

@@ -5,7 +5,7 @@ permalink: editobservaciones
 creationdate: 25-02-2025
 lastmod: 25-02-2025
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2023
 maxcore: 2024.96
 compatible: 

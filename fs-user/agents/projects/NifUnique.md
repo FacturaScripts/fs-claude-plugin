@@ -3,11 +3,11 @@ idproject: 550
 name: NifUnique
 permalink: nifunique
 creationdate: 22-02-2026
-lastmod: 24-05-2026
-version: 1.3
-betaversion: 0
-mincore: 2025
-maxcore: 2026.3
+lastmod: 20-08-2026
+version: 1.34
+betaversion: 1.32
+mincore: 2026
+maxcore: 2026.41
 compatible: 
 min_php: 
 require: 

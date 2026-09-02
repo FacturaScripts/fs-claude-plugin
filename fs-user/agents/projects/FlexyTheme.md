@@ -3,11 +3,11 @@ idproject: 454
 name: FlexyTheme
 permalink: flexytheme
 creationdate: 12-06-2025
-lastmod: 04-06-2026
+lastmod: 08-07-2026
 version: 1.81
-betaversion: 1.7
+betaversion: 1.82
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

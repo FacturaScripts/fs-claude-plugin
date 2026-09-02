@@ -5,9 +5,9 @@ permalink: proveedorshield
 creationdate: 14-04-2026
 lastmod: 17-05-2026
 version: 1.01
-betaversion: 0
+betaversion: 
 mincore: 2025.8
-maxcore: 2026.2
+maxcore: 2026.6
 compatible: 
 min_php: 8
 require: 

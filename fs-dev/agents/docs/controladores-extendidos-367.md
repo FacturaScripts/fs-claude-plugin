@@ -3,7 +3,7 @@ id: 672
 permalink: controladores-extendidos-367
 title: Controladores Extendidos de FacturaScripts
 creationdate: 05-07-2018 00:00:00
-lastmod: 12-05-2025
+lastmod: 12-08-2026
 url: https://facturascripts.com/publicaciones/controladores-extendidos-367
 ---
 Para facilitar el desarrollo en FacturaScripts, se han creado controladores específicos: **ListController** para listados y **EditController** y **PanelController** para la edición de registros. Se recomienda utilizar estos controladores siempre que sea posible, ya que reducen el tiempo de desarrollo y garantizan una integración más fluida con el resto de FacturaScripts. Además, cualquier mejora futura que se implemente estará disponible automáticamente en su desarrollo.
@@ -41,7 +41,7 @@ protected function execPreviousAction($action)
       return true; // Continuamos con la carga normal
    } elseif ($action === &#39;hello-json&#39;) {
       // Devolvemos un JSON
-      $this-&gt;request-&gt;setContent(json_encode([&#39;message&#39; =&gt; &#39;hello&#39;]));
+      $this-&gt;response-&gt;setContent(json_encode([&#39;message&#39; =&gt; &#39;hello&#39;]));
       return false; // No continuamos con la carga de datos
    }
    return parent::execPreviousAction($action);

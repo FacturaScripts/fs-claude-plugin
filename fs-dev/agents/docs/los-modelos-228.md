@@ -3,7 +3,7 @@ id: 618
 permalink: los-modelos-228
 title: Los modelos
 creationdate: 27-04-2018 00:00:00
-lastmod: 18-09-2025
+lastmod: 17-07-2026
 url: https://facturascripts.com/publicaciones/los-modelos-228
 ---
 Los modelos en FacturaScripts son clases que representan las tablas de la base de datos y proporcionan una interfaz orientada a objetos para interactuar con los datos. Utilizan el patrón Active Record y están basados en una arquitectura de clase abstracta (`ModelClass`) con un trait (`ModelTrait`) que implementa la funcionalidad básica.
@@ -96,7 +96,7 @@ $proyecto = Proyecto::create([
 ```
 
 ### Buscar registros
-Para buscar registros concretos tenemos los métodos `find()`, `findWhere()` y `findWhereEq()`. Para buscar muchos registros tenemos el método `all()`:
+Para buscar registros concretos tenemos los métodos `find()`, `findWhere()` y `findWhereEq()`. Para buscar muchos registros tenemos los métodos `all()` y `allWhereEq()`:
 
 ```
 // Buscar por clave primaria
@@ -122,8 +122,25 @@ $proyectos = Proyecto::all();
 $where = [
    Where::eq(&#39;active&#39;, true),
 ];
-$order = [&#39;nombre&#39; =&gt; &#39;ASC&#39;];
-$proyectosActivos = Proyecto::all(Where, $order, 0, 10); // offset 0, limit 10
+$order = [&#39;name&#39; =&gt; &#39;ASC&#39;];
+$proyectosActivos = Proyecto::all($where, $order, 0, 10); // offset 0, limit 10
+
+// Obtener todos los que tienen un campo igual a un valor
+$proyectosActivos = Proyecto::allWhereEq(&#39;active&#39;, true);
+```
+
+### Contar registros
+Para saber cuántos registros hay sin traértelos todos a memoria, usa `count()`, que admite un array de filtros [Where](https://facturascripts.com/publicaciones/where), o el atajo `countWhereEq()` para el caso de un campo igual a un valor:
+
+```
+// contar todos los proyectos
+$total = Proyecto::count();
+
+// contar solo los activos
+$activos = Proyecto::count([Where::eq(&#39;active&#39;, true)]);
+
+// atajo equivalente al anterior
+$activos = Proyecto::countWhereEq(&#39;active&#39;, true);
 ```
 
 ### Cargar registros
@@ -154,7 +171,7 @@ if ($proyecto-&gt;loadWhere($where)) {
 ```
 
 ### Actualizar registros
-Para actuializar en la base de datos la información de un registro podemos usar los métodos `save()`, `update()` o `updateOrCreate()`:
+Para actualizar en la base de datos la información de un registro podemos usar los métodos `save()`, `update()` o `updateOrCreate()`:
 
 ```
 // Cargar y modificar

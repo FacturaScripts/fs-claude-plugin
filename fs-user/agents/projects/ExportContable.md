@@ -3,13 +3,13 @@ idproject: 576
 name: ExportContable
 permalink: exportcontable
 creationdate: 07-04-2026
-lastmod: 07-04-2026
-version: 0
+lastmod: 24-08-2026
+version: 1.3
 betaversion: 1.1
-mincore: 0
-maxcore: 2025.9
+mincore: 2025
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExportContable

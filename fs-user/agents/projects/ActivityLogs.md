@@ -5,9 +5,9 @@ permalink: activitylogs
 creationdate: 10-07-2024
 lastmod: 24-09-2025
 version: 1.5
-betaversion: 0
+betaversion: 
 mincore: 2025.4
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

@@ -3,41 +3,42 @@ id: 779
 permalink: series-470
 title: Las series de facturación
 creationdate: 08-01-2019 00:00:00
-lastmod: 11-06-2026
+lastmod: 13-08-2026
 url: https://facturascripts.com/publicaciones/series-470
 ---
-Las series son una forma de separar la facturación, ya sea por tipo de actividad o por otro motivo. Toda factura debe pertenecer a una serie. Puede configurar las series desde el **menú Contabilidad**, **Series**.
+Las series son una forma de separar la facturación, ya sea por tipo de actividad o por cualquier otro motivo. Toda factura debe pertenecer a una serie. Puedes configurarlas desde el menú Contabilidad → Series.
 
-Para crear una nueva serie debemos hace clic en el **botón nuevo** y rellenar los campos que nos solicitan. Dichos campos son: 
-- **Código**: se debe introducir un código para la serie.
-- **Descripción**: se debe introducir una descripción identificativa para la serie 
-- **Tipo**: Sirve para indicar si la serie es de tipo ´rectificativa´ o ´simplificada´.
-- **Sin Impuesto**: nos permite indicar si esta serie se le aplica o no impuestos.
+Para crear una serie nueva, haz clic en el botón `Nuevo` y rellena los campos que se solicitan:
 
-Una vez hagamos clic en el **botón Guardar** ya tendremos creado nuestra nueva serie para posteriormente utilizarla.
+- `Código`: un código para la serie.
+- `Descripción`: una descripción identificativa para la serie.
+- `Tipo`: indica si la serie es de tipo rectificativa o simplificada.
+- `Sin impuesto`: indica si a esta serie se le aplican o no impuestos.
 
-![Serie fontaneria](https://i.imgur.com/3frb2d8.png)
+Cuando pulses el botón `Guardar`, ya tendrás creada tu nueva serie para usarla más adelante.
 
-## Series predeterminadas
-FacturaScripts crea una **serie general**, una **simplificadas** (*para las facturas simplificadas*) y una serie **rectificativas** (*donde deben ir obligatoriamente las facturas rectificativas*). Podemos seleccionar la **serie predeterminada** (*la que se asigna a nuevas factuars*) desde el **menú administrador, panel de control**, en el campo serie. Seleccionamos la que queremos y pulsamos el botón guardar.
+![Formulario de una serie de facturación](https://i.imgur.com/3frb2d8.png)
 
-![serie predefinida](https://i.imgur.com/zLmwmEi.png)
+## ⭐ Series predeterminadas
+FacturaScripts crea una serie general, una serie simplificada (*para las facturas simplificadas*) y una serie rectificativa (*donde deben ir obligatoriamente las facturas rectificativas*). Puedes seleccionar la serie predeterminada (*la que se asigna a las nuevas facturas*) desde el menú Administrador → Panel de control, en el campo `Serie`: elige la que quieras y pulsa el botón `Guardar`.
 
-### Serie predeterminada por usuario
-A nivel de usuario también se puede asignar una serie perdeterminada, de forma que cuando el usuario crea una factura se selecciona automáticamente esa serie.
+![Selección de la serie predeterminada](https://i.imgur.com/zLmwmEi.png)
 
-![Serie predeterminada para usuario](https://i.imgur.com/0ZDOEy3.png)
+### 👤 Serie predeterminada por usuario
+A nivel de usuario también puedes asignar una serie predeterminada, de forma que cuando ese usuario crea una factura se selecciona automáticamente esa serie.
 
-### Series para clientes y proveedores
-También podemos asignar una serie predeterminada a un cliente/proveedor desde el propio cliente/proveedor, en el **campo serie** del apartado de **términos comerciales**. Así las facturas que hagamos al cliente/proveedor se les asignará la serie seleccionada.
+![Serie predeterminada de un usuario](https://i.imgur.com/0ZDOEy3.png)
 
-![asignar seria a cliente](https://i.imgur.com/x3iPGj4.gif)
+### 🤝 Series para clientes y proveedores
+También puedes asignar una serie predeterminada a un cliente o proveedor desde su propia ficha, en el campo `Serie` del apartado de términos comerciales. Así, las facturas que le hagas tendrán asignada esa serie.
 
-### Prioridad
-La serie del cliente/proveedor tiene prioridad sobre la del usuario. La serie del usuario tiene prioridad sobre la del panel de control.
+![Serie predeterminada en la ficha de un cliente](https://i.imgur.com/x3iPGj4.gif)
 
-## Numeración de facturas, albaranes y otros documentos
-La numeración de facturas, albaranes, pedidos, presupuestos u otros documentos que sigan el estandar de FacturaScripts se configura desde las [secuencias de documentos](https://facturascripts.com/publicaciones/secuencias-de-documentos-184).
+### 📊 Prioridad
+La serie del cliente/proveedor tiene prioridad sobre la del usuario, y la del usuario sobre la del panel de control.
 
-## Formatos de impresión por serie de impresion
-Tambien podemos hacer que cada serie tenga un [Formato de impresión](https://facturascripts.com/publicaciones/los-formatos-de-impresion-de-facturascripts) en específico.
+## 🔢 Numeración de facturas, albaranes y otros documentos
+La numeración de facturas, albaranes, pedidos, presupuestos y demás documentos que sigan el estándar de FacturaScripts se configura desde las [secuencias de documentos](https://facturascripts.com/publicaciones/secuencias-de-documentos-184).
+
+## 🖨️ Formato de impresión por serie
+También puedes hacer que cada serie tenga un [formato de impresión](https://facturascripts.com/publicaciones/los-formatos-de-impresion-de-facturascripts) específico.

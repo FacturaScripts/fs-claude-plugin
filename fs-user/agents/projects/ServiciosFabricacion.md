@@ -7,7 +7,7 @@ lastmod: 03-06-2026
 version: 2.9
 betaversion: 2.6
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.5
 compatible: StockAvanzado
 min_php: 
 require: Servicios

@@ -3,11 +3,11 @@ idproject: 448
 name: Verifactu
 permalink: verifactu
 creationdate: 27-05-2025
-lastmod: 24-06-2026
-version: 1.1
-betaversion: 0
-mincore: 2026.1
-maxcore: 2026.3
+lastmod: 02-09-2026
+version: 1.3
+betaversion: 1.41
+mincore: 2026.4
+maxcore: 2026.65
 compatible: PlantillasPDF,CSVimport,Servicios
 min_php: 
 require: 

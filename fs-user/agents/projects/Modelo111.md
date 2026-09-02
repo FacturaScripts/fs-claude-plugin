@@ -3,11 +3,11 @@ idproject: 192
 name: Modelo111
 permalink: modelo111
 creationdate: 16-03-2022
-lastmod: 18-05-2026
-version: 2.4
+lastmod: 17-07-2026
+version: 2.5
 betaversion: 2.1
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

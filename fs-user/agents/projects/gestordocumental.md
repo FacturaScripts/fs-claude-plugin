@@ -3,13 +3,13 @@ idproject: 662
 name: GestorDocumental
 permalink: gestordocumental
 creationdate: 30-06-2026
-lastmod: 30-06-2026
-version: 1
-betaversion: 0
+lastmod: 20-08-2026
+version: 2.4
+betaversion: 
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/GestorDocumental
@@ -29,3 +29,7 @@ Compatible con clientes, proveedores, facturas, albaranes, articulos y, en gener
 Requisitos: FacturaScripts 2026, PHP 8.1+, extension ZIP (ZipArchive) para la descarga en ZIP. Compatible con MySQL 8+ y PostgreSQL 11+.
 
 Desarrollado por YAST TELECOM SL (Adelantia). Software libre bajo licencia LGPL-3.0.
+
+## Demo online
+
+Prueba el plugin sin instalar nada en [https://gestordocumental.adelantia.com](https://gestordocumental.adelantia.com) — Acceso: usuario demo / contraseña demo1234. Es un entorno público de pruebas (los datos pueden reiniciarse; no introduzcas datos reales).

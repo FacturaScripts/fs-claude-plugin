@@ -3,7 +3,7 @@ id: 693
 permalink: preferencias-de-la-aplicacion-314
 title: Cómo crear preferencias de aplicación para su plugin
 creationdate: 22-10-2018 00:00:00
-lastmod: 13-03-2025
+lastmod: 12-08-2026
 url: https://facturascripts.com/publicaciones/preferencias-de-la-aplicacion-314
 ---
 Si necesita añadir opciones de configuración a su plugin, puede crear su propia sección en el apartado **Por defecto** (menú administrador &gt; panel de control) de FacturaScripts. El controlador que gestiona estas secciones es **EditSettings**, un controlador especial que carga automáticamente una sección para cada archivo XML dentro de **XMLView** cuyo nombre comience con el prefijo **Settings**.
@@ -23,7 +23,7 @@ Para crear una nueva sección de configuración, debe crear un archivo llamado *
 
 Aquí tiene un ejemplo del contenido que debe tener el archivo:
 
-```
+```xml
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;view&gt;
     &lt;columns&gt;
@@ -44,7 +44,7 @@ En este ejemplo, hemos nombrado el archivo **SettingsMyPlugin.xml** siguiendo el
 ### Columna &#39;name&#39; Obligatoria
 Los archivos de configuración deben incluir obligatoriamente una columna **name** para garantizar un funcionamiento correcto:
 
-```
+```xml
 &lt;column name=&quot;name&quot; display=&quot;none&quot; order=&quot;0&quot;&gt;
    &lt;widget type=&quot;text&quot; fieldname=&quot;name&quot; readonly=&quot;true&quot; required=&quot;true&quot; /&gt;
 &lt;/column&gt;
@@ -53,7 +53,7 @@ Los archivos de configuración deben incluir obligatoriamente una columna **name
 ### Leer configuración
 Puede acceder a los valores de cualquiera de los campos de configuración de su plugin utilizando `Tools::settings()` desde cualquier controlador o modelo:
 
-```
+```php
 use FacturaScripts\Core\Tools;
 
 Tools::settings(&#39;myplugin&#39;, &#39;nombre-campo&#39;);

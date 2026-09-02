@@ -5,9 +5,9 @@ permalink: iegenerapedidos
 creationdate: 10-05-2024
 lastmod: 29-06-2026
 version: 1.21
-betaversion: 0
+betaversion: 
 mincore: 2025.3
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

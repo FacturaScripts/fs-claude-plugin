@@ -5,7 +5,7 @@ permalink: loginscreen
 creationdate: 04-04-2025
 lastmod: 26-12-2025
 version: 1.35
-betaversion: 0
+betaversion: 
 mincore: 2025.6
 maxcore: 2026.3
 compatible: 

@@ -1,33 +1,58 @@
 ---
 id: 2111
 permalink: verifactu-facturacion-electronica-con-la-aeat
-title: Verifactu – Facturación electrónica con la AEAT
+title: VERI*FACTU: software de facturación y envío de registros a la AEAT
 creationdate: 01-05-2025 12:55:04
-lastmod: 14-09-2025
+lastmod: 28-07-2026
 url: https://facturascripts.com/publicaciones/verifactu-facturacion-electronica-con-la-aeat
 ---
-Ya está disponible el [plugin Verifactu](https://facturascripts.com/plugins/verifactu) para FacturaScripts, cumpliendo con la nueva normativa de la Agencia Tributaria sobre facturación electrónica, obligatoria en 2026.
+El [plugin VERI*FACTU](https://facturascripts.com/plugins/verifactu) añade a FacturaScripts soporte para remitir a la Agencia Tributaria los registros de facturación exigidos por el Reglamento de requisitos de los sistemas informáticos de facturación.
 
-## ¿Qué es Verifactu?
-Veri-factu es el sistema de la AEAT (Agencia Tributaria) para la recepción automática de facturas emitidas. Forma parte del marco legal establecido por la Ley Antifraude y afectará a todas las empresas y autónomos que emiten facturas en España.
+## ¿Qué es VERI*FACTU?
 
-El objetivo de Verifactu es mejorar el control fiscal y reducir el fraude, exigiendo que los programas de facturación puedan enviar automáticamente las facturas a la AEAT, en el momento en que se generan.
+El Reglamento aprobado por el Real Decreto 1007/2023 regula cómo deben funcionar los sistemas informáticos de facturación para garantizar la integridad, conservación, accesibilidad, legibilidad, trazabilidad e inalterabilidad de los registros.
 
-### ¿Es obligatorio?
-Sí, será obligatorio para todas las empresas y autónomos, aunque la entrada en vigor será progresiva:
+Existen dos modalidades válidas:
 
-- 29 de julio de 2025: Los proveedores de software de facturación deben tener adaptadas sus soluciones a Verifactu.
-- 1 de enero de 2026: Obligatorio para **empresas** (personas jurídicas).
-- 1 de julio de 2026: Obligatorio para **autónomos** (personas físicas).
+- **VERI*FACTU:** el sistema remite a la AEAT los registros de facturación inmediatamente después de generarlos.
+- **Sistema de emisión de facturas no verificables:** conserva los registros localmente y debe cumplir requisitos adicionales de firma y registro de eventos.
 
-Es importante destacar que las empresas que ya cumplen con [TicketBai](https://facturascripts.com/plugins/ticketbai) o con el [Suministro Inmediato de Información (SII)](https://facturascripts.com/plugins/informesii) quedan exentas de la obligación de Verifactu.
+El plugin de FacturaScripts funciona en modalidad VERI*FACTU.
 
-### ¿Es lo mismo que “factura electrónica” o lo del código QR?
-Sí, muchas personas se refieren a Verifactu con otros términos como:
+## ¿Cuándo será obligatorio?
 
-- Factura electrónica obligatoria
-- QR en las facturas
-- Comunicación automática con Hacienda
-- Software certificado o verificado por la AEAT
+Los plazos vigentes son:
 
-Todos estos conceptos están relacionados con Verifactu. La normativa exige que las facturas incluyan un código identificativo (CSV), un QR y que se puedan enviar automáticamente a la AEAT.
+- **1 de enero de 2027:** contribuyentes del Impuesto sobre Sociedades incluidos en el reglamento.
+- **1 de julio de 2027:** resto de obligados tributarios incluidos en su ámbito, entre ellos los autónomos que desarrollan actividades económicas.
+
+El periodo anterior a esas fechas es un periodo de pruebas. El ámbito de aplicación y las exclusiones deben comprobarse según el territorio, el régimen tributario, el tipo de operación y las demás circunstancias de cada obligado. Por ejemplo, los contribuyentes sometidos al SII quedan fuera del ámbito del reglamento y los territorios forales disponen de sus propios sistemas.
+
+## ¿Es lo mismo que la factura electrónica?
+
+No. VERI*FACTU y la factura electrónica son conceptos relacionados, pero distintos.
+
+- **VERI*FACTU** regula el funcionamiento del software y la generación y remisión de registros de facturación a la AEAT.
+- **La factura electrónica B2B** regula la factura estructurada que se expide, transmite y recibe entre empresarios y profesionales.
+- **Facturae/FACE** se utiliza para facturar electrónicamente a las administraciones públicas.
+- **TicketBAI** es el sistema aplicable en los territorios forales correspondientes.
+
+El registro enviado a la AEAT en modalidad VERI*FACTU es un resumen estructurado de la factura, pero no es la factura electrónica.
+
+## Código QR
+
+Las facturas expedidas mediante los sistemas informáticos incluidos en el reglamento deben incorporar el código QR o, cuando se trate de una factura electrónica, la información que representa ese código. Si el sistema funciona en modalidad VERI*FACTU, la factura también incluye la indicación correspondiente.
+
+## Certificación del software
+
+No existe una homologación previa ni un registro del producto ante la AEAT. La persona o entidad productora certifica que cada versión cumple la normativa mediante una **declaración responsable** incorporada al sistema. No se exige una certificación realizada por una entidad externa.
+
+## VERI*FACTU en FacturaScripts
+
+Consulta la [ficha del plugin VERI*FACTU](https://facturascripts.com/plugins/verifactu) para conocer su versión actual, compatibilidad, configuración y documentación de uso.
+
+### Fuentes oficiales
+
+- [Sistemas informáticos de facturación y VERI*FACTU — Agencia Tributaria](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu.html)
+- [Plazos de adaptación — Agencia Tributaria](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/nota-informativa-ampliacion-plazo-adaptacion-facturacion.html)
+- [Certificación y declaración responsable — Agencia Tributaria](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/preguntas-frecuentes/certificacion-sistemas-informaticos-declaracion-responsable.html)

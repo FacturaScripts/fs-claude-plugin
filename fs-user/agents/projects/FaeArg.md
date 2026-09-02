@@ -3,11 +3,11 @@ idproject: 439
 name: FaeArg
 permalink: faearg
 creationdate: 07-04-2025
-lastmod: 20-05-2026
-version: 1.24
-betaversion: 0
+lastmod: 20-07-2026
+version: 2
+betaversion: 
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.5
 compatible: 
 min_php: 8.2
 require: 

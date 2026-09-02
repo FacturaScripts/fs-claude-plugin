@@ -5,7 +5,7 @@ permalink: familiaprecios
 creationdate: 20-10-2021
 lastmod: 05-11-2025
 version: 1.61
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2025.81
 compatible: 

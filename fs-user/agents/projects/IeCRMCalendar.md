@@ -5,9 +5,9 @@ permalink: iecrmcalendar
 creationdate: 16-06-2023
 lastmod: 03-09-2025
 version: 3.3
-betaversion: 0
+betaversion: 
 mincore: 2025.3
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: CRM

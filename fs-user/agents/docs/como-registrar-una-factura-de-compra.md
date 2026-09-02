@@ -3,54 +3,54 @@ id: 1984
 permalink: como-registrar-una-factura-de-compra
 title: Cómo Registrar una Factura de Compra
 creationdate: 05-01-2025 12:32:30
-lastmod: 10-03-2026
+lastmod: 10-07-2026
 url: https://facturascripts.com/publicaciones/como-registrar-una-factura-de-compra
 ---
-Para registrar una factura de compra en FacturaScripts, siga estos pasos:
+Para registrar una factura de compra en FacturaScripts, sigue estos pasos:
 
-1. Dirígete al **menú Compras** y selecciona **Facturas**.
-2. Haz clic en el **botón Nuevo**.
+1. Ve al menú `Compras → Facturas`.
+2. Haz clic en el botón `Nuevo`.
 
 ![Crear factura de proveedor](https://i.imgur.com/5amNDCi.png)
 
-## 1. Seleccionar el Proveedor
+## 1️⃣ Seleccionar el proveedor
 
-En la pantalla de creación de la factura, elija el proveedor de la lista disponible. Si el proveedor no existe, puede agregar uno nuevo haciendo clic en **Nuevo**.
+En la pantalla de creación de la factura, elige el proveedor de la lista disponible. Si el proveedor no existe, puedes crear uno nuevo haciendo clic en `Nuevo`.
 
 ![Seleccionar proveedor](https://i.imgur.com/ihJARBa.png)
 
-## 2. Agregar Detalles de la Factura
+## 2️⃣ Agregar los detalles de la factura
 
-Complete los campos requeridos, tales como:
+Completa los campos necesarios, como:
 
-- **Fecha de emisión**
-- **Forma de pago**
-- **Número de factura del proveedor**, el cual puede ingresar en el campo **Num. proveedor**.
+- `Fecha de emisión`
+- `Forma de pago`
+- El número de factura del proveedor, que puedes indicar en el campo `Núm. proveedor`.
 
-## 3. Añadir Líneas a la Factura
+## 3️⃣ Añadir líneas a la factura
 
-Para incluir los productos comprados, agregue una línea por cada artículo. Deberá especificar:
+Para incluir los productos comprados, añade una línea por cada artículo. Deberás especificar:
 
-- **Descripción**
-- **Cantidad**
-- **Precio**
+- `Descripción`
+- `Cantidad`
+- `Precio`
 
-Si está comprando productos del almacén, asegúrese de escribir la referencia en la columna correspondiente.
+Si estás comprando productos del almacén, escribe la referencia en la columna correspondiente.
 
 ![Escribir línea factura](https://i.imgur.com/4UkJELP.png)
 
-## 4. Guardar la Factura
+## 4️⃣ Guardar la factura
 
-Después de verificar que todos los datos son correctos, haga clic en el botón **Guardar** para registrar la factura.
+Después de comprobar que todos los datos son correctos, haz clic en el botón `Guardar` para registrar la factura.
 
 ![Guardar factura](https://i.imgur.com/BGdR1p8.png)
 
-## 5. Ver y Modificar la Factura
+## 5️⃣ Ver y modificar la factura
 
-Una vez guardada, podrá acceder a la factura en el listado. Desde allí, tendrá la opción de revisarla o realizar modificaciones si es necesario.
+Una vez guardada, podrás acceder a la factura desde el listado. Desde allí puedes revisarla o modificarla si lo necesitas.
 
-## 6. Eliminar o Bloquear Factura
+## 6️⃣ Eliminar o bloquear la factura
 
-Si necesita eliminar la factura, asegúrese de que está desbloqueada (en estado de boceto). Para cambiar su estado a emitida, utilice el botón correspondiente que aparece en la parte superior de la pantalla.
+Si necesitas eliminar la factura, asegúrate de que está desbloqueada (en estado `Boceto`). Para cambiar su estado a `Emitida`, usa el botón correspondiente que aparece en la parte superior de la pantalla.
 
-Recuerde que registrar sus facturas de compra es esencial para mantener actualizado el stock y llevar un control de las facturas pagadas.
+Recuerda que registrar tus facturas de compra es esencial para mantener el stock actualizado y llevar un control de las facturas pagadas.

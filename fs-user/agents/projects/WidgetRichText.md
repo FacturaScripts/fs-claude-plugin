@@ -3,13 +3,13 @@ idproject: 410
 name: WidgetRichText
 permalink: widgetrichtext
 creationdate: 25-10-2024
-lastmod: 11-12-2025
-version: 2.01
-betaversion: 0
-mincore: 2025
-maxcore: 2026.3
+lastmod: 08-08-2026
+version: 2.02
+betaversion: 
+mincore: 2026
+maxcore: 2026.5
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/WidgetRichText

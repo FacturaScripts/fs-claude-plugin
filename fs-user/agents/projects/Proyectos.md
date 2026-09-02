@@ -3,11 +3,11 @@ idproject: 61
 name: Proyectos
 permalink: proyectos
 creationdate: 26-08-2019
-lastmod: 07-05-2026
-version: 5
+lastmod: 12-08-2026
+version: 5.2
 betaversion: 4.51
-mincore: 2026
-maxcore: 2026.3
+mincore: 2026.5
+maxcore: 2026.65
 compatible: FacturasProgramadas
 min_php: 
 require: 

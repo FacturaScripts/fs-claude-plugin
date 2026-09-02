@@ -5,9 +5,9 @@ permalink: modelo369
 creationdate: 01-06-2026
 lastmod: 19-06-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

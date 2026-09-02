@@ -3,13 +3,13 @@ idproject: 109
 name: DocumentosRecurrentes
 permalink: documentosrecurrentes
 creationdate: 11-11-2020
-lastmod: 22-06-2026
-version: 3.21
-betaversion: 0
-mincore: 2026
-maxcore: 2026.3
+lastmod: 05-08-2026
+version: 3.23
+betaversion: 
+mincore: 2026.5
+maxcore: 2026.5
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/DocumentosRecurrentes

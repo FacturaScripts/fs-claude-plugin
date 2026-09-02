@@ -3,13 +3,13 @@ idproject: 575
 name: HotelHostal
 permalink: hotelhostal
 creationdate: 07-04-2026
-lastmod: 07-04-2026
-version: 1
-betaversion: 0
+lastmod: 20-07-2026
+version: 2
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/HotelHostal

@@ -5,7 +5,7 @@ permalink: grupoclientescrm
 creationdate: 09-05-2022
 lastmod: 30-03-2026
 version: 1.3
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2026.3
 compatible: 

@@ -8,7 +8,7 @@ url: https://facturascripts.com/publicaciones/la-clase-cronjobclass
 ---
 Cuando un plugin tiene tareas periódicas con mucho código, meterlo todo dentro del archivo `Cron.php` lo vuelve difícil de leer y mantener. Para esos casos, FacturaScripts ofrece la plantilla `CronJobClass`: una clase donde colocar el código de cada trabajo por separado, dejando en `Cron.php` únicamente la programación de cuándo debe ejecutarse cada uno.
 
-> **Importante**: esta página explica cómo organizar el código de los trabajos. Para programar las frecuencias de ejecución consulta [Uso del Archivo Cron.php](https://facturascripts.com/publicaciones/el-archivo-cron-php-855), y para lanzar y configurar el cron en tu servidor, [Cómo ejecutar el cron de FacturaScripts](https://facturascripts.com/publicaciones/el-cron-104).
+&gt; **Importante**: esta página explica cómo organizar el código de los trabajos. Para programar las frecuencias de ejecución consulta [Uso del Archivo Cron.php](https://facturascripts.com/publicaciones/el-archivo-cron-php-855), y para lanzar y configurar el cron en tu servidor, [Cómo ejecutar el cron de FacturaScripts](https://facturascripts.com/publicaciones/el-cron-104).
 
 ## 🤔 Diferencia entre Cron y CronJob
 El `Cron.php` de tu plugin es el encargado de decidir **cuándo** se ejecuta cada trabajo (cada hora, cada día a las 8h, etc.). Un CronJob es la tarea específica: contiene **qué** se ejecuta. El Cron llama a los CronJobs según la programación que hayas definido.
@@ -22,14 +22,14 @@ No confundas estas dos clases de nombre parecido:
 Crea la clase en la carpeta `CronJob` de tu plugin, extendiendo de `CronJobClass`. Debe definir la constante `JOB_NAME` (el nombre del trabajo) y el método estático `run()` con el código a ejecutar:
 
 ```php
-<?php
+&lt;?php
 namespace FacturaScripts\Plugins\MiPlugin\CronJob;
 
 use FacturaScripts\Core\Template\CronJobClass;
 
 class MiCronJob extends CronJobClass
 {
-    const JOB_NAME = 'mi-cron-job';
+    const JOB_NAME = &#39;mi-cron-job&#39;;
 
     public static function run(): void
     {
@@ -42,7 +42,7 @@ class MiCronJob extends CronJobClass
 La clase no se ejecuta sola: hay que registrarla en el `Cron.php` del plugin, que es quien decide la frecuencia. Por ejemplo, para ejecutar `MiCronJob` cada día a las 8h:
 
 ```php
-<?php
+&lt;?php
 namespace FacturaScripts\Plugins\MiPlugin;
 
 use FacturaScripts\Core\Template\CronClass;
@@ -52,9 +52,9 @@ class Cron extends CronClass
 {
     public function run(): void
     {
-        $this->job(MiCronJob::JOB_NAME)
-            ->everyDayAt(8)
-            ->run(function () {
+        $this-&gt;job(MiCronJob::JOB_NAME)
+            -&gt;everyDayAt(8)
+            -&gt;run(function () {
                 MiCronJob::run();
             });
     }
@@ -72,7 +72,7 @@ La función `echo()` imprime texto en la salida del cron y además lo va acumula
 ```php
 public static function run(): void
 {
-    self::echo('Procesando facturas...');
+    self::echo(&#39;Procesando facturas...&#39;);
 }
 ```
 
@@ -82,7 +82,7 @@ Guarda todo el texto acumulado con `echo()` y `text()` como mensajes de log en e
 ```php
 public static function run(): void
 {
-    self::echo('Procesadas 42 facturas.');
+    self::echo(&#39;Procesadas 42 facturas.&#39;);
     self::saveEcho();
 }
 ```
@@ -93,6 +93,6 @@ Envía un email a todos los usuarios administradores, por ejemplo para avisar de
 ```php
 public static function run(): void
 {
-    self::sendToAdmins('Aviso del cron', 'Hay 5 facturas pendientes de revisar.');
+    self::sendToAdmins(&#39;Aviso del cron&#39;, &#39;Hay 5 facturas pendientes de revisar.&#39;);
 }
 ```

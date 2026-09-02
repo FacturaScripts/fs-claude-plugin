@@ -3,11 +3,11 @@ idproject: 69
 name: CSVimport
 permalink: csvimport
 creationdate: 15-01-2020
-lastmod: 26-05-2026
-version: 6.32
-betaversion: 6.41
+lastmod: 02-09-2026
+version: 6.5
+betaversion: 6.51
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: StockAvanzado,TarifasAvanzadas,ConciliacionBancaria
 min_php: 8.1
 require: 

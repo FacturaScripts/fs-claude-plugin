@@ -5,9 +5,9 @@ permalink: fsmensajeria
 creationdate: 26-12-2025
 lastmod: 10-02-2026
 version: 3
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2025.9
+maxcore: 2026.6
 compatible: 
 min_php: 8.1
 require: 

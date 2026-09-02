@@ -3,13 +3,13 @@ idproject: 418
 name: PedidosPendientes
 permalink: pedidospendientes
 creationdate: 10-01-2025
-lastmod: 19-02-2026
-version: 2.02
-betaversion: 0
-mincore: 2025.7
-maxcore: 2026.3
+lastmod: 20-08-2026
+version: 2.05
+betaversion: 2.07
+mincore: 2026.4
+maxcore: 2026.6
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PedidosPendientes

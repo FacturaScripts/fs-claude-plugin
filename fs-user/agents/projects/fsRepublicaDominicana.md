@@ -3,13 +3,13 @@ idproject: 176
 name: fsRepublicaDominicana
 permalink: fsrepublicadominicana
 creationdate: 10-01-2022
-lastmod: 19-02-2026
-version: 1.34
+lastmod: 05-07-2026
+version: 1.35
 betaversion: 1.25
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
-min_php: 8.2
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/fsRepublicaDominicana

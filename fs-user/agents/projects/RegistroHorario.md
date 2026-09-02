@@ -3,11 +3,11 @@ idproject: 368
 name: RegistroHorario
 permalink: registrohorario
 creationdate: 08-06-2024
-lastmod: 15-06-2026
-version: 2.9
-betaversion: 0
+lastmod: 02-09-2026
+version: 3
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

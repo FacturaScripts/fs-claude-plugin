@@ -3,11 +3,11 @@ idproject: 194
 name: Contratos
 permalink: contratos
 creationdate: 22-03-2022
-lastmod: 31-10-2025
-version: 2.1
+lastmod: 01-09-2026
+version: 2.2
 betaversion: 1.5
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

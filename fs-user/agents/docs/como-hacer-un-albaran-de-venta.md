@@ -3,31 +3,32 @@ id: 956
 permalink: como-hacer-un-albaran-de-venta
 title: Cómo hacer un albarán de venta
 creationdate: 18-07-2021 11:44:09
-lastmod: 10-03-2026
+lastmod: 10-07-2026
 url: https://facturascripts.com/publicaciones/como-hacer-un-albaran-de-venta
 ---
-Un albarán de venta es un documento que registra la salida de productos de nuestro almacén y su entrega al cliente. Podemos gestionar los albaranes de venta desde el **menú Ventas** &gt; **Albaranes**.
+Un albarán de venta es un documento que registra la salida de productos de tu almacén y su entrega al cliente. Puedes gestionar los albaranes de venta desde el menú `Ventas → Albaranes`.
 
 ![Albaranes de venta](https://i.imgur.com/JySLaHM.png)
 
-## Opciones disponibles en la gestión de albaranes
-Desde esta pantalla de gestión de albaranes, tenemos las siguientes opciones:
+## 🧭 Opciones disponibles en la gestión de albaranes
+Desde esta pantalla de gestión de albaranes tienes las siguientes opciones:
 
-- **Crear**: Nuevo albarán, utilizando el botón verde con el signo + [+].
-- **Eliminar**: Un albarán, usando el botón rojo con el icono de la papelera.
-- **Imprimir**: Listado de albaranes, a través del botón de la impresora. Podemos obtener el listado en diferentes formatos: imprimir en papel, generar un archivo XLS, un archivo CSV, un PDF y enviarlo por email.
-- **Agrupar/Partir**: Uno o varios albaranes según convenga, utilizando el botón con la varita mágica.
-- **Aprobar**: Varios albaranes con la misma fecha, haciendo clic en el icono del calendario con el check.
-- **Filtros**: Podremos realizar numerosas y útiles clasificaciones para la búsqueda de albaranes, tales como albaranes de un periodo, de una fecha a otra, con un importe mayor o igual a, menor o igual a, según el estado, por series, por forma de pago, a un cliente específico, a una dirección de facturación, a una dirección de envío, con recargo, retención, etc.
+- **Crear**: un nuevo albarán, con el botón verde con el signo `+`.
+- **Eliminar**: un albarán, con el botón rojo con el icono de la papelera.
+- **Imprimir**: el listado de albaranes, con el botón de la impresora. Puedes obtener el listado en diferentes formatos: imprimir en papel, generar un archivo XLS, un CSV o un PDF, y enviarlo por email.
+- **Agrupar/Partir**: uno o varios albaranes según convenga, con el botón de la varita mágica.
+- **Aprobar**: genera la factura de los albaranes seleccionados. Con la opción de la misma fecha (icono del calendario con el check) la factura conserva la fecha del albarán.
+- **Filtros**: puedes clasificar y buscar albaranes por múltiples criterios, como los de un periodo o de una fecha a otra, con un importe mayor o menor que, según el estado, por serie, por forma de pago, por cliente, por dirección de facturación o de envío, con recargo o retención, etc.
 
-## Creación de un nuevo albarán
-En la pestaña **Nuevo**, debemos indicar los siguientes datos:
-1. **Cliente**: Seleccionar el cliente correspondiente.
-2. **Tipo de albarán**: Elegir el tipo adecuado.
-3. **Fecha del albarán**: Especificar la fecha correspondiente.
-4. **Número de referencia**: Opcionalmente, establecer un número de referencia para el albarán.
-5. **Forma de pago**: Indicar la forma de pago pactada.
+## 🆕 Creación de un nuevo albarán
+En la pestaña `Nuevo` debes indicar los siguientes datos:
 
-A continuación, añadimos las líneas del albarán (se puede crear un albarán a partir de un presupuesto de venta de un cliente), posibles descuentos y, finalmente, pulsamos el botón **Guardar**.
+1. **Cliente**: selecciona el cliente correspondiente.
+2. **Tipo de albarán**: elige el tipo adecuado.
+3. **Fecha del albarán**: especifica la fecha correspondiente.
+4. **Número de referencia**: opcionalmente, establece un número de referencia para el albarán.
+5. **Forma de pago**: indica la forma de pago pactada.
 
-Una vez generado el albarán, podemos acceder a las pestañas **Detalle** y adjuntar archivos anexos al albarán.
+A continuación, añade las líneas del albarán (también puedes crear un albarán a partir de un presupuesto de venta del cliente), aplica los posibles descuentos y, finalmente, pulsa el botón `Guardar`.
+
+Una vez generado el albarán, puedes acceder a la pestaña `Detalle` y adjuntar archivos anexos al albarán.

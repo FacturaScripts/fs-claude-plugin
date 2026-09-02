@@ -3,13 +3,13 @@ idproject: 423
 name: DocumentacionAPI
 permalink: documentacionapi
 creationdate: 10-02-2025
-lastmod: 01-10-2025
-version: 1.1
+lastmod: 25-08-2026
+version: 2.1
 betaversion: 2
-mincore: 2024.93
-maxcore: 2025.61
+mincore: 2026.1
+maxcore: 2026.6
 compatible: 
-min_php: 
+min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/DocumentacionAPI

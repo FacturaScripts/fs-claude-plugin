@@ -5,7 +5,7 @@ permalink: sqleditor
 creationdate: 17-11-2018
 lastmod: 31-12-2019
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 
 maxcore: 
 compatible: 

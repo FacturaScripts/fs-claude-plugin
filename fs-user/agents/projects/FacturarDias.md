@@ -7,7 +7,7 @@ lastmod: 03-06-2026
 version: 1.6
 betaversion: 1.4
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.5
 compatible: 
 min_php: 
 require: 

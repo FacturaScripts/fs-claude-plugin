@@ -3,11 +3,11 @@ idproject: 63
 name: PlazosPago
 permalink: plazospago
 creationdate: 23-09-2019
-lastmod: 16-08-2025
-version: 3
+lastmod: 03-08-2026
+version: 3.1
 betaversion: 2.1
-mincore: 2025
-maxcore: 2026.3
+mincore: 2026
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

@@ -3,7 +3,7 @@ id: 705
 permalink: migracion-de-plugins-de-2015-2017-822
 title: Migración de plugins antiguos
 creationdate: 27-05-2018 00:00:00
-lastmod: 24-05-2026
+lastmod: 09-08-2026
 url: https://facturascripts.com/publicaciones/migracion-de-plugins-de-2015-2017-822
 ---
 No existe el código perfecto. Crear un framework con nuevas funciones que sea compatible hacia atrás por los siglos de los siglos es el santo grial de los informáticos. Hasta ahora, nadie lo ha conseguido, y cada cierto tiempo es necesario romper la compatibilidad con plugins antiguos, a veces poco y otras, mucho.
@@ -16,6 +16,12 @@ Tenemos una herramienta en línea de comandos para simplificar el desarrollo de 
 - El requisito mínimo es ahora PHP 8.1.
 - Los JoinModel deben heredar ahora de `Core/Template/JoinModel` en lugar de `Core/Model/Base/JoinModel`.
 - Hay que reemplazar todas las llamadas a `DataBaseWhere` por el nuevo [Where](https://facturascripts.com/publicaciones/where).
+- Se ha eliminado la clase `Core/Base/Utils`. Hay que usar `Core/Tools`; por ejemplo, `Tools::fixHtml()`, `Tools::floatCmp()`, `Tools::noHtml()` y `Tools::randomString()`.
+- Se han eliminado los métodos `addAddress()`, `addBCC()`, `addCC()` y `addReplyTo()` de `NewMail`. Hay que usar `to()`, `bcc()`, `cc()` y `replyTo()`, respectivamente.
+- En los modelos, `loadFromCode()` está obsoleto. Hay que usar `load()` para cargar por código o `loadWhere()` cuando se necesitan condiciones u ordenación adicionales.
+- En los modelos, hay que reemplazar `primaryColumnValue()` por `id()`, `changePrimaryColumnValue()` por `changeId()` y `hasChanged()` por `isDirty()`.
+- Los métodos antiguos de `Request`, como `get()`, `getArray()` o `getString()`, están obsoletos. Hay que indicar el origen de los datos mediante `request`, `query`, `input()`, `inputOrQuery()` o `queryOrInput()`. Consulta la [clase Request](https://facturascripts.com/publicaciones/objeto-request-como-recibir-datos-de-formularios-url-cookies-etc).
+- En `Response`, hay que reemplazar `setStatusCode()` por `setHttpCode()`. Consulta la [clase Response](https://facturascripts.com/publicaciones/objeto-response-como-devolver-datos).
 
 ## ⚙️ Cambios en la v2025
 - El requisito mínimo es ahora PHP 8.0.

@@ -5,7 +5,7 @@ permalink: prepagospos
 creationdate: 15-03-2025
 lastmod: 16-03-2025
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2024.93
 maxcore: 2024.96
 compatible: 

@@ -3,11 +3,11 @@ idproject: 193
 name: Ticketbai
 permalink: ticketbai
 creationdate: 21-03-2022
-lastmod: 27-04-2026
-version: 2.71
-betaversion: 1.9
-mincore: 2025.81
-maxcore: 2026.3
+lastmod: 02-09-2026
+version: 2.8
+betaversion: 2.81
+mincore: 2026
+maxcore: 2026.65
 compatible: PlantillasPDF
 min_php: 
 require: 

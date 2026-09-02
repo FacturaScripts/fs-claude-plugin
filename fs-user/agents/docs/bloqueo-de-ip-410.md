@@ -3,7 +3,7 @@ id: 811
 permalink: bloqueo-de-ip-410
 title: Bloqueo de IP
 creationdate: 04-09-2019 00:00:00
-lastmod: 26-03-2026
+lastmod: 22-07-2026
 url: https://facturascripts.com/publicaciones/bloqueo-de-ip-410
 ---
 FacturaScripts bloqueará automáticamente el acceso desde una IP tras anotar **5 alertas de seguridad**, mostrando el mensaje &quot;**Por motivos de seguridad se ha bloqueado temporalmente el acceso desde su IP**&quot;. También puede salir un **error 429**, que es el mismo caso. La IP quedará bloqueada o baneada durante 10 minutos.
@@ -17,7 +17,7 @@ FacturaScripts bloqueará automáticamente el acceso desde una IP tras anotar **
 ### Motivos
 La motivación de este sistema de seguridad es evitar que se pueda **obtener acceso al sistema por fuerza bruta**, es decir, utilizando bots que prueban muchos usuarios y contraseñas distintas hasta encontrar el correcto. Lo mismo con la API. Este sistema es necesario para mantener la seguridad de su sistema. Por eso implementamos este baneo de IPs.
 
-### ¿Esta usando fsprinter o mc20printer?
+### ¿Esta usando fsprinter?
 Si está usando versiones antiguas de fsprinter y la clave de API configurada ya no está activa, esas consultas de fsprinter pueden bloquear su IP. Cierre fsprinter para comprobar si ese es el problema.
 
 ## ✅ Solución

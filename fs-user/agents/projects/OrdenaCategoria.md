@@ -3,18 +3,18 @@ idproject: 596
 name: OrdenaCategoria
 permalink: ordenacategoria
 creationdate: 06-05-2026
-lastmod: 07-05-2026
-version: 1.1
-betaversion: 0
+lastmod: 07-08-2026
+version: 1.4
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/OrdenaCategoria
 ---
-Genera un PDF con las Facturas de proveedor agrupadas por el campo nuevo Categoría con subtotales de grupo y total. Útil para Autónomos o empresas para agrupar por tipo de gasto (TEL, ASE, SUM...). 
+Genera un PDF con las Facturas de proveedor agrupadas por el campo nuevo Categoría con subtotales de grupo y total y con impuestos desglosados por tipo. Útil para Autónomos o empresas para agrupar por tipo de gasto (TEL, ASE, SUM...). 
 
 Por ejemplo podemos filtrar por trimestres y realizar las agrupaciones por Categoría para llevarlas al Gestor.
 

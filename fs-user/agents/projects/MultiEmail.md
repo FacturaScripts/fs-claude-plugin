@@ -3,11 +3,11 @@ idproject: 80
 name: MultiEmail
 permalink: multiemail
 creationdate: 23-05-2020
-lastmod: 03-06-2026
-version: 3
+lastmod: 14-08-2026
+version: 3.04
 betaversion: 2.8
-mincore: 2026.1
-maxcore: 2026.3
+mincore: 2026.4
+maxcore: 2026.65
 compatible: Notificaciones,Traducciones
 min_php: 
 require: 

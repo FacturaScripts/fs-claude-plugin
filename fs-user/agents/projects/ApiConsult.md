@@ -5,7 +5,7 @@ permalink: apiconsult
 creationdate: 17-06-2025
 lastmod: 17-06-2025
 version: 1.6
-betaversion: 0
+betaversion: 
 mincore: 2023.5
 maxcore: 2025.61
 compatible: 

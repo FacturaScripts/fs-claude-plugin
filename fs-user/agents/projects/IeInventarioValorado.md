@@ -3,11 +3,11 @@ idproject: 357
 name: IeInventarioValorado
 permalink: ieinventariovalorado
 creationdate: 16-02-2024
-lastmod: 03-09-2025
-version: 1.2
-betaversion: 0
-mincore: 2025.3
-maxcore: 2026.3
+lastmod: 18-08-2026
+version: 1.7
+betaversion: 
+mincore: 2025
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

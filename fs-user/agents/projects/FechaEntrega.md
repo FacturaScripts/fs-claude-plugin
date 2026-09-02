@@ -4,9 +4,9 @@ name: FechaEntrega
 permalink: fechaentrega
 creationdate: 17-12-2025
 lastmod: 17-12-2025
-version: 0
+version: 
 betaversion: 1
-mincore: 0
+mincore: 
 maxcore: 2025.61
 compatible: 
 min_php: 

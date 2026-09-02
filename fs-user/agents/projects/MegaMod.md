@@ -3,11 +3,11 @@ idproject: 294
 name: MegaMod
 permalink: megamod
 creationdate: 28-02-2023
-lastmod: 20-03-2026
-version: 1.3
+lastmod: 21-07-2026
+version: 1.4
 betaversion: 1.1
-mincore: 2025.81
-maxcore: 2026.3
+mincore: 2026
+maxcore: 2026.5
 compatible: 
 min_php: 
 require: 
@@ -21,3 +21,6 @@ Puedes filtrar todos los productos por almacén, familia, fabricante e impuestos
 
 # Cambios en asientos
 Puedes cambiar masivamente una subcuenta usada en todos los asientos del ejercicio.
+
+# Cambios en clientes
+Permite traspasar datos de clientes duplicados a un cliente final.

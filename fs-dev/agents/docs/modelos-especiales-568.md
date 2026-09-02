@@ -14,10 +14,17 @@ El modelo `CodeModel` se utiliza cuando necesitamos obtener una lista de registr
 El único método que ofrece es el `all`, el cual, a diferencia de otros modelos, es estático. Esto significa que no es necesario crear una instancia del objeto `CodeModel` para ejecutarlo.
 
 #### Ejemplo de carga de lista con código y descripción
-El último parámetro de la llamada al método `all`, denominado `$addEmpty`, permite indicar si necesitamos que se inserte un `CodeModel` en blanco al principio del array que se devuelve con los datos. Esto es útil cuando queremos asignar los valores de retorno a un widget select donde el valor no es obligatorio.
+El parámetro `$addEmpty` de la llamada al método `all` permite indicar si necesitamos que se inserte un `CodeModel` en blanco al principio del array que se devuelve con los datos. Esto es útil cuando queremos asignar los valores de retorno a un widget select donde el valor no es obligatorio.
 
 ```php
 $rows = CodeModel::all(&#39;agentes&#39;, &#39;codagente&#39;, &#39;nombre&#39;, false);
+```
+
+Además admite un quinto parámetro opcional con un array de filtros [Where](https://facturascripts.com/publicaciones/where):
+
+```php
+$where = [Where::eq(&#39;debaja&#39;, false)];
+$rows = CodeModel::all(&#39;agentes&#39;, &#39;codagente&#39;, &#39;nombre&#39;, false, $where);
 ```
 
 ### TotalModel
@@ -26,6 +33,6 @@ El modelo `TotalModel` está diseñado especialmente para realizar cálculos est
 #### Ejemplo: Albaranes de venta sin facturar por cliente
 
 ```php
-$where = [new DataBase\DataBaseWhere(&#39;ptefactura&#39;, TRUE)];
-$totals = Model\TotalModel::all(&#39;albaranescli&#39;, $where, [&#39;total&#39; =&gt; &#39;SUM(total)&#39;, &#39;count&#39; =&gt; &#39;COUNT(1)&#39;], &#39;codcliente&#39;);
+$where = [Where::eq(&#39;ptefactura&#39;, true)];
+$totals = TotalModel::all(&#39;albaranescli&#39;, $where, [&#39;total&#39; =&gt; &#39;SUM(total)&#39;, &#39;count&#39; =&gt; &#39;COUNT(1)&#39;], &#39;codcliente&#39;);
 ```

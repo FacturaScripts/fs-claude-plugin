@@ -5,7 +5,7 @@ permalink: gastos
 creationdate: 09-12-2025
 lastmod: 04-02-2026
 version: 4.3
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2025.81
 compatible: 

@@ -3,7 +3,7 @@ id: 619
 permalink: la-definicion-de-la-estructura-de-la-tabla-514
 title: La definición de la estructura de la tabla
 creationdate: 27-04-2018 00:00:00
-lastmod: 01-04-2026
+lastmod: 09-07-2026
 url: https://facturascripts.com/publicaciones/la-definicion-de-la-estructura-de-la-tabla-514
 ---
 FacturaScripts utiliza archivos XML para definir la estructura de las tablas de la base de datos. El núcleo del sistema se encarga de revisar estas tablas para:

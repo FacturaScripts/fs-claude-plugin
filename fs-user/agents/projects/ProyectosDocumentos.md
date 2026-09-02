@@ -5,12 +5,12 @@ permalink: proyectosdocumentos
 creationdate: 17-03-2026
 lastmod: 17-03-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2026.1
 compatible: 
-min_php: 
-require: 
+min_php: 8
+require: Proyectos
 require_php: 
 url: https://facturascripts.com/plugins/ProyectosDocumentos
 ---

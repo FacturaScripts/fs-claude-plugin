@@ -3,7 +3,7 @@ id: 1672
 permalink: cliente-de-api-de-openai
 title: Cliente de API de OpenAI
 creationdate: 18-02-2024 13:27:43
-lastmod: 08-12-2025
+lastmod: 24-08-2026
 url: https://facturascripts.com/publicaciones/cliente-de-api-de-openai
 ---
 FacturaScripts incorpora la clase `OpenAi`, ubicada en la carpeta `Lib`, que simplifica el uso de las APIs de **OpenAI** para la generación de texto (chatGPT), imágenes y audio mediante inteligencia artificial.
@@ -46,14 +46,14 @@ $tokens = OpenAi::init(&#39;TU_CLAVE_API&#39;)-&gt;getTotalTokens();
 
 ### Selección de Modelos
 
-De forma predeterminada se utiliza el modelo **gpt-5-mini**, optimizado por su rapidez y coste. Si deseas utilizar modelos específicos como **GPT5** o **GPT5.1**, puedes especificarlo como tercer parámetro (el segundo es el identificador de usuario final, que puedes dejar vacío).
+De forma predeterminada se utiliza el modelo **gpt-5.4-mini**, optimizado por su rapidez y coste. Si deseas utilizar otro modelo, puedes especificarlo como tercer parámetro (el segundo es el identificador de usuario final, que puedes dejar vacío).
 
 ```php
 $mensajes = [];
 $pregunta = &#39;¿Qué es FacturaScripts?&#39;;
 $respuesta = OpenAi::init(&#39;TU_CLAVE_API&#39;)
     -&gt;setUserMessage($mensajes, $pregunta)
-    -&gt;chat($mensajes, &#39;&#39;, &#39;gpt-5.1&#39;);
+    -&gt;chat($mensajes, &#39;&#39;, &#39;gpt-5.4&#39;);
 ```
 
 ### Respuestas estructuradas (JSON)
@@ -84,7 +84,7 @@ $resultado = OpenAi::init(&#39;TU_CLAVE_API&#39;)
 
 ## 🎨 Generación de Imágenes con IA
 
-Utiliza la función `image()` para generar imágenes a partir de una descripción en texto. Por defecto se utiliza el modelo **gpt-image-2-mini**. La imagen se guarda en la carpeta `MyFiles` y la función devuelve su ruta.
+Utiliza la función `image()` para generar imágenes a partir de una descripción en texto. Por defecto se utiliza el modelo **gpt-image-2**. La imagen se guarda en la carpeta `MyFiles` y la función devuelve su ruta relativa.
 
 ```php
 $image_path = OpenAi::init(&#39;TU_CLAVE_API&#39;)
@@ -93,9 +93,18 @@ $image_path = OpenAi::init(&#39;TU_CLAVE_API&#39;)
 echo $image_path; // Ejemplo: MyFiles/image_XXXXX.png
 ```
 
+Estas peticiones son lentas, por lo que usan un timeout mínimo de **180 segundos**, aunque hayas indicado uno menor con `setTimeout()`.
+
 ### Tamaños de Imagen
 
-Los tamaños soportados por el modelo son **1024x1024** (por defecto), **1536x1024** y **1024x1536**. Puedes pedir cualquier otra resolución con los parámetros `width` y `height`: la imagen se generará en el tamaño soportado más cercano según su orientación y después **FacturaScripts la redimensionará automáticamente** al tamaño solicitado.
+Con **gpt-image-2** puedes solicitar directamente cualquier tamaño que cumpla las restricciones del modelo:
+
+- ancho y alto múltiplos de **16**,
+- máximo **3840** píxeles por lado,
+- proporción entre el lado largo y el corto **no mayor de 3:1**,
+- y entre **655.360** y **8.294.400** píxeles en total.
+
+Si el tamaño no cumple esas condiciones (o utilizas otro modelo), la imagen se generará en el tamaño soportado más cercano según su orientación (**1024x1024**, **1536x1024** o **1024x1536**) y después **FacturaScripts la redimensionará automáticamente** al tamaño solicitado.
 
 ```php
 $image_path = OpenAi::init(&#39;TU_CLAVE_API&#39;)
@@ -106,14 +115,20 @@ $image_path = OpenAi::init(&#39;TU_CLAVE_API&#39;)
 
 ### Opciones avanzadas
 
-La firma completa es `image($prompt, $width, $height, $count, $model, $options)`. En el array `options` se pueden indicar parámetros adicionales de la API: `output_format` (png por defecto), `output_compression`, `stream` y `content_moderation`.
+La firma completa es `image($prompt, $width, $height, $count, $model, $options)`. En el array `options` se pueden indicar parámetros adicionales de la API:
+
+- `output_format`: `png` (por defecto), `jpeg` o `webp`. Cualquier otro valor devuelve una cadena vacía y registra un error en el log.
+- `output_compression`: nivel de compresión para `jpeg` y `webp`.
+- `moderation`: nivel de moderación de contenido. `content_moderation` se mantiene como alias por compatibilidad.
 
 ```php
 $image_path = OpenAi::init(&#39;TU_CLAVE_API&#39;)
-    -&gt;image(&#39;an illustration for an accounting software&#39;, 1024, 1024, 1, &#39;gpt-image-2-mini&#39;, [
+    -&gt;image(&#39;an illustration for an accounting software&#39;, 1024, 1024, 1, &#39;gpt-image-2&#39;, [
         &#39;output_format&#39; =&gt; &#39;jpeg&#39;
     ]);
 ```
+
+&gt; Nota: como `image()` devuelve la ruta de un único archivo, los parámetros `count` (distinto de 1) y `stream` se ignoran, dejando un aviso en el log.
 
 ---
 

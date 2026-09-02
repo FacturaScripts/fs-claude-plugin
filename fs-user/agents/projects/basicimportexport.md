@@ -3,11 +3,11 @@ idproject: 620
 name: BasicImportExport
 permalink: basicimportexport
 creationdate: 03-06-2026
-lastmod: 09-06-2026
-version: 1
+lastmod: 24-07-2026
+version: 1.02
 betaversion: 0.1
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: ProductosCliente
 min_php: 
 require: 
@@ -56,15 +56,12 @@ Si el usuario no tiene permiso de importación o exportación sobre ListProducto
 
 OTROS PLUGINS DE IMPORTACIÓN Y EXPORTACIÓN
 
-Existen actualmente varios plugins de importación y exportación de datos para FacturaScripts, de forma que puede escoger el que más se ajuste a sus necesidades.
+Existen otros plugins de importación y exportación de datos para FacturaScripts, de forma que puede escoger el que más se ajuste a sus necesidades.
 
-- BasicImportExport. Es el más básico y es gratuito. Permite importar y exportar solamente productos, clientes y proveedores. También permite importar características especiales de productos para usar con el plugin ProductosCliente. El plugin está mantenido por un único programador.
+- BasicImportExport. Es el más básico y es gratuito. Permite importar y exportar solamente productos, clientes y proveedores. También permite importar características especiales de productos para usar con el plugin ProductosCliente. Los datos deben estar en un formato concreto para poderse importar. El plugin está mantenido por un único programador (aún así, la respuesta ante preguntas e incidencias es bastante rápida).
 
-- CSVImport. Es el importador oficial de FacturaScripts y es mucho más potente y versátil. Importación configurable y por plantillas predefinidas. Solo importación (no exporta). Es un plugin de pago pero su precio es más que asequible. Mantenido por el mismo equipo de programadores que mantiene el CORE de FacturaScripts, por lo que su continuidad y compatibilidad están más que aseguradas. Es el plugin de importación recomendado.
+- CSVImport. Es el importador oficial de FacturaScripts y es mucho más potente y versátil que BasicImportExport. Permite importar prácticamente cualquier cosa, sin importar en qué formato estén los datos. Importación configurable y también por plantillas predefinidas. Solo importación (no exporta). Es un plugin de pago pero su precio es más que asequible. Mantenido por el mismo equipo de programadores que mantiene el CORE de FacturaScripts, por lo que su continuidad y compatibilidad están más que aseguradas. Es el plugin de importación recomendado.
 https://facturascripts.com/plugins/csvimport
-
-- DataImport. Es un nuevo plugin de importación gratuito pero también muy potente y versátil. Importación configurable y por plantillas predefinidas. Solo importación (no exporta). Mantenido por un único programador.
-https://facturascripts.com/plugins/dataimport
 
 - Exporter. Es un pugin de exportación avanzada. Realiza exportaciones en background, Solo exporta (no importa). Mantenido por el mismo equipo de programadores que mantiene el CORE de FacturaScripts.
 https://facturascripts.com/plugins/exporter

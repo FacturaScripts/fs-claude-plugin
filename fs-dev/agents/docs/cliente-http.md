@@ -3,7 +3,7 @@ id: 1602
 permalink: cliente-http
 title: Cliente HTTP de FacturaScripts
 creationdate: 22-11-2023 12:43:22
-lastmod: 02-06-2025
+lastmod: 11-08-2026
 url: https://facturascripts.com/publicaciones/cliente-http
 ---
 Tenemos un **cliente HTTP** que puedes utilizar para consultar APIs, descargar contenido, consultar otras webs, etc. Simplifica mucho el código en comparación con CURL.
@@ -44,7 +44,7 @@ $total = $request-&gt;header(&#39;x-total&#39;); // obtenemos la cabecera &#39;x
 ```
 
 ### ⚠️ Control de errores
-Tenemos una serie de funciones que podemos usar para comprobar si la petición ha devuelto errores o no, y cuales. Las funciones son `ok()`, `failed()`, `notFound()`, `errorMessage()` y `status()`.
+Tenemos una serie de funciones que podemos usar para comprobar si la petición ha devuelto errores o no, y cuáles. Las funciones son `ok()`, `failed()`, `notFound()`, `errorMessage()` y `status()`.
 
 ```php
 $request = Http::get(&#39;https://randomuser.me/api/&#39;);
@@ -68,7 +68,7 @@ if ($request-&gt;notFound()) {
 ```
 
 ### ⬇️ Descargar archivos
-Si deseas no solo consultar una url, sino almacenar la respuesta en un archivo, es decir, descargar ese archivo a disco. Puedes usar la función `saveAs()`, que devuelve true si se descarga correctamente (código 200).
+Si deseas no solo consultar una url, sino almacenar la respuesta en un archivo, es decir, descargar ese archivo a disco, puedes usar la función `saveAs()`, que devuelve true si se descarga correctamente (código 200).
 
 ```php
 Http::get(&#39;https://facturascripts.com/PluginInfoList&#39;)
@@ -135,7 +135,7 @@ $json = Http::get(&#39;https://tu-web-con-user.com/servicio&#39;)
 ```
 
 ### 📨 Hacer una petición post
-Podemos hacer una petición POST, es decir, enviar datos como si fuese un formulario, llamando a la función post en lugar de a get.
+Podemos hacer una petición POST, es decir, enviar datos como si fuese un formulario, llamando a la función `post()` en lugar de a `get()`.
 
 ```php
 // enviamos los datos como un formulario

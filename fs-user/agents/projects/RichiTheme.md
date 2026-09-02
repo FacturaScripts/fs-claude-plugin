@@ -3,11 +3,11 @@ idproject: 532
 name: RichiTheme
 permalink: richitheme
 creationdate: 17-01-2026
-lastmod: 27-01-2026
-version: 1.36
+lastmod: 01-08-2026
+version: 1.4
 betaversion: 1.1
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 
@@ -20,6 +20,7 @@ Características principales:
 - Diseño minimalista y profesional: Interfaz limpia que mejora la productividad y reduce la curva de aprendizaje
 - Personalización completa del login: Configura colores de fondo, formulario y botones para adaptar la página de acceso a tu identidad corporativa
 - Control total del sidebar: Añade tu logotipo personalizado y ajusta la paleta de colores del menú lateral y submenús
+- Desde la versión 1.37: Muestra o esconde el menú lateral con Ctrl+B
 - Barra superior: Personaliza el aspecto de la topbar y controla la visibilidad del nombre de empresa
 
 Versión Premium del template RichiLite:

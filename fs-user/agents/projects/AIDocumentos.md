@@ -3,11 +3,11 @@ idproject: 556
 name: AIDocumentos
 permalink: aidocumentos
 creationdate: 10-03-2026
-lastmod: 18-05-2026
-version: 7.1
-betaversion: 0
+lastmod: 02-09-2026
+version: 8.8
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 8
 require: 

@@ -5,9 +5,9 @@ permalink: commandpalette
 creationdate: 01-02-2026
 lastmod: 03-02-2026
 version: 2
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 8.1
 require: 

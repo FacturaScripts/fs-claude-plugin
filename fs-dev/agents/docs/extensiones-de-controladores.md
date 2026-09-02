@@ -52,7 +52,7 @@ class ListProducto
    {
       return function($viewName, $view) {
 				if ($viewName === &#39;ListLogMessage&#39;) {
-					$where = [new DataBaseWhere(&#39;tipo&#39;, &#39;error&#39;)];
+					$where = [Where::eq(&#39;tipo&#39;, &#39;error&#39;)];
 					$view-&gt;loadData(&#39;&#39;, $where);
 					break;
 				}

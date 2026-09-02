@@ -7,7 +7,7 @@ lastmod: 19-06-2026
 version: 6.71
 betaversion: 6.51
 mincore: 2026.1
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: Verifactu,Ticketbai,Proyectos,RemesasSEPA
 min_php: 8.1
 require: 

@@ -3,7 +3,7 @@ id: 670
 permalink: el-archivo-init-php-307
 title: El archivo Init.php en FacturaScripts
 creationdate: 25-06-2018 00:00:00
-lastmod: 18-08-2025
+lastmod: 31-08-2026
 url: https://facturascripts.com/publicaciones/el-archivo-init-php-307
 ---
 El archivo `Init.php` es fundamental para el funcionamiento avanzado de los plugins en FacturaScripts. Este archivo permite definir procesos y acciones que se ejecutan automáticamente en distintos momentos del ciclo de vida del plugin, como la carga de la aplicación, activación, actualización o desactivación.
@@ -67,6 +67,17 @@ public function init(): void
 public function update(): void
 {
     $this-&gt;updateTableData(&#39;mi_tabla&#39;);
+}
+```
+
+## 🔌 Otras llamadas habituales desde init()
+
+Además de los métodos de `InitClass`, desde `init()` se suelen invocar métodos estáticos del core para registrar o ajustar comportamiento. Por ejemplo, `APIModel::excludeModel()` (disponible desde la **versión 2026.65**) oculta un modelo de la [API REST](https://facturascripts.com/publicaciones/listado-de-recursos-modelos-102), indicando el nombre de la clase sin namespace:
+
+```php
+public function init(): void
+{
+    APIModel::excludeModel(&#39;MiModeloInterno&#39;);
 }
 ```
 

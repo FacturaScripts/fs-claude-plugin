@@ -5,9 +5,9 @@ permalink: udspreciosenlineas
 creationdate: 08-04-2026
 lastmod: 29-05-2026
 version: 1.12
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 7.4
 require: 

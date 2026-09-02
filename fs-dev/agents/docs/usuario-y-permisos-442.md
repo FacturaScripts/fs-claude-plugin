@@ -3,7 +3,7 @@ id: 617
 permalink: usuario-y-permisos-442
 title: Consultar el usuario actual y sus permisos en FacturaScripts
 creationdate: 30-04-2018 00:00:00
-lastmod: 04-06-2025
+lastmod: 12-08-2026
 url: https://facturascripts.com/publicaciones/usuario-y-permisos-442
 ---
 La clase **Session** de la carpeta *Core* permite consultar y almacenar información del usuario actual desde controladores, modelos y otras clases. Esta herramienta también facilita añadir temporalmente información accesible durante la ejecución actual de la aplicación.
@@ -78,7 +78,7 @@ Propiedades principales:
 - `allowUpdate` (bool): permiso para modificar.
 - `allowExport` (bool): permiso para exportar/imprimir.
 - `allowImport` (bool): permiso para importar datos.
-- `onlyOwnerData` (bool): sólo ver datos propios.
+- `onlyOwnerData` (bool): solo ver datos propios.
 - `accessMode` (int): nivel de acceso.
 
 &gt; **Nota:** `$this-&gt;permissions` solo está disponible en los controladores.

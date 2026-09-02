@@ -1,6 +1,6 @@
 {
   "name": "fs-user",
-  "version": "1.1.0",
+  "version": "1.2",
   "description": "Plugin para usuarios del ERP FacturaScripts: análisis de datos, informes y asistencia en el uso del sistema.",
   "author": {
     "name": "Daniel Fernández Giménez",

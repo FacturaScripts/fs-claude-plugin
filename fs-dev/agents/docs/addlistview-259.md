@@ -41,7 +41,7 @@ protected function loadData($viewName, $view) {
    switch ($viewName) {
       case &#39;ListProducto&#39;:
          // Para este ejemplo, vamos a cargar los productos sin fabricante.
-         $where = [new DataBaseWhere(&#39;codfabricante&#39;, null, &#39;IS&#39;)];
+         $where = [Where::isNull(&#39;codfabricante&#39;)];
          $view-&gt;loadData(&#39;&#39;, $where);
          break;
    }

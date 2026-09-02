@@ -3,7 +3,7 @@ id: 1591
 permalink: validar-emails-string-urls-etc
 title: Validar Emails, Cadenas y URLs
 creationdate: 25-10-2023 12:45:17
-lastmod: 25-03-2025
+lastmod: 10-08-2026
 url: https://facturascripts.com/publicaciones/validar-emails-string-urls-etc
 ---
 En FacturaScripts disponemos de la [clase Validator](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Validator.php) en el core, que agrupa diversas funciones para validar datos de forma sencilla y eficaz.
@@ -39,17 +39,17 @@ El método `Validator::string()` permite comprobar si una cadena tiene una longi
 
 ```php
 // Verificar que &#39;mi casa&#39; tiene al menos 5 caracteres
-if (Validator::alphaNumeric(&#39;mi casa&#39;, 5)) {
+if (Validator::string(&#39;mi casa&#39;, 5)) {
     echo &quot;La cadena tiene 5 o más caracteres&quot;;
 }
 
 // Verificar que &#39;mi casa&#39; tiene al menos 10 caracteres (no se cumple)
-if (Validator::alphaNumeric(&#39;mi casa&#39;, 10)) {
+if (Validator::string(&#39;mi casa&#39;, 10)) {
     // No se ejecuta porque la cadena tiene menos de 10 caracteres
 }
 
 // Verificar que &#39;mi casa&#39; tiene entre 2 y 5 caracteres (no se cumple)
-if (Validator::alphaNumeric(&#39;mi casa&#39;, 2, 5)) {
+if (Validator::string(&#39;mi casa&#39;, 2, 5)) {
     // No se ejecuta porque la cadena excede 5 caracteres
 }
 ```

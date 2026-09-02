@@ -3,7 +3,7 @@ id: 1600
 permalink: gestion-de-plugins
 title: Gestión de Plugins
 creationdate: 21-11-2023 21:29:39
-lastmod: 13-03-2025
+lastmod: 27-08-2026
 url: https://facturascripts.com/publicaciones/gestion-de-plugins
 ---
 En FacturaScripts, podemos gestionar los plugins de diversas maneras: activar, desactivar, verificar si un plugin específico está activado y obtener su versión. Para ello, utilizamos la clase `Plugins`.
@@ -129,3 +129,5 @@ Los plugins también se pueden consultar, activar y desactivar de forma remota m
 - `GET /api/3/plugins/Proyectos` : devuelve la información del plugin Proyectos.
 - `POST /api/3/plugins/Proyectos/enable` : activa el plugin Proyectos.
 - `POST /api/3/plugins/Proyectos/disable` : desactiva el plugin Proyectos.
+
+Las acciones de activar y desactivar requieren una API key con acceso completo. Tienes todos los detalles (filtros, ordenación, códigos de error y ejemplos con cURL) en [Listar, activar y desactivar plugins desde la API](https://facturascripts.com/publicaciones/listar-activar-y-desactivar-plugins-desde-la-api).

@@ -4,10 +4,10 @@ name: PrePagos
 permalink: prepagos
 creationdate: 05-10-2022
 lastmod: 12-06-2026
-version: 2.6
-betaversion: 3
+version: 3
+betaversion: 2.12
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.5
 compatible: 
 min_php: 
 require: 

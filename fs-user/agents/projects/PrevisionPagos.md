@@ -5,9 +5,9 @@ permalink: previsionpagos
 creationdate: 05-05-2022
 lastmod: 10-11-2025
 version: 2.01
-betaversion: 0
+betaversion: 
 mincore: 2025.51
-maxcore: 2026.3
+maxcore: 2026.41
 compatible: 
 min_php: 8
 require: 

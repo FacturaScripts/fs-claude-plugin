@@ -5,9 +5,9 @@ permalink: codigoalternativo
 creationdate: 03-03-2026
 lastmod: 01-06-2026
 version: 1.03
-betaversion: 0
+betaversion: 
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.41
 compatible: TPVneo
 min_php: 8
 require: 

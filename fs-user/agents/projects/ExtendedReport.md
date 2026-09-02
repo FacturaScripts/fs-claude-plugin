@@ -3,11 +3,11 @@ idproject: 350
 name: ExtendedReport
 permalink: extendedreport
 creationdate: 22-01-2024
-lastmod: 29-06-2026
-version: 2.01
-betaversion: 2.11
-mincore: 2025.6
-maxcore: 2026.3
+lastmod: 09-07-2026
+version: 2.12
+betaversion: 
+mincore: 2026
+maxcore: 2026.41
 compatible: 
 min_php: 
 require: 

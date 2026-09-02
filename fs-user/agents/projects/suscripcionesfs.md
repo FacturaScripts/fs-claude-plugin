@@ -5,11 +5,11 @@ permalink: suscripcionesfs
 creationdate: 10-06-2026
 lastmod: 10-06-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.5
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/SuscripcionesFS

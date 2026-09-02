@@ -3,14 +3,14 @@ idproject: 540
 name: PanelEstadoServicios
 permalink: panelestadoservicios
 creationdate: 12-02-2026
-lastmod: 12-02-2026
-version: 0.1
-betaversion: 0
+lastmod: 11-08-2026
+version: 1
+betaversion: 
 mincore: 2025.5
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
-require: 
+require: Servicios
 require_php: 
 url: https://facturascripts.com/plugins/PanelEstadoServicios
 ---

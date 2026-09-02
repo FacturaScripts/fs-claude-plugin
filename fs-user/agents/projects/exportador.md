@@ -5,7 +5,7 @@ permalink: exportador
 creationdate: 11-06-2026
 lastmod: 11-06-2026
 version: 1.4
-betaversion: 0
+betaversion: 
 mincore: 2025
 maxcore: 2026.3
 compatible: 

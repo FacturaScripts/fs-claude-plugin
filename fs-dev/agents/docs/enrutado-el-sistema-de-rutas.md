@@ -3,7 +3,7 @@ id: 1626
 permalink: enrutado-el-sistema-de-rutas
 title: Enrutado
 creationdate: 05-12-2023 00:10:16
-lastmod: 29-05-2025
+lastmod: 12-08-2026
 url: https://facturascripts.com/publicaciones/enrutado-el-sistema-de-rutas
 ---
 FacturaScripts almacena las rutas disponibles en el archivo `MyFiles/routes.json`. Este archivo se actualiza automáticamente cada vez que se instala, desinstala o actualiza un plugin. También al reconstruir.
@@ -24,7 +24,7 @@ Existen algunas rutas especiales que añade directamente el kernel:
 - `/deploy` : reconstruye la carpeta Dinamic y el archivo de rutas, siempre que no exista ya el directorio Dinamic.
 - `/Dinamic/Assets/*` : ejecuta el controlador Files.
 - `/login` : ejecuta el formulario de login.
-- `/MyFiles/*` : ejecuta el controlador Myfiles, que filtra que no se accedan a archivos confidenciales sin el correspondiente token de autorización.
+- `/MyFiles/*` : ejecuta el controlador Myfiles, que filtra que no se acceda a archivos confidenciales sin el correspondiente token de autorización.
 - `/node_modules/*` : ejecuta el controlador Files.
 - `/Plugins/*` : ejecuta el controlador Files.
 - `/Updater` : ejecuta el actualizador.

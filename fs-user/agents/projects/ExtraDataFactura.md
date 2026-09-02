@@ -3,13 +3,13 @@ idproject: 422
 name: ExtraDataFactura
 permalink: extradatafactura
 creationdate: 09-02-2025
-lastmod: 23-02-2026
-version: 1.53
-betaversion: 0
-mincore: 2025
-maxcore: 2026.2
+lastmod: 09-07-2026
+version: 1.54
+betaversion: 
+mincore: 2026
+maxcore: 2026.5
 compatible: 
-min_php: 8
+min_php: 
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/ExtraDataFactura

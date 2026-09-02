@@ -5,9 +5,9 @@ permalink: ieomitelineas
 creationdate: 31-05-2022
 lastmod: 03-09-2025
 version: 2.2
-betaversion: 0
+betaversion: 
 mincore: 2025.3
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: PlantillasPDF

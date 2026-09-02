@@ -3,11 +3,11 @@ idproject: 211
 name: Trazabilidad
 permalink: trazabilidad
 creationdate: 29-04-2022
-lastmod: 22-05-2026
-version: 2.22
-betaversion: 2.1
-mincore: 2025.8
-maxcore: 2026.3
+lastmod: 17-08-2026
+version: 2.3
+betaversion: 2.41
+mincore: 2026
+maxcore: 2026.65
 compatible: StockAvanzado
 min_php: 
 require: 

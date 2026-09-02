@@ -3,13 +3,13 @@ idproject: 65
 name: RemesasSEPA
 permalink: remesassepa
 creationdate: 02-12-2019
-lastmod: 15-06-2026
-version: 3.1
-betaversion: 3.2
-mincore: 2025.6
-maxcore: 2026.3
+lastmod: 06-07-2026
+version: 3.3
+betaversion: 2.6
+mincore: 2026
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/RemesasSEPA

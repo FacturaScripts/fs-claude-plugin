@@ -13,9 +13,9 @@ Añade un filtro de tipo **checkbox** o de selección booleana a la pestaña del
 - **key**: identificador del filtro. Generalmente el nombre del campo que quieras filtrar.
 - **label**: etiqueta a mostrar en el filtro. **Se traducirá**.
 - **field**: nombre del campo del modelo donde se aplica el filtro.
-- **operation**: (opcional) permite invertir el filtro, es decir, que al marcar se filtren los resultados que tienen el field en false, en lugar de true.
-- **matchValue**: (opcional) permite especificar el valor a comprobar. Por defecto = True. Ha de coincidir el valor
-- **default**: (opcional) tipo databaseWhere. Array con los valores a aplicar cuando el filtro está vacío.
+- **operation**: (opcional) operador SQL con el que se compara el campo contra `matchValue`. Por defecto es `=`, pero admite otros como `!=`, `IS` o `IS NOT`, lo que permite, por ejemplo, invertir el filtro.
+- **matchValue**: (opcional) permite especificar el valor a comprobar. Por defecto es `true`.
+- **default**: (opcional) array de filtros [Where](https://facturascripts.com/publicaciones/where) a aplicar cuando el filtro está sin marcar.
 
 ![addFilterCheckbox()](https://i.imgur.com/wbXmvy8.gif)
 
@@ -41,7 +41,7 @@ $this-&gt;addFilterCheckbox(&#39;ListFacturaCliente&#39;, &#39;femail&#39;, &#39
 ```
 
 ### Ejemplo en un EditController
-En los EditController no se puede llamar directamente a $this-&gt;addFilterCheckbox(). Hay que hacerlo con $this-&gt;views.
+En los EditController no se puede llamar directamente a `$this-&gt;addFilterCheckbox()`. Hay que hacerlo sobre la vista con `$this-&gt;listView()`.
 
 ```
 $this-&gt;listView($viewName)-&gt;addFilterCheckbox(&#39;pagada&#39;, &#39;paid&#39;, &#39;pagada&#39;);

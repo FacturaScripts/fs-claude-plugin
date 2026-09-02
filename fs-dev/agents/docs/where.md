@@ -3,7 +3,7 @@ id: 1632
 permalink: where
 title: Where
 creationdate: 09-12-2023 21:01:20
-lastmod: 07-12-2025
+lastmod: 15-08-2026
 url: https://facturascripts.com/publicaciones/where
 ---
 La clase **Where** se usa en FacturaScripts para definir filtros para consultar a la base de datos. En lugar de escribir el SQL directamente, podemos usar esta clase:
@@ -54,7 +54,7 @@ Existe una función para cualquier operador que queramos usar en el where, de fo
 
 ```
 $where = [
-	Where::eq(&#39;codfabricante, &#39;123&#39;),
+	Where::eq(&#39;codfabricante&#39;, &#39;123&#39;),
 	Where::isNull(&#39;codfamilia&#39;),
 	Where::lt(&#39;precio&#39;, 10)
 ];

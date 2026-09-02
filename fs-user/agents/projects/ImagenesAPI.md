@@ -4,9 +4,9 @@ name: ImagenesAPI
 permalink: imagenesapi
 creationdate: 12-11-2025
 lastmod: 12-11-2025
-version: 0
+version: 
 betaversion: 1
-mincore: 0
+mincore: 
 maxcore: 2024.9
 compatible: 
 min_php: 

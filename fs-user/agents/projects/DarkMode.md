@@ -5,7 +5,7 @@ permalink: darkmode
 creationdate: 15-10-2020
 lastmod: 15-10-2020
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 
 maxcore: 
 compatible: 

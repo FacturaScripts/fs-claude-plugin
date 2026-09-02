@@ -3,7 +3,7 @@ id: 688
 permalink: disablecolumn-192
 title: Método disableColumn() en Controladores Extendidos
 creationdate: 04-05-2018 00:00:00
-lastmod: 15-04-2025
+lastmod: 10-08-2026
 url: https://facturascripts.com/publicaciones/disablecolumn-192
 ---
 El método `disableColumn()` permite ocultar, deshabilitar o bloquear un campo o columna específico en las pestañas o vistas de un PanelController en FacturaScripts. Este método es muy útil para personalizar la interfaz del usuario, permitiendo mostrar u ocultar información según las necesidades del negocio.
@@ -24,7 +24,7 @@ Es fundamental utilizar el **nombre** exacto de la columna, tal y como se define
 ```
 
 ## Uso Avanzado: Configurar un Campo de Solo Lectura
-El método `disableColumn()` también permite configurar un campo como solo lectura. Para ello, se utiliza un tercer parámetro que afecta la propiedad `readonly` del widget. Este parámetro puede tener los valores **&#39;false&#39;**, **&#39;true&#39;** o **&#39;dinamic&#39;**. En el siguiente ejemplo se establece el campo **email** como solo lectura en la vista `EditCliente`:
+El método `disableColumn()` también permite configurar un campo como solo lectura. Para ello, se utiliza un tercer parámetro que afecta la propiedad `readonly` del widget. Este parámetro puede tener los valores **&#39;false&#39;**, **&#39;true&#39;** o **&#39;dinamic&#39;**. Con **&#39;true&#39;** el campo es siempre de solo lectura; con **&#39;false&#39;** permanece editable; y con **&#39;dinamic&#39;** solo será de solo lectura cuando ya contenga un valor. En el siguiente ejemplo se establece el campo **email** como solo lectura en la vista `EditCliente`:
 
 ```php
 $this-&gt;tab(&#39;EditCliente&#39;)-&gt;disableColumn(&#39;email&#39;, false, &#39;true&#39;);

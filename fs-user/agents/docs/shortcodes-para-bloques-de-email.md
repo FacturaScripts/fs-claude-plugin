@@ -13,7 +13,7 @@ Un shortcode es una marca de texto con formato especial que `NewMail` interpreta
 Ejemplo:
 
 ```
-[blockTitle type="h2"]Pedido confirmado[/blockTitle]
+[blockTitle type=&quot;h2&quot;]Pedido confirmado[/blockTitle]
 ```
 
 En lugar de escribir HTML manual (más frágil en clientes de correo), defines bloques semánticos (`título`, `texto`, `botón`, etc.) y el sistema los renderiza con el estilo de plantilla de email.
@@ -30,19 +30,19 @@ Ventajas principales:
 Formato con contenido:
 
 ```
-[blockTipo atributo="valor"]Contenido[/blockTipo]
+[blockTipo atributo=&quot;valor&quot;]Contenido[/blockTipo]
 ```
 
 Formato autocierre (sin contenido interno):
 
 ```
-[blockTipo atributo="valor"]
+[blockTipo atributo=&quot;valor&quot;]
 ```
 
 Notas importantes:
 
 - El parser detecta tags con prefijo `block` (por ejemplo, `blockTitle`, `blockText`, `blockButton`).
-- Los atributos admiten comillas dobles o simples: `attr="valor"` o `attr='valor'`.
+- Los atributos admiten comillas dobles o simples: `attr=&quot;valor&quot;` o `attr=&#39;valor&#39;`.
 - Todo texto fuera de shortcodes se convierte automáticamente en un bloque de texto.
 
 ### Shortcodes nativos disponibles
@@ -62,7 +62,7 @@ Parámetros:
 Ejemplo con todos los parámetros:
 
 ```
-[blockTitle type="h1" css="title mb-10" style="color:#1f2937;"]Confirmación de pedido[/blockTitle]
+[blockTitle type=&quot;h1&quot; css=&quot;title mb-10&quot; style=&quot;color:#1f2937;&quot;]Confirmación de pedido[/blockTitle]
 ```
 
 Ejemplo mínimo:
@@ -73,7 +73,7 @@ Ejemplo mínimo:
 
 #### 2) blockText
 
-Renderiza un párrafo de texto. Los saltos de línea se convierten a `<br>`.
+Renderiza un párrafo de texto. Los saltos de línea se convierten a `&lt;br&gt;`.
 
 Parámetros:
 
@@ -83,7 +83,7 @@ Parámetros:
 Ejemplo con todos los parámetros:
 
 ```
-[blockText css="text pb-15" style="font-size:14px;"]Hola Juan,
+[blockText css=&quot;text pb-15&quot; style=&quot;font-size:14px;&quot;]Hola Juan,
 tu pedido ya está en preparación.[/blockText]
 ```
 
@@ -104,7 +104,7 @@ Parámetros:
 Ejemplo:
 
 ```
-[blockHtml]<ul><li>Producto A</li><li>Producto B</li></ul>[/blockHtml]
+[blockHtml]&lt;ul&gt;&lt;li&gt;Producto A&lt;/li&gt;&lt;li&gt;Producto B&lt;/li&gt;&lt;/ul&gt;[/blockHtml]
 ```
 
 #### 4) blockButton
@@ -128,13 +128,13 @@ Comportamiento relevante:
 Ejemplo con todos los parámetros (autocierre):
 
 ```
-[blockButton label="Ver pedido" href="https://miempresa.com/pedido/123" css="btn btn-primary" style="background:#0f766e;"]
+[blockButton label=&quot;Ver pedido&quot; href=&quot;https://miempresa.com/pedido/123&quot; css=&quot;btn btn-primary&quot; style=&quot;background:#0f766e;&quot;]
 ```
 
 Ejemplo con label en contenido interno:
 
 ```
-[blockButton href="https://miempresa.com/pedido/123"]Ver pedido[/blockButton]
+[blockButton href=&quot;https://miempresa.com/pedido/123&quot;]Ver pedido[/blockButton]
 ```
 
 #### 5) blockSpace
@@ -148,7 +148,7 @@ Parámetros:
 Ejemplo con todos los parámetros:
 
 ```
-[blockSpace height="20"]
+[blockSpace height=&quot;20&quot;]
 ```
 
 Ejemplo mínimo:
@@ -160,13 +160,13 @@ Ejemplo mínimo:
 ### Ejemplo completo de plantilla de cuerpo
 
 ```
-[blockTitle type="h2" css="title" style=""]Tu pedido ha sido confirmado[/blockTitle]
-[blockText css="text" style=""]Hola Marta,
+[blockTitle type=&quot;h2&quot; css=&quot;title&quot; style=&quot;&quot;]Tu pedido ha sido confirmado[/blockTitle]
+[blockText css=&quot;text&quot; style=&quot;&quot;]Hola Marta,
 hemos recibido correctamente tu pedido #A-1024.[/blockText]
-[blockSpace height="16"]
-[blockHtml]<p><strong>Resumen:</strong></p><ul><li>2 x Teclado</li><li>1 x Ratón</li></ul>[/blockHtml]
-[blockSpace height="12"]
-[blockButton label="Ver detalle del pedido" href="https://miempresa.com/pedido/A-1024" css="btn w-100" style=""]
+[blockSpace height=&quot;16&quot;]
+[blockHtml]&lt;p&gt;&lt;strong&gt;Resumen:&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;2 x Teclado&lt;/li&gt;&lt;li&gt;1 x Ratón&lt;/li&gt;&lt;/ul&gt;[/blockHtml]
+[blockSpace height=&quot;12&quot;]
+[blockButton label=&quot;Ver detalle del pedido&quot; href=&quot;https://miempresa.com/pedido/A-1024&quot; css=&quot;btn w-100&quot; style=&quot;&quot;]
 ```
 
 ### Recomendaciones de uso

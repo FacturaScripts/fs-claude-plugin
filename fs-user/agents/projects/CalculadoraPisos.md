@@ -4,9 +4,9 @@ name: CalculadoraPisos
 permalink: calculadorapisos
 creationdate: 11-12-2022
 lastmod: 13-12-2022
-version: 0
+version: 
 betaversion: 1.1
-mincore: 0
+mincore: 
 maxcore: 2022.51
 compatible: 
 min_php: 

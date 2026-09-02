@@ -3,12 +3,19 @@ id: 632
 permalink: test-625
 title: Método test() del modelo
 creationdate: 30-04-2018 00:00:00
-lastmod: 29-12-2025
+lastmod: 09-07-2026
 url: https://facturascripts.com/publicaciones/test-625
 ---
 La función **test()** se utiliza para validar los valores de las propiedades o columnas de un modelo en FacturaScripts. **Devuelve `false`** si detecta problemas en los valores y **`true`** en caso contrario. 
 
 Por ejemplo, devolverá **`false`** si alguna columna del modelo contiene un valor **NULL** y en la base de datos esa columna tiene una restricción **NOT NULL**. Si el modelo `Cliente` tiene el campo `cifnif` en **NULL**, la función **test()** retornará **`false`**, ya que la columna `cifnif` no puede admitir valores nulos.
+
+También devolverá **`false`** si algún campo de texto supera la longitud máxima de su columna. Por ejemplo, si la columna `nombre` está definida como `character varying(100)` y le asignamos un texto de 150 caracteres, la función **test()** registrará el aviso `field-value-too-long` y devolverá **`false`**. La longitud máxima de un campo se puede consultar con el método `maxLength()`:
+
+```php
+$cliente = new Cliente();
+echo $cliente-&gt;maxLength(&#39;nombre&#39;); // 100
+```
 
 ## ¿Cuándo se ejecuta?
 
@@ -40,8 +47,3 @@ public function test(): bool
 ```
 
 En este ejemplo, la función personalizada verifica que el campo `codpago` cumpla un formato alfanumérico específico. Si no lo cumple, registra el error y devuelve **`false`**.
-
----
-
-**Enlaces relacionados:**
-- [Los modelos](https://facturascripts.com/publication/los-modelos-228)

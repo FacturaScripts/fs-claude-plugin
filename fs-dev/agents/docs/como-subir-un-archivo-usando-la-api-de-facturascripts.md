@@ -3,94 +3,191 @@ id: 2161
 permalink: como-subir-un-archivo-usando-la-api-de-facturascripts
 title: Cómo subir archivos usando la API de FacturaScripts
 creationdate: 08-07-2025 12:54:28
-lastmod: 20-04-2026
+lastmod: 10-08-2026
 url: https://facturascripts.com/publicaciones/como-subir-un-archivo-usando-la-api-de-facturascripts
 ---
-FacturaScripts permite la subida de archivos mediante el uso de su API. Para ello, se debe realizar una petición al endpoint `uploadFiles`.
+FacturaScripts permite subir y administrar archivos mediante dos endpoints distintos:
 
-### Cómo hacer la petición al endpoint
+- `uploadFiles`: permite subir uno o varios archivos en una sola petición.
+- `attachedfiles`: permite consultar, descargar, crear, modificar o eliminar registros de archivos adjuntos.
 
-Para hacer la petición, se debe enviar una solicitud **POST** al siguiente endpoint:
+Los dos endpoints necesitan un token válido de la API. Puede enviarse en la cabecera `Token` o `X-Auth-Token`.
 
-```
+## Subir uno o varios archivos con `uploadFiles`
+
+Este es el endpoint más sencillo cuando solamente queremos subir archivos. Acepta peticiones `POST` y `PUT`:
+
+```http
 POST /api/3/uploadFiles
 ```
 
-En el cuerpo (body) de la petición, se debe incluir el parámetro `files[]` junto al archivo que se desea subir. **FacturaScripts no permite subir archivos con extensión .php.**
+La petición debe usar `multipart/form-data` y cada archivo debe incluirse en el parámetro `files[]`. FacturaScripts rechaza las extensiones que podrían permitir ejecutar código en el servidor, como `.php`, `.phar` o `.phtml`.
 
-**Ejemplo de petición al endpoint de la API con Insomnia**
+**Ejemplo con curl:**
 
-![Imagen de petición al endpoint de la API con Insomnia](https://i.imgur.com/2LRfCQC.png)
+```bash
+curl -X POST &#39;https://TU-DOMINIO/api/3/uploadFiles&#39; \
+  -H &#39;Token: TU_TOKEN&#39; \
+  -F &#39;files[]=@/ruta/imagen1.jpg&#39; \
+  -F &#39;files[]=@/ruta/documento.pdf&#39;
+```
 
 **Ejemplo en PHP:**
 
-```
-$ch = curl_init();
+```php
+&lt;?php
+
+$ch = curl_init(&#39;https://TU-DOMINIO/api/3/uploadFiles&#39;);
 $body = [
-    &#39;files[]&#39; =&gt; new CURLFile(&#39;/ruta/a/tuArchivo/imagen1.jpg&#39;),
-]
-$headers = [
-    &#39;Token:&#39; . &#39;TuToken&#39;,
+    &#39;files[0]&#39; =&gt; new CURLFile(&#39;/ruta/imagen1.jpg&#39;),
+    &#39;files[1]&#39; =&gt; new CURLFile(&#39;/ruta/documento.pdf&#39;),
 ];
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($ch, CURLOPT_URL, &#39;http://TuURL/api/3/uploadFiles&#39;);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+
+curl_setopt_array($ch, [
+    CURLOPT_POST =&gt; true,
+    CURLOPT_POSTFIELDS =&gt; $body,
+    CURLOPT_HTTPHEADER =&gt; [&#39;Token: TU_TOKEN&#39;],
+    CURLOPT_RETURNTRANSFER =&gt; true,
+]);
+
 $response = curl_exec($ch);
 curl_close($ch);
+
+echo $response;
 ```
 
-**Ejemplo en JS:**
+**Ejemplo en JavaScript con Axios:**
 
-```
+```js
 const axios = require(&#39;axios&#39;);
 const FormData = require(&#39;form-data&#39;);
 const fs = require(&#39;fs&#39;);
 
-async function subirArchivo() {
+async function subirArchivos() {
   const form = new FormData();
+  form.append(&#39;files[]&#39;, fs.createReadStream(&#39;/ruta/imagen1.jpg&#39;));
+  form.append(&#39;files[]&#39;, fs.createReadStream(&#39;/ruta/documento.pdf&#39;));
 
-  form.append(&#39;files[]&#39;, fs.createReadStream(/ruta/a/tuArchivo/imagen1.jpg), {
-    filename: &#39;img1.jpg&#39;,
-    contentType: &#39;image/jpeg&#39;
-  });
+  const response = await axios.post(
+    &#39;https://TU-DOMINIO/api/3/uploadFiles&#39;,
+    form,
+    {
+      headers: {
+        Token: &#39;TU_TOKEN&#39;,
+        ...form.getHeaders(),
+      },
+    }
+  );
 
-  const headers = {
-    &#39;Token&#39;: &#39;TuToken&#39;,
-    ...form.getHeaders(),
-  };
-
-  const response = await axios.post(&#39;http://TuURL/api/3/uploadFiles&#39;, form, { headers });
+  console.log(response.data);
 }
 
-subirArchivo();
+subirArchivos();
 ```
 
-Si el archivo se sube correctamente, la API devolverá la información sobre el archivo o archivos subidos. Además, el nombre del archivo se modificará automáticamente en la carpeta `MyFiles` para evitar que se sobrescriba.
+**Ejemplo de petición con Insomnia:**
 
-En caso de error, la API devolverá un mensaje de error o un array `files[]` vacío.
+![Petición al endpoint de la API con Insomnia](https://i.imgur.com/2LRfCQC.png)
 
-![Array files vacío por error en la peticion](https://i.imgur.com/Uqeazwn.png)
+La respuesta contiene un array `files` con un registro `AttachedFile` por cada archivo guardado correctamente:
 
----
+```json
+{
+  &quot;files&quot;: [
+    {
+      &quot;idfile&quot;: 123,
+      &quot;filename&quot;: &quot;imagen1.jpg&quot;,
+      &quot;mimetype&quot;: &quot;image/jpeg&quot;,
+      &quot;path&quot;: &quot;MyFiles/2026/08/123_imagen1.jpg&quot;,
+      &quot;size&quot;: 15432
+    }
+  ]
+}
+```
 
-Para más detalles puedes consultar el archivo ApiUploadFiles.php en GitHub:
+Los archivos no válidos se omiten. Por tanto, conviene comprobar que el número de elementos devuelto en `files` coincide con el número de archivos enviados. Si ninguno se pudo guardar, se devuelve un array vacío:
 
-[facturascripts/Core/Controller/ApiUploadFiles.php at master · NeoRazorX/facturascripts · GitHub](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Controller/ApiUploadFiles.php)
+![Array files vacío por error en la petición](https://i.imgur.com/Uqeazwn.png)
 
----
+Al guardar un archivo, FacturaScripts:
 
-## Descargar archivos
-Para descargar archivos de la biblioteca tenemos el modelo **AttachedFile** y el endpoint `attachedfiles`. Al consultar este endpoint, además de los datos del archivo obtendremos los campos `download` y `download-permanent`.
+- crea su registro `AttachedFile`;
+- lo organiza dentro de `MyFiles` por año y mes;
+- genera un nombre único que comienza por `idfile`;
+- detecta su tipo MIME y tamaño reales;
+- comprueba el límite de almacenamiento configurado;
+- elimina los metadatos EXIF, XMP e IPTC de imágenes JPEG, PNG y WebP cuando GD está disponible.
 
-- **download**: proporciona un enlace de descarga válido duranete 5 minutos.
-- **download-permanent**: proporciona un enlace de descarga válido para siempre.
+## Administrar archivos con `attachedfiles`
 
----
+El endpoint `/api/3/attachedfiles` es el CRUD completo del modelo `AttachedFile`. La ruta se escribe en minúsculas.
 
-## Vincular con productos/clientes/documentos
-Podemos vincular un archivo subido con un producto, cliente, proveedor, factura, etc ... usando el endpoint `attachedfilerelations`. Hay que pasarle el **idfile**, **model** y **modelcode**:
+### Listar archivos
 
-- **idfile**: el id del archivo subido.
-- **model**: el nombre del modelo con el que queremos relacionarlo. Ejemplo: FacturaCliente.
-- **modelcode**: el identificador del registro en cuestión con el que queremos relacionarlo. Por ejemplo: 234 (factura con idfactura 234).
+```http
+GET /api/3/attachedfiles
+```
+
+Admite paginación, ordenación y filtros mediante `limit`, `offset`, `sort`, `filter` y `operation`. La cabecera `X-Total-Count` contiene el número total de registros que cumplen los filtros.
+
+Por ejemplo:
+
+```http
+GET /api/3/attachedfiles?limit=20&offset=0&sort[idfile]=DESC
+```
+
+### Consultar y descargar un archivo
+
+```http
+GET /api/3/attachedfiles/123
+```
+
+Además de los datos del archivo, la respuesta incorpora:
+
+- `download`: URL firmada válida durante el día en que se genera.
+- `download-permanent`: URL firmada permanente.
+
+### Subir un único archivo
+
+También puede crearse un archivo con `POST /api/3/attachedfiles` y una petición `multipart/form-data`:
+
+```bash
+curl -X POST &#39;https://TU-DOMINIO/api/3/attachedfiles&#39; \
+  -H &#39;Token: TU_TOKEN&#39; \
+  -F &#39;file=@/ruta/documento.pdf&#39;
+```
+
+Este endpoint crea un único registro `AttachedFile` por petición. Aunque se envíen varios campos de archivo, internamente trabaja con un solo modelo; para una carga múltiple debe utilizarse `uploadFiles`.
+
+### Modificar o eliminar
+
+```http
+PUT /api/3/attachedfiles/123
+PATCH /api/3/attachedfiles/123
+DELETE /api/3/attachedfiles/123
+```
+
+`PUT` y `PATCH` modifican los campos del registro. `DELETE` elimina tanto el registro como el archivo físico.
+
+También puede consultarse el esquema del recurso:
+
+```http
+GET /api/3/attachedfiles/schema
+```
+
+## Vincular el archivo con productos, clientes o documentos
+
+Subir un archivo no lo vincula automáticamente con una factura, pedido, producto, cliente, proveedor u otro registro. Para crear esa relación se utiliza el endpoint `attachedfilerelations`, indicando:
+
+- `idfile`: identificador devuelto al subir el archivo.
+- `model`: nombre del modelo relacionado, por ejemplo `FacturaCliente`.
+- `modelid`: identificador numérico del registro, por ejemplo el `idfactura` de una factura.
+- `modelcode`: código del registro cuando se utiliza una clave textual. Según el modelo relacionado se utilizará `modelid`, `modelcode` o ambos.
+
+En resumen: usa `uploadFiles` para cargas simples o múltiples y `attachedfiles` para listar, descargar, administrar o subir un único archivo.
+
+## Código relacionado
+
+- [ApiUploadFiles.php](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Controller/ApiUploadFiles.php)
+- [ApiAttachedFiles.php](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Controller/ApiAttachedFiles.php)
+- [AttachedFile.php](https://github.com/NeoRazorX/facturascripts/blob/master/Core/Model/AttachedFile.php)

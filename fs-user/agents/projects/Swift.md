@@ -3,13 +3,13 @@ idproject: 151
 name: Swift
 permalink: swift
 creationdate: 26-09-2021
-lastmod: 31-10-2025
-version: 1.3
-betaversion: 0
-mincore: 2025
-maxcore: 2025.81
+lastmod: 19-07-2026
+version: 1.4
+betaversion: 
+mincore: 2026
+maxcore: 2026.41
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Swift

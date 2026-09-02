@@ -5,9 +5,9 @@ permalink: buscarpornombrecomercial
 creationdate: 13-02-2026
 lastmod: 12-05-2026
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2025.43
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 8.1
 require: 

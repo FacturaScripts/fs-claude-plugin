@@ -3,13 +3,13 @@ idproject: 317
 name: ProduccionTrazabilidad
 permalink: producciontrazabilidad
 creationdate: 21-06-2023
-lastmod: 20-06-2026
-version: 2.03
-betaversion: 2.04
+lastmod: 29-07-2026
+version: 2.06
+betaversion: 1.06
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.5
 compatible: 
-min_php: 8.0
+min_php: 8.1
 require: Produccion,Trazabilidad
 require_php: 
 url: https://facturascripts.com/plugins/ProduccionTrazabilidad

@@ -5,11 +5,11 @@ permalink: widgetweekdays
 creationdate: 18-06-2026
 lastmod: 18-06-2026
 version: 1.01
-betaversion: 0
+betaversion: 
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.41
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/WidgetWeekdays

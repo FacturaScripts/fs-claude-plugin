@@ -5,7 +5,7 @@ permalink: dlmpromocionesvales
 creationdate: 15-12-2023
 lastmod: 05-02-2025
 version: 2.3
-betaversion: 0
+betaversion: 
 mincore: 2023.09
 maxcore: 2024.94
 compatible: 

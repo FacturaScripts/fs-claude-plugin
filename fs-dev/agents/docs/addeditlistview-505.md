@@ -75,7 +75,7 @@ protected function loadData($viewName, $view)
         case &#39;EditProducto&#39;:
             // Obtener codcliente desde la pestaña EditCliente y filtrar
             $codcliente = $this-&gt;getViewModelValue(&#39;EditCliente&#39;, &#39;codcliente&#39;);
-            $where = [new DataBaseWhere(&#39;codcliente&#39;, $codcliente)];
+            $where = [Where::eq(&#39;codcliente&#39;, $codcliente)];
             $view-&gt;loadData(&#39;&#39;, $where);
             break;
     }

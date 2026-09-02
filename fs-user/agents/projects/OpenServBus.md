@@ -3,13 +3,13 @@ idproject: 131
 name: OpenServBus
 permalink: openservbus
 creationdate: 01-07-2021
-lastmod: 27-03-2026
-version: 3.45
+lastmod: 07-07-2026
+version: 4
 betaversion: 3.3
-mincore: 2025
+mincore: 2026
 maxcore: 2026.3
-compatible: 
-min_php: 
+compatible: CSVimport,BuscadorAcumulado
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/OpenServBus
@@ -24,9 +24,7 @@ Si de por si, FacturaScripts es un ERP de facturación/control de stock/contabil
 
 Tips del funcionamiento del plugin ...
 
-* Los conductores reciben en sus dispositivos móviles los partes de trabajo y pueden reportar toda la información sobre el trabajo realizado en tiempo real, incluso en ruta.
-
-* El jefe de tráfico puede controlar todos los servicios del día, incluso crear nuevos servicios y enviarlos a los conductores, aún siendo arreglos de última hora. 
+* El jefe de tráfico puede controlar todos los servicios del día, incluso crear nuevos servicios y enviarlos por email a los conductores, aún siendo arreglos de última hora. 
 
 * La parte comercial y de reservas prepara presupuestos rápidamente, y confirma dichos servicios una vez el cliente de su visto bueno. Con sólo introducir los datos desde el presupuesto, si el cliente lo aceptara automáticamente se puede convertir en servicio que estaría dispuesto para el montaje por parte del jefe de tráfico. Además puede hacer un seguimiento fácil de presupuestos pendientes de aceptación mediante un seguimiento de conversaciones mantenidas con el cliente hasta su aceptación. Agregue información del cliente y solicitudes en cada paso, desde la cotización del servicio hasta la reserva, el viaje y la facturación. Un seguimiento que sus clientes apreciarán por la atención especial prestada.
 

@@ -3,13 +3,13 @@ idproject: 509
 name: IberboxBackup
 permalink: iberboxbackup
 creationdate: 22-12-2025
-lastmod: 22-12-2025
-version: 7.2
-betaversion: 0
+lastmod: 24-08-2026
+version: 7.3
+betaversion: 
 mincore: 2025
-maxcore: 2026
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/IberboxBackup

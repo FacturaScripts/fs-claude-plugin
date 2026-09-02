@@ -3,7 +3,7 @@ id: 682
 permalink: panelcontroller-845
 title: PanelController
 creationdate: 30-04-2018 00:00:00
-lastmod: 31-10-2025
+lastmod: 11-07-2026
 url: https://facturascripts.com/publicaciones/panelcontroller-845
 ---
 El PanelController, al igual que el [ListController](https://facturascripts.com/publicaciones/listcontroller-232), es un **controlador extendido** que permite múltiples vistas o pestañas. En este caso, admite distintos tipos de vistas:
@@ -22,7 +22,7 @@ Para usar este controlador, es necesario crear [vistas en formato XML](https://f
 &lt;?php
 namespace FacturaScripts\Core\Controller;
 
-use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
+use FacturaScripts\Core\Where;
 use FacturaScripts\Core\Lib\ExtendedController\PanelController;
 
 class EditFabricante extends PanelController
@@ -50,7 +50,7 @@ class EditFabricante extends PanelController
                 break;
 
             case &#39;ListProducto&#39;:
-                $where = [new DataBaseWhere(&#39;codfabricante&#39;, $this-&gt;getModel()-&gt;primaryColumnValue())];
+                $where = [Where::eq(&#39;codfabricante&#39;, $this-&gt;getModel()-&gt;id())];
                 $view-&gt;loadData(&#39;&#39;, $where);
                 break;
         }
@@ -104,3 +104,24 @@ $this-&gt;setTabsPosition(&#39;left-bottom&#39;); // coloca las pestañas abajo 
 ```
 
 Cuando están colocadas abajo (bottom), se muestra la ventana principal (primera vista que se añade) y debajo la información de la pestaña seleccionada. Si solo hay una vista o pestaña (además de la principal), se muestra directamente sin el diseño de pestañas.
+
+### 🗂️ Acceder a las pestañas: tab() y activeTab()
+
+Cada vista o pestaña que añades en createViews() se guarda con el nombre que le has dado. Para obtener el objeto de una vista concreta desde el controlador, usa `tab()`:
+
+```php
+$view = $this-&gt;tab(&#39;EditFabricante&#39;);
+```
+
+Devuelve el objeto de la vista. Si el nombre no existe, lanza una excepción `View not found`.
+
+Cuando necesites la pestaña que el usuario tiene seleccionada en ese momento, usa `activeTab()`, que devuelve la vista activa sin que tengas que conocer su nombre:
+
+```php
+$view = $this-&gt;activeTab();
+
+// por ejemplo, para acceder a su modelo
+$model = $this-&gt;activeTab()-&gt;model;
+```
+
+Es equivalente a `$this-&gt;tab($this-&gt;active)`.

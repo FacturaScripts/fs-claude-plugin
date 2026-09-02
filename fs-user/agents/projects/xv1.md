@@ -4,12 +4,12 @@ name: XV1
 permalink: xv1
 creationdate: 02-06-2026
 lastmod: 02-06-2026
-version: 0
+version: 
 betaversion: 1.18
-mincore: 0
+mincore: 
 maxcore: 2026.3
 compatible: 
-min_php: 
+min_php: 8.0
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/XV1

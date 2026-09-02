@@ -5,11 +5,11 @@ permalink: scheduledmail
 creationdate: 31-05-2026
 lastmod: 31-05-2026
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ScheduledMail

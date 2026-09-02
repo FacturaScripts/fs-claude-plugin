@@ -5,9 +5,9 @@ permalink: authlog
 creationdate: 25-03-2026
 lastmod: 31-03-2026
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

@@ -5,7 +5,7 @@ permalink: ticketbaihelper
 creationdate: 09-12-2025
 lastmod: 25-01-2026
 version: 1.4
-betaversion: 0
+betaversion: 
 mincore: 2025.43
 maxcore: 2025.8
 compatible: TPVneo

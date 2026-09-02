@@ -3,11 +3,11 @@ idproject: 93
 name: Servicios
 permalink: servicios
 creationdate: 08-09-2020
-lastmod: 14-05-2026
+lastmod: 18-08-2026
 version: 4.21
-betaversion: 4.13
+betaversion: 4.3
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: Proyectos,StockAvanzado
 min_php: 
 require: 

@@ -3,8 +3,8 @@ idproject: 606
 name: Caja
 permalink: caja
 creationdate: 24-05-2026
-lastmod: 29-06-2026
-version: 2.77
+lastmod: 08-07-2026
+version: 2.94
 betaversion: 2.73
 mincore: 2025
 maxcore: 2026.3

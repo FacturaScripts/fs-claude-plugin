@@ -3,13 +3,13 @@ idproject: 123
 name: FSReports
 permalink: fsreports
 creationdate: 28-05-2021
-lastmod: 08-11-2025
-version: 5.5
+lastmod: 01-07-2026
+version: 6
 betaversion: 5.2
-mincore: 2025
-maxcore: 2025.71
+mincore: 2026
+maxcore: 2026.3
 compatible: 
-min_php: 8
+min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FSReports

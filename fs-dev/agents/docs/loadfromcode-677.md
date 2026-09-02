@@ -1,12 +1,12 @@
 ---
 id: 627
 permalink: loadfromcode-677
-title: Métodos load(), loadWhere() y loadWhereEq() del modelo
+title: Métodos load(), loadWhere(), loadWhereEq() y reload() del modelo
 creationdate: 30-04-2018 00:00:00
-lastmod: 29-12-2025
+lastmod: 28-07-2026
 url: https://facturascripts.com/publicaciones/loadfromcode-677
 ---
-Los modelos tienen los métodos `load()` y `loadWhere()` para recuperar registros. El método `loadFromCode()` permanece como alias por compatibilidad, pero **está en desuso** y debería evitarse en el código nuevo.
+Los modelos tienen los métodos `load()`, `loadWhere()` y `reload()` para recuperar registros. El método `loadFromCode()` permanece como alias por compatibilidad, pero **está en desuso** y debería evitarse en el código nuevo.
 
 ## ⚡ load($code)
 Permite cargar el registro cuyo valor de clave primaria coincide con `$code`.
@@ -104,6 +104,33 @@ use FacturaScripts\Core\Model\Almacen;
 $almacen = new Almacen();
 if ($almacen-&gt;loadWhereEq(&#39;codigo&#39;, &#39;MADRID&#39;)) {
     // Almacén encontrado
+}
+```
+
+## ⚡ reload()
+Vuelve a cargar desde la base de datos el registro actual del modelo, machacando los valores de sus propiedades. Es útil cuando el registro puede haber cambiado por otro proceso (una extensión, un cron, otro usuario) o para descartar modificaciones hechas en memoria sin guardar.
+
+### Parámetros
+No recibe parámetros. Utiliza el identificador actual del modelo (`$this-&gt;id()`).
+
+### Retorno y efectos
+- Devuelve `TRUE` si recarga los datos correctamente.
+- Devuelve `FALSE` si el modelo no tiene identificador (registro nuevo, sin guardar).
+- Devuelve `FALSE` si el registro ya no existe en la base de datos; en ese caso además se limpia el estado del modelo (`clear()`).
+- Internamente llama a `load($this-&gt;id())`, por lo que tras una recarga correcta también se sincronizan los valores originales (`syncOriginal()`).
+- Las extensiones del modelo pueden engancharse con los hooks `reloadBefore` (puede cancelar la recarga devolviendo `FALSE`) y `reload`.
+
+### Ejemplo: Descartar cambios no guardados
+```php
+use FacturaScripts\Core\Model\Producto;
+
+$producto = new Producto();
+$producto-&gt;load(&#39;123&#39;);
+$producto-&gt;precio = 100.0;
+
+// nos arrepentimos y recuperamos los datos de la base de datos
+if ($producto-&gt;reload()) {
+    // $producto-&gt;precio vuelve a tener el valor guardado
 }
 ```
 

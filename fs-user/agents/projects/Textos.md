@@ -3,12 +3,12 @@ idproject: 288
 name: Textos
 permalink: textos
 creationdate: 10-02-2023
-lastmod: 05-06-2026
-version: 4.11
+lastmod: 02-09-2026
+version: 4.22
 betaversion: 3.02
 mincore: 2025
-maxcore: 2026.3
-compatible: Anticipos,Proyectos,Tickets
+maxcore: 2026.65
+compatible: Anticipos,Proyectos,Servicios,Tickets
 min_php: 7.4
 require: 
 require_php: 

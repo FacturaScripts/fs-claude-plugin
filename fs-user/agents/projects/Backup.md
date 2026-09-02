@@ -3,18 +3,18 @@ idproject: 116
 name: Backup
 permalink: backup
 creationdate: 08-03-2021
-lastmod: 10-06-2026
-version: 3.5
-betaversion: 3.51
+lastmod: 31-08-2026
+version: 3.61
+betaversion: 3.7
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: zip
 url: https://facturascripts.com/plugins/Backup
 ---
-Permite crear y restaurar copias de seguridad de la base de datos (sólo MySQL) y los archivos de FacturaScripts. Imprescindible para no perder datos en caso de problemas.
+Permite crear y restaurar copias de seguridad de la base de datos y los archivos de FacturaScripts. Imprescindible para no perder datos en caso de problemas.
 
 Menú:
 Añade la sección &quot;copia de seguridad&quot; al menú administrador.

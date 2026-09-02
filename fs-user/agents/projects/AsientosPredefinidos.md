@@ -3,11 +3,11 @@ idproject: 148
 name: AsientosPredefinidos
 permalink: asientospredefinidos
 creationdate: 27-08-2021
-lastmod: 23-04-2026
+lastmod: 19-08-2026
 version: 3.5
-betaversion: 3.1
+betaversion: 3.6
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

@@ -3,7 +3,7 @@ id: 700
 permalink: obtener-un-listado-de-elementos-de-un-recurso-326
 title: Listar, filtrar y ordenar registros desde la API
 creationdate: 14-05-2018 00:00:00
-lastmod: 02-05-2025
+lastmod: 07-07-2026
 url: https://facturascripts.com/publicaciones/obtener-un-listado-de-elementos-de-un-recurso-326
 ---
 Para ilustrar cómo listar registros a través de la API de **FacturaScripts**, utilizaremos el recurso de **impuestos**, que contiene un número reducido de elementos. Para ello, realiza una consulta de tipo **GET** a la siguiente URL:
@@ -71,6 +71,8 @@ Los filtros aplican por defecto el operador `=`, es decir, buscan coincidencias 
 - `filter[tasaconv_lte]=2` -&gt; `tasaconv` menor o igual que 2.
 - `filter[tasaconv_neq]=2` -&gt; `tasaconv` distinto de 2.
 - `filter[descripcion_like]=PESO` -&gt; `descripción` contiene `PESO`.
+- `filter[codiso_null]=1` -&gt; `codiso` está vacío (IS NULL).
+- `filter[codiso_notnull]=1` -&gt; `codiso` tiene algún valor (IS NOT NULL).
 
 Es decir, si quieres obtener todos los productos cuya referencia contenga `pez`, debes usar el filtro `filter[referencia_like]=pez`
 

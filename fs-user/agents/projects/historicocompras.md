@@ -3,11 +3,11 @@ idproject: 623
 name: HistoricoCompras
 permalink: historicocompras
 creationdate: 04-06-2026
-lastmod: 04-06-2026
-version: 1
-betaversion: 0
+lastmod: 15-08-2026
+version: 1.3
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 

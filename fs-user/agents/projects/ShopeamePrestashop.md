@@ -4,8 +4,8 @@ name: ShopeamePrestashop
 permalink: shopeameprestashop
 creationdate: 20-03-2026
 lastmod: 20-03-2026
-version: 0
-betaversion: 0
+version: 
+betaversion: 
 mincore: 
 maxcore: 
 compatible: 

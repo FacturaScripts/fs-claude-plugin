@@ -7,7 +7,7 @@ lastmod: 03-09-2025
 version: 4.3
 betaversion: 4
 mincore: 2025.3
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: TarifasAvanzadas

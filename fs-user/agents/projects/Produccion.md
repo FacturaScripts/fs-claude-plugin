@@ -3,13 +3,13 @@ idproject: 104
 name: Produccion
 permalink: produccion
 creationdate: 19-10-2020
-lastmod: 29-06-2026
-version: 2.05
-betaversion: 2.08
-mincore: 2026
-maxcore: 2026.3
+lastmod: 20-08-2026
+version: 2.11
+betaversion: 2.12
+mincore: 2026.5
+maxcore: 2026.6
 compatible: 
-min_php: 8.0
+min_php: 8.1
 require: StockAvanzado
 require_php: 
 url: https://facturascripts.com/plugins/Produccion

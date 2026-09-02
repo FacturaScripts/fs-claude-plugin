@@ -5,11 +5,11 @@ permalink: estadocuentaclientefs
 creationdate: 11-05-2026
 lastmod: 11-05-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025.6
 maxcore: 2026
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EstadoCuentaClienteFS

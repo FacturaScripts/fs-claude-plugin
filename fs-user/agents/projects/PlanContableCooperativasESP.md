@@ -5,7 +5,7 @@ permalink: plancontablecooperativasesp
 creationdate: 11-07-2021
 lastmod: 02-07-2022
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2021.32
 maxcore: 2023.16
 compatible: 

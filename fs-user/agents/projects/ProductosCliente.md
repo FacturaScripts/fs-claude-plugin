@@ -5,9 +5,9 @@ permalink: productoscliente
 creationdate: 26-04-2026
 lastmod: 13-06-2026
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: BasicImportExport
 min_php: 
 require: 

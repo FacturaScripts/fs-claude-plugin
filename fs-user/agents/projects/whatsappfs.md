@@ -3,13 +3,13 @@ idproject: 609
 name: WhatsAppFS
 permalink: whatsappfs
 creationdate: 27-05-2026
-lastmod: 27-05-2026
-version: 4
-betaversion: 0
+lastmod: 02-09-2026
+version: 6.1
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/WhatsAppFS

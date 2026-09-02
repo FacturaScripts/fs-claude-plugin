@@ -5,11 +5,11 @@ permalink: shopifyintegration
 creationdate: 22-04-2026
 lastmod: 22-04-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.2
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ShopifyIntegration

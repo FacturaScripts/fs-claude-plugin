@@ -7,7 +7,7 @@ lastmod: 13-05-2026
 version: 3.44
 betaversion: 3.43
 mincore: 2025.81
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: Informes
 min_php: 
 require: 

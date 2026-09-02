@@ -4,13 +4,13 @@ name: HumanResourcesLocation
 permalink: humanresourceslocation
 creationdate: 25-02-2025
 lastmod: 25-02-2025
-version: 0
+version: 
 betaversion: 1
-mincore: 0
+mincore: 
 maxcore: 2024.94
 compatible: 
-min_php: 
-require: 
+min_php: 7.4
+require: HumanResources
 require_php: 
 url: https://facturascripts.com/plugins/HumanResourcesLocation
 ---

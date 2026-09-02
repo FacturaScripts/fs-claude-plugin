@@ -5,10 +5,10 @@ permalink: muestraadjuntoemail
 creationdate: 30-03-2026
 lastmod: 30-03-2026
 version: 1
-betaversion: 0
+betaversion: 
 mincore: 2025
-maxcore: 2026.3
-compatible: 
+maxcore: 2026.65
+compatible: Template1_ext
 min_php: 
 require: 
 require_php: 

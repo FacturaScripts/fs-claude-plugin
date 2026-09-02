@@ -3,51 +3,50 @@ id: 792
 permalink: tu-primer-asiento-463
 title: Cómo hacer un asiento contable
 creationdate: 24-12-2018 00:00:00
-lastmod: 21-04-2026
+lastmod: 22-07-2026
 url: https://facturascripts.com/publicaciones/tu-primer-asiento-463
 ---
-Puede ver y crear asientos contables desde el menú **Contabilidad, Asientos contables**. Pulse el **botón nuevo**. En la siguiente pantalla seleccione la fecha y escriba el concepto. Para añadir líneas escriba la subcuenta que desea añadir o pulse el botón para mostrar el listado de subcuentas y seleccionar una. No olvide guardar.
+Puedes ver y crear asientos contables desde el menú Contabilidad → Asientos contables. Pulsa el botón `Nuevo` y, en la siguiente pantalla, selecciona la fecha y escribe el concepto. Para añadir líneas escribe la subcuenta que quieras o pulsa el botón para mostrar el listado de subcuentas y elegir una. No olvides guardar.
 
-![Asientos](https://i.imgur.com/Zrt8904.gif)
+![Creación de un asiento contable paso a paso](https://i.imgur.com/Zrt8904.gif)
 
-Nos encontramos con tres pestañas de menú: **Asientos contables, Conceptos predefinidos y Diarios**. Si partes de una nueva instalación sin datos, Asientos contables y Conceptos predefinidos estarán vacíos, pero en Diarios le aparecerán cuatro creados: Principal, Diario de facturas, Cartera de pagos y Cartera de cobros. Puede crear tantos Diarios como necesite pulsando el **botón nuevo**, asignando un número de Diario y una descripción para su posterior uso. 
+Dentro de esta sección encontrarás tres pestañas: Asientos contables, Conceptos predefinidos y Diarios. En [Conceptos predefinidos](https://facturascripts.com/publicaciones/los-conceptos-predefinidos) puedes guardar los textos que más usas (con comodines que se sustituyen automáticamente), y en [Diarios](https://facturascripts.com/publicaciones/los-diarios-contables) puedes agrupar los asientos según su origen.
 
-![Diarios predeterminados](https://i.imgur.com/9vXKapU.png)
+## Crear tu primer asiento
+Ve a la pestaña Asientos contables y pulsa el botón `Nuevo` (el `+` con fondo verde).
 
-En la pestaña **Conceptos predefinidos** podemos dar de alta aquellos conceptos que vamos a utilizar con más asiduidad mediante el botón nuevo. Podemos hacer uso de *comodines* que se sustituirán por el valor correspondiente. Los comodines que podemos usar son: 
+![Formulario para crear un nuevo asiento](https://i.imgur.com/vOMr4qP.png)
 
-**%document%** Se sustituirá por el valor del documento indicado en la cabecera del asiento contable  
-**%date%** Se sustituirá por la fecha actual (fecha del ordenador)  
-**%date-entry%** Se sustituirá por dateentry-wildcard-info  
-**%month%** Se sustituirá por el mes actual (de la fecha actual)  
-**%year%** Se sustituirá por el año actual (de la fecha actual)  
+El campo `Fecha` viene relleno con la fecha actual; cámbialo si lo necesitas. A continuación escribe el `Concepto` del asiento (por ejemplo: factura..., traspaso..., etc.).
 
-Ahora sí, vamos a crear nuestro primer asiento. En la pestaña **Asientos contables** clicamos en el **botón nuevo** (*+ con fondo verde*). 
+El siguiente paso es añadir las líneas. Sitúate en el campo `Subcuenta` y escribe el número. Puedes autocompletar los ceros con el punto: si escribes `700.0` se completa a `7000000000`. También puedes pulsar el icono del libro azul para buscar la subcuenta por nombre o por número.
 
-![Nuevo asiento](https://i.imgur.com/vOMr4qP.png)
+![Selección de subcuenta desde el listado](https://i.imgur.com/twPylbd.png)
 
-El campo **Fecha** sale completo con la fecha actual. Si lo necesitamos, la cambiamos.
-Ahora escribimos el **concepto** del asiento (factura..., traspaso ..., etc)
+Si quieres importar un plan de cuentas, consulta la sección de documentación Configuración → Plan de cuentas.
 
-El siguiente paso es añadir las líneas del asiento, para esto nos situamos en el campo **Subcuenta** y escribimos el número de subcuenta. Puedes autocompletar ceros con el punto (escribes 700.0 y te autocompleta a 7000000000). También podemos clicar en el icono del libro azul y buscar la subcuenta por nombre o por número.
+Solo queda completar el `Debe` o el `Haber` y repetir con la siguiente línea, igual que con la primera. Verás que el sistema completa automáticamente el importe contrario a partir de la primera línea.
 
-![Seleccionar subcuenta](https://i.imgur.com/twPylbd.png)
+Puedes introducir los datos muy rápido usando solo el teclado: con la tecla TAB vas saltando de campo en campo.
 
-Si quiere importar un plan de cuentas puede consultar la sección de documentación **Configuración &gt; Plan de cuentas**.
+Si hubiera algún **descuadre**, el sistema te avisa abajo a la derecha. Puedes corregir las líneas directamente o eliminarlas pulsando el icono de la papelera roja que hay a la derecha de cada una.
 
-Antes de seleccionar el número de subcuenta debemos de establecer el concepto del asiento.
+Cuando termines, guarda el asiento y, si te interesa, bloquéalo con el botón amarillo. Siempre podrás desbloquearlo cuando lo necesites.
 
-Sólo queda completar **debe o haber** y volver a introducir la siguiente línea, como la primera. Nos damos cuenta que ahora también completa el debe/haber contrario con el importe de la primera línea.
+Pulsando de nuevo el botón `+` verde de la parte superior puedes seguir introduciendo asientos, o volver al listado en la pestaña Todos.
 
-Puedes introducir datos muy rápido utilizando sólo el teclado con la tecla TAB &quot;saltando&quot; de campo en campo.
+## ⚠️ Asientos descuadrados
+Si tienes asientos descuadrados, es decir, asientos cuyo debe no suma lo mismo que el haber, aparecerá una pestaña Descuadrados en el menú Contabilidad → Asientos contables.
 
-Si hubiera algún **descuadre**, el sistema nos informa de él abajo a la derecha.
+## 🔢 Renumerar asientos
+Con el tiempo, al eliminar asientos o al crearlos con fechas anteriores, la numeración puede quedar con huecos o desordenada. Para dejarla correlativa de nuevo ve al menú Contabilidad → Asientos contables y, en el listado, pulsa el botón `Renumerar`.
 
-Podemos corregir las líneas directamente o eliminarlas, clicando en el icono de la papelera roja a la derecha de cada una.
+Se abre una ventana en la que solo tienes que elegir el ejercicio que quieres renumerar y confirmar. FacturaScripts recorre todos los asientos de ese ejercicio y les asigna el campo `numero` de forma correlativa empezando en `1`.
 
-Sólo nos queda guardar el asiento y, si nos interesa, bloquearlo en el botón amarillo. Siempre podemos desbloquearlo si lo necesitamos.
+El orden que se aplica es:
 
-Clicando en el botón &quot;+&quot; verde en la parte superior podemos seguir introduciendo nuevos asientos, o volver al listado en &quot;Todos&quot;
+- Primero por `fecha`, de la más antigua a la más reciente.
+- Dentro de la misma fecha, los asientos de apertura (`operacion = &#39;A&#39;`) van antes que el resto.
+- Como último criterio de desempate, el identificador interno del asiento.
 
-## Asientos descuadrados
-Si tienes asientos descuadrados, es decir, asientos cuyo debe no suma lo mismo que el haber. Aparecerá una pestaña descuadrados en el menú Contabilidas &gt; Asientos.
+Ten en cuenta que **solo se pueden renumerar los ejercicios abiertos**. Si el ejercicio está cerrado, el proceso no hace nada y te avisa de ello. La renumeración se realiza dentro de una transacción, así que si algo falla no se aplica ningún cambio.

@@ -3,11 +3,11 @@ idproject: 91
 name: StockAvanzado
 permalink: stockavanzado
 creationdate: 25-07-2020
-lastmod: 26-05-2026
-version: 4.4
-betaversion: 4.3
-mincore: 2026
-maxcore: 2026.3
+lastmod: 17-07-2026
+version: 4.6
+betaversion: 4.5
+mincore: 2026.5
+maxcore: 2026.65
 compatible: CSVimport
 min_php: 8.1
 require: 

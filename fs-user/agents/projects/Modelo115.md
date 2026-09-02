@@ -3,11 +3,11 @@ idproject: 79
 name: Modelo115
 permalink: modelo115
 creationdate: 06-05-2020
-lastmod: 18-05-2026
-version: 1.61
+lastmod: 17-07-2026
+version: 1.7
 betaversion: 1.4
-mincore: 2025
-maxcore: 2026.3
+mincore: 2026
+maxcore: 2026.6
 compatible: 
 min_php: 
 require: 

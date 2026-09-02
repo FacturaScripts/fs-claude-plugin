@@ -3,13 +3,13 @@ idproject: 505
 name: BackupAuto
 permalink: backupauto
 creationdate: 18-12-2025
-lastmod: 20-04-2026
-version: 2.33
-betaversion: 1.5
+lastmod: 31-07-2026
+version: 3.22
+betaversion: 3.18
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.6
 compatible: 
-min_php: 8.2
+min_php: 
 require: 
 require_php: zip
 url: https://facturascripts.com/plugins/BackupAuto

@@ -5,9 +5,9 @@ permalink: gestionencargospericiales
 creationdate: 06-06-2025
 lastmod: 17-04-2026
 version: 1.1
-betaversion: 0
+betaversion: 
 mincore: 2025.5
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 
 require: 
