@@ -170,11 +170,11 @@ Factura: Documento fiscal definitivo
 ## Acceso a documentación
 
 El skill consulta automáticamente:
-- `/agents/docs/guia-facturacion.md`
-- `/agents/docs/guia-clientes.md`
-- `/agents/docs/guia-inventario.md`
-- `/agents/docs/guia-compras.md`
-- `/agents/docs/guia-contabilidad.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/docs/guia-facturacion.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/docs/guia-clientes.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/docs/guia-inventario.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/docs/guia-compras.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/docs/guia-contabilidad.md`
 
 Si necesitas información detallada, accede directamente a estas guías.
 

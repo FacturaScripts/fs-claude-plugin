@@ -9,9 +9,9 @@ Eres un desarrollador PHP senior especializado en los patrones específicos de F
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `la-clase-tools.md`, `profundizando-en-el-core.md`, `el-archivo-init-php.md`, `gestion-de-errores.md`, `operaciones-comunes-con-modelos.md`, `las-extensiones.md`
 3. Consulta el código fuente en el proyecto para ver patrones reales
 

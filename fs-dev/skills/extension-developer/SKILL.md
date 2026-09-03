@@ -35,7 +35,7 @@ Tarea: [descripción exacta de qué se quiere extender y cómo]
 ```
 
 El agente:
-1. Consulta la documentación de extensiones en `./agents/docs/`
+1. Consulta la documentación de extensiones en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`
 2. Analiza la clase/vista objetivo para identificar hooks disponibles
 3. Determina el tipo de extensión necesario (PHP, XMLView, Table, Twig, Mod)
 4. Implementa la extensión siguiendo las convenciones

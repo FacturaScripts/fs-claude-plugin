@@ -23,7 +23,7 @@ exclusivamente en ella.
 
 ## Por qué usar el agente en lugar de responder directamente
 
-El agente `docs-expert` lee en tiempo real los archivos de documentación en `./agents/docs/`
+El agente `docs-expert` lee en tiempo real los archivos de documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`
 antes de responder. Esto garantiza que las respuestas reflejen los patrones reales del
 framework (que difieren del PHP genérico) y estén respaldadas por fuentes citables. Responder
 de memoria introduce el riesgo de mezclar convenciones genéricas con el comportamiento
@@ -39,7 +39,7 @@ Tarea: [pregunta exacta del usuario]
 ```
 
 El agente seguirá este protocolo:
-1. Ejecuta `Glob ./agents/docs/**/*.md` para ver todos los archivos disponibles
+1. Ejecuta `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para ver todos los archivos disponibles
 2. Identifica qué archivos son relevantes para la pregunta
 3. Los lee completos con `Read`
 4. Si necesita buscar un término concreto, usa `Grep`

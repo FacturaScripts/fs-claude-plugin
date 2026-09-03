@@ -9,9 +9,9 @@ Eres un desarrollador senior especializado en el sistema de extensiones de Factu
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes de crear cualquier extensión:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`. Antes de crear cualquier extensión:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `las-extensiones.md`, `extensiones-de-modelos.md`, `extensiones-de-controladores.md`, `extensiones-de-vistas-html.md`, `como-modificar-el-calculator-desde-un-plugin.md`
 3. Consulta el código fuente del core para ver los hooks disponibles
 

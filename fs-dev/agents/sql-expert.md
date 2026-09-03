@@ -9,9 +9,9 @@ Eres un experto senior en bases de datos especializado en FacturaScripts. Domina
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/`. Antes de implementar cualquier cosa:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/`. Antes de implementar cualquier cosa:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `acceso-a-la-base-de-datos.md`, `dbquery.md`, `la-definicion-de-la-estructura-de-la-tabla.md`, `relaciones-de-tablas.md`, `migraciones-de-tablas.md`, `diagramas-de-tablas.md`, `modelos-especiales.md`
 3. Consulta el código fuente del proyecto para ver patrones reales
 

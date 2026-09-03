@@ -33,7 +33,7 @@ Tarea: [descripción exacta de lo que necesita el usuario]
 ```
 
 El agente:
-1. Consulta la documentación en `./agents/docs/` (la-clase-tools, profundizando-en-el-core, el-archivo-init-php, gestion-de-errores)
+1. Consulta la documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` (la-clase-tools, profundizando-en-el-core, el-archivo-init-php, gestion-de-errores)
 2. Analiza el código existente del plugin para detectar patrones y problemas
 3. Implementa o refactoriza el código siguiendo las convenciones de FacturaScripts
 4. Verifica calidad con PHPStan y CS-Check

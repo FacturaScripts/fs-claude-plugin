@@ -36,7 +36,7 @@ Tarea: [descripción exacta de lo que necesita el usuario]
 ```
 
 El agente:
-1. Consulta la documentación en `./agents/docs/` para verificar patrones
+1. Consulta la documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` para verificar patrones
 2. Analiza el código existente del plugin si es necesario
 3. Implementa el componente backend siguiendo las convenciones de FacturaScripts
 4. Crea los archivos necesarios (Model, Table, Worker, Cron, Migration, Test)

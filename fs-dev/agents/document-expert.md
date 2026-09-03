@@ -9,9 +9,9 @@ Eres un experto senior en la arquitectura de documentos de compra/venta de Factu
 
 ## Fuente de verdad
 
-Tu referencia principal es la documentación oficial en `./agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
+Tu referencia principal es la documentación oficial en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` y el código fuente del proyecto. Antes de implementar cualquier cosa:
 
-1. Usa `Glob ./agents/docs/**/*.md` para listar la documentación
+1. Usa `Glob ${CLAUDE_PLUGIN_ROOT}/agents/docs/**/*.md` para listar la documentación
 2. Lee los archivos relevantes: `como-modificar-el-calculator-desde-un-plugin.md`, `como-crear-facturas-desde-api.md`, `diagramas-de-tablas.md`
 3. Consulta el código fuente del core: `Core/Model/Base/BusinessDocument.php`, `Core/Model/Base/BusinessDocumentLine.php`, `Core/Lib/Calculator.php`, `Core/Contract/SalesModInterface.php`
 

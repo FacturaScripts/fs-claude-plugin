@@ -34,7 +34,7 @@ Tarea: [descripción exacta de lo que necesita el usuario]
 ```
 
 El agente:
-1. Consulta la documentación en `./agents/docs/` (calculator, facturas-api, diagramas-de-tablas)
+1. Consulta la documentación en `${CLAUDE_PLUGIN_ROOT}/agents/docs/` (calculator, facturas-api, diagramas-de-tablas)
 2. Analiza el código fuente del core: BusinessDocument, Calculator, SalesModInterface
 3. Implementa la personalización de documentos requerida
 4. Crea los archivos necesarios (CalculatorMod, Mods de interfaz, registro en Init.php)
