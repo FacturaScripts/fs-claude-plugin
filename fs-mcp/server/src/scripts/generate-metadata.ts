@@ -1163,6 +1163,87 @@ async function loadTablesFromDir(tablesDir: string): Promise<Map<string, TableDe
 }
 
 /**
+ * Fusiona las columnas y FKs que un plugin añade a tablas ajenas mediante
+ * `Extension/Table/*.xml` sobre las tablas ya cargadas. Solo añade lo que no
+ * exista y únicamente a tablas ya conocidas (no crea tablas nuevas). Devuelve
+ * el número de columnas fusionadas.
+ */
+async function mergeExtensionTables(
+    tables: Map<string, TableDefinition>,
+    pluginDir: string,
+): Promise<number> {
+    const extDir = join(pluginDir, 'Extension', 'Table');
+    if (!existsSync(extDir)) return 0;
+    let merged = 0;
+    const files = await readdir(extDir);
+    for (const file of files) {
+        if (!file.endsWith('.xml')) continue;
+        const tableName = file.replace(/\.xml$/, '');
+        const target = tables.get(tableName);
+        if (!target) continue; // solo extendemos tablas ya conocidas
+        const ext = parseTableXml(await readFile(join(extDir, file), 'utf8'));
+        for (const col of ext.columns) {
+            if (target.columns.some((c) => c.name === col.name)) continue;
+            target.columns.push(col);
+            merged++;
+        }
+        for (const fk of ext.foreignKeys) {
+            if (!target.foreignKeys.some((f) => f.localColumn === fk.localColumn)) {
+                target.foreignKeys.push(fk);
+            }
+        }
+    }
+    return merged;
+}
+
+/**
+ * Autodescubre los plugins HABILITADOS de una instalación de FacturaScripts y
+ * fusiona las columnas/FKs que añaden vía `Extension/Table/*.xml`. Usa la misma
+ * fuente de verdad que el framework: la lista de plugins activos en
+ * `<fsPath>/MyFiles/plugins.json`, aplicados por su `order`. Si esa lista no
+ * existe (instalación limpia sin plugins) no hace nada. Sin esto, las columnas
+ * que los plugins añaden por extensión nunca llegarían a la metadata del MCP.
+ * Devuelve el total de columnas fusionadas.
+ */
+async function mergeEnabledPluginExtensions(
+    tables: Map<string, TableDefinition>,
+    fsPath: string,
+): Promise<number> {
+    const pluginsFile = join(fsPath, 'MyFiles', 'plugins.json');
+    if (!existsSync(pluginsFile)) return 0;
+
+    let list: Array<{ name?: string; folder?: string; enabled?: boolean; order?: number }>;
+    try {
+        list = JSON.parse(await readFile(pluginsFile, 'utf8'));
+    } catch {
+        console.warn(`[generate-metadata] No se pudo parsear ${pluginsFile}; se omiten las extensiones.`);
+        return 0;
+    }
+
+    const enabled = list
+        .filter((p) => p.enabled)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    let total = 0;
+    for (const p of enabled) {
+        const dir = p.folder ?? p.name;
+        if (!dir) continue;
+        const n = await mergeExtensionTables(tables, join(fsPath, 'Plugins', dir));
+        if (n > 0) {
+            console.log(`[generate-metadata] Extensiones de ${dir}: +${n} columna(s).`);
+            total += n;
+        }
+    }
+    if (total > 0) {
+        console.log(
+            `[generate-metadata] Total columnas de extensión fusionadas: ${total} ` +
+                `(${enabled.length} plugin(s) habilitado(s)).`,
+        );
+    }
+    return total;
+}
+
+/**
  * Combina dos diccionarios de traducciones; el segundo gana en colisiones
  * (las traducciones del plugin sobrescriben las del core).
  */
@@ -1290,6 +1371,9 @@ async function runCoreMode(args: CliArgs): Promise<void> {
     const allTables = await loadTablesFromDir(join(fsPath, 'Core', 'Table'));
     console.log(`[generate-metadata] Cargadas ${allTables.size} tablas del core.`);
 
+    // Fusionar columnas que los plugins habilitados añaden por extensión.
+    await mergeEnabledPluginExtensions(allTables, fsPath);
+
     const fsCommit = resolveGitCommit(fsPath);
 
     // Overrides del core: archivo en server/src/metadata/descriptions-overrides.json
@@ -1374,6 +1458,10 @@ async function runPluginMode(args: CliArgs): Promise<void> {
     const pluginTables = await loadTablesFromDir(join(pluginPath, 'Table'));
     const allTables = new Map<string, TableDefinition>([...coreTables, ...pluginTables]);
     console.log(`[generate-metadata] Tablas cargadas: ${coreTables.size} core + ${pluginTables.size} plugin = ${allTables.size}.`);
+
+    // Fusionar columnas que los plugins habilitados añaden por extensión
+    // (a tablas del core o de otros plugins).
+    await mergeEnabledPluginExtensions(allTables, fsPath);
 
     // Combinar traducciones del core con las del plugin.
     const pluginTranslationPath = join(pluginPath, 'Translation', 'es_ES.json');
