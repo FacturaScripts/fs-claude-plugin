@@ -323,7 +323,10 @@ export const purchasingTools = [
                     description: 'Código del proveedor a filtrar',
                 },
             },
-            required: ['connection'],
+            // Sin campos obligatorios: es el esquema que se venía publicando (lo ganaba la
+            // definición duplicada, que se registraba después). En remoto el servidor
+            // resuelve la conexión del usuario, así que no debe exigirse al cliente.
+            required: [],
         },
     },
 ];
@@ -673,20 +676,9 @@ export const purchasingWriteTools = [
         },
     },
     // ── Cuentas bancarias de proveedores ──
-    {
-        name: 'get_cuentabancoproveedores',
-        description: 'Obtiene las cuentas bancarias de un proveedor en FacturaScripts',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                connection: { type: 'string', description: 'Clave de conexión' },
-                offset: { type: 'number', description: 'Offset de paginación (por defecto: 0)' },
-                limit: { type: 'number', description: 'Límite de resultados (por defecto: 100)' },
-                codproveedor: { type: 'string', description: 'Filtrar por código de proveedor' },
-            },
-            required: [],
-        },
-    },
+    // get_cuentabancoproveedores es de LECTURA y vive en purchasingTools; aquí estaba
+    // duplicada (se registraba después, así que su esquema era el que se publicaba) y
+    // además tenía un segundo `case` en el switch que nunca se alcanzaba.
     {
         name: 'create_cuentabancoproveedor',
         description: 'Crea una nueva cuenta bancaria de proveedor en FacturaScripts',
@@ -947,17 +939,6 @@ export async function handlePurchasingTool(name, args) {
             const params = input;
             const { connection, idpresupuesto, ...data } = params;
             const result = await fsClient.put(`/presupuestosprov/${idpresupuesto}`, data, connection);
-            return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
-        }
-        case 'get_cuentabancoproveedores': {
-            const params = input;
-            const queryParams = {
-                offset: params.offset || 0,
-                limit: params.limit || 100,
-            };
-            if (params.codproveedor)
-                queryParams.codproveedor = params.codproveedor;
-            const result = await fsClient.get('/cuentabancoproveedores', queryParams, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_cuentabancoproveedor': {
