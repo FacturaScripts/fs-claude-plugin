@@ -63,6 +63,7 @@ Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crea
 | `fs-dev:analizar-bug` | Analiza y corrige bugs en plugins: comportamiento incorrecto, errores inesperados, datos incorrectos |
 | `fs-dev:testing-expert` | Tests PHPUnit, PHPStan, CS-Check, depuración y control de calidad |
 | `fs-dev:depurar-y-testear` | Guía para depurar con modo debug (FS_DEBUG), logs con Tools::log() y PHPUnit |
+| `fs-dev:verificar-min-version` | Comprueba si un plugin cumple el `min_version` de su `facturascripts.ini` y calcula el correcto |
 | `fs-dev:fsmaker` | Usa la herramienta CLI `fsmaker` para generar estructuras automáticamente |
 
 ### Git y colaboración
@@ -82,6 +83,7 @@ En Claude Code, estos archivos se cargan como agentes nativos. En Codex, las ski
 |---|---|---|
 | `fs-dev:api-designer` | Opus | Diseño de endpoints REST y API personalizada |
 | `fs-dev:backend-developer` | Opus | Desarrollo backend: modelos, BD, Workers, Cron |
+| `fs-dev:compatibility-auditor` | Sonnet | Compatibilidad de un plugin con las versiones del core (`min_version`) |
 | `fs-dev:docs-expert` | Haiku | Documentación oficial y preguntas de programación |
 | `fs-dev:document-expert` | Opus | Documentos de compra y venta (presupuestos, facturas, albaranes, pedidos) |
 | `fs-dev:extension-developer` | Sonnet | Creación de extensiones para el Core o plugins externos |
@@ -137,6 +139,20 @@ Ordena automáticamente los miembros de las clases PHP según el estándar de Fa
 Cada grupo se ordena alfabéticamente. La transformación solo actúa sobre clases con namespace `FacturaScripts\\`.
 
 Esto garantiza que el código siempre siga el mismo orden, facilitando la revisión y la consistencia entre plugins.
+
+### Auditoría de `min_version`
+
+`scripts/check-min-version.py` no es un hook: se ejecuta a petición, desde la skill `fs-dev:verificar-min-version` o a mano.
+
+```bash
+python3 fs-dev/scripts/check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json]
+```
+
+Extrae del plugin las clases, llamadas estáticas, métodos, propiedades y puntos de extensión `pipe` del core, y comprueba en qué etiqueta de versión aparece cada uno (`git grep` con búsqueda por bisección sobre el repositorio del core). Con eso calcula el `min_version` real, avisa de los símbolos eliminados en versiones recientes y devuelve `0` si el plugin cumple, `1` si no y `2` si falta el clon del core.
+
+Para no confundir el código del core con el ajeno, descarta los campos que el plugin declara en sus XML de tabla y los métodos de clases nativas de PHP, y atribuye a su origen los símbolos que aportan otros plugins instalados (prefiriendo los de `require`) o las librerías de `vendor/`. Un `pipe('X')` que no existe en el core y que nada del plugin invoca se señala aparte: esa extensión probablemente nunca llega a ejecutarse.
+
+La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
 
 ---
 
