@@ -63,7 +63,7 @@ Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crea
 | `fs-dev:analizar-bug` | Analiza y corrige bugs en plugins: comportamiento incorrecto, errores inesperados, datos incorrectos |
 | `fs-dev:testing-expert` | Tests PHPUnit, PHPStan, CS-Check, depuración y control de calidad |
 | `fs-dev:depurar-y-testear` | Guía para depurar con modo debug (FS_DEBUG), logs con Tools::log() y PHPUnit |
-| `fs-dev:verificar-min-version` | Comprueba si un plugin cumple el `min_version` de su `facturascripts.ini` y calcula el correcto |
+| `fs-dev:verificar-min-version` | Audita un plugin: si cumple el `min_version` de su `facturascripts.ini` y qué comportamientos sensibles para la seguridad tiene |
 | `fs-dev:fsmaker` | Usa la herramienta CLI `fsmaker` para generar estructuras automáticamente |
 
 ### Git y colaboración
@@ -83,7 +83,7 @@ En Claude Code, estos archivos se cargan como agentes nativos. En Codex, las ski
 |---|---|---|
 | `fs-dev:api-designer` | Opus | Diseño de endpoints REST y API personalizada |
 | `fs-dev:backend-developer` | Opus | Desarrollo backend: modelos, BD, Workers, Cron |
-| `fs-dev:compatibility-auditor` | Sonnet | Compatibilidad de un plugin con las versiones del core (`min_version`) |
+| `fs-dev:compatibility-auditor` | Sonnet | Compatibilidad de un plugin con las versiones del core (`min_version`) y auditoría de seguridad |
 | `fs-dev:docs-expert` | Haiku | Documentación oficial y preguntas de programación |
 | `fs-dev:document-expert` | Opus | Documentos de compra y venta (presupuestos, facturas, albaranes, pedidos) |
 | `fs-dev:extension-developer` | Sonnet | Creación de extensiones para el Core o plugins externos |
@@ -153,6 +153,20 @@ Extrae del plugin las clases, llamadas estáticas, métodos, propiedades y punto
 Para no confundir el código del core con el ajeno, descarta los campos que el plugin declara en sus XML de tabla y los métodos de clases nativas de PHP, y atribuye a su origen los símbolos que aportan otros plugins instalados (prefiriendo los de `require`) o las librerías de `vendor/`. Un `pipe('X')` que no existe en el core y que nada del plugin invoca se señala aparte: esa extensión probablemente nunca llega a ejecutarse.
 
 La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
+
+### Auditoría de seguridad
+
+`scripts/check-security.py` tampoco es un hook: la skill `fs-dev:verificar-min-version` lo ejecuta junto a la auditoría de `min_version`, y puede lanzarse a mano. No necesita el clon del core.
+
+```bash
+python3 fs-dev/scripts/check-security.py <ruta_plugin> [--json] [--min-severity alta|media|baja|info] [--include-tests] [--include-vendor]
+```
+
+Enumera lo que conviene conocer antes de confiar en un plugin: ejecución de comandos del sistema, código dinámico u ofuscado, conexiones de red salientes con su destino, scripts cargados desde terceros, lectura de credenciales o datos de la instalación, escritura de código o de la configuración del servidor, controladores sin autenticación, concesión de privilegios, credenciales escritas en el código y archivos que el servidor podría ejecutar fuera de FacturaScripts (por ejemplo, PHP dentro de `Assets/`). Señala como posible envío de datos los archivos que leen datos sensibles y abren una conexión, e inventaría los dominios externos que menciona el código.
+
+Antes de buscar llamadas elimina comentarios y cadenas, de modo que un `exec` en un comentario, en un texto o como nombre de método no cuenta. Cada hallazgo indica su severidad y cuándo se ejecuta: al instalar (`Init::update()`), en cada petición (`Init::init()`), en cron, desde un controlador público o en el navegador. Los scripts que abortan fuera de `php-cli`, como el `Translation/updater.php` que genera fsmaker, se rebajan un nivel. `Test/` y `vendor/` se excluyen salvo que se pidan.
+
+Ninguno de estos comportamientos está prohibido: el informe no decide si el plugin es malicioso. Devuelve `0` si no hay hallazgos de severidad media o alta, `1` si los hay y `2` si la ruta no es válida.
 
 ---
 
