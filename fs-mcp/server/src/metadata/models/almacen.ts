@@ -22,7 +22,13 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si el almacén está operativo; false si está deshabilitado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "apartado",
@@ -35,7 +41,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Apartado",
             "maxLength": 10,
             "description": "Apartado postal de la dirección del almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -48,7 +61,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Ciudad",
             "maxLength": 100,
             "description": "Ciudad donde se ubica el almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -61,7 +81,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 4,
             "description": "Código corto único del almacén. Se usa como referencia en stocks y documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -74,7 +101,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "País",
             "maxLength": 20,
             "description": "Código del país donde se ubica el almacén.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -87,7 +121,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Código Postal",
             "maxLength": 10,
             "description": "Código postal del almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -100,7 +141,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Dirección",
             "maxLength": 200,
             "description": "Dirección postal del almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -118,7 +166,14 @@ export const almacenMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -131,7 +186,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre descriptivo del almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -144,7 +206,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Provincia",
             "maxLength": 100,
             "description": "Provincia donde se ubica el almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono",
@@ -157,7 +226,14 @@ export const almacenMetadata: ModelMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono de contacto del almacén.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -232,9 +308,22 @@ export const almacenMetadata: ModelMetadata = {
             "remoteColumn": "codalmacen"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

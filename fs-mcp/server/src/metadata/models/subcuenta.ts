@@ -21,7 +21,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "codcuenta",
             "maxLength": 10,
-            "description": "Código de la cuenta padre en el plan contable."
+            "description": "Código de la cuenta padre en el plan contable.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcuentaesp",
@@ -40,7 +47,14 @@ export const subcuentaMetadata: ModelMetadata = {
                 "column": "codcuentaesp",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -59,7 +73,14 @@ export const subcuentaMetadata: ModelMetadata = {
                 "column": "codejercicio",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -72,7 +93,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Código de la subcuenta. Soporta el carácter punto para autocompletar ceros (ej: 11.1 = 1100000001).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "debe",
@@ -85,7 +113,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "label": "Debe",
             "default": 0,
             "description": "Suma acumulada de los importes en el debe de las partidas de esta subcuenta.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -98,7 +133,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 255,
             "description": "Descripción legible de la subcuenta.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "haber",
@@ -111,7 +153,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "label": "Haber",
             "default": 0,
             "description": "Suma acumulada de los importes en el haber de las partidas de esta subcuenta.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcuenta",
@@ -129,7 +178,14 @@ export const subcuentaMetadata: ModelMetadata = {
                 "column": "idcuenta",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idsubcuenta",
@@ -141,7 +197,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idsubcuenta",
             "description": "Identificador interno autoincremental de la subcuenta dentro del ejercicio.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "saldo",
@@ -154,7 +217,14 @@ export const subcuentaMetadata: ModelMetadata = {
             "label": "Saldo",
             "default": 0,
             "description": "Saldo de la subcuenta calculado como debe menos haber.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -208,10 +278,44 @@ export const subcuentaMetadata: ModelMetadata = {
             "remoteColumn": "idsubcuentadeu"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codimpuesto",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codimpuesto",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.05"
+                }
+            ]
+        }
+    ]
 };
 
 export default subcuentaMetadata;

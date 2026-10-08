@@ -21,7 +21,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "allowdelete",
             "description": "True si la API key puede ejecutar peticiones DELETE en el recurso.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "allowget",
@@ -33,7 +40,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "allowget",
             "description": "True si la API key puede ejecutar peticiones GET (lectura) en el recurso.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "allowpost",
@@ -45,7 +59,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "allowpost",
             "description": "True si la API key puede ejecutar peticiones POST (creación) en el recurso.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "allowput",
@@ -57,7 +78,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "allowput",
             "description": "True si la API key puede ejecutar peticiones PUT (actualización) en el recurso.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "id",
@@ -69,7 +97,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro de permiso.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idapikey",
@@ -87,7 +122,14 @@ export const apiAccessMetadata: ModelMetadata = {
                 "column": "id",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "resource",
@@ -99,7 +141,14 @@ export const apiAccessMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Recurso",
             "maxLength": 100,
-            "description": "Nombre del recurso/endpoint de la API al que se aplica el permiso (ej: clientes, productos)."
+            "description": "Nombre del recurso/endpoint de la API al que se aplica el permiso (ej: clientes, productos).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -111,9 +160,22 @@ export const apiAccessMetadata: ModelMetadata = {
             "remoteColumn": "id"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

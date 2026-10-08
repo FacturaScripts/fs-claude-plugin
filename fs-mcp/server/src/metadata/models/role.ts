@@ -22,7 +22,14 @@ export const roleMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 20,
             "description": "Código corto único del rol de seguridad.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -35,7 +42,14 @@ export const roleMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 200,
             "description": "Descripción del rol y los permisos que agrupa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -54,9 +68,22 @@ export const roleMetadata: ModelMetadata = {
             "remoteColumn": "codrole"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

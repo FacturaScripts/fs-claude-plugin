@@ -28,7 +28,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codimpuestosel",
@@ -47,7 +54,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codisopro",
@@ -60,7 +74,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "label": "Provincia",
             "maxLength": 10,
             "description": "Código ISO de la provincia donde aplica la regla.",
-            "widget": "autocomplete"
+            "widget": "autocomplete",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -73,7 +94,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "label": "País",
             "maxLength": 20,
             "description": "Código del país donde aplica la regla.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -86,7 +114,13 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "label": "Excepción de IVA",
             "maxLength": 20,
             "description": "Excepción de IVA específica que aplicará en la zona.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "id",
@@ -98,7 +132,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Código",
             "description": "Identificador interno autoincremental.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "prioridad",
@@ -110,7 +151,14 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Prioridad",
             "description": "Prioridad de aplicación de la regla cuando hay varias coincidentes (mayor número, mayor prioridad).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -129,9 +177,22 @@ export const impuestoZonaMetadata: ModelMetadata = {
             "remoteColumn": "codimpuesto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

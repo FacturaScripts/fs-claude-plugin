@@ -22,7 +22,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si el impuesto está disponible para asignar a productos y documentos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "codimpuesto",
@@ -35,7 +41,14 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único del impuesto (ej: IVA21, IVA10).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentarep",
@@ -48,7 +61,14 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta impuesto repercutido",
             "maxLength": 15,
             "description": "Subcuenta contable de IVA repercutido (ventas).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentarepintra",
@@ -61,7 +81,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta repercutido intracomunitarias",
             "maxLength": 15,
             "description": "Subcuenta de IVA repercutido para operaciones intracomunitarias.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "codsubcuentarepre",
@@ -74,7 +100,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta recargo repercutido",
             "maxLength": 15,
             "description": "Subcuenta del recargo de equivalencia repercutido.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "codsubcuentasop",
@@ -87,7 +119,14 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta impuesto soportado",
             "maxLength": 15,
             "description": "Subcuenta contable de IVA soportado (compras).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentasopintra",
@@ -100,7 +139,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta soportado Intracomunitaria",
             "maxLength": 15,
             "description": "Subcuenta de IVA soportado para operaciones intracomunitarias.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "codsubcuentasopre",
@@ -113,7 +158,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Subcuenta recargo soportado",
             "maxLength": 15,
             "description": "Subcuenta del recargo de equivalencia soportado.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -126,7 +177,14 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 50,
             "description": "Descripción legible del impuesto (ej: IVA general 21%).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -139,7 +197,13 @@ export const impuestoMetadata: ModelMetadata = {
             "label": "Operación",
             "maxLength": 20,
             "description": "Tipo de operación asociado al impuesto (interior, intracomunitario).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         },
         {
             "name": "tipo",
@@ -156,6 +220,12 @@ export const impuestoMetadata: ModelMetadata = {
             "enumValues": [
                 "1",
                 "2"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.14"
+                }
             ]
         },
         {
@@ -168,7 +238,14 @@ export const impuestoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "IVA",
             "description": "Porcentaje de IVA del impuesto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "recargo",
@@ -180,7 +257,14 @@ export const impuestoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Recargo",
             "description": "Porcentaje de recargo de equivalencia asociado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -262,9 +346,22 @@ export const impuestoMetadata: ModelMetadata = {
             "remoteColumn": "codimpuesto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

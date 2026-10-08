@@ -18,7 +18,13 @@ export const paisMetadata = {
             "isRequired": false,
             "label": "Alias",
             "description": "Alias o nombres alternativos del país, separados por comas.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "codiso",
@@ -31,7 +37,14 @@ export const paisMetadata = {
             "label": "Código alfa 2",
             "maxLength": 2,
             "description": "Código ISO 3166-1 alpha-3 del país (ej: ESP, USA, FRA).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -44,7 +57,14 @@ export const paisMetadata = {
             "label": "Código alfa 3",
             "maxLength": 20,
             "description": "Código corto interno del país, usado como FK en otras tablas.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "creation_date",
@@ -56,7 +76,13 @@ export const paisMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se creó el registro del país.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_nick",
@@ -75,7 +101,13 @@ export const paisMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -87,7 +119,13 @@ export const paisMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "latitude",
@@ -99,7 +137,13 @@ export const paisMetadata = {
             "isRequired": false,
             "label": "Latitud",
             "description": "Latitud geográfica del centroide del país.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "longitude",
@@ -111,7 +155,13 @@ export const paisMetadata = {
             "isRequired": false,
             "label": "Longitud",
             "description": "Longitud geográfica del centroide del país.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -130,7 +180,13 @@ export const paisMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -143,7 +199,14 @@ export const paisMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre oficial del país.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telephone_prefix",
@@ -156,7 +219,13 @@ export const paisMetadata = {
             "label": "Prefijo telefónico",
             "maxLength": 10,
             "description": "Prefijo telefónico internacional del país (ej: +34, +1).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -189,9 +258,22 @@ export const paisMetadata = {
             "remoteColumn": "codpais"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default paisMetadata;

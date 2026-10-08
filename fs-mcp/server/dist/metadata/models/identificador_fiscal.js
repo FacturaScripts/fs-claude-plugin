@@ -19,7 +19,13 @@ export const identificadorFiscalMetadata = {
             "label": "Código",
             "maxLength": 2,
             "description": "Código ISO de 2 letras del país asociado (ej: ES, FR, DE).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -32,7 +38,14 @@ export const identificadorFiscalMetadata = {
             "label": "Nombre",
             "maxLength": 25,
             "description": "Nombre del tipo de identificador fiscal (NIF, CIF, NIE, VAT, etc.).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "validar",
@@ -45,13 +58,32 @@ export const identificadorFiscalMetadata = {
             "label": "Validar",
             "default": false,
             "description": "True si el sistema debe validar el formato al introducir un identificador de este tipo.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default identificadorFiscalMetadata;

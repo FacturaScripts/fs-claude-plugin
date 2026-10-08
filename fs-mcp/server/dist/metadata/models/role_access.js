@@ -19,7 +19,14 @@ export const roleAccessMetadata = {
             "label": "allowdelete",
             "default": true,
             "description": "True si los usuarios del rol pueden eliminar registros en la página.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "allowexport",
@@ -32,7 +39,13 @@ export const roleAccessMetadata = {
             "label": "allowexport",
             "default": true,
             "description": "True si los usuarios del rol pueden exportar los datos de la página.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "allowimport",
@@ -45,7 +58,13 @@ export const roleAccessMetadata = {
             "label": "allowimport",
             "default": true,
             "description": "True si los usuarios del rol pueden importar datos en la página.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "allowupdate",
@@ -58,7 +77,14 @@ export const roleAccessMetadata = {
             "label": "allowupdate",
             "default": true,
             "description": "True si los usuarios del rol pueden modificar registros en la página.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codrole",
@@ -76,7 +102,14 @@ export const roleAccessMetadata = {
                 "column": "codrole",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "id",
@@ -88,7 +121,14 @@ export const roleAccessMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro de permiso.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "onlyownerdata",
@@ -101,7 +141,13 @@ export const roleAccessMetadata = {
             "label": "onlyownerdata",
             "default": false,
             "description": "True si el usuario solo puede ver los registros que él mismo creó (filtro por propietario).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.4"
+                }
+            ]
         },
         {
             "name": "pagename",
@@ -113,7 +159,14 @@ export const roleAccessMetadata = {
             "isRequired": true,
             "label": "Nombre de página",
             "maxLength": 40,
-            "description": "Nombre de la página/controlador al que se aplica el permiso."
+            "description": "Nombre de la página/controlador al que se aplica el permiso.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -125,9 +178,22 @@ export const roleAccessMetadata = {
             "remoteColumn": "codrole"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default roleAccessMetadata;

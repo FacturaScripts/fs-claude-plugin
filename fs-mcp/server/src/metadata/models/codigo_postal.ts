@@ -28,7 +28,13 @@ export const codigoPostalMetadata: ModelMetadata = {
                 "column": "codpais",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "creation_date",
@@ -40,7 +46,13 @@ export const codigoPostalMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se registró el código postal.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "id",
@@ -52,7 +64,13 @@ export const codigoPostalMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "idciudad",
@@ -70,7 +88,13 @@ export const codigoPostalMetadata: ModelMetadata = {
                 "column": "idciudad",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "idprovincia",
@@ -88,7 +112,13 @@ export const codigoPostalMetadata: ModelMetadata = {
                 "column": "idprovincia",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_nick",
@@ -107,7 +137,13 @@ export const codigoPostalMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -119,7 +155,13 @@ export const codigoPostalMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación del registro.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -138,7 +180,13 @@ export const codigoPostalMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "number",
@@ -150,7 +198,13 @@ export const codigoPostalMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Número",
             "description": "Número de código postal.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -190,9 +244,21 @@ export const codigoPostalMetadata: ModelMetadata = {
             "remoteColumn": "idciudad"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2024.3"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

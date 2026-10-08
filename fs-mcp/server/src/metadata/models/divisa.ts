@@ -22,7 +22,14 @@ export const divisaMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 3,
             "description": "Código corto de la divisa (ej: EUR, USD, GBP).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codiso",
@@ -35,7 +42,14 @@ export const divisaMetadata: ModelMetadata = {
             "label": "ISO",
             "maxLength": 5,
             "description": "Código ISO 4217 numérico de la divisa.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -48,7 +62,14 @@ export const divisaMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Nombre completo de la divisa (ej: Euro, Dólar estadounidense).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "simbolo",
@@ -61,7 +82,14 @@ export const divisaMetadata: ModelMetadata = {
             "label": "Símbolo",
             "maxLength": 10,
             "description": "Símbolo monetario de la divisa (ej: €, $, £).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -73,7 +101,14 @@ export const divisaMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Tasa de ventas",
             "description": "Tasa de conversión a la divisa principal (€) usada en operaciones de venta.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tasaconvcompra",
@@ -85,7 +120,14 @@ export const divisaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Tasa de compras",
             "description": "Tasa de conversión a la divisa principal (€) usada en operaciones de compra.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -167,9 +209,22 @@ export const divisaMetadata: ModelMetadata = {
             "remoteColumn": "coddivisa"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

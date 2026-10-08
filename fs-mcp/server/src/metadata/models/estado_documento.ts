@@ -22,7 +22,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si el estado está disponible para asignar a documentos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "actualizastock",
@@ -41,6 +47,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
                 "0",
                 "1",
                 "2"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -53,7 +66,14 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Bloqueado",
             "description": "True si al alcanzar este estado el documento queda bloqueado y no editable.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "color",
@@ -75,6 +95,12 @@ export const estadoDocumentoMetadata: ModelMetadata = {
                 "warning",
                 "info",
                 "dark"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.51"
+                }
             ]
         },
         {
@@ -87,7 +113,14 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Editable",
             "description": "True si el documento permanece editable mientras está en este estado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "generadoc",
@@ -110,6 +143,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
                 "PedidoProveedor",
                 "AlbaranProveedor",
                 "FacturaProveedor"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -123,7 +163,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "label": "Icono",
             "maxLength": 50,
             "description": "Icono FontAwesome a mostrar junto al estado en la UI.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.12"
+                }
+            ]
         },
         {
             "name": "idestado",
@@ -135,7 +181,14 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del estado.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -148,7 +201,14 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 30,
             "description": "Nombre legible del estado (ej: Borrador, Aprobado, Facturado).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -161,7 +221,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "label": "Orden",
             "default": 100,
             "description": "Posición del estado al listar los estados de su tipo de documento (menor primero).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.7"
+                }
+            ]
         },
         {
             "name": "predeterminado",
@@ -173,7 +239,14 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Por defecto",
             "description": "True si este es el estado inicial por defecto al crear un documento del tipo indicado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipodoc",
@@ -196,6 +269,13 @@ export const estadoDocumentoMetadata: ModelMetadata = {
                 "PedidoProveedor",
                 "AlbaranProveedor",
                 "FacturaProveedor"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         }
     ],
@@ -313,9 +393,22 @@ export const estadoDocumentoMetadata: ModelMetadata = {
             "remoteColumn": "idestado_ant"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

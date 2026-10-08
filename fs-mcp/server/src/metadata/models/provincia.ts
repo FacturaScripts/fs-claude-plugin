@@ -21,7 +21,13 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Alias",
             "description": "Alias o nombres alternativos de la provincia, separados por comas.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "codeid",
@@ -34,7 +40,13 @@ export const provinciaMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 2,
             "description": "Código corto interno de 2 caracteres.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "codisoprov",
@@ -47,7 +59,14 @@ export const provinciaMetadata: ModelMetadata = {
             "label": "ISO",
             "maxLength": 10,
             "description": "Código ISO 3166-2 de la provincia/región (ej: ES-M para Madrid).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -66,7 +85,14 @@ export const provinciaMetadata: ModelMetadata = {
                 "column": "codpais",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "creation_date",
@@ -78,7 +104,13 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se registró la provincia.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "idprovincia",
@@ -90,7 +122,14 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "last_nick",
@@ -109,7 +148,13 @@ export const provinciaMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -121,7 +166,13 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "latitude",
@@ -133,7 +184,13 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Latitud",
             "description": "Latitud geográfica del centroide de la provincia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "longitude",
@@ -145,7 +202,13 @@ export const provinciaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Longitud",
             "description": "Longitud geográfica del centroide.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -164,7 +227,13 @@ export const provinciaMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -177,7 +246,14 @@ export const provinciaMetadata: ModelMetadata = {
             "label": "Provincia",
             "maxLength": 100,
             "description": "Nombre oficial de la provincia o región.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telephone_prefix",
@@ -190,7 +266,13 @@ export const provinciaMetadata: ModelMetadata = {
             "label": "Prefijo telefónico",
             "maxLength": 10,
             "description": "Prefijo telefónico interno de la provincia, si aplica.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -230,10 +312,103 @@ export const provinciaMetadata: ModelMetadata = {
             "remoteColumn": "idprovincia"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codpostal2d",
+            "sqlType": "character varying(2)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codpostal2d",
+            "maxLength": 2,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "fecha_revision",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "fecha_revision",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "latitud",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "latitud",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "longitud",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "longitud",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        }
+    ]
 };
 
 export default provinciaMetadata;

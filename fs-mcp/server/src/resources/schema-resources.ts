@@ -13,7 +13,7 @@ import {
     getAllModelMetadata,
     getModelMetadata as registryGetMeta,
 } from '../metadata/registry.js';
-import type { ColumnMetadata, ModelMetadata, Relation } from '../metadata/types.js';
+import type { Availability, ColumnMetadata, ModelMetadata, Relation } from '../metadata/types.js';
 
 const SCHEMA_SCHEME = 'fs-schema';
 
@@ -141,13 +141,46 @@ export function renderMarkdown(meta: ModelMetadata): string {
         lines.push(`- **Generado desde commit:** \`${meta.generatedFrom.facturascriptsCommit}\``);
     }
     lines.push(`- **Generado el:** ${meta.generatedFrom.generatedAt}`);
+    const versions = meta.generatedFrom.versions;
+    if (versions && Object.keys(versions).length > 0) {
+        const parts = Object.entries(versions).map(([source, v]) =>
+            'unknown' in v ? `${sourceName(source)} sin historial` : `${sourceName(source)} ${v.latest} (${v.tags} versiones)`,
+        );
+        lines.push(`- **Versiones publicadas consultadas:** ${parts.join(', ')}`);
+    }
+    if (meta.availability && meta.availability.length > 0) {
+        lines.push(`- **Vigencia del modelo:** ${formatAvailability(meta.availability)}`);
+    }
     lines.push('');
     lines.push('## Columnas');
     lines.push('');
-    lines.push('| Campo | Tipo | Requerido | Label | Descripción |');
-    lines.push('|---|---|---|---|---|');
+    const withAvailability = meta.columns.some((c) => c.availability && c.availability.length > 0);
+    if (withAvailability) {
+        lines.push('| Campo | Tipo | Requerido | Label | Vigencia | Descripción |');
+        lines.push('|---|---|---|---|---|---|');
+    } else {
+        lines.push('| Campo | Tipo | Requerido | Label | Descripción |');
+        lines.push('|---|---|---|---|---|');
+    }
     for (const col of meta.columns) {
-        lines.push(`| ${formatColumnName(col)} | ${formatColumnType(col)} | ${col.isRequired ? 'sí' : 'no'} | ${escapeMd(col.label)} | ${escapeMd(col.description ?? '')} |`);
+        const vigencia = withAvailability ? ` ${formatAvailability(col.availability ?? [])} |` : '';
+        lines.push(`| ${formatColumnName(col)} | ${formatColumnType(col)} | ${col.isRequired ? 'sí' : 'no'} | ${escapeMd(col.label)} |${vigencia} ${escapeMd(col.description ?? '')} |`);
+    }
+
+    if (meta.retiredColumns && meta.retiredColumns.length > 0) {
+        lines.push('');
+        lines.push('## Columnas retiradas');
+        lines.push('');
+        lines.push('Existieron en las versiones indicadas y no están en la actual: no sirven como filtro ni como campo.');
+        lines.push('');
+        lines.push('| Campo | Tipo | Vigencia | Descripción |');
+        lines.push('|---|---|---|---|');
+        for (const col of meta.retiredColumns) {
+            const spans = col.availability ?? [];
+            // Sigue en la última versión publicada: la retirada aún no se ha publicado.
+            const pending = spans.some((sp) => sp.since !== undefined && sp.until === undefined) ? ' (retirada sin publicar)' : '';
+            lines.push(`| \`${col.name}\` | ${formatColumnType(col)} | ${formatAvailability(spans)}${pending} | ${escapeMd(col.description ?? '')} |`);
+        }
     }
 
     const belongsTo = meta.relations.filter((r) => r.type === 'belongsTo');
@@ -189,6 +222,27 @@ function formatColumnType(col: ColumnMetadata): string {
     const len = col.maxLength !== undefined ? `(${col.maxLength})` : '';
     const enumVals = col.enumValues && col.enumValues.length > 0 ? ` [${col.enumValues.join('|')}]` : '';
     return `${base}${len}${enumVals}`;
+}
+
+/** `plugin:Nombre` → `Nombre`; `core` se queda igual. */
+function sourceName(source: string): string {
+    return source.startsWith('plugin:') ? source.slice('plugin:'.length) : source;
+}
+
+function formatSpan(span: Availability): string {
+    if (span.unknown) return 'rango desconocido';
+    if (span.unreleased) return 'sin publicar';
+    const since = `${span.sinceFirstTag ? '≤' : ''}${span.since ?? '?'}`;
+    return span.until !== undefined ? `${since}–${span.until}` : `desde ${since}`;
+}
+
+/**
+ * Tramos legibles: `core desde 2024.1`, `A 1.8–2 → B desde ≤1.01`. Sin tramos
+ * no se afirma nada.
+ */
+export function formatAvailability(spans: Availability[]): string {
+    if (spans.length === 0) return '';
+    return spans.map((s) => `${sourceName(s.source)} ${formatSpan(s)}`).join(' → ');
 }
 
 function escapeMd(text: string): string {

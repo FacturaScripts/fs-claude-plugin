@@ -21,7 +21,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se encoló el evento.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "done",
@@ -34,7 +40,13 @@ export const workEventMetadata: ModelMetadata = {
             "label": "Realizado",
             "default": false,
             "description": "True si el evento ya ha sido procesado por algún worker.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "done_date",
@@ -46,7 +58,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha finalización",
             "description": "Fecha y hora en la que se completó el procesamiento.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "execution_time",
@@ -58,7 +76,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Duración",
             "description": "Tiempo total de ejecución del evento (en segundos).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.63"
+                }
+            ]
         },
         {
             "name": "id",
@@ -70,7 +94,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del evento.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "name",
@@ -83,7 +113,13 @@ export const workEventMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre del evento (ej: 'Model.Insert.Cliente', 'Document.Approved').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -95,7 +131,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Usuario",
             "maxLength": 50,
-            "description": "Usuario que originó el evento."
+            "description": "Usuario que originó el evento.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "params",
@@ -107,7 +149,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "params",
             "description": "Parámetros del evento en formato JSON.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "value",
@@ -120,7 +168,13 @@ export const workEventMetadata: ModelMetadata = {
             "label": "Valor",
             "maxLength": 100,
             "description": "Valor identificativo del registro asociado al evento.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "workers",
@@ -132,7 +186,13 @@ export const workEventMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "workers",
             "description": "Número de workers que ya han procesado el evento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "worker_list",
@@ -145,13 +205,31 @@ export const workEventMetadata: ModelMetadata = {
             "label": "worker_list",
             "maxLength": 200,
             "description": "Lista (separada por comas) de los workers que han procesado el evento.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2023.16"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

@@ -21,7 +21,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "creationdate",
             "description": "Fecha y hora en la que se vinculó el archivo al registro.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "id",
@@ -33,7 +39,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del vínculo.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "idfile",
@@ -51,7 +63,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
                 "column": "idfile",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "model",
@@ -63,7 +81,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Modelo",
             "maxLength": 30,
-            "description": "Nombre del modelo PHP al que se vincula el archivo (ej: Cliente, FacturaCliente)."
+            "description": "Nombre del modelo PHP al que se vincula el archivo (ej: Cliente, FacturaCliente).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "modelid",
@@ -75,7 +99,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "modelid",
             "description": "Identificador numérico del registro vinculado dentro del modelo indicado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "modelcode",
@@ -87,7 +117,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "modelcode",
             "maxLength": 40,
-            "description": "Código alternativo del registro vinculado cuando la PK no es numérica (ej: codcliente)."
+            "description": "Código alternativo del registro vinculado cuando la PK no es numérica (ej: codcliente).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.2"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -105,7 +141,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "observations",
@@ -117,7 +159,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Observaciones libres sobre el vínculo entre archivo y registro.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "orden",
@@ -129,7 +177,13 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "orden",
             "description": "Orden de presentación del archivo dentro del registro al que está vinculado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         }
     ],
     "relations": [
@@ -148,9 +202,21 @@ export const attachedFileRelationMetadata: ModelMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2021"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

@@ -19,7 +19,14 @@ export const familiaMetadata = {
             "label": "Código",
             "maxLength": 8,
             "description": "Código corto único de la familia de productos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentacom",
@@ -32,7 +39,14 @@ export const familiaMetadata = {
             "label": "Cuenta para compras",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para compras de productos de esta familia.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentairpfcom",
@@ -45,7 +59,14 @@ export const familiaMetadata = {
             "label": "Cuenta retenciones ventas",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para retenciones IRPF en compras.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentaven",
@@ -58,7 +79,14 @@ export const familiaMetadata = {
             "label": "Cuenta de ventas",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para ventas de productos de esta familia.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -71,7 +99,14 @@ export const familiaMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción legible de la familia.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "madre",
@@ -84,7 +119,14 @@ export const familiaMetadata = {
             "label": "Padre",
             "maxLength": 8,
             "description": "Familia padre en la jerarquía. Vacío si es de primer nivel.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numproductos",
@@ -97,7 +139,13 @@ export const familiaMetadata = {
             "label": "Productos",
             "default": 0,
             "description": "Número de productos asociados a la familia (calculado).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.51"
+                }
+            ]
         },
         {
             "name": "idattachedfile",
@@ -115,7 +163,13 @@ export const familiaMetadata = {
                 "column": "idfile",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         }
     ],
     "relations": [
@@ -134,9 +188,22 @@ export const familiaMetadata = {
             "remoteColumn": "codfamilia"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default familiaMetadata;

@@ -22,7 +22,13 @@ export const retencionMetadata: ModelMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si la retención está activa para asignar a documentos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "codretencion",
@@ -35,7 +41,14 @@ export const retencionMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único de la retención.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentaret",
@@ -48,7 +61,14 @@ export const retencionMetadata: ModelMetadata = {
             "label": "Cuenta retenciones ventas",
             "maxLength": 15,
             "description": "Subcuenta contable de la retención en ventas (cliente).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentaacr",
@@ -61,7 +81,13 @@ export const retencionMetadata: ModelMetadata = {
             "label": "Subcuenta de retenciones para compras",
             "maxLength": 15,
             "description": "Subcuenta contable de la retención en compras (proveedor).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -74,7 +100,14 @@ export const retencionMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 50,
             "description": "Descripción legible (ej: IRPF profesionales 15%).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "porcentaje",
@@ -86,7 +119,14 @@ export const retencionMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Porcentaje",
             "description": "Porcentaje de retención aplicable.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -105,10 +145,44 @@ export const retencionMetadata: ModelMetadata = {
             "remoteColumn": "codretencion"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codsubcuentaacre",
+            "sqlType": "character varying(15)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codsubcuentaacre",
+            "maxLength": 15,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        }
+    ]
 };
 
 export default retencionMetadata;

@@ -19,7 +19,14 @@ export const apiKeyMetadata = {
             "label": "Clave API",
             "maxLength": 99,
             "description": "Token de la clave de API. Se envía en el header `Token` de las peticiones HTTP para autenticarse.",
-            "widget": "password"
+            "widget": "password",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "creationdate",
@@ -31,7 +38,14 @@ export const apiKeyMetadata = {
             "isRequired": true,
             "label": "Creado",
             "description": "Fecha de creación de la API key.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "description",
@@ -44,7 +58,14 @@ export const apiKeyMetadata = {
             "label": "Descripción",
             "maxLength": 150,
             "description": "Descripción libre de la API key (uso, sistema al que pertenece).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "enabled",
@@ -56,7 +77,14 @@ export const apiKeyMetadata = {
             "isRequired": true,
             "label": "Activo",
             "description": "True si la API key está activa; false si se ha deshabilitado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fullaccess",
@@ -69,7 +97,13 @@ export const apiKeyMetadata = {
             "label": "Acceso completo",
             "default": false,
             "description": "True si la API key tiene acceso completo (CRUD) sobre todos los recursos sin necesidad de api_access individuales.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "lastactivity",
@@ -81,7 +115,13 @@ export const apiKeyMetadata = {
             "isRequired": false,
             "label": "Última conexión",
             "description": "Fecha y hora de la última petición realizada con esta API key.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "lastip",
@@ -94,7 +134,13 @@ export const apiKeyMetadata = {
             "label": "Última IP",
             "maxLength": 45,
             "description": "Dirección IP desde la que se usó la API key por última vez.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.3"
+                }
+            ]
         },
         {
             "name": "id",
@@ -106,7 +152,14 @@ export const apiKeyMetadata = {
             "isRequired": false,
             "label": "Código",
             "description": "Identificador interno autoincremental de la API key.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nick",
@@ -125,7 +178,14 @@ export const apiKeyMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -144,9 +204,22 @@ export const apiKeyMetadata = {
             "remoteColumn": "idapikey"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default apiKeyMetadata;

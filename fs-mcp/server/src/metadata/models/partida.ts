@@ -22,7 +22,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Base imponible",
             "default": 0,
             "description": "Base imponible asociada a la partida cuando se trata de IVA.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -35,7 +42,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF del tercero implicado en la partida (cliente o proveedor).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcontrapartida",
@@ -48,7 +62,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Contrapartida",
             "maxLength": 15,
             "description": "Código de la subcuenta de contrapartida (la otra cara de la operación).",
-            "widget": "autocomplete"
+            "widget": "autocomplete",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -60,7 +81,14 @@ export const partidaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "coddivisa",
             "maxLength": 3,
-            "description": "Divisa de la operación si es distinta a la del ejercicio."
+            "description": "Divisa de la operación si es distinta a la del ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -72,7 +100,14 @@ export const partidaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codserie",
             "maxLength": 4,
-            "description": "Serie del documento que originó la partida."
+            "description": "Serie del documento que originó la partida.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -85,7 +120,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Código de la subcuenta a la que se imputa la partida.",
-            "widget": "autocomplete"
+            "widget": "autocomplete",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "concepto",
@@ -98,7 +140,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Concepto",
             "maxLength": 255,
             "description": "Concepto o glosa de la partida (suele copiarse del concepto del asiento).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "debe",
@@ -111,7 +160,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Debe",
             "default": 0,
             "description": "Importe imputado al debe.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "documento",
@@ -124,7 +180,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Documento",
             "maxLength": 50,
             "description": "Identificador del documento de origen al que se refiere la partida (factura, recibo, etc.).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "factura",
@@ -136,7 +199,14 @@ export const partidaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "factura",
             "maxLength": 15,
-            "description": "Número/código de la factura que originó la partida."
+            "description": "Número/código de la factura que originó la partida.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "haber",
@@ -149,7 +219,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Haber",
             "default": 0,
             "description": "Importe imputado al haber.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -167,7 +244,14 @@ export const partidaMetadata: ModelMetadata = {
                 "column": "idasiento",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontrapartida",
@@ -185,7 +269,14 @@ export const partidaMetadata: ModelMetadata = {
                 "column": "idsubcuenta",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idpartida",
@@ -197,7 +288,14 @@ export const partidaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la partida.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idsubcuenta",
@@ -215,7 +313,14 @@ export const partidaMetadata: ModelMetadata = {
                 "column": "idsubcuenta",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iva",
@@ -227,7 +332,14 @@ export const partidaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "% Impuesto",
             "description": "Porcentaje de IVA asociado a la partida (cuando aplica).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -240,7 +352,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "orden",
             "default": 0,
             "description": "Posición de la partida dentro de su asiento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "punteada",
@@ -253,7 +372,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "punteada",
             "default": false,
             "description": "True si la partida ha sido punteada/conciliada manualmente.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "recargo",
@@ -266,7 +392,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "Recargo",
             "default": 0,
             "description": "Porcentaje de recargo de equivalencia asociado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "saldo",
@@ -279,7 +412,13 @@ export const partidaMetadata: ModelMetadata = {
             "label": "saldo",
             "default": 0,
             "description": "Saldo acumulado de la subcuenta tras esta partida (calculado al consultar).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.51"
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -292,7 +431,14 @@ export const partidaMetadata: ModelMetadata = {
             "label": "tasaconv",
             "default": 0,
             "description": "Tasa de conversión aplicada si la divisa es distinta a la del ejercicio.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -318,10 +464,63 @@ export const partidaMetadata: ModelMetadata = {
             "remoteColumn": "idsubcuenta"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "debeme",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "debeme",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2022.06"
+                }
+            ]
+        },
+        {
+            "name": "haberme",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "haberme",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2022.06"
+                }
+            ]
+        }
+    ]
 };
 
 export default partidaMetadata;

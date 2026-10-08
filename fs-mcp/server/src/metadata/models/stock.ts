@@ -22,7 +22,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Cantidad",
             "default": 0,
             "description": "Cantidad real existente en el almacén.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -41,7 +48,14 @@ export const stockMetadata: ModelMetadata = {
                 "column": "codalmacen",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "disponible",
@@ -54,7 +68,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Disponible",
             "default": 0,
             "description": "Cantidad disponible para venta (cantidad menos reservada).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -72,7 +93,14 @@ export const stockMetadata: ModelMetadata = {
                 "column": "idproducto",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idstock",
@@ -84,7 +112,14 @@ export const stockMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro de stock.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pterecibir",
@@ -97,7 +132,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Pendiente recepción",
             "default": 0,
             "description": "Cantidad pendiente de recibir en pedidos a proveedor confirmados.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -116,7 +158,14 @@ export const stockMetadata: ModelMetadata = {
                 "column": "referencia",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "reservada",
@@ -129,7 +178,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Reservado",
             "default": 0,
             "description": "Cantidad reservada por pedidos de cliente sin servir.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "stockmax",
@@ -142,7 +198,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Stock máx.",
             "default": 0,
             "description": "Stock máximo recomendado en el almacén. Por encima se considera sobrestock.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "stockmin",
@@ -155,7 +218,14 @@ export const stockMetadata: ModelMetadata = {
             "label": "Stock mín.",
             "default": 0,
             "description": "Stock mínimo recomendado. Por debajo el sistema avisa para reponer.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ubicacion",
@@ -168,7 +238,13 @@ export const stockMetadata: ModelMetadata = {
             "label": "Ubicación",
             "maxLength": 100,
             "description": "Ubicación física del producto dentro del almacén (estantería, pasillo, etc.).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.71"
+                }
+            ]
         }
     ],
     "relations": [
@@ -194,9 +270,22 @@ export const stockMetadata: ModelMetadata = {
             "remoteColumn": "referencia"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

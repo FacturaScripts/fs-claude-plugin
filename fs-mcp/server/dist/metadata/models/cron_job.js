@@ -18,7 +18,14 @@ export const cronJobMetadata = {
             "isRequired": false,
             "label": "Fecha",
             "description": "Fecha y hora de la última ejecución registrada.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "daily_exec",
@@ -31,7 +38,13 @@ export const cronJobMetadata = {
             "label": "Ejecuciones diarias",
             "default": 0,
             "description": "Número de ejecuciones del trabajo en el último día.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "done",
@@ -44,7 +57,14 @@ export const cronJobMetadata = {
             "label": "Realizado",
             "default": false,
             "description": "True si la última ejecución finalizó correctamente.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "duration",
@@ -57,7 +77,13 @@ export const cronJobMetadata = {
             "label": "Duración",
             "default": 0,
             "description": "Duración total acumulada de las ejecuciones (segundos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.12"
+                }
+            ]
         },
         {
             "name": "enabled",
@@ -70,7 +96,13 @@ export const cronJobMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si el trabajo está activo; false si está pausado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "failed",
@@ -83,7 +115,13 @@ export const cronJobMetadata = {
             "label": "Fallido",
             "default": false,
             "description": "True si la última ejecución falló.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.16"
+                }
+            ]
         },
         {
             "name": "fails",
@@ -96,7 +134,13 @@ export const cronJobMetadata = {
             "label": "Fallos",
             "default": 0,
             "description": "Número de fallos acumulados del trabajo.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         },
         {
             "name": "frequency",
@@ -109,7 +153,13 @@ export const cronJobMetadata = {
             "label": "Frecuencia",
             "maxLength": 50,
             "description": "Periodicidad con la que se programó el trabajo en su última ejecución (ej: 'everyDayAt(3)', 'every(1 hour)').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.7"
+                }
+            ]
         },
         {
             "name": "id",
@@ -121,7 +171,14 @@ export const cronJobMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "jobname",
@@ -134,7 +191,14 @@ export const cronJobMetadata = {
             "label": "Nombre del trabajo",
             "maxLength": 50,
             "description": "Nombre del trabajo programado dentro del cron.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "last_duration",
@@ -147,7 +211,13 @@ export const cronJobMetadata = {
             "label": "Última duración",
             "default": 0,
             "description": "Duración de la última ejecución (en segundos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         },
         {
             "name": "pluginname",
@@ -160,7 +230,14 @@ export const cronJobMetadata = {
             "label": "Plugin",
             "maxLength": 50,
             "description": "Nombre del plugin propietario del trabajo.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "running",
@@ -173,13 +250,32 @@ export const cronJobMetadata = {
             "label": "Ejecutando",
             "default": 0,
             "description": "Marca de ejecución en curso (1 si está ejecutándose, 0 si no).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default cronJobMetadata;

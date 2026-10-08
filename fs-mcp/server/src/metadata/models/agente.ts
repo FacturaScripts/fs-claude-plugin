@@ -22,7 +22,14 @@ export const agenteMetadata: ModelMetadata = {
             "label": "Cargo",
             "maxLength": 100,
             "description": "Cargo o puesto del agente comercial dentro de su empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -35,7 +42,14 @@ export const agenteMetadata: ModelMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF del agente comercial.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -48,7 +62,14 @@ export const agenteMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único del agente comercial. Se usa como referencia en clientes y documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "debaja",
@@ -61,7 +82,14 @@ export const agenteMetadata: ModelMetadata = {
             "label": "debaja",
             "default": false,
             "description": "True si el agente está dado de baja (ya no opera); false si sigue activo.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "email",
@@ -73,7 +101,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Email",
             "maxLength": 100,
-            "description": "Email del agente comercial."
+            "description": "Email del agente comercial.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -85,7 +120,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de alta del agente en el sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechabaja",
@@ -97,7 +139,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha de baja",
             "description": "Fecha en la que se dio de baja al agente. Si está vacía, sigue activo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontacto",
@@ -109,7 +158,13 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Contacto",
             "description": "Identificador del contacto asociado al agente (datos personales y dirección).",
-            "widget": "autocomplete"
+            "widget": "autocomplete",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -127,7 +182,13 @@ export const agenteMetadata: ModelMetadata = {
                 "column": "idproducto",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -140,7 +201,14 @@ export const agenteMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre completo del agente comercial.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -152,7 +220,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el agente.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono1",
@@ -164,7 +239,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "telefono1",
             "maxLength": 30,
-            "description": "Teléfono principal del agente."
+            "description": "Teléfono principal del agente.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono2",
@@ -176,7 +258,14 @@ export const agenteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "telefono2",
             "maxLength": 30,
-            "description": "Teléfono secundario o móvil del agente."
+            "description": "Teléfono secundario o móvil del agente.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -189,7 +278,13 @@ export const agenteMetadata: ModelMetadata = {
             "label": "Id. Fiscal",
             "maxLength": 25,
             "description": "Tipo de identificador fiscal del agente (NIF, CIF, NIE, etc.). Determina el formato de `cifnif`.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         }
     ],
     "relations": [
@@ -243,10 +338,177 @@ export const agenteMetadata: ModelMetadata = {
             "remoteColumn": "codagente"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "banco",
+            "sqlType": "character varying(34)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "banco",
+            "maxLength": 34,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "ciudad",
+            "sqlType": "character varying(100)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "ciudad",
+            "maxLength": 100,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "codpostal",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codpostal",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "direccion",
+            "sqlType": "character varying(100)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "direccion",
+            "maxLength": 100,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "fechanacimiento",
+            "sqlType": "date",
+            "tsType": "date",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "fechanacimiento",
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "provincia",
+            "sqlType": "character varying(100)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "provincia",
+            "maxLength": 100,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "seg_social",
+            "sqlType": "character varying(100)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "seg_social",
+            "maxLength": 100,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 
 export default agenteMetadata;

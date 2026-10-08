@@ -21,7 +21,14 @@ export const settingsMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Nombre",
             "maxLength": 50,
-            "description": "Nombre del grupo de configuración (ej: default, email, accounting)."
+            "description": "Nombre del grupo de configuración (ej: default, email, accounting).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "properties",
@@ -33,13 +40,33 @@ export const settingsMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "properties",
             "description": "Configuración del grupo en formato JSON.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

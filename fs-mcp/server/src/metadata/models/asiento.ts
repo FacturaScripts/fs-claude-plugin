@@ -21,7 +21,14 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Canal",
             "description": "Canal contable opcional para clasificar el asiento (centros de coste, departamentos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -40,7 +47,14 @@ export const asientoMetadata: ModelMetadata = {
                 "column": "codejercicio",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "concepto",
@@ -53,7 +67,14 @@ export const asientoMetadata: ModelMetadata = {
             "label": "Concepto",
             "maxLength": 255,
             "description": "Concepto o glosa que describe el asiento.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "documento",
@@ -66,7 +87,14 @@ export const asientoMetadata: ModelMetadata = {
             "label": "Documento",
             "maxLength": 50,
             "description": "Referencia al documento de origen del asiento (código de factura, recibo, etc.).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "editable",
@@ -78,7 +106,14 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Editable",
             "description": "True si el asiento puede modificarse; false si está bloqueado (regularización IVA, ejercicio cerrado).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -90,7 +125,14 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Fecha",
             "description": "Fecha contable del asiento dentro del ejercicio.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -102,7 +144,14 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del asiento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iddiario",
@@ -120,7 +169,14 @@ export const asientoMetadata: ModelMetadata = {
                 "column": "iddiario",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -138,7 +194,14 @@ export const asientoMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "importe",
@@ -151,7 +214,14 @@ export const asientoMetadata: ModelMetadata = {
             "label": "Importe",
             "default": 0,
             "description": "Importe total del asiento (debe = haber). Se calcula desde las partidas.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numero",
@@ -163,7 +233,14 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Número",
             "description": "Número correlativo del asiento dentro del ejercicio. Lo asigna el sistema.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -175,7 +252,13 @@ export const asientoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "operacion",
             "maxLength": 1,
-            "description": "Marca de operación especial (apertura, cierre, regularización), 1 carácter."
+            "description": "Marca de operación especial (apertura, cierre, regularización), 1 carácter.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         }
     ],
     "relations": [
@@ -243,9 +326,22 @@ export const asientoMetadata: ModelMetadata = {
             "remoteColumn": "idasiento"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

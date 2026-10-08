@@ -19,7 +19,13 @@ export const formaPagoMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si la forma de pago está disponible para usar en documentos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "codcuentabanco",
@@ -38,7 +44,14 @@ export const formaPagoMetadata = {
                 "column": "codcuenta",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -51,7 +64,14 @@ export const formaPagoMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único de la forma de pago.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -64,7 +84,14 @@ export const formaPagoMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción legible (ej: Transferencia, Contado, Tarjeta).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "domiciliado",
@@ -76,7 +103,14 @@ export const formaPagoMetadata = {
             "isRequired": false,
             "label": "Domiciliado",
             "description": "True si la forma de pago genera recibos domiciliados (SEPA).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -94,7 +128,14 @@ export const formaPagoMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "imprimir",
@@ -107,7 +148,13 @@ export const formaPagoMetadata = {
             "label": "Imprimir cuenta bancaria",
             "default": true,
             "description": "True si la cuenta bancaria debe imprimirse en documentos con esta forma de pago.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "pagado",
@@ -120,7 +167,13 @@ export const formaPagoMetadata = {
             "label": "Pagado",
             "default": false,
             "description": "True si los documentos creados con esta forma de pago se marcan automáticamente como pagados (ej: Contado).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "plazovencimiento",
@@ -132,7 +185,14 @@ export const formaPagoMetadata = {
             "isRequired": false,
             "label": "Vencimiento",
             "description": "Número de unidades (días/semanas/meses/años según `tipovencimiento`) hasta el vencimiento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipovencimiento",
@@ -151,6 +211,13 @@ export const formaPagoMetadata = {
                 "weeks",
                 "months",
                 "years"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         }
     ],
@@ -233,10 +300,44 @@ export const formaPagoMetadata = {
             "remoteColumn": "codpago"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "genrecibos",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "genrecibos",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 export default formaPagoMetadata;
 //# sourceMappingURL=forma_pago.js.map

@@ -19,7 +19,14 @@ export const ejercicioMetadata = {
             "label": "Código",
             "maxLength": 4,
             "description": "Código corto del ejercicio (suele ser el año, ej: 2024).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "estado",
@@ -36,6 +43,13 @@ export const ejercicioMetadata = {
             "enumValues": [
                 "ABIERTO",
                 "CERRADO"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -48,7 +62,14 @@ export const ejercicioMetadata = {
             "isRequired": true,
             "label": "Fecha fin",
             "description": "Fecha de fin del ejercicio (último día contabilizable).",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechainicio",
@@ -60,7 +81,14 @@ export const ejercicioMetadata = {
             "isRequired": true,
             "label": "Fecha inicio",
             "description": "Fecha de inicio del ejercicio (primer día contabilizable).",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -78,7 +106,14 @@ export const ejercicioMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "longsubcuenta",
@@ -90,7 +125,14 @@ export const ejercicioMetadata = {
             "isRequired": true,
             "label": "Longitud de subcuenta",
             "description": "Longitud de los códigos de subcuenta usados en este ejercicio (típicamente 8 a 12 dígitos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -103,7 +145,14 @@ export const ejercicioMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre descriptivo del ejercicio.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -206,10 +255,82 @@ export const ejercicioMetadata = {
             "remoteColumn": "codejercicio"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "idasientoapertura",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idasientoapertura",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.16"
+                }
+            ]
+        },
+        {
+            "name": "idasientocierre",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idasientocierre",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.16"
+                }
+            ]
+        },
+        {
+            "name": "idasientopyg",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idasientopyg",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.16"
+                }
+            ]
+        }
+    ]
 };
 export default ejercicioMetadata;
 //# sourceMappingURL=ejercicio.js.map

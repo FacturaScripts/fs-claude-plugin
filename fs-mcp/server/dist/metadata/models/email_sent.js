@@ -19,7 +19,14 @@ export const emailSentMetadata = {
             "label": "Para",
             "maxLength": 100,
             "description": "Dirección de email del destinatario.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "attachment",
@@ -31,7 +38,13 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "attachment",
             "default": "false",
-            "description": "Lista de archivos adjuntos del email."
+            "description": "Lista de archivos adjuntos del email.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "body",
@@ -43,7 +56,14 @@ export const emailSentMetadata = {
             "isRequired": true,
             "label": "Mensaje",
             "description": "Cuerpo del email enviado (texto plano).",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "date",
@@ -55,7 +75,14 @@ export const emailSentMetadata = {
             "isRequired": true,
             "label": "Fecha",
             "description": "Fecha y hora de envío del email.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "email_from",
@@ -68,7 +95,13 @@ export const emailSentMetadata = {
             "label": "Desde",
             "maxLength": 100,
             "description": "Dirección de email del remitente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "html",
@@ -80,7 +113,13 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "html",
             "description": "Cuerpo del email en formato HTML.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "id",
@@ -92,7 +131,14 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del email enviado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nick",
@@ -111,7 +157,14 @@ export const emailSentMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "opened",
@@ -124,7 +177,13 @@ export const emailSentMetadata = {
             "label": "Abierto",
             "default": false,
             "description": "True si el email ha sido abierto por el destinatario (tracking).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "notification",
@@ -136,7 +195,13 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "Notificación",
             "maxLength": 100,
-            "description": "Nombre de la notificación por email que originó el envío. Vacío si el email se envió manualmente."
+            "description": "Nombre de la notificación por email que originó el envío. Vacío si el email se envió manualmente.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.65"
+                }
+            ]
         },
         {
             "name": "subject",
@@ -149,7 +214,14 @@ export const emailSentMetadata = {
             "label": "Asunto",
             "maxLength": 300,
             "description": "Asunto del email enviado.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "uuid",
@@ -161,7 +233,13 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "uuid",
             "maxLength": 13,
-            "description": "Identificador único corto del email para tracking de aperturas y respuestas."
+            "description": "Identificador único corto del email para tracking de aperturas y respuestas.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "verificode",
@@ -173,7 +251,13 @@ export const emailSentMetadata = {
             "isRequired": false,
             "label": "verificode",
             "maxLength": 20,
-            "description": "Código de verificación generado para confirmar acciones desde el email."
+            "description": "Código de verificación generado para confirmar acciones desde el email.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         }
     ],
     "relations": [
@@ -185,9 +269,22 @@ export const emailSentMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default emailSentMetadata;

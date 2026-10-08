@@ -19,7 +19,14 @@ export const userMetadata = {
             "label": "Es administrador",
             "default": false,
             "description": "True si el usuario es administrador con acceso completo al sistema.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -32,7 +39,13 @@ export const userMetadata = {
             "label": "Agente",
             "maxLength": 10,
             "description": "Código del agente comercial vinculado al usuario, si aplica.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -45,7 +58,13 @@ export const userMetadata = {
             "label": "Almacén",
             "maxLength": 4,
             "description": "Almacén por defecto desde el que opera el usuario.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -64,7 +83,13 @@ export const userMetadata = {
                 "column": "codserie",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.43"
+                }
+            ]
         },
         {
             "name": "creationdate",
@@ -76,7 +101,13 @@ export const userMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de creación del usuario.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021"
+                }
+            ]
         },
         {
             "name": "email",
@@ -89,7 +120,14 @@ export const userMetadata = {
             "label": "Email",
             "maxLength": 100,
             "description": "Email del usuario para notificaciones y recuperación de contraseña.",
-            "widget": "email"
+            "widget": "email",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "enabled",
@@ -102,7 +140,14 @@ export const userMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si el usuario está activo; false si está deshabilitado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "homepage",
@@ -121,7 +166,14 @@ export const userMetadata = {
                 "column": "name",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -139,7 +191,14 @@ export const userMetadata = {
                 "column": "idempresa",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "langcode",
@@ -152,7 +211,14 @@ export const userMetadata = {
             "label": "Idioma",
             "maxLength": 10,
             "description": "Código de idioma preferido del usuario (es_ES, en_US, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "lastactivity",
@@ -164,7 +230,14 @@ export const userMetadata = {
             "isRequired": false,
             "label": "Última conexión",
             "description": "Fecha y hora de la última actividad del usuario en el sistema.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "lastbrowser",
@@ -177,7 +250,13 @@ export const userMetadata = {
             "label": "Navegador",
             "maxLength": 200,
             "description": "Cadena User-Agent del navegador de la última conexión.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "lastip",
@@ -190,7 +269,14 @@ export const userMetadata = {
             "label": "Última IP",
             "maxLength": 45,
             "description": "Dirección IP de la última conexión.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "level",
@@ -202,7 +288,14 @@ export const userMetadata = {
             "isRequired": false,
             "label": "Nivel",
             "description": "Nivel de privilegios numérico del usuario (mayor número, más privilegios).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "logkey",
@@ -214,7 +307,14 @@ export const userMetadata = {
             "isRequired": false,
             "label": "logkey",
             "maxLength": 100,
-            "description": "Clave de sesión actual del usuario, usada para la cookie de login."
+            "description": "Clave de sesión actual del usuario, usada para la cookie de login.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nick",
@@ -227,7 +327,14 @@ export const userMetadata = {
             "label": "Usuario",
             "maxLength": 50,
             "description": "Nombre de usuario único usado para login.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "password",
@@ -239,7 +346,14 @@ export const userMetadata = {
             "isRequired": true,
             "label": "Contraseña",
             "maxLength": 255,
-            "description": "Hash de la contraseña del usuario (no se guarda en texto plano)."
+            "description": "Hash de la contraseña del usuario (no se guarda en texto plano).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "two_factor_enabled",
@@ -252,7 +366,13 @@ export const userMetadata = {
             "label": "two_factor_enabled",
             "default": false,
             "description": "True si el usuario tiene activada la autenticación en dos pasos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         },
         {
             "name": "two_factor_secret_key",
@@ -264,7 +384,13 @@ export const userMetadata = {
             "isRequired": false,
             "label": "two_factor_secret_key",
             "maxLength": 32,
-            "description": "Clave secreta usada para generar los códigos TOTP del 2FA."
+            "description": "Clave secreta usada para generar los códigos TOTP del 2FA.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2025.1"
+                }
+            ]
         }
     ],
     "relations": [
@@ -458,9 +584,22 @@ export const userMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default userMetadata;

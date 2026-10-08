@@ -19,7 +19,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "actualizastock",
             "default": 0,
             "description": "Cómo afecta esta línea al stock al confirmar el documento (-2/-1/0/1/2 según tipo).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cantidad",
@@ -31,7 +38,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "cantidad",
             "description": "Cantidad del producto en esta línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codimpuesto",
@@ -49,7 +63,14 @@ export const lineaAlbaranClienteMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coste",
@@ -61,7 +82,13 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "coste",
             "description": "Precio de coste unitario del producto en el momento de crear la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.2"
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -73,7 +100,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "descripcion",
             "description": "Descripción del producto/servicio en la línea (puede sobrescribir la del producto).",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor",
@@ -86,7 +120,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "dtopor",
             "default": 0,
             "description": "Primer descuento porcentual aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -99,7 +140,13 @@ export const lineaAlbaranClienteMetadata = {
             "label": "dtopor2",
             "default": 0,
             "description": "Segundo descuento porcentual aplicado tras dtopor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -111,7 +158,13 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "excepcioniva",
             "maxLength": 20,
-            "description": "Excepción de IVA aplicada únicamente a esta línea."
+            "description": "Excepción de IVA aplicada únicamente a esta línea.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "idalbaran",
@@ -129,7 +182,14 @@ export const lineaAlbaranClienteMetadata = {
                 "column": "idalbaran",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlinea",
@@ -141,7 +201,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "idlinea",
             "description": "Identificador interno autoincremental de la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -159,7 +226,14 @@ export const lineaAlbaranClienteMetadata = {
                 "column": "idproducto",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -171,7 +245,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iva",
@@ -183,7 +264,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "iva",
             "description": "Porcentaje de IVA aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mostrar_cantidad",
@@ -196,7 +284,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "mostrar_cantidad",
             "default": true,
             "description": "Si la cantidad debe mostrarse en la impresión del documento.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mostrar_precio",
@@ -209,7 +304,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "mostrar_precio",
             "default": true,
             "description": "Si el precio debe mostrarse en la impresión del documento.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -222,7 +324,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "orden",
             "default": 0,
             "description": "Posición de la línea en el documento (orden de aparición).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpsindto",
@@ -234,7 +343,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "pvpsindto",
             "description": "Subtotal de la línea (cantidad × precio unitario) antes de aplicar descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvptotal",
@@ -246,7 +362,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "pvptotal",
             "description": "Subtotal de la línea después de aplicar descuentos, sin IVA.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpunitario",
@@ -258,7 +381,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "pvpunitario",
             "description": "Precio unitario sin IVA antes de descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "recargo",
@@ -270,7 +400,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": true,
             "label": "recargo",
             "description": "Porcentaje de recargo de equivalencia aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -282,7 +419,14 @@ export const lineaAlbaranClienteMetadata = {
             "isRequired": false,
             "label": "referencia",
             "maxLength": 30,
-            "description": "Referencia de la variante de producto vendida."
+            "description": "Referencia de la variante de producto vendida.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "salto_pagina",
@@ -295,7 +439,13 @@ export const lineaAlbaranClienteMetadata = {
             "label": "salto_pagina",
             "default": false,
             "description": "True si se debe forzar un salto de página antes de imprimir esta línea.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.08"
+                }
+            ]
         },
         {
             "name": "servido",
@@ -308,7 +458,14 @@ export const lineaAlbaranClienteMetadata = {
             "label": "servido",
             "default": 0,
             "description": "Cantidad ya entregada/servida de esta línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "suplido",
@@ -321,7 +478,13 @@ export const lineaAlbaranClienteMetadata = {
             "label": "suplido",
             "default": false,
             "description": "True si la línea es un suplido (gasto a cuenta del cliente, sin IVA).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -347,10 +510,45 @@ export const lineaAlbaranClienteMetadata = {
             "remoteColumn": "idproducto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2021.81"
+                }
+            ]
+        }
+    ]
 };
 export default lineaAlbaranClienteMetadata;
 //# sourceMappingURL=linea_albaran_cliente.js.map
