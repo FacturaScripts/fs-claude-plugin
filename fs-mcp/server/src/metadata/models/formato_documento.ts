@@ -22,7 +22,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "label": "Aplicar automáticamente a",
             "default": true,
             "description": "True si el formato debe aplicarse automáticamente a los documentos del tipo indicado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.2"
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -41,7 +47,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
                 "column": "codserie",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "id",
@@ -53,7 +65,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del formato.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -71,7 +89,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "idlogo",
@@ -89,7 +113,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
                 "column": "idfile",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.13"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -102,7 +132,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 30,
             "description": "Nombre identificador del formato.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.13"
+                }
+            ]
         },
         {
             "name": "texto",
@@ -114,7 +150,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Texto adicional",
             "description": "Texto adicional que se incluye en el pie del documento al imprimir con este formato.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "tipodoc",
@@ -137,6 +179,12 @@ export const formatoDocumentoMetadata: ModelMetadata = {
                 "PedidoProveedor",
                 "AlbaranProveedor",
                 "FacturaProveedor"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
             ]
         },
         {
@@ -150,7 +198,13 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "label": "Título",
             "maxLength": 30,
             "description": "Título personalizado a mostrar en el encabezado del documento.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         }
     ],
     "relations": [
@@ -176,9 +230,21 @@ export const formatoDocumentoMetadata: ModelMetadata = {
             "remoteColumn": "idfile"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.05"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

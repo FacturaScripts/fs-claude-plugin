@@ -22,7 +22,13 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si la cuenta bancaria está activa para usar en cobros y pagos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.9"
+                }
+            ]
         },
         {
             "name": "codcuenta",
@@ -35,7 +41,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único de la cuenta bancaria propia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -48,7 +61,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Subcuenta contable enlazada para movimientos de la cuenta bancaria.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentagasto",
@@ -61,7 +81,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Subcuenta para gastos bancarios",
             "maxLength": 15,
             "description": "Subcuenta contable para imputar gastos bancarios (comisiones, etc).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -74,7 +101,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción/alias de la cuenta bancaria (ej: 'Cuenta principal BBVA').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iban",
@@ -87,7 +121,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "IBAN",
             "maxLength": 34,
             "description": "Número IBAN completo de la cuenta bancaria.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -105,7 +146,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "sufijosepa",
@@ -118,7 +166,13 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Sufijo SEPA",
             "maxLength": 3,
             "description": "Sufijo SEPA (3 dígitos) usado para los mandatos de domiciliación.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "swift",
@@ -131,7 +185,14 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "label": "Swift/BIC",
             "maxLength": 11,
             "description": "Código SWIFT/BIC de la entidad bancaria.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -150,9 +211,22 @@ export const cuentaBancoMetadata: ModelMetadata = {
             "remoteColumn": "codcuentabanco"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

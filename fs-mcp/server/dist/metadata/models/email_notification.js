@@ -18,7 +18,13 @@ export const emailNotificationMetadata = {
             "isRequired": false,
             "label": "Mensaje",
             "description": "Cuerpo de la plantilla de email. Admite variables tipo {{nombre}}, {{total}}.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.81"
+                }
+            ]
         },
         {
             "name": "creationdate",
@@ -30,7 +36,13 @@ export const emailNotificationMetadata = {
             "isRequired": false,
             "label": "Fecha",
             "description": "Fecha de creación de la plantilla.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.81"
+                }
+            ]
         },
         {
             "name": "enabled",
@@ -42,7 +54,13 @@ export const emailNotificationMetadata = {
             "isRequired": false,
             "label": "Activo",
             "description": "True si la plantilla está activa y disponible para envíos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.81"
+                }
+            ]
         },
         {
             "name": "name",
@@ -55,7 +73,13 @@ export const emailNotificationMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre identificador de la plantilla (ej: 'invoice-sent').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.81"
+                }
+            ]
         },
         {
             "name": "subject",
@@ -68,13 +92,31 @@ export const emailNotificationMetadata = {
             "label": "Asunto",
             "maxLength": 150,
             "description": "Asunto del email. Admite variables tipo {{numero}}.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.81"
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2021.81"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default emailNotificationMetadata;

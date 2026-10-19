@@ -18,7 +18,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "apartado",
             "maxLength": 10,
-            "description": "Apartado postal de la dirección del proveedor en el pedido."
+            "description": "Apartado postal de la dirección del proveedor en el pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -30,7 +36,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": true,
             "label": "CIF/NIF",
             "maxLength": 30,
-            "description": "CIF/NIF del proveedor, copiado al crear el pedido."
+            "description": "CIF/NIF del proveedor, copiado al crear el pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -42,7 +55,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "ciudad",
             "maxLength": 100,
-            "description": "Ciudad de la dirección del proveedor en el pedido."
+            "description": "Ciudad de la dirección del proveedor en el pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -60,7 +79,14 @@ export const pedidoProveedorMetadata = {
                 "column": "codalmacen",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -78,7 +104,14 @@ export const pedidoProveedorMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -96,7 +129,14 @@ export const pedidoProveedorMetadata = {
                 "column": "codejercicio",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigo",
@@ -108,7 +148,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": true,
             "label": "codigo",
             "maxLength": 20,
-            "description": "Código identificativo único del pedido."
+            "description": "Código identificativo único del pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -126,7 +173,14 @@ export const pedidoProveedorMetadata = {
                 "column": "codpago",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -138,7 +192,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "codpais",
             "maxLength": 20,
-            "description": "Código del país de la dirección del proveedor."
+            "description": "Código del país de la dirección del proveedor.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -150,7 +210,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "codpostal",
             "maxLength": 10,
-            "description": "Código postal de la dirección del proveedor."
+            "description": "Código postal de la dirección del proveedor.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -168,7 +234,14 @@ export const pedidoProveedorMetadata = {
                 "column": "codproveedor",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -186,7 +259,14 @@ export const pedidoProveedorMetadata = {
                 "column": "codserie",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor1",
@@ -198,7 +278,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "dtopor1",
             "description": "Primer porcentaje de descuento aplicado sobre el neto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -210,7 +296,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "dtopor2",
             "description": "Segundo porcentaje de descuento aplicado tras dtopor1.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -222,7 +314,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "direccion",
             "maxLength": 200,
-            "description": "Dirección postal del proveedor, copiada de su dirección al crear el pedido (snapshot)."
+            "description": "Dirección postal del proveedor, copiada de su dirección al crear el pedido (snapshot).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "editable",
@@ -234,7 +332,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "Editable",
             "description": "True si el pedido puede modificarse; false si está bloqueado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -246,7 +351,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha del pedido al proveedor.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "femail",
@@ -258,7 +370,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "femail",
             "description": "Fecha en la que se envió el pedido por email.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "hora",
@@ -269,7 +388,14 @@ export const pedidoProveedorMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora del pedido (HH:MM:SS)."
+            "description": "Hora del pedido (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -287,7 +413,14 @@ export const pedidoProveedorMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado",
@@ -305,7 +438,14 @@ export const pedidoProveedorMetadata = {
                 "column": "idestado",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado_ant",
@@ -323,7 +463,13 @@ export const pedidoProveedorMetadata = {
                 "column": "idestado",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "idpedido",
@@ -335,7 +481,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "idpedido",
             "description": "Identificador interno autoincremental del pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -347,7 +500,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "neto",
@@ -359,7 +519,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "neto",
             "description": "Importe neto del pedido (subtotal sin impuestos, después de descuentos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "netosindto",
@@ -372,7 +539,13 @@ export const pedidoProveedorMetadata = {
             "label": "netosindto",
             "default": 0,
             "description": "Importe neto antes de aplicar descuentos generales.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -390,7 +563,14 @@ export const pedidoProveedorMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -402,7 +582,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "nombre",
             "maxLength": 100,
-            "description": "Nombre del proveedor registrado en el pedido (snapshot al crear)."
+            "description": "Nombre del proveedor registrado en el pedido (snapshot al crear).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numdocs",
@@ -415,7 +602,13 @@ export const pedidoProveedorMetadata = {
             "label": "numdocs",
             "default": 0,
             "description": "Número de archivos adjuntos vinculados al pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -427,7 +620,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": true,
             "label": "numero",
             "maxLength": 12,
-            "description": "Número correlativo del pedido dentro de su serie y ejercicio."
+            "description": "Número correlativo del pedido dentro de su serie y ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numproveedor",
@@ -439,7 +639,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "numproveedor",
             "maxLength": 50,
-            "description": "Número que el proveedor da a este pedido."
+            "description": "Número que el proveedor da a este pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -451,7 +658,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "observaciones",
             "description": "Notas u observaciones internas.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -463,7 +677,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "operacion",
             "maxLength": 30,
-            "description": "Tipo de operación fiscal."
+            "description": "Tipo de operación fiscal.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -475,7 +695,13 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "provincia",
             "maxLength": 100,
-            "description": "Provincia de la dirección del proveedor en el pedido."
+            "description": "Provincia de la dirección del proveedor en el pedido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.4"
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -487,7 +713,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "tasaconv",
             "description": "Tasa de conversión aplicada si el pedido está en otra divisa.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "total",
@@ -499,7 +732,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "Total",
             "description": "Importe total del pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totaleuros",
@@ -511,7 +751,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "totaleuros",
             "description": "Total convertido a divisa principal usando tasaconv.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalirpf",
@@ -523,7 +770,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "totalirpf",
             "description": "Importe total retenido por IRPF.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totaliva",
@@ -535,7 +789,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "totaliva",
             "description": "Importe total de IVA del pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalrecargo",
@@ -547,7 +808,14 @@ export const pedidoProveedorMetadata = {
             "isRequired": false,
             "label": "totalrecargo",
             "description": "Importe total del recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalsuplidos",
@@ -560,7 +828,13 @@ export const pedidoProveedorMetadata = {
             "label": "totalsuplidos",
             "default": 0,
             "description": "Importe total de suplidos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -642,10 +916,63 @@ export const pedidoProveedorMetadata = {
             "remoteColumn": "idpedido"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codagente",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codagente",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "pagado",
+            "sqlType": "boolean",
+            "tsType": "boolean",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "pagado",
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 export default pedidoProveedorMetadata;
 //# sourceMappingURL=pedido_proveedor.js.map

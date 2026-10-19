@@ -22,7 +22,14 @@ export const cuentaMetadata: ModelMetadata = {
             "label": "Cuenta",
             "maxLength": 10,
             "description": "Código de la cuenta contable según el plan general (ej: 700, 4300).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcuentaesp",
@@ -41,7 +48,14 @@ export const cuentaMetadata: ModelMetadata = {
                 "column": "codcuentaesp",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -60,7 +74,14 @@ export const cuentaMetadata: ModelMetadata = {
                 "column": "codejercicio",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "debe",
@@ -72,7 +93,13 @@ export const cuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Debe",
             "description": "Suma acumulada de los importes en el debe de las partidas de esta cuenta.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -85,7 +112,14 @@ export const cuentaMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 255,
             "description": "Descripción de la cuenta contable.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "haber",
@@ -97,7 +131,13 @@ export const cuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Haber",
             "description": "Suma acumulada de los importes en el haber de las partidas de esta cuenta.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "idcuenta",
@@ -109,7 +149,14 @@ export const cuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la cuenta dentro del ejercicio.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "parent_codcuenta",
@@ -121,7 +168,14 @@ export const cuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "parent_codcuenta",
             "maxLength": 10,
-            "description": "Código de la cuenta padre en la jerarquía contable. Vacío si es de primer nivel."
+            "description": "Código de la cuenta padre en la jerarquía contable. Vacío si es de primer nivel.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "parent_idcuenta",
@@ -139,7 +193,14 @@ export const cuentaMetadata: ModelMetadata = {
                 "column": "idcuenta",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "saldo",
@@ -151,7 +212,13 @@ export const cuentaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Saldo",
             "description": "Saldo de la cuenta calculado como debe menos haber.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -184,9 +251,22 @@ export const cuentaMetadata: ModelMetadata = {
             "remoteColumn": "idcuenta"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

@@ -18,7 +18,14 @@ export const pageFilterMetadata = {
             "isRequired": true,
             "label": "Descripción",
             "maxLength": 50,
-            "description": "Descripción legible del filtro guardado por el usuario."
+            "description": "Descripción legible del filtro guardado por el usuario.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "filters",
@@ -30,7 +37,14 @@ export const pageFilterMetadata = {
             "isRequired": false,
             "label": "Filtros",
             "description": "Configuración del filtro en formato JSON (campos y valores).",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "id",
@@ -42,7 +56,14 @@ export const pageFilterMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del filtro.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "name",
@@ -54,7 +75,14 @@ export const pageFilterMetadata = {
             "isRequired": true,
             "label": "Nombre",
             "maxLength": 40,
-            "description": "Nombre del controlador/página al que aplica el filtro."
+            "description": "Nombre del controlador/página al que aplica el filtro.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nick",
@@ -72,7 +100,14 @@ export const pageFilterMetadata = {
                 "column": "nick",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -84,9 +119,22 @@ export const pageFilterMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default pageFilterMetadata;

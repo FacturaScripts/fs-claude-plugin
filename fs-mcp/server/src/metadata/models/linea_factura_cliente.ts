@@ -22,7 +22,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "actualizastock",
             "default": -1,
             "description": "Cómo afecta esta línea al stock al confirmar el documento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cantidad",
@@ -34,7 +41,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "cantidad",
             "description": "Cantidad facturada del producto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codimpuesto",
@@ -52,7 +66,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coste",
@@ -64,7 +85,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "coste",
             "description": "Precio de coste unitario del producto al crear la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.2"
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -76,7 +103,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "descripcion",
             "description": "Descripción del producto/servicio facturado.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor",
@@ -89,7 +123,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "dtopor",
             "default": 0,
             "description": "Primer descuento porcentual aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -102,7 +143,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "dtopor2",
             "default": 0,
             "description": "Segundo descuento porcentual aplicado tras dtopor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -114,7 +161,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "excepcioniva",
             "maxLength": 20,
-            "description": "Excepción de IVA aplicada únicamente a esta línea."
+            "description": "Excepción de IVA aplicada únicamente a esta línea.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "idfactura",
@@ -132,7 +185,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
                 "column": "idfactura",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlinea",
@@ -144,7 +204,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idlinea",
             "description": "Identificador interno autoincremental de la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlinearect",
@@ -162,7 +229,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
                 "column": "idlinea",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.51"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -180,7 +253,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
                 "column": "idproducto",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -192,7 +272,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iva",
@@ -204,7 +291,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "iva",
             "description": "Porcentaje de IVA aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mostrar_cantidad",
@@ -217,7 +311,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "mostrar_cantidad",
             "default": true,
             "description": "Si la cantidad debe mostrarse al imprimir.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mostrar_precio",
@@ -230,7 +331,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "mostrar_precio",
             "default": true,
             "description": "Si el precio debe mostrarse al imprimir.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -243,7 +351,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "orden",
             "default": 0,
             "description": "Posición de la línea en la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpsindto",
@@ -255,7 +370,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvpsindto",
             "description": "Subtotal de la línea antes de aplicar descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvptotal",
@@ -267,7 +389,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvptotal",
             "description": "Subtotal de la línea después de descuentos, sin IVA.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpunitario",
@@ -279,7 +408,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvpunitario",
             "description": "Precio unitario sin IVA antes de descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "recargo",
@@ -291,7 +427,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "recargo",
             "description": "Porcentaje de recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -303,7 +446,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "referencia",
             "maxLength": 30,
-            "description": "Referencia de la variante de producto facturada."
+            "description": "Referencia de la variante de producto facturada.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "salto_pagina",
@@ -316,7 +466,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "salto_pagina",
             "default": false,
             "description": "True si se fuerza salto de página antes de imprimir esta línea.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.08"
+                }
+            ]
         },
         {
             "name": "servido",
@@ -329,7 +485,14 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "servido",
             "default": 0,
             "description": "Cantidad ya servida (referente al pedido/albarán origen).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "suplido",
@@ -342,7 +505,13 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "label": "suplido",
             "default": false,
             "description": "True si la línea es un suplido (sin IVA).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -375,10 +544,45 @@ export const lineaFacturaClienteMetadata: ModelMetadata = {
             "remoteColumn": "idproducto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2021.81"
+                }
+            ]
+        }
+    ]
 };
 
 export default lineaFacturaClienteMetadata;

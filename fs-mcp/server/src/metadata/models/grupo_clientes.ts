@@ -22,7 +22,14 @@ export const grupoClientesMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 6,
             "description": "Código corto único del grupo de clientes.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -35,7 +42,14 @@ export const grupoClientesMetadata: ModelMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Subcuenta contable por defecto para los clientes del grupo.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtarifa",
@@ -54,7 +68,14 @@ export const grupoClientesMetadata: ModelMetadata = {
                 "column": "codtarifa",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -67,7 +88,14 @@ export const grupoClientesMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre legible del grupo de clientes.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -86,10 +114,44 @@ export const grupoClientesMetadata: ModelMetadata = {
             "remoteColumn": "codgrupo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "parent",
+            "sqlType": "character varying(6)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "Padre",
+            "maxLength": 6,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        }
+    ]
 };
 
 export default grupoClientesMetadata;

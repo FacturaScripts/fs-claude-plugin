@@ -18,7 +18,14 @@ export const serieMetadata = {
             "isRequired": false,
             "label": "Canal",
             "description": "Canal contable opcional asociado a los documentos de esta serie.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -31,7 +38,14 @@ export const serieMetadata = {
             "label": "Código",
             "maxLength": 4,
             "description": "Código corto único de la serie (ej: A, R, RECT).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -44,7 +58,14 @@ export const serieMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción legible de la serie.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iddiario",
@@ -62,7 +83,14 @@ export const serieMetadata = {
                 "column": "iddiario",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "siniva",
@@ -75,7 +103,14 @@ export const serieMetadata = {
             "label": "Sin impuestos",
             "default": false,
             "description": "True si los documentos de esta serie no llevan IVA (ej: serie de exportación).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipo",
@@ -92,6 +127,12 @@ export const serieMetadata = {
             "enumValues": [
                 "S",
                 "R"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
             ]
         }
     ],
@@ -195,9 +236,22 @@ export const serieMetadata = {
             "remoteColumn": "codserie"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default serieMetadata;

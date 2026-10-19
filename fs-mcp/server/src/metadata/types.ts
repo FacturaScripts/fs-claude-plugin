@@ -43,6 +43,30 @@ export interface ForeignKey {
     onUpdate: 'SET NULL' | 'CASCADE' | 'RESTRICT' | 'NO ACTION';
 }
 
+/**
+ * Un tramo de vigencia: entre qué versiones publicadas existe un modelo o una
+ * columna, según quien la aporta. Las versiones son las que declara cada fuente
+ * (`Kernel::version()` en el core, `version` del `facturascripts.ini` en un
+ * plugin), se guardan tal cual ("3.40", no 3.4) y se comparan como decimales.
+ *
+ * Una columna puede tener varios tramos: si pasa de un plugin a otro, cada uno
+ * aporta el suyo. Leer un único desde/hasta la daría por retirada estando viva.
+ */
+export interface Availability {
+    /** Quién la aporta en este tramo, con el mismo formato que `ModelMetadata.source`. */
+    source: 'core' | `plugin:${string}`;
+    /** Primera versión publicada que la tiene. */
+    since?: string;
+    /** Ya estaba en la versión más antigua con tag: `since` es un "como muy tarde". */
+    sinceFirstTag?: true;
+    /** Última versión publicada que la tiene (inclusiva). Ausente: sigue en la última. */
+    until?: string;
+    /** Está en el código generado pero en ninguna versión publicada todavía. */
+    unreleased?: true;
+    /** Quien la aporta no tiene historial de versiones: el rango no se conoce. */
+    unknown?: true;
+}
+
 export interface ColumnMetadata {
     /** Nombre físico de la columna en la base de datos. */
     name: string;
@@ -81,6 +105,8 @@ export interface ColumnMetadata {
     foreignKey?: ForeignKey;
     /** Valores enumerados literales si la XMLView los declara. */
     enumValues?: string[];
+    /** Tramos de versiones publicadas en los que existe la columna. */
+    availability?: Availability[];
 }
 
 /**
@@ -115,10 +141,23 @@ export interface ModelMetadata {
     source: 'core' | `plugin:${string}`;
     columns: ColumnMetadata[];
     relations: Relation[];
+    /** Tramos de versiones publicadas en los que existe la tabla del modelo. */
+    availability?: Availability[];
+    /**
+     * Columnas que existieron en alguna versión publicada y ya no están. Van
+     * aparte de `columns` a propósito: todo lo que construye filtros, campos o
+     * comprobaciones a partir de `columns` sigue viendo solo columnas vigentes.
+     */
+    retiredColumns?: ColumnMetadata[];
     /** Trazabilidad de la generación. */
     generatedFrom: {
         facturascriptsCommit?: string;
         facturascriptsVersion?: string;
         generatedAt: string;
+        /**
+         * Historial consultado por cada fuente que aparece en la vigencia: la
+         * última versión publicada y cuántas se recorrieron, o que no lo tiene.
+         */
+        versions?: Record<string, { latest: string; tags: number } | { unknown: true }>;
     };
 }

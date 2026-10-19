@@ -21,7 +21,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Alias",
             "description": "Alias o nombres alternativos del punto de interés.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "creation_date",
@@ -33,7 +39,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se creó el registro.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "id",
@@ -45,7 +57,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "idciudad",
@@ -63,7 +81,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
                 "column": "idciudad",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_nick",
@@ -82,7 +106,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -94,7 +124,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "latitude",
@@ -106,7 +142,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Latitud",
             "description": "Latitud geográfica del punto de interés.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "longitude",
@@ -118,7 +160,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Longitud",
             "description": "Longitud geográfica del punto de interés.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "name",
@@ -131,7 +179,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre del punto de interés (monumento, plaza, edificio singular).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -150,7 +204,13 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -176,9 +236,21 @@ export const puntoInteresCiudadMetadata: ModelMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2024.3"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

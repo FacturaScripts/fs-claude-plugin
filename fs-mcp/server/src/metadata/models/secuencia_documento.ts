@@ -28,7 +28,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
                 "column": "codejercicio",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -47,7 +54,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
                 "column": "codserie",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -65,7 +79,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idsecuencia",
@@ -77,7 +98,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la secuencia.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "inicio",
@@ -89,7 +117,13 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Número inicial",
             "description": "Número desde el que empieza a numerar la secuencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "longnumero",
@@ -101,7 +135,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Longitud del número",
             "description": "Longitud mínima del número (se rellena con ceros a la izquierda).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mantenerfecha",
@@ -114,7 +155,13 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "label": "Mantener fecha",
             "default": false,
             "description": "True si al rellenar un hueco de numeración se respeta la fecha del documento en lugar de asignarle la del documento anterior. Solo aplica a tipos que no exigen orden cronológico.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.65"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -126,7 +173,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Número",
             "description": "Próximo número que asignará la secuencia al siguiente documento.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "patron",
@@ -139,7 +193,14 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "label": "Patrón",
             "maxLength": 50,
             "description": "Patrón de generación del código del documento (ej: '{SERIE}-{ANYO}-{NUM}').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipodoc",
@@ -162,6 +223,13 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
                 "PedidoProveedor",
                 "AlbaranProveedor",
                 "FacturaProveedor"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -175,7 +243,13 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "label": "Usar huecos",
             "default": false,
             "description": "True si la secuencia debe reaprovechar números no usados (huecos por borrado).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         }
     ],
     "relations": [
@@ -201,9 +275,22 @@ export const secuenciaDocumentoMetadata: ModelMetadata = {
             "remoteColumn": "idempresa"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

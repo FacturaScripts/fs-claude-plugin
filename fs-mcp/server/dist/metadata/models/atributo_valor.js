@@ -25,7 +25,14 @@ export const atributoValorMetadata = {
                 "column": "codatributo",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -37,7 +44,14 @@ export const atributoValorMetadata = {
             "isRequired": false,
             "label": "descripcion",
             "maxLength": 200,
-            "description": "Descripción ampliada del valor del atributo."
+            "description": "Descripción ampliada del valor del atributo.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "id",
@@ -49,7 +63,14 @@ export const atributoValorMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del valor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "valor",
@@ -62,7 +83,14 @@ export const atributoValorMetadata = {
             "label": "Valor",
             "maxLength": 100,
             "description": "Valor concreto del atributo (ej: XL, Rojo).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -75,7 +103,13 @@ export const atributoValorMetadata = {
             "label": "Orden",
             "default": 100,
             "description": "Posición del valor en el orden de presentación dentro de su atributo.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.13"
+                }
+            ]
         }
     ],
     "relations": [
@@ -115,9 +149,22 @@ export const atributoValorMetadata = {
             "remoteColumn": "idatributovalor4"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default atributoValorMetadata;

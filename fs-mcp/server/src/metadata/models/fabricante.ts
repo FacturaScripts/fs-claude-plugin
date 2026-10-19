@@ -22,7 +22,14 @@ export const fabricanteMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 8,
             "description": "Código corto único del fabricante.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -35,7 +42,14 @@ export const fabricanteMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre comercial del fabricante.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numproductos",
@@ -48,7 +62,13 @@ export const fabricanteMetadata: ModelMetadata = {
             "label": "Productos",
             "default": 0,
             "description": "Número de productos asociados al fabricante (calculado).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2021.51"
+                }
+            ]
         }
     ],
     "relations": [
@@ -60,9 +80,22 @@ export const fabricanteMetadata: ModelMetadata = {
             "remoteColumn": "codfabricante"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

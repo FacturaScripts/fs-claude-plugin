@@ -8,7 +8,7 @@
  *   - fs-schema://relations/<name>   → solo las relaciones del modelo (JSON)
  */
 import type { Resource } from '@modelcontextprotocol/sdk/types.js';
-import type { ModelMetadata, Relation } from '../metadata/types.js';
+import type { Availability, ModelMetadata, Relation } from '../metadata/types.js';
 /**
  * Lista todos los resources disponibles. Se invoca al responder al
  * ListResourcesRequestSchema.
@@ -24,6 +24,11 @@ export declare function readSchemaResource(uri: string): {
     text: string;
 } | null;
 export declare function renderMarkdown(meta: ModelMetadata): string;
+/**
+ * Tramos legibles: `core desde 2024.1`, `A 1.8–2 → B desde ≤1.01`. Sin tramos
+ * no se afirma nada.
+ */
+export declare function formatAvailability(spans: Availability[]): string;
 /**
  * Exporta un helper para que el tool `describe_model` reutilice la misma lógica.
  */

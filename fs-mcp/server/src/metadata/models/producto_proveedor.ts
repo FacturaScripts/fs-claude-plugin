@@ -21,7 +21,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Hora de actualización",
             "description": "Fecha y hora de la última actualización del precio del proveedor para este producto.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -40,7 +46,13 @@ export const productoProveedorMetadata: ModelMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -59,7 +71,13 @@ export const productoProveedorMetadata: ModelMetadata = {
                 "column": "codproveedor",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "dtopor",
@@ -71,7 +89,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Dto.",
             "description": "Primer descuento porcentual aplicado por el proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -83,7 +107,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Dto. 2",
             "description": "Segundo descuento porcentual aplicado tras dtopor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "id",
@@ -95,7 +125,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la relación.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -113,7 +149,13 @@ export const productoProveedorMetadata: ModelMetadata = {
                 "column": "idproducto",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.51"
+                }
+            ]
         },
         {
             "name": "neto",
@@ -125,7 +167,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Neto",
             "description": "Precio neto unitario en la divisa del proveedor (calculado tras descuentos).",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.3"
+                }
+            ]
         },
         {
             "name": "netoeuros",
@@ -138,7 +186,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "label": "netoeuros",
             "default": 0,
             "description": "Precio neto unitario convertido a euros.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "precio",
@@ -150,7 +204,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Precio",
             "description": "Precio bruto del proveedor antes de descuentos.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -163,7 +223,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "label": "Variante",
             "maxLength": 30,
             "description": "Referencia de la variante de producto en el sistema.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "refproveedor",
@@ -176,7 +242,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "label": "Referencia de proveedor",
             "maxLength": 30,
             "description": "Referencia/SKU que el proveedor usa para el producto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.2"
+                }
+            ]
         },
         {
             "name": "stock",
@@ -189,7 +261,13 @@ export const productoProveedorMetadata: ModelMetadata = {
             "label": "Stock",
             "default": 0,
             "description": "Stock que el proveedor declara disponible para este producto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         }
     ],
     "relations": [
@@ -215,9 +293,21 @@ export const productoProveedorMetadata: ModelMetadata = {
             "remoteColumn": "idproducto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2020.2"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
