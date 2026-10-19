@@ -3,13 +3,13 @@ idproject: 259
 name: PrePagos
 permalink: prepagos
 creationdate: 05-10-2022
-lastmod: 12-06-2026
+lastmod: 28-09-2026
 version: 3
-betaversion: 2.12
+betaversion: 3.01
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PrePagos

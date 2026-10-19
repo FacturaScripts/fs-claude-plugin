@@ -7,9 +7,9 @@ lastmod: 27-08-2025
 version: 1.5
 betaversion: 1.4
 mincore: 2025
-maxcore: 2026.5
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/EtiquetasEnvio

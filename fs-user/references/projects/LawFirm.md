@@ -3,11 +3,11 @@ idproject: 117
 name: LawFirm
 permalink: lawfirm
 creationdate: 18-03-2021
-lastmod: 27-08-2026
-version: 2.1
+lastmod: 17-09-2026
+version: 2.12
 betaversion: 1.25
 mincore: 2026.5
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: DocumentosRecurrentes
 min_php: 8.1
 require: WidgetRichText

@@ -9,7 +9,7 @@ betaversion: 1
 mincore: 2025
 maxcore: 2025.81
 compatible: 
-min_php: 
+min_php: 8
 require: Proyectos
 require_php: 
 url: https://facturascripts.com/plugins/ImputacionHoras

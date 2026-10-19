@@ -3,13 +3,13 @@ idproject: 521
 name: OcultaDatos
 permalink: ocultadatos
 creationdate: 05-01-2026
-lastmod: 07-01-2026
-version: 0.4
+lastmod: 23-09-2026
+version: 1
 betaversion: 0.35
 mincore: 2025.6
-maxcore: 2026
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/OcultaDatos

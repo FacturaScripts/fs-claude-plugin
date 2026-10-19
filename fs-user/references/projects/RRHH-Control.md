@@ -4,10 +4,10 @@ name: RRHH-Control
 permalink: rrhh-control
 creationdate: 16-07-2026
 lastmod: 16-07-2026
-version: 
-betaversion: 
-mincore: 
-maxcore: 
+version: 0
+betaversion: 0
+mincore: 0
+maxcore: 0
 compatible: 
 min_php: 
 require: 

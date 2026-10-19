@@ -7,9 +7,9 @@ lastmod: 17-07-2026
 version: 2.5
 betaversion: 2.1
 mincore: 2026
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo111

@@ -7,9 +7,9 @@ lastmod: 14-08-2026
 version: 3.04
 betaversion: 2.8
 mincore: 2026.4
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Notificaciones,Traducciones
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MultiEmail

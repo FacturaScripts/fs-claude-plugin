@@ -3,11 +3,11 @@ idproject: 477
 name: TallerVehiculos
 permalink: tallervehiculos
 creationdate: 09-11-2025
-lastmod: 23-05-2026
+lastmod: 06-10-2026
 version: 1.2
-betaversion: 
+betaversion: 1.3
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: PlantillasPDF
 min_php: 8.1
 require: Servicios

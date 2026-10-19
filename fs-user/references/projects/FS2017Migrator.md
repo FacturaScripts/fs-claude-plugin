@@ -7,9 +7,9 @@ lastmod: 26-06-2026
 version: 3.1
 betaversion: 2.9
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FS2017Migrator

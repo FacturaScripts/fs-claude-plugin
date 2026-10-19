@@ -3,11 +3,11 @@ idproject: 672
 name: FisioGest
 permalink: fisiogest
 creationdate: 04-07-2026
-lastmod: 20-08-2026
-version: 2.3
-betaversion: 
+lastmod: 13-10-2026
+version: 2.8
+betaversion: 0
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

@@ -7,9 +7,9 @@ lastmod: 26-03-2026
 version: 1.52
 betaversion: 1.4
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FacturasCompraUniq

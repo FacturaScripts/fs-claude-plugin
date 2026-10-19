@@ -6,10 +6,10 @@ creationdate: 13-04-2020
 lastmod: 18-10-2021
 version: 1.06
 betaversion: 1.05
-mincore: 
+mincore: 2021.4
 maxcore: 
 compatible: 
-min_php: 
+min_php: 7.1.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EbillingEc

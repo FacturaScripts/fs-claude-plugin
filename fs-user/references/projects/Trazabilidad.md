@@ -3,13 +3,13 @@ idproject: 211
 name: Trazabilidad
 permalink: trazabilidad
 creationdate: 29-04-2022
-lastmod: 17-08-2026
-version: 2.3
-betaversion: 2.41
-mincore: 2026
-maxcore: 2026.65
+lastmod: 09-10-2026
+version: 2.42
+betaversion: 2.43
+mincore: 2026.5
+maxcore: 2026.7
 compatible: StockAvanzado
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Trazabilidad

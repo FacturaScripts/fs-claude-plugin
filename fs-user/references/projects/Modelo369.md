@@ -5,11 +5,11 @@ permalink: modelo369
 creationdate: 01-06-2026
 lastmod: 19-06-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2026
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo369

@@ -7,9 +7,9 @@ lastmod: 05-08-2026
 version: 2.8
 betaversion: 2.2
 mincore: 2025.3
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/IeMedidas

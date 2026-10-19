@@ -5,7 +5,7 @@ permalink: actualizarlistas
 creationdate: 19-12-2025
 lastmod: 20-12-2025
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2025.61
 maxcore: 2025.61
 compatible: 

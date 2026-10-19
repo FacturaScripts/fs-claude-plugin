@@ -4,10 +4,10 @@ name: MickChat
 permalink: mickchat
 creationdate: 27-07-2026
 lastmod: 27-07-2026
-version: 
-betaversion: 
-mincore: 
-maxcore: 
+version: 0
+betaversion: 0
+mincore: 0
+maxcore: 0
 compatible: 
 min_php: 
 require: 

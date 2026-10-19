@@ -5,11 +5,11 @@ permalink: editobservaciones
 creationdate: 25-02-2025
 lastmod: 25-02-2025
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2023
 maxcore: 2024.96
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EditObservaciones

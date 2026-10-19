@@ -7,9 +7,9 @@ lastmod: 16-08-2025
 version: 2
 betaversion: 1.4
 mincore: 2025
-maxcore: 2026.41
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/PlantillaObsTop

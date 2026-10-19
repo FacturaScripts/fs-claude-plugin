@@ -3,7 +3,7 @@ id: 775
 permalink: estados-del-documento-680
 title: Estados del documento
 creationdate: 24-12-2018 00:00:00
-lastmod: 17-04-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/estados-del-documento-680
 ---
 No es lo mismo un presupuesto aceptado, que uno rechazado, ni es lo mismo un albarán rechazado que uno devuelto. Por eso en FacturaScripts los estados de presupuestos, pedidos, albaranes y facturas son configurables, para que pueda configurarlos como desee.
@@ -12,6 +12,12 @@ No es lo mismo un presupuesto aceptado, que uno rechazado, ni es lo mismo un alb
 Para ver el estado de un albarán, factura, pedido o presupuesto, debe fijarse en el selector de estado de la parte derecha:
 
 ![cambiar estado documento](https://i.imgur.com/J2jRL2D.png)
+
+Al hacer clic en el botón se despliegan los estados disponibles para ese tipo de documento, en el orden configurado en cada estado (ver **Orden** más abajo):
+
+- Si el documento es **editable**, puede elegir cualquier estado activo.
+- Si el documento **no es editable** y no ha generado otros documentos, los estados editables aparecen bajo el encabezado **Reabrir**, separados del resto. Eligiendo uno de ellos el documento vuelve a ser editable.
+- Si el documento **no es editable** y ya tiene **documentos hijos** (por ejemplo, un pedido que ya generó un albarán), el estado no se puede cambiar. Para modificarlo, primero hay que eliminar los documentos generados.
 
 ## Cómo configurar los estados
 Puede ver los estados disponibles haciendo clic en el **menú Administrador** &gt; **Panel de control**, y después en la sección **estados**.
@@ -52,6 +58,9 @@ Para poder facturar pedidos necesita un estado que tenga como **tipo de document
 
 #### No mezcle documentos de compra y venta
 Con los estados solamente se puede pasar a documentos del mismo tipo, es decir, de compras a compras o de ventas a ventas, pero no se puede hacer que al aprobar un pedido de venta se genere uno de compra. Los estados no sirven para esto.
+
+### Orden
+Número que indica en qué posición aparece el estado en el botón de estado de los documentos, de menor a mayor. Por defecto es **100**. En el listado de estados también se puede ordenar por este campo. Los estados predeterminados tienen primero el estado editable, después los del flujo habitual (aprobar, enviar, facturar...) y al final los de cancelar o rechazar.
 
 ### Bloqueado
 Los estados predeterminados están bloqueados para evitar que usuarios inexpertos los modifiquen. Es mejor que no los modifique. Pero si insiste en modificarlos, debe hacer clic en el botón opciones para mostrar la columna bloqueado. A continuación podrá desbloquear y modificar.

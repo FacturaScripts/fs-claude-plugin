@@ -7,9 +7,9 @@ lastmod: 31-07-2026
 version: 3.22
 betaversion: 3.18
 mincore: 2025.6
-maxcore: 2026.6
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: zip
 url: https://facturascripts.com/plugins/BackupAuto

@@ -3,7 +3,7 @@ id: 2625
 permalink: registrar-un-presupuesto-de-compra
 title: Cómo registrar un presupuesto de compra
 creationdate: 10-03-2026 17:56:10
-lastmod: 10-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/registrar-un-presupuesto-de-compra
 ---
 Un presupuesto de compra es un presupuesto que registra la solicitud de compra de productos o servicios a un proveedor. Puedes registrar un presupuesto de compra desde el menú `Compras → Presupuestos`.

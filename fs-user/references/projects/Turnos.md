@@ -7,9 +7,9 @@ lastmod: 17-05-2026
 version: 2.73
 betaversion: 2.24
 mincore: 2025
-maxcore: 2026.5
+maxcore: 2026.65
 compatible: Calendario
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Turnos

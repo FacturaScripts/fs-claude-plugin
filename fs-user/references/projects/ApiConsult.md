@@ -5,11 +5,11 @@ permalink: apiconsult
 creationdate: 17-06-2025
 lastmod: 17-06-2025
 version: 1.6
-betaversion: 
+betaversion: 0
 mincore: 2023.5
 maxcore: 2025.61
 compatible: 
-min_php: 
+min_php: 7.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ApiConsult

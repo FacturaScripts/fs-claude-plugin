@@ -3,11 +3,11 @@ idproject: 537
 name: CommandPalette
 permalink: commandpalette
 creationdate: 01-02-2026
-lastmod: 03-02-2026
-version: 2
-betaversion: 
+lastmod: 22-09-2026
+version: 2.1
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

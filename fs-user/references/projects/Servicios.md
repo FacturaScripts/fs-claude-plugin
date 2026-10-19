@@ -3,13 +3,13 @@ idproject: 93
 name: Servicios
 permalink: servicios
 creationdate: 08-09-2020
-lastmod: 18-08-2026
-version: 4.21
-betaversion: 4.3
-mincore: 2026
-maxcore: 2026.65
+lastmod: 08-09-2026
+version: 4.31
+betaversion: 4.13
+mincore: 2026.4
+maxcore: 2026.7
 compatible: Proyectos,StockAvanzado
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Servicios

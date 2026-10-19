@@ -7,7 +7,7 @@ lastmod: 17-07-2026
 version: 4.6
 betaversion: 4.5
 mincore: 2026.5
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: CSVimport
 min_php: 8.1
 require: 

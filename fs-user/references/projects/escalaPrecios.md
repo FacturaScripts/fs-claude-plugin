@@ -3,11 +3,11 @@ idproject: 358
 name: escalaPrecios
 permalink: escalaprecios
 creationdate: 16-02-2024
-lastmod: 24-06-2026
-version: 3
+lastmod: 05-09-2026
+version: 3.1
 betaversion: 2.6
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
 min_php: 8
 require: 

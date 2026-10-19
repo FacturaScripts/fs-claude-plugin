@@ -3,13 +3,13 @@ idproject: 684
 name: PersonalizarEmail
 permalink: personalizaremail
 creationdate: 05-07-2026
-lastmod: 05-07-2026
+lastmod: 11-09-2026
 version: 1
-betaversion: 
+betaversion: 1.1
 mincore: 2026.3
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PersonalizarEmail

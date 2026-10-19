@@ -5,9 +5,9 @@ permalink: accesoscliente
 creationdate: 27-05-2024
 lastmod: 20-08-2026
 version: 3.4
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Proyectos
 min_php: 8.1
 require: 

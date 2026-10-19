@@ -7,9 +7,9 @@ lastmod: 31-03-2026
 version: 1.3
 betaversion: 1
 mincore: 2025.6
-maxcore: 2026.41
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Exporter

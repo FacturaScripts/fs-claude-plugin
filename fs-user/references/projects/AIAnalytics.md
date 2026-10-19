@@ -5,9 +5,9 @@ permalink: aianalytics
 creationdate: 05-03-2026
 lastmod: 06-03-2026
 version: 3
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2030
 compatible: 
 min_php: 8
 require: 

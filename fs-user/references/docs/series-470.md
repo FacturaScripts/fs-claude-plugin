@@ -3,7 +3,7 @@ id: 779
 permalink: series-470
 title: Las series de facturación
 creationdate: 08-01-2019 00:00:00
-lastmod: 13-08-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/series-470
 ---
 Las series son una forma de separar la facturación, ya sea por tipo de actividad o por cualquier otro motivo. Toda factura debe pertenecer a una serie. Puedes configurarlas desde el menú Contabilidad → Series.
@@ -14,6 +14,8 @@ Para crear una serie nueva, haz clic en el botón `Nuevo` y rellena los campos q
 - `Descripción`: una descripción identificativa para la serie.
 - `Tipo`: indica si la serie es de tipo rectificativa o simplificada.
 - `Sin impuesto`: indica si a esta serie se le aplican o no impuestos.
+- `Diario`: el [diario contable](https://facturascripts.com/publicaciones/los-diarios-contables) en el que se generarán los asientos de las facturas de esta serie. Si lo dejas vacío, los asientos van al diario que corresponda por defecto.
+- `Canal`: un número para separar la serie por canal de venta, que aprovechan algunos plugins.
 
 Cuando pulses el botón `Guardar`, ya tendrás creada tu nueva serie para usarla más adelante.
 
@@ -42,3 +44,10 @@ La numeración de facturas, albaranes, pedidos, presupuestos y demás documentos
 
 ## 🖨️ Formato de impresión por serie
 También puedes hacer que cada serie tenga un [formato de impresión](https://facturascripts.com/publicaciones/los-formatos-de-impresion-de-facturascripts) específico.
+
+## Ver también
+
+- [Secuencias de documentos](https://facturascripts.com/publicaciones/secuencias-de-documentos-184), para la numeración de cada serie
+- [Los diarios contables](https://facturascripts.com/publicaciones/los-diarios-contables)
+- [El Panel de control](https://facturascripts.com/publicaciones/el-panel-de-control)
+- [Menú Contabilidad](https://facturascripts.com/publicaciones/menu-contabilidad)

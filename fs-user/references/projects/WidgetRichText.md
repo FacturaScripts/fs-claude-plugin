@@ -5,9 +5,9 @@ permalink: widgetrichtext
 creationdate: 25-10-2024
 lastmod: 08-08-2026
 version: 2.02
-betaversion: 
+betaversion: 0
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.65
 compatible: 
 min_php: 8.1
 require: 

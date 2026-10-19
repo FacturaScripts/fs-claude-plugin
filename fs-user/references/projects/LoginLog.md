@@ -7,9 +7,9 @@ lastmod: 03-11-2025
 version: 1.6
 betaversion: 1.3
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/LoginLog

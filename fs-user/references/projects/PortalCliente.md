@@ -3,13 +3,13 @@ idproject: 352
 name: PortalCliente
 permalink: portalcliente
 creationdate: 25-01-2024
-lastmod: 11-03-2026
-version: 2.2
+lastmod: 06-10-2026
+version: 3.1
 betaversion: 1.91
-mincore: 2025.5
-maxcore: 2026.6
-compatible: PrePagos,Traducciones
-min_php: 8
+mincore: 2026.65
+maxcore: 2026.7
+compatible: PrePagos,Traducciones,FirmarDocumentos,Servicios,Proyectos,TarifasAvanzadas
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PortalCliente
@@ -29,6 +29,8 @@ Características
 - Portal multi-idioma, su cliente decide en que idioma ver la página.
 - Catálogo de productos.
 - Realizar compras online directamente desde el catálogo de productos.
-- Página pública con información de contacto de la empresa (próximamente).
-- Compatible con el plugin PrePagos.
-- Compatible con el plugin Traducciones.
+- Página pública con información de contacto de la empresa.
+- Login, registro y recuperación de contraseña.
+- Emails personalizados con notificaciones.
+- Firma de documentos online.
+- Servicios y proyectos visible en el portal.

@@ -3,7 +3,7 @@ id: 798
 permalink: tu-primer-atributo-515
 title: Cómo crear atributos: tallas y colores
 creationdate: 09-01-2019 00:00:00
-lastmod: 18-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/tu-primer-atributo-515
 ---
 Puede gestionar los atributos desde el **menú Almacén → Atributos**.

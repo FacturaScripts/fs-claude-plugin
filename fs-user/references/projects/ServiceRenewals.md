@@ -3,11 +3,11 @@ idproject: 735
 name: ServiceRenewals
 permalink: servicerenewals
 creationdate: 21-07-2026
-lastmod: 22-08-2026
-version: 1.3
-betaversion: 
-mincore: 2025
-maxcore: 2026.65
+lastmod: 29-09-2026
+version: 1.5
+betaversion: 0
+mincore: 2025.7
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

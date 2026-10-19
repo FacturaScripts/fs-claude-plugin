@@ -9,7 +9,7 @@ betaversion: 4
 mincore: 2025.51
 maxcore: 2026.2
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExportInvoicesZIP

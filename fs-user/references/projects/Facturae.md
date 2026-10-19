@@ -7,9 +7,9 @@ lastmod: 31-07-2026
 version: 3.51
 betaversion: 2.92
 mincore: 2026.1
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Facturae

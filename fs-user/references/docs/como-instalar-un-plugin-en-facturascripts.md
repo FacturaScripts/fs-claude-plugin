@@ -3,7 +3,7 @@ id: 842
 permalink: como-instalar-un-plugin-en-facturascripts
 title: Cómo instalar un plugin en FacturaScripts
 creationdate: 01-10-2020 13:02:40
-lastmod: 20-03-2025
+lastmod: 21-09-2026
 url: https://facturascripts.com/publicaciones/como-instalar-un-plugin-en-facturascripts
 ---
 Los plugins son complementos que añaden nuevas funciones o modifican el comportamiento de FacturaScripts. Puede ver los plugins instalados haciendo clic en el **menú Administrador, Plugins**. Si se trata de una instalación nueva, no tendrá ninguno.

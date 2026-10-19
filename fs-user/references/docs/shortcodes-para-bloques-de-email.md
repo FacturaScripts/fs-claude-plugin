@@ -3,7 +3,7 @@ id: 2757
 permalink: shortcodes-para-bloques-de-email
 title: ShortCodes para bloques de email
 creationdate: 16-04-2026 13:50:28
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/shortcodes-para-bloques-de-email
 ---
 ### Qué son los shortcodes y por qué usarlos

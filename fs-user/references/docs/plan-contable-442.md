@@ -3,7 +3,7 @@ id: 784
 permalink: plan-contable-442
 title: Plan contable
 creationdate: 06-03-2019 00:00:00
-lastmod: 22-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/plan-contable-442
 ---
 El plan de cuentas comprende el listado de cuentas, subcuentas y [cuentas especiales](https://facturascripts.com/publicaciones/cuentas-especiales). Está vinculado al ejercicio, es decir, **cada ejercicio** puede tener una relación de cuentas y subcuentas distinta.
@@ -55,3 +55,10 @@ Así tienes total flexibilidad en la gestión de la contabilidad.
 
 ##### ¿Cómo copiar el plan contable de otro ejercicio?
 Puedes copiar el plan contable del ejercicio anterior al nuevo simplemente cerrando el ejercicio anterior. O bien ve al ejercicio que quieras y pulsa el botón `Exportar`: se descargará un archivo con el plan contable. Después abre el ejercicio donde quieras copiarlo, pulsa el botón `Importar`, selecciona el archivo descargado y acepta.
+
+## Ver también
+
+- [Los ejercicios contables](https://facturascripts.com/publicaciones/los-ejercicios-contables)
+- [Cuentas especiales](https://facturascripts.com/publicaciones/cuentas-especiales)
+- [Cómo hacer un asiento contable](https://facturascripts.com/publicaciones/tu-primer-asiento-463)
+- [Menú Contabilidad](https://facturascripts.com/publicaciones/menu-contabilidad)

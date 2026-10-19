@@ -3,7 +3,7 @@ id: 1058
 permalink: como-funcionan-los-listados-y-filtros
 title: Funcionamiento de Listados y Filtros
 creationdate: 17-02-2022 13:25:08
-lastmod: 27-10-2025
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/como-funcionan-los-listados-y-filtros
 ---
 Los listados de FacturaScripts han sido diseñados para ser intuitivos y facilitar la navegación. En cada listado, encontrarás pestañas, botones, un buscador, filtros, colores y opciones de ordenación.

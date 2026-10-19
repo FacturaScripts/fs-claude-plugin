@@ -4,9 +4,9 @@ name: XV1
 permalink: xv1
 creationdate: 02-06-2026
 lastmod: 02-06-2026
-version: 
+version: 0
 betaversion: 1.18
-mincore: 
+mincore: 0
 maxcore: 2026.3
 compatible: 
 min_php: 8.0

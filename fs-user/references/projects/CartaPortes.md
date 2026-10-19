@@ -5,11 +5,11 @@ permalink: cartaportes
 creationdate: 11-08-2024
 lastmod: 01-09-2024
 version: 1.1
-betaversion: 
+betaversion: 0
 mincore: 2024.1
 maxcore: 2024.94
 compatible: 
-min_php: 
+min_php: 7.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CartaPortes

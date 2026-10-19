@@ -3,13 +3,13 @@ idproject: 649
 name: ExcepcionesIVA
 permalink: excepcionesiva
 creationdate: 26-06-2026
-lastmod: 07-07-2026
-version: 2.15
-betaversion: 
+lastmod: 07-10-2026
+version: 2.16
+betaversion: 0
 mincore: 2025.2
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: PlantillasPDF,PlantillaDetallada
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExcepcionesIVA

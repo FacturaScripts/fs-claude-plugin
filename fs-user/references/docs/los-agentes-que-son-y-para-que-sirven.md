@@ -3,7 +3,7 @@ id: 990
 permalink: los-agentes-que-son-y-para-que-sirven
 title: Agentes en FacturaScripts: ¿Qué son y para qué sirven?
 creationdate: 16-09-2021 08:49:52
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/los-agentes-que-son-y-para-que-sirven
 ---
 En FacturaScripts, los agentes permiten gestionar situaciones en las que se deseen otorgar comisiones de venta, ya sea a empleados, comerciales externos o empresas colaboradoras. Puede crear y administrar agentes desde el **menú Administrador → Agentes**.

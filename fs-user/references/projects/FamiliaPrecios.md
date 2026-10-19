@@ -5,11 +5,11 @@ permalink: familiaprecios
 creationdate: 20-10-2021
 lastmod: 05-11-2025
 version: 1.61
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2025.81
+maxcore: 2026.5
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FamiliaPrecios

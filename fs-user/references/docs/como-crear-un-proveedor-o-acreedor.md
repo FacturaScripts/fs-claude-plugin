@@ -3,7 +3,7 @@ id: 961
 permalink: como-crear-un-proveedor-o-acreedor
 title: Cómo crear un proveedor o acreedor
 creationdate: 24-07-2021 13:42:53
-lastmod: 09-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/como-crear-un-proveedor-o-acreedor
 ---
 Desde el **menú Compras → Proveedores**, podrás ver todos los proveedores y acreedores, excepto aquellos que se han dado de baja. Para crear un nuevo proveedor, simplemente haz clic en el **botón nuevo** (el botón verde con un símbolo de más). Al hacerlo, se abrirá la pantalla de nuevo proveedor.

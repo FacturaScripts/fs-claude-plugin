@@ -4,12 +4,12 @@ name: ImagenesAPI
 permalink: imagenesapi
 creationdate: 12-11-2025
 lastmod: 12-11-2025
-version: 
+version: 0
 betaversion: 1
-mincore: 
+mincore: 0
 maxcore: 2024.9
 compatible: 
-min_php: 
+min_php: 7.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ImagenesAPI

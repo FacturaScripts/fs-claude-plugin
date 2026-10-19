@@ -5,11 +5,11 @@ permalink: ierutas
 creationdate: 21-02-2025
 lastmod: 11-06-2026
 version: 1.3
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/IeRutas

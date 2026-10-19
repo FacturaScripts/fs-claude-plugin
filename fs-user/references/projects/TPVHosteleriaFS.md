@@ -5,9 +5,9 @@ permalink: tpvhosteleriafs
 creationdate: 28-06-2026
 lastmod: 24-08-2026
 version: 5.1
-betaversion: 
+betaversion: 0
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: Tickets

@@ -3,11 +3,11 @@ idproject: 280
 name: InformeSII
 permalink: informesii
 creationdate: 03-01-2023
-lastmod: 16-06-2026
-version: 2.91
+lastmod: 22-09-2026
+version: 2.92
 betaversion: 2.4
-mincore: 2026
-maxcore: 2026.5
+mincore: 2026.4
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

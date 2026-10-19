@@ -3,18 +3,18 @@ idproject: 107
 name: ProductoPack
 permalink: productopack
 creationdate: 04-11-2020
-lastmod: 17-06-2026
-version: 2.02
+lastmod: 07-10-2026
+version: 2.04
 betaversion: 1.45
-mincore: 2026
-maxcore: 2026.41
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ProductoPack
 ---
-Plugin para [FacturaScripts](https://www.facturascripts.com) que permite agrupar varios productos bajo una única referencia de pack. Al introducir esa referencia en un documento de compra o venta y guardarlo, el sistema la expande automáticamente con los artículos que la componen.
+Plugin para [FacturaScripts](https://facturascripts.com) que permite agrupar varios productos bajo una única referencia de pack. Al introducir esa referencia en un documento de compra o venta y guardarlo, el sistema la expande automáticamente con los artículos que la componen.
 
 Piénsalo como una **plantilla de líneas**: una sola referencia añade al documento todos los productos del pack, en las cantidades definidas, sin introducirlos uno a uno.
 

@@ -3,13 +3,13 @@ idproject: 685
 name: GoogleLogin
 permalink: googlelogin
 creationdate: 06-07-2026
-lastmod: 11-08-2026
-version: 1
-betaversion: 
+lastmod: 21-09-2026
+version: 1.3
+betaversion: 0
 mincore: 2025.6
-maxcore: 2026.6
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: curl
 url: https://facturascripts.com/plugins/GoogleLogin

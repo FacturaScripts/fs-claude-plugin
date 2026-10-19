@@ -3,13 +3,13 @@ idproject: 667
 name: FechaPagado
 permalink: fechapagado
 creationdate: 02-07-2026
-lastmod: 02-07-2026
-version: 1
-betaversion: 
+lastmod: 19-09-2026
+version: 1.1
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FechaPagado
@@ -30,3 +30,6 @@ Añade un botón F.PAGADO en los Recibos de facturas de proveedores y de cliente
 - Conciliación bancaria: registras varios pagos a la vez con la fecha real del extracto bancario. Útil cuando se cargan en la cuenta los recibos el día 20 y estás viéndolo en una fecha posterior, por ejemplo el 25.
 - Regularización contable a fin de mes: pones al día pagos de cada día que se hicieron durante el mes pero no se registraron en su momento.
 - Corrección de errores: si un recibo se marcó como pagado con la fecha equivocada, puedes desmarcarlo y volver a marcarlo con F.PAGADO indicando la fecha correcta.
+
+
+VOTA EL PLUGIN CON LOS CORAZONES PARA QUE NO DESAPAREZCA.

@@ -3,25 +3,50 @@ id: 1939
 permalink: el-asistente-para-agrupar-o-partir-documentos
 title: El asistente para agrupar o partir documentos
 creationdate: 11-12-2024 12:36:37
-lastmod: 10-03-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/el-asistente-para-agrupar-o-partir-documentos
 ---
-Si necesita agrupar varios **albaranes** en una sola factura, agrupar **pedidos** en un albarán o factura, o agrupar **presupuestos** en un pedido o factura, puede hacerlo desde los propios listados, simplemente **seleccione los documentos** a agrupar y pulse el **botón de agrupar**.
+El asistente **Agrupar o dividir** permite combinar varios presupuestos, pedidos o albaranes compatibles en un solo documento, o generar únicamente parte de sus líneas. No se utiliza para agrupar facturas.
 
-![agrupar documentos de venta](https://facturascripts.com/MyFiles/2024/12/2430.png?myft=8bddab27efbc045f102809bd51a27dc3ae405f2c)
+Puedes usarlo, por ejemplo, para:
 
-- Para agrupar presupuestos, ve al listado de presupuestos, selecciona los presupuestos a agrupar y pulsa el botón agrupar.
-- Para agrupar pedidos, ve al listado de pedidos, selecciona los presupuestos a agrupar y pulsa el botón agrupar.
-- Para agrupar albaranes, ve al listado de albaranes, selecciona los presupuestos a agrupar y pulsa el botón agrupar.
-- También puedes agrupar desde las pestañas de albaranes, pedidos y presupuestos del cliente. Ve al menú ventas, clientes, haz clic en el cliente y en la siguiente pantalla, en la pestaña de albaranes, podrás seleccionar los albaranes y pulsar agrupar.
+- Agrupar varios presupuestos en un pedido o una factura.
+- Agrupar varios pedidos en un albarán o una factura.
+- Agrupar varios albaranes en una factura.
+- Servir o facturar solo una parte de un documento.
 
-## Limitaciones
-Los albaranes, pedidos o presupuestos deben ser del mismo cliente o proveedor, y deben pertenecer a la misma serie y almacén.
+## 🪄 Abrir el asistente
 
-## El asistente
-El asistente para agrupar o partir documentos mostrará las líneas de los documentos a agrupar, con las cantidades, cantidades servidas (es decir, que se han aprobado anteriormente) y las cantidades seleccionadas, es decir, lo que se va a copiar al nuevo documento. Una vez indicadas las cantidades a seleccionar, podemos modificar la fecha y pulsar el botón generar.
+Ve al listado de **Presupuestos**, **Pedidos** o **Albaranes**, marca uno o varios documentos y pulsa **Acciones → Agrupar o dividir**.
 
-![generar documento agrupado](https://facturascripts.com/MyFiles/2024/12/2431.png?myft=b0063431f58687f596699b5d42a52714bc461810)
+También puedes hacerlo desde la ficha de un cliente: abre la pestaña del tipo de documento, selecciona los registros y utiliza la misma acción.
 
-### Aprobar parte de un documento
-Si solamente desea facturar una parte de un albarán, o de un pedido o presupuesto, en el asistente de agrupar o partir debe seleccionar la cantidad de esas líneas que quiere agrupar y dejar a 0 el resto de líneas.
+![Agrupar documentos de venta](https://facturascripts.com/MyFiles/2024/12/2430.png?myft=8bddab27efbc045f102809bd51a27dc3ae405f2c)
+
+## ✅ Documentos compatibles
+
+Los documentos que agrupes deben estar abiertos y compartir estos datos:
+
+- cliente o proveedor;
+- empresa, almacén y divisa;
+- descuentos generales del documento.
+
+El asistente solo ofrece documentos compatibles con el primero que hayas seleccionado.
+
+## 📦 Seleccionar las cantidades
+
+La pantalla muestra las líneas de los documentos, la cantidad original, la que ya se ha servido y la cantidad pendiente. En **Cantidad seleccionada** indica cuánto quieres traspasar al nuevo documento.
+
+Después elige el documento de destino disponible, revisa la fecha y pulsa **Generar**.
+
+![Generar documento agrupado](https://facturascripts.com/MyFiles/2024/12/2431.png?myft=b0063431f58687f596699b5d42a52714bc461810)
+
+### Aprobar solo una parte
+
+Para servir o facturar parcialmente un documento, escribe la cantidad que quieres traspasar en cada línea y deja a `0` las que todavía no deban pasar al documento nuevo. El origen conserva como pendiente la parte que no hayas seleccionado.
+
+## Ver también
+
+- [Diferencias entre presupuestos, pedidos, albaranes y facturas](https://facturascripts.com/publicaciones/diferencias-entre-albaranes-facturas-pedidos-y-presupuetos)
+- [Cómo agrupar albaranes en una sola factura](https://facturascripts.com/publicaciones/como-agrupar-albaranes-en-una-sola-factura)
+- [Cómo aprobar parcialmente un presupuesto](https://facturascripts.com/publicaciones/como-aprobar-parcialmente-un-presupuesto)

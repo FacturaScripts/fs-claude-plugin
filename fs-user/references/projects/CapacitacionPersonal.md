@@ -3,13 +3,13 @@ idproject: 248
 name: CapacitacionPersonal
 permalink: capacitacionpersonal
 creationdate: 31-08-2022
-lastmod: 17-05-2026
-version: 2.53
+lastmod: 10-09-2026
+version: 2.54
 betaversion: 2.42
-mincore: 2025
-maxcore: 2026.5
+mincore: 2026
+maxcore: 2026.65
 compatible: Calendario
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CapacitacionPersonal

@@ -4,12 +4,12 @@ name: FlexyTheme
 permalink: flexytheme
 creationdate: 12-06-2025
 lastmod: 08-07-2026
-version: 1.81
-betaversion: 1.82
+version: 1.82
+betaversion: 1.7
 mincore: 2026
 maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FlexyTheme

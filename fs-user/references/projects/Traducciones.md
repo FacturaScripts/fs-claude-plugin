@@ -7,9 +7,9 @@ lastmod: 17-08-2026
 version: 1.8
 betaversion: 1.61
 mincore: 2025.6
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: PlantillasPDF
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Traducciones

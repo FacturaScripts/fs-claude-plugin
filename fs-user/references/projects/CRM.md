@@ -7,9 +7,9 @@ lastmod: 13-05-2026
 version: 3.44
 betaversion: 3.43
 mincore: 2025.81
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Informes
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CRM

@@ -3,12 +3,12 @@ idproject: 153
 name: TPVneo
 permalink: tpvneo
 creationdate: 04-10-2021
-lastmod: 02-07-2026
+lastmod: 11-09-2026
 version: 4.2
-betaversion: 4.13
+betaversion: 4.31
 mincore: 2026
-maxcore: 2026.6
-compatible: PrePagos,Trazabilidad
+maxcore: 2026.7
+compatible: PrePagos,Trazabilidad,TarifasAvanzadas
 min_php: 8.1
 require: Tickets
 require_php: 

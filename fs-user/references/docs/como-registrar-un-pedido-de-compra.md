@@ -3,7 +3,7 @@ id: 2624
 permalink: como-registrar-un-pedido-de-compra
 title: Cómo registrar un pedido de compra
 creationdate: 10-03-2026 17:53:00
-lastmod: 10-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/como-registrar-un-pedido-de-compra
 ---
 Un pedido de compra es un pedido que registra la solicitud de compra de productos o servicios a un proveedor. Puedes añadir pedidos de compra desde el menú `Compras → Pedidos`.

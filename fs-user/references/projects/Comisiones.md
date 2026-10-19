@@ -4,12 +4,12 @@ name: Comisiones
 permalink: comisiones
 creationdate: 12-03-2022
 lastmod: 20-08-2026
-version: 2.3
-betaversion: 2.4
+version: 2.4
+betaversion: 1.4
 mincore: 2026
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Comisiones

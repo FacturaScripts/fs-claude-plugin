@@ -1,6 +1,6 @@
 {
   "name": "fs-user",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Plugin para usuarios de FacturaScripts en Claude Code y Codex: análisis de datos, informes y asistencia documentada sobre el ERP.",
   "author": {
     "name": "Daniel Fernández Giménez",

@@ -3,13 +3,13 @@ idproject: 193
 name: Ticketbai
 permalink: ticketbai
 creationdate: 21-03-2022
-lastmod: 02-09-2026
-version: 2.8
-betaversion: 2.81
-mincore: 2026
-maxcore: 2026.65
+lastmod: 09-10-2026
+version: 2.81
+betaversion: 2.9
+mincore: 2026.4
+maxcore: 2026.7
 compatible: PlantillasPDF
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Ticketbai

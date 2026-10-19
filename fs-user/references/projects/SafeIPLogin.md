@@ -3,11 +3,11 @@ idproject: 487
 name: SafeIPLogin
 permalink: safeiplogin
 creationdate: 27-11-2025
-lastmod: 20-08-2026
-version: 2.03
-betaversion: 
-mincore: 2026.41
-maxcore: 2026.6
+lastmod: 28-09-2026
+version: 2.04
+betaversion: 0
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

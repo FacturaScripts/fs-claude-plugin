@@ -3,13 +3,13 @@ idproject: 209
 name: PlantillaDetallada
 permalink: plantilladetallada
 creationdate: 29-04-2022
-lastmod: 10-04-2026
-version: 3.2
+lastmod: 15-09-2026
+version: 3.3
 betaversion: 2
-mincore: 2025.6
-maxcore: 2026.41
+mincore: 2026.4
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/PlantillaDetallada

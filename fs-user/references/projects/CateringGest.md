@@ -5,9 +5,9 @@ permalink: cateringgest
 creationdate: 09-07-2026
 lastmod: 20-08-2026
 version: 1.6
-betaversion: 
+betaversion: 0
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

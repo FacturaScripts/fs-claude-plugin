@@ -3,11 +3,11 @@ idproject: 247
 name: PagoSimplificado
 permalink: pagosimplificado
 creationdate: 26-08-2022
-lastmod: 20-08-2026
-version: 2.06
-betaversion: 2.07
-mincore: 2026.41
-maxcore: 2026.6
+lastmod: 16-10-2026
+version: 2.08
+betaversion: 1.2
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

@@ -3,7 +3,7 @@ id: 781
 permalink: empresas-524
 title: Empresas
 creationdate: 09-01-2019 00:00:00
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/empresas-524
 ---
 FacturaScripts permite trabajar con más de una empresa (multiempresa), pero **con limitaciones**:

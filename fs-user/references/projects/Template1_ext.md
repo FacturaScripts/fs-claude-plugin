@@ -3,13 +3,13 @@ idproject: 472
 name: Template1_ext
 permalink: template1-ext
 creationdate: 19-10-2025
-lastmod: 18-06-2026
-version: 2.37
-betaversion: 
+lastmod: 29-09-2026
+version: 2.42
+betaversion: 0
 mincore: 2025.43
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: IeOmitelineas
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/Template1_ext
@@ -42,9 +42,11 @@ Actualización para el formato de documentos de más de una página:
  Posibilidad de elegir Opacidad y posición.
 - Sin Logo (ignora el logo general y de formato)
 
-NOVEDAD:
 - Posibilidad de asignar un Formato de Impresión de Facturas predefinido a cada uno de nuestros Clientes.
-    
+ 
+
+NOVEDAD En la gestión de espaciados entre líneas para tener un mayor control, puedes elegir el formato supercomprimido por defecto, u otro formato con diferentes tipos de espaciados entre líneas.
+   
 Basada en la Plantilla Template1 de PlantillasPDF.
 
 Una vez Instalado el Plugin debemos seleccionar la Plantilla supercomprimida dentro de ADMINISTRADOR - PLANTILLASPDF - GENERAL.
@@ -52,3 +54,5 @@ Una vez Instalado el Plugin debemos seleccionar la Plantilla supercomprimida den
 Se recomienda utilizar una fuente mínima para que quepan más líneas al ocupar un menor espacio vertical.
 
 Leer en las diferentes pestañas de la Documentación para saber como funcionan los valores de ajustes del plugin.
+
+SI ES DE UTILIDAD EL PLUGIN VÓTALO PULSANDO EN LOS CORAZONES. SI NO PUEDE PASAR  QUE SE RETIRE

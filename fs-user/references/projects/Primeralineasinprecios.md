@@ -5,11 +5,11 @@ permalink: primeralineasinprecios
 creationdate: 16-03-2026
 lastmod: 16-03-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Primeralineasinprecios
@@ -21,3 +21,5 @@ Este plugin es útil en servicios en dónde los documentos de venta: albaranes, 
 Al activar la casilla de la configuración del plugin ya nos permite tener premarcados los campos para no imprimirlos, ahorrando tiempo al no tener que entrar cada vez en el botón de la línea &quot;...&quot; y marcar estos dos campos: cantidad y precio, a mano como &quot;no imprimibles&quot;.
 Si desmarcamos la casilla, pasará a trabajar como de forma normal. 
 En ambos casos podemos seguir entrando en el botón &quot;...&quot; de la línea y cambiar lo que queramos también.
+
+POR FAVOR SI ES DE UTILIDAD VOTA EL PLUGIN ENTRANDO EN LOS CORAZONES PARA QUE NO DESAPAREZCA ESTE.

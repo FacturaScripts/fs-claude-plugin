@@ -4,10 +4,10 @@ name: Backup
 permalink: backup
 creationdate: 08-03-2021
 lastmod: 31-08-2026
-version: 3.61
-betaversion: 3.7
-mincore: 2025.6
-maxcore: 2026.65
+version: 3.7
+betaversion: 3.2
+mincore: 2026.1
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

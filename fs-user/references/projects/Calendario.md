@@ -3,11 +3,11 @@ idproject: 371
 name: Calendario
 permalink: calendario
 creationdate: 19-06-2024
-lastmod: 22-05-2026
-version: 3.12
+lastmod: 10-09-2026
+version: 3.13
 betaversion: 2.5
 mincore: 2026
-maxcore: 2026.2
+maxcore: 2026.65
 compatible: Turnos,CapacitacionPersonal
 min_php: 8
 require: 

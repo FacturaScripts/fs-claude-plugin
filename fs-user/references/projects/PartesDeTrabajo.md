@@ -3,13 +3,13 @@ idproject: 202
 name: PartesDeTrabajo
 permalink: partesdetrabajo
 creationdate: 01-04-2022
-lastmod: 01-09-2026
-version: 1.6
+lastmod: 16-09-2026
+version: 1.7
 betaversion: 1
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PartesDeTrabajo

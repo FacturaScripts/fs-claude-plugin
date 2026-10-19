@@ -3,13 +3,13 @@ idproject: 165
 name: ImportadorStripe
 permalink: importadorstripe
 creationdate: 03-12-2021
-lastmod: 27-10-2025
-version: 1.7
+lastmod: 06-10-2026
+version: 2
 betaversion: 1.2
-mincore: 2025
-maxcore: 2026.65
+mincore: 2026
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ImportadorStripe

@@ -3,13 +3,13 @@ idproject: 148
 name: AsientosPredefinidos
 permalink: asientospredefinidos
 creationdate: 27-08-2021
-lastmod: 19-08-2026
-version: 3.5
-betaversion: 3.6
-mincore: 2025.6
-maxcore: 2026.65
+lastmod: 17-09-2026
+version: 3.61
+betaversion: 3.1
+mincore: 2026.4
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AsientosPredefinidos

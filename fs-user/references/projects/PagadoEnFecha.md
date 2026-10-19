@@ -9,7 +9,7 @@ betaversion: 1
 mincore: 2022
 maxcore: 2025.81
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PagadoEnFecha

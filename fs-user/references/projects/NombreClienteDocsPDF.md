@@ -3,13 +3,13 @@ idproject: 535
 name: NombreClienteDocsPDF
 permalink: nombreclientedocspdf
 creationdate: 31-01-2026
-lastmod: 11-02-2026
-version: 1.5
-betaversion: 
-mincore: 2025
-maxcore: 2026.65
+lastmod: 22-09-2026
+version: 1.52
+betaversion: 0
+mincore: 2025.4
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/NombreClienteDocsPDF

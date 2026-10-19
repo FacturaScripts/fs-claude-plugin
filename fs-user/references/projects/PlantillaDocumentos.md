@@ -5,9 +5,9 @@ permalink: plantilladocumentos
 creationdate: 06-05-2026
 lastmod: 11-08-2026
 version: 1.2
-betaversion: 
+betaversion: 0
 mincore: 2025.61
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

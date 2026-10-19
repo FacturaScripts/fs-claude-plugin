@@ -5,11 +5,11 @@ permalink: megainvoicer
 creationdate: 27-09-2023
 lastmod: 27-05-2026
 version: 2.1
-betaversion: 
+betaversion: 0
 mincore: 2026.3
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MegaInvoicer

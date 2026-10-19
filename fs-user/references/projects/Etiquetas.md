@@ -3,13 +3,13 @@ idproject: 72
 name: Etiquetas
 permalink: etiquetas
 creationdate: 22-02-2020
-lastmod: 03-08-2026
+lastmod: 05-10-2026
 version: 3.2
-betaversion: 2.93
+betaversion: 3.3
 mincore: 2026
-maxcore: 2026.6
-compatible: Tickets,TarifasAvanzadas
-min_php: 
+maxcore: 2026.7
+compatible: Tickets,TarifasAvanzadas,Trazabilidad
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Etiquetas

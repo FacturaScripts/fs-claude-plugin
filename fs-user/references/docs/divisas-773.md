@@ -3,7 +3,7 @@ id: 782
 permalink: divisas-773
 title: Divisas
 creationdate: 25-01-2019 00:00:00
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/divisas-773
 ---
 Puede gestionar las divisas o monedas soportadas en FacturaScripts desde el **menú Administrador**, **Paises**. Después clic en la **pestaña Divisas**.

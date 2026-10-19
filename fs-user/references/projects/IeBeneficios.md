@@ -3,13 +3,13 @@ idproject: 217
 name: IeBeneficios
 permalink: iebeneficios
 creationdate: 07-05-2022
-lastmod: 27-05-2026
-version: 3.5
+lastmod: 04-09-2026
+version: 3.6
 betaversion: 2.7
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: TarifasAvanzadas
 require_php: 
 url: https://facturascripts.com/plugins/IeBeneficios

@@ -7,9 +7,9 @@ lastmod: 28-05-2026
 version: 1.21
 betaversion: 1.1
 mincore: 2025
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Unidades

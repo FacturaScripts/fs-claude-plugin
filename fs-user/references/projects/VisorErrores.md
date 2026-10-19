@@ -7,9 +7,9 @@ lastmod: 02-02-2026
 version: 1.5
 betaversion: 1
 mincore: 2025.6
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/VisorErrores

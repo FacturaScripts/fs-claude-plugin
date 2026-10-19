@@ -3,12 +3,24 @@ id: 892
 permalink: cuentas-especiales
 title: Cuentas Especiales
 creationdate: 30-01-2021 18:19:33
-lastmod: 22-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/cuentas-especiales
 ---
 Las cuentas especiales permiten a FacturaScripts identificar, por ejemplo, cuál es la cuenta de caja. En España, esta es la 570, pero en otros países puede variar. Por eso, cuando FacturaScripts necesita **generar un asiento** de pago de una factura, no busca la cuenta 570, sino la primera cuenta que se ha identificado como cuenta de caja.
 
-Para que se realice la **generación de los asientos automáticos** correctamente, es fundamental que el plan contable contenga las cuentas especiales necesarias, que son: CAJA, CLIENTE, COMPRAS, IVAREP, IVASOP, PROVEEDOR y VENTAS.
+Para que se realice la **generación de los asientos automáticos** correctamente, es fundamental que el plan contable contenga las cuentas especiales necesarias. Las imprescindibles son estas siete:
+
+- `CLIENT`: cuentas de clientes.
+- `PROVEE`: cuentas de proveedores.
+- `VENTAS`: cuentas de ventas.
+- `COMPRA`: cuentas de compras.
+- `IVAREP`: cuentas de IVA repercutido.
+- `IVASOP`: cuentas de IVA soportado.
+- `CAJA`: cuentas de caja.
+
+Fíjate en que los códigos tienen **como máximo 6 caracteres**, así que algunos van abreviados: es `CLIENT` y no *CLIENTE*, `PROVEE` y no *PROVEEDOR*, y `COMPRA` y no *COMPRAS*.
+
+Además de esas siete, FacturaScripts trae un catálogo de casi cuarenta cuentas especiales para casos concretos: bancos (`BANCO`), retenciones (`IRPF`, `IRPFA`, `IRPFPR`), anticipos (`ANTCLI`, `ANTPRO`), devoluciones (`DEVVEN`, `DEVCOM`), IVA de operaciones intracomunitarias, exportaciones e importaciones (`IVARUE`, `IVASUE`, `IVARXP`, `IVASIM`), diferencias de cambio, pérdidas y ganancias (`PYG`), suplidos (`SUPLI`) y más. Puedes ver la lista completa, con su descripción, en el **menú Contabilidad → Cuentas contables**, pestaña **Cuentas especiales**.
 
 ## ⚠️ Errores Comunes
 Si encuentras alguno de los siguientes mensajes de error, significa que no tienes asignada alguna de las cuentas especiales:
@@ -45,3 +57,10 @@ Otra opción es vincular las subcuentas directamente con el impuesto, desde el m
 Si trabajas con el régimen de recargo de equivalencia, puedes marcar una cuenta o subcuenta con la cuenta especial `IVARRE` (IVA repercutido con recargo de equivalencia). Cuando exista, FacturaScripts contabilizará el recargo repercutido en esa subcuenta; si no la defines, el recargo se registra en la cuenta de IVA repercutido (`IVAREP`), como hasta ahora.
 
 También puedes indicar la subcuenta de recargo directamente en el impuesto, desde el menú **Contabilidad → Impuestos**.
+
+## Ver también
+
+- [El plan contable](https://facturascripts.com/publicaciones/plan-contable-442)
+- [Configuración de impuestos y retenciones](https://facturascripts.com/publicaciones/impuestos-967)
+- [Cómo hacer un asiento contable](https://facturascripts.com/publicaciones/tu-primer-asiento-463)
+- [Menú Contabilidad](https://facturascripts.com/publicaciones/menu-contabilidad)

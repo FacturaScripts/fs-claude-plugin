@@ -3,33 +3,56 @@ id: 1081
 permalink: las-tarifas-de-precios-por-clientes-o-grupos
 title: Las tarifas de precios, por clientes o grupos
 creationdate: 11-03-2022 18:02:54
-lastmod: 09-04-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/las-tarifas-de-precios-por-clientes-o-grupos
 ---
-Con las tarifas puede tener distintos precios de venta a distintos clientes o grupos de clientes. Puede gestionar sus tarifas desde el **menú Ventas**, **Tarifas**.
+Las tarifas permiten calcular precios de venta distintos para determinados clientes o grupos. Puedes gestionarlas desde **Ventas → Tarifas**.
 
-## Crear una tarifa
-Para crear una tarifa en **Ventas**, **Tarifas** le damos al + de Nueva y allí colocamos el nombre de la tarifa, la formula a utilizar, esta parte es importante porque tenemos dos opciones:
+## ➕ Crear una tarifa
 
-- Calcular la tarifa a partir del **precio de venta**, esto es cuando al precio de venta le queremos disminuir un valor en porcentaje o en importe.
-- Calcular la tarifa a partir del **precio de costo**, esto es si el precio de venta lo queremos calcular en base a un porcentaje o un importe sobre el precio de coste
+Pulsa **Nuevo**, escribe un nombre y elige la fórmula que se aplicará. FacturaScripts ofrece dos bases de cálculo:
 
-Las tarifas se pueden definir en base a un porcentaje (Valor X) o un importe (Valor Y), para tener un control y no vender por debajo del precio de costo o por encima del precio de venta podemos marcar los checks que están en la pantalla de creación.
+- **Precio de venta**: resta al precio de venta el porcentaje **Valor X** y después el importe **Valor Y**.
+- **Precio de coste**: suma al coste el porcentaje **Valor X** y después el importe **Valor Y**.
 
-![nueva tarifa](https://i.imgur.com/5KIrBVZ.gif)
+Por ejemplo, con base en el precio de venta, **Valor X = 10** aplica un descuento del 10 %. Con base en el coste, **Valor X = 20** añade un margen del 20 % sobre ese coste.
 
-### 👨‍💼 Asignar la tarifa a un cliente
-Una vez que tenemos creada una Tarifa podemos agregar un cliente en la parte inferior de la pantalla en la opción **Clientes**, le damos click alli y luego veremos las opciones de asignar (**+**) y desasignar (**-**) clientes a esta tarifa, al asignar clientes nos aparecerá el modal de busqueda con lo que agregaremos los clientes, para desasignarlos solo debemos marcar los clientes y luego darle click al boton rojo de desasignar.
+Puedes utilizar **Valor Y** para sumar o restar además un importe fijo. Los precios se guardan sin impuestos.
 
-![asignar tarifa cliente](https://i.imgur.com/aLxSlbk.gif)
+![Nueva tarifa](https://i.imgur.com/5KIrBVZ.gif)
 
-### 👥 Asignar la tarifa a un grupo de clientes
-Lo mismo ocurre si en lugar de querer asignar una tarifa a un cliente y queremos hacerlo a un Grupo de clientes, solo debemos darle click en la pantalla de la tarifa a la opción **Grupo de clientes**, allí podremos darle click a asignar (**+**) o desasignar (**-**) Grupos de Clientes, al darle click a asignar podremos ver el modal con un selector de los grupos de clientes que FacturaScripts tiene creados.
+### Límites del precio
 
-![asignar tarifa a grupo clientes](https://i.imgur.com/IdrTsex.gif)
+- **No vender por debajo del coste**: si la fórmula produce un precio inferior al coste, utiliza el coste.
+- **No vender por encima del precio de venta**: si la fórmula supera el precio de venta general, utiliza ese precio como máximo.
 
-### 🚦 Prioridad de tarifas
-Si un cliente tiene asignada la tarifa 1 y el cliente pertenece a un grupo de clientes que tiene asignada la tarifa 2, la tarifa que se aplicará es la tarifa 1, es decir, la tarifa asignada al cliente tiene preferencia sobre la tarifa del grupo.
+Después de guardar, la pestaña **Productos** muestra el precio general, el coste y el resultado de la tarifa para cada producto o variante. Utilízala para comprobar la fórmula antes de asignarla.
 
-### 🛠️ Mas control sobre las tarifas
-Estas tarifas se aplican sobre todos los productos creados en FacturaScripts, si necesitamos un control mas fino de las mismas o crear descuentos podemos hacer uso del plugin [**Tarifas Avanzadas**](https://facturascripts.com/plugins/tarifasavanzadas).
+## 👤 Asignar la tarifa a un cliente
+
+Abre la tarifa y entra en la pestaña **Clientes**. Pulsa **Añadir**, busca el cliente y selecciónalo. Para quitar la tarifa a uno o varios clientes, márcalos y pulsa **Quitar de la lista**.
+
+También puedes asignarla desde la ficha del cliente, en **Ventas → Clientes**, campo **Tarifa**.
+
+![Asignar tarifa a un cliente](https://i.imgur.com/aLxSlbk.gif)
+
+## 👥 Asignar la tarifa a un grupo
+
+En la ficha de la tarifa, abre la pestaña **Grupo de clientes** y utiliza **Añadir** o **Quitar de la lista**. También puedes hacerlo desde **Ventas → Clientes → Grupos**, editando el grupo.
+
+![Asignar tarifa a un grupo](https://i.imgur.com/IdrTsex.gif)
+
+Si un cliente tiene una tarifa propia y además pertenece a un grupo con otra tarifa, **tiene prioridad la tarifa asignada directamente al cliente**.
+
+## 🧾 Cuándo se aplica
+
+La tarifa se aplica al añadir un producto a un presupuesto, pedido, albarán o factura de venta. Cambiar una tarifa no recalcula las líneas que ya existen en documentos guardados.
+
+Las tarifas del núcleo utilizan una única fórmula para todos los productos. Si necesitas precios fijos, reglas por familia o producto, fechas, excepciones o descuentos acumulables, consulta el plugin [TarifasAvanzadas](https://facturascripts.com/plugins/tarifasavanzadas).
+
+## Ver también
+
+- [Cómo crear un cliente](https://facturascripts.com/publicaciones/tu-primer-cliente-459)
+- [Los grupos de clientes](https://facturascripts.com/publicaciones/los-grupos-de-clientes)
+- [Los precios del producto](https://facturascripts.com/publicaciones/los-precios-del-producto)
+- [Menú Ventas](https://facturascripts.com/publicaciones/menu-ventas)

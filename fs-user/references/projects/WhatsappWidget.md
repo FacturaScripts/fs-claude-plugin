@@ -3,11 +3,11 @@ idproject: 474
 name: WhatsappWidget
 permalink: whatsappwidget
 creationdate: 29-10-2025
-lastmod: 30-03-2026
-version: 1.1
+lastmod: 08-10-2026
+version: 1.11
 betaversion: 1.02
-mincore: 2025
-maxcore: 2026.6
+mincore: 2026
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

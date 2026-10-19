@@ -9,7 +9,7 @@ betaversion: 2.2
 mincore: 2022.5
 maxcore: 2024.94
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: Tickets,TPVneo,DlmPromocionesVales
 require_php: 
 url: https://facturascripts.com/plugins/DlmPromocionesValesExt

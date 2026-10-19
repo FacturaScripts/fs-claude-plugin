@@ -3,13 +3,13 @@ idproject: 118
 name: EnviarDocumentos
 permalink: enviardocumentos
 creationdate: 25-03-2021
-lastmod: 20-07-2026
-version: 2.2
+lastmod: 04-09-2026
+version: 2.21
 betaversion: 1.7
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EnviarDocumentos

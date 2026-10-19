@@ -5,11 +5,11 @@ permalink: gastos
 creationdate: 09-12-2025
 lastmod: 04-02-2026
 version: 4.3
-betaversion: 
+betaversion: 0
 mincore: 2025
 maxcore: 2025.81
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Gastos

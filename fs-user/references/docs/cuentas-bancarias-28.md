@@ -3,7 +3,7 @@ id: 788
 permalink: cuentas-bancarias-28
 title: Cuentas bancarias
 creationdate: 20-04-2020 00:00:00
-lastmod: 22-07-2026
+lastmod: 14-10-2026
 url: https://facturascripts.com/publicaciones/cuentas-bancarias-28
 ---
 Puedes ver todas las cuentas bancarias de la empresa desde el menú Contabilidad → Formas de pago, en la pestaña Cuentas bancarias.
@@ -33,7 +33,18 @@ Igual que con los clientes, puedes añadir las cuentas bancarias de un proveedor
 
 ![Cuentas bancarias en la ficha de un proveedor](https://facturascripts.com/MyFiles/2025/05/2852.png?myft=8b0e710c63939e2986f4ce0e96f5a667b6b9e852)
 
+### 🔒 Registro de cambios de IBAN
+Cuando se cambia el IBAN de una cuenta bancaria de la empresa o de un proveedor que ya tenía uno, el cambio queda anotado en el [registro de auditoría](https://facturascripts.com/publicaciones/los-logs-y-el-registro-de-actividad), con el IBAN anterior y el nuevo. Así puedes comprobar si alguien ha modificado la cuenta a la que se pagan las facturas, un engaño habitual en los fraudes de pagos a proveedores.
+
+Poner el IBAN por primera vez en una cuenta que no tenía ninguno no se registra, y los cambios en las cuentas de clientes tampoco.
+
 ### 🖨️ Mostrar la cuenta bancaria en las facturas
 Una vez creadas tus cuentas bancarias, ve a las [formas de pago](https://facturascripts.com/publicaciones/formas-de-pago-729) y asocia cada forma de pago con su cuenta bancaria correspondiente. De este modo, **la factura mostrará la cuenta bancaria** vinculada a la forma de pago elegida. Si la forma de pago no tiene ninguna cuenta bancaria vinculada, no se mostrará nada.
 
 ![Vincular una forma de pago con una cuenta bancaria](https://i.imgur.com/VvRs5aq.png)
+
+## Ver también
+
+- [Formas de Pago](https://facturascripts.com/publicaciones/formas-de-pago-729)
+- [Los recibos y pagos a proveedores](https://facturascripts.com/publicaciones/los-recibos-y-pagos-a-proveedores)
+- [Menú Contabilidad](https://facturascripts.com/publicaciones/menu-contabilidad)

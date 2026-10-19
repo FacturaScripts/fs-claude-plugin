@@ -3,13 +3,13 @@ idproject: 645
 name: IntercompanyFS
 permalink: intercompanyfs
 creationdate: 18-06-2026
-lastmod: 29-07-2026
-version: 1.03
+lastmod: 15-09-2026
+version: 1.05
 betaversion: 0.11
-mincore: 2025.81
+mincore: 2026
 maxcore: 2026.41
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/IntercompanyFS

@@ -3,7 +3,7 @@ id: 785
 permalink: secuencias-de-documentos-184
 title: Secuencias de documentos
 creationdate: 30-04-2019 00:00:00
-lastmod: 21-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/secuencias-de-documentos-184
 ---
 No se pueden modificar los numeros de facturas manualmente, pero con las secuencias de documentos podemos cambiar la numeración de facturas, albaranes, pedidos y presupuestos, así como el patrón con el que se genera el código identificador. Para editar las secuencias haga clic en el **menú Administrador**, **Panel de control**, pestaña **secuencias**.
@@ -17,6 +17,7 @@ No se pueden modificar los numeros de facturas manualmente, pero con las secuenc
 - **Longitud del número**: si queremos rellenar con ceros, se añadirán los necesarios hasta que la longitud del número sea la indicada.
 - **Número inicial**: el número en el que empieza esta secuencia, normalmente el 1.
 - **Usar huecos**: marcar si queremos que, al eliminar una factura, la siguiente que creemos reutilice ese número libre en lugar de dejar un salto en la numeración. Su funcionamiento tiene varios detalles importantes, explicados en el apartado [Uso de huecos](#md_h8).
+- **Mantener fecha**: al rellenar un hueco, conserva la fecha del documento en lugar de ajustarla a la posición que le toca en la secuencia. Ver [La fecha de la factura se ajusta al rellenar un hueco](#md_h11). **No está disponible en las facturas** de cliente ni de proveedor, donde la fecha debe respetar el orden de la numeración: si la marcas en una secuencia de facturas, el programa la desmarca al guardar.
 - **Patrón**: el patrón a utilizar para generar **el código del documento**. Este patrón admite variables como:
 	- **{FECHA}**: se sustituye por la fecha del documento en formato d-m-Y, por ejemplo 17-05-2027.
 	- **{HORA}**: se sustituye por la hora del documento en formato H:i:s en formato 24h, por ejemplo 15:46:21.
@@ -78,7 +79,7 @@ Cuando eliminas una factura, su número queda libre y se crea un *hueco* en la n
 
 ### Activado por defecto en facturas de cliente
 
-Cuando FacturaScripts crea una secuencia automáticamente (ver [Secuencias autogeneradas](#secuencias-autogeneradas)), la opción `usar huecos` se activa sola **solo** para las facturas de cliente. El resto de documentos (albaranes, pedidos, presupuestos y facturas de proveedor) nacen con los huecos desactivados, aunque puedes cambiarlo cuando quieras.
+Cuando FacturaScripts crea una secuencia automáticamente (ver [Secuencias autogeneradas](#md_h5)), la opción `usar huecos` se activa sola **solo** para las facturas de cliente. El resto de documentos (albaranes, pedidos, presupuestos y facturas de proveedor) nacen con los huecos desactivados, aunque puedes cambiarlo cuando quieras.
 
 ### ⚠️ Facturas de cliente en España
 

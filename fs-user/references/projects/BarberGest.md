@@ -3,11 +3,11 @@ idproject: 699
 name: BarberGest
 permalink: barbergest
 creationdate: 09-07-2026
-lastmod: 26-07-2026
-version: 1.6
-betaversion: 
+lastmod: 12-10-2026
+version: 1.9
+betaversion: 0
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

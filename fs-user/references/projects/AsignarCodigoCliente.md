@@ -5,7 +5,7 @@ permalink: asignarcodigocliente
 creationdate: 04-11-2025
 lastmod: 17-01-2026
 version: 1.03
-betaversion: 
+betaversion: 0
 mincore: 2025.6
 maxcore: 2026.41
 compatible: 

@@ -5,11 +5,11 @@ permalink: authlog
 creationdate: 25-03-2026
 lastmod: 31-03-2026
 version: 1.1
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AuthLog

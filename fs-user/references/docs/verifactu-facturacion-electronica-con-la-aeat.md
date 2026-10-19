@@ -3,7 +3,7 @@ id: 2111
 permalink: verifactu-facturacion-electronica-con-la-aeat
 title: VERI*FACTU: software de facturación y envío de registros a la AEAT
 creationdate: 01-05-2025 12:55:04
-lastmod: 28-07-2026
+lastmod: 06-10-2026
 url: https://facturascripts.com/publicaciones/verifactu-facturacion-electronica-con-la-aeat
 ---
 El [plugin VERI*FACTU](https://facturascripts.com/plugins/verifactu) añade a FacturaScripts soporte para remitir a la Agencia Tributaria los registros de facturación exigidos por el Reglamento de requisitos de los sistemas informáticos de facturación.
@@ -21,12 +21,14 @@ El plugin de FacturaScripts funciona en modalidad VERI*FACTU.
 
 ## ¿Cuándo será obligatorio?
 
-Los plazos vigentes son:
+**Nuevo aplazamiento a octubre de 2028.** El 5 de octubre de 2026 el Ministerio de Hacienda anunció que VERI*FACTU dejará de ser obligatorio en 2027 y pasará a aplicarse en **octubre de 2028**, cuando entre en vigor la factura electrónica para todos los obligados, con el fin de alinear ambos calendarios. Con el cambio desaparece la distinción entre sociedades y autónomos: habrá una única fecha para todos.
+
+El aplazamiento todavía tiene que aprobarse mediante la modificación normativa correspondiente y publicarse en el BOE. Mientras tanto siguen formalmente vigentes los plazos del Real Decreto-ley 15/2025:
 
 - **1 de enero de 2027:** contribuyentes del Impuesto sobre Sociedades incluidos en el reglamento.
 - **1 de julio de 2027:** resto de obligados tributarios incluidos en su ámbito, entre ellos los autónomos que desarrollan actividades económicas.
 
-El periodo anterior a esas fechas es un periodo de pruebas. El ámbito de aplicación y las exclusiones deben comprobarse según el territorio, el régimen tributario, el tipo de operación y las demás circunstancias de cada obligado. Por ejemplo, los contribuyentes sometidos al SII quedan fuera del ámbito del reglamento y los territorios forales disponen de sus propios sistemas.
+Actualizaremos esta página en cuanto se publique la norma con la fecha definitiva. El periodo anterior a la fecha de obligatoriedad es un periodo de pruebas. El ámbito de aplicación y las exclusiones deben comprobarse según el territorio, el régimen tributario, el tipo de operación y las demás circunstancias de cada obligado. Por ejemplo, los contribuyentes sometidos al SII quedan fuera del ámbito del reglamento y los territorios forales disponen de sus propios sistemas.
 
 ## ¿Es lo mismo que la factura electrónica?
 

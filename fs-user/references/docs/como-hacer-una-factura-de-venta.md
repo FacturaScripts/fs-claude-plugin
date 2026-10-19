@@ -3,7 +3,7 @@ id: 954
 permalink: como-hacer-una-factura-de-venta
 title: 📄Cómo hacer una factura de venta
 creationdate: 18-07-2021 11:40:34
-lastmod: 15-07-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-de-venta
 ---
 Puedes ver y crear facturas de venta desde el menú `Ventas → Facturas`. Para crear una nueva factura, haz clic en el botón `Nuevo`.
@@ -25,6 +25,12 @@ Puedes escribir una descripción directamente en la columna de descripción y a�
 Una vez guardada la factura, se activan las pestañas `Detalle`, `Archivos`, `Recibos`, `Asientos` y `Devoluciones`. Dentro de la pestaña `Detalle` encontrarás información completa sobre la factura, como la fecha y hora en que se emitió, la dirección de facturación, la dirección de envío, etc.
 
 ![Detalles factura](https://i.imgur.com/rmY9FNG.gif)
+
+## ⚖️ El asiento contable
+
+FacturaScripts intenta generar el asiento automáticamente al guardar la factura. Puedes consultarlo en la pestaña **Asientos**. Si no aparece, utiliza **Generar asiento contable** después de corregir la configuración que indique el aviso.
+
+Consulta [los asientos contables de las facturas](https://facturascripts.com/publicaciones/los-asientos-contables-de-las-facturas) para aprender a generar asientos individuales o en bloque y resolver los errores habituales.
 
 ## 🔒 Finalizar o bloquear una factura
 
@@ -50,7 +56,7 @@ Para eliminar una factura, esta debe estar desbloqueada. ⛔ **No se pueden elim
 
 ## 💰 Los recibos
 
-Toda factura tiene al menos un recibo (pueden crearse más). Para marcar una factura como pagada, ábrela y, en la pestaña `Recibos`, selecciona el recibo y pulsa el botón `Pagar`.
+Toda factura tiene al menos un recibo (pueden crearse más). Para marcar una factura como pagada, ábrela y, en la pestaña `Recibos`, selecciona el recibo y pulsa el botón `Pagado`.
 
 ![Recibos de facturas](https://i.imgur.com/Z80o350.gif)
 

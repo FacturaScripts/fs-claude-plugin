@@ -3,7 +3,7 @@ id: 786
 permalink: formas-de-pago-729
 title: Formas de Pago
 creationdate: 30-08-2019 00:00:00
-lastmod: 22-07-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/formas-de-pago-729
 ---
 Las formas de pago en FacturaScripts sirven para configurar cómo se generan [los recibos de las facturas](https://facturascripts.com/publicaciones/los-recibos-de-facturas), las fechas de vencimiento y la cuenta bancaria donde realizar el cobro. Puedes gestionarlas desde el menú Contabilidad → Formas de pago.

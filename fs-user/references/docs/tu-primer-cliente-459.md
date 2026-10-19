@@ -3,81 +3,64 @@ id: 794
 permalink: tu-primer-cliente-459
 title: Cómo crear un cliente
 creationdate: 24-12-2018 00:00:00
-lastmod: 09-04-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/tu-primer-cliente-459
 ---
-Desde el **menú Ventas, Clientes** puede ver todos los clientes (salvo los que ha dado de baja). Para crear un nuevo cliente simplemente pulse el **botón nuevo**. Al hacer clic se abrirá la pantalla de nuevo cliente.
+Desde el **menú Ventas → Clientes** puedes consultar todos los clientes activos. Para crear uno, pulsa el botón **Nuevo** (el botón verde con el signo `+`).
 
-![crear cliente](https://i.imgur.com/63bqwky.png)
+![Crear cliente](https://i.imgur.com/63bqwky.png)
 
-También puede [importar clientes desde](https://facturascripts.com/publicaciones/como-importar-clientes-de-excel) un Excel usando el plugin CSVimport.
+También puedes [importar clientes desde Excel o CSV](https://facturascripts.com/publicaciones/como-importar-clientes-de-excel) con el plugin CSVimport.
 
-## Nuevo cliente
-Para un nuevo cliente solamente es obligatorio escribir un nombre, el resto de campos son opcionales. Cuando haya rellenado el formulario pulse el **botón guardar**, abajo a la derecha. No podrá ver ninguna sección más del cliente hasta que no guarde. Sencillamente no es posible añadir una dirección al cliente si el cliente todavía no existe.
+## ✏️ Crear un cliente
 
-- **Nombre**: el nombre por el que se conoce al cliente.
-- **Razón social**: (opcional) el nombre oficial del cliente, el que aparecerá en las facturas. Si se deja en blanco se usará el nombre del cliente.
-- **Id. Fiscal**: el tipo de identificador fiscal, por ejemplo NIF.
-- **Número fiscal**: (opcional) el identificador fiscal, generalmente el dni o cif del cliente. Ejemplo: 12345678X
-- **Persona natural (no jurídica)**: para distinguir a los clientes particulares de las empresas. Si es una empresa, este campo debe estar desmarcado.
+Para crear el cliente solo necesitas escribir su **nombre**; los demás campos obligatorios ya tienen un valor predeterminado. Pulsa **Guardar** para crear la ficha y activar el resto de las pestañas.
 
-### Asignar un número de cliente
-Puedes asignar o [cambiar el código de cliente activando la columna código desde el botón opciones](https://facturascripts.com/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
+- **Código**: identificador interno del cliente. FacturaScripts lo genera automáticamente. Si quieres escribirlo tú, muestra la columna desde el botón **Opciones** antes de guardar.
+- **Nombre**: nombre comercial o nombre por el que conoces al cliente.
+- **Persona / Empresa**: indica si se trata de una persona física o de una empresa.
+- **Id. fiscal**: tipo de identificador, por ejemplo, NIF.
+- **Número fiscal**: NIF, CIF u otro identificador fiscal del cliente.
 
-### Información de contacto
-- **Teléfono**: (opcional) número de teléfono de contacto del cliente.
-- **Teléfono 2**: (opcional) otro número de teléfono de contacto del cliente.
-- **Email**: (opcional) dirección de correo electrónico del cliente.
+La **razón social** se encuentra en el apartado de información de contacto. Es el nombre oficial que aparecerá en los documentos; si la dejas vacía, se utilizará el nombre del cliente.
 
-### Términos comerciales
-- **Agente**: (opcional) el [agente comercial](https://facturascripts.com/publicaciones/los-agentes-que-son-y-para-que-sirven) asignado. Todas las facturas para este cliente se asignarán automáticamente a este comercial. Esto es útil para asignar comisiones de todas las ventas del cliente.
-- [Tarifa](https://facturascripts.com/publicaciones/las-tarifas-de-precios-por-clientes-o-grupos): (opcional) la tarifa especial que se asignará al cliente. Podemos usar este campo para asignarle una tarifa distinta a la del grupo.
-- **Grupo**: (opcional) el grupo de clientes al que pertenece. En el grupo podemos asignar una tarifa y se le aplica al cliente, salvo si el cliente tiene asignada una tarifa directamente.
-- [Serie](https://facturascripts.com/publicaciones/series-470): (opcional) la serie que se asignará automáticamente a las facturas de este cliente.
-- [Forma de pago](https://facturascripts.com/publicaciones/formas-de-pago-729): (opcional) la forma de pago que se asignará automáticamente a las facturas de este cliente.
-- **Días de pago**: (opcional) si se ha pactado con el cliente unos días concretos de pago, por ejemplo el día 1 y el 15, podemos escribir esos días en este campo. Los nuevos recibos de las facturas de este cliente usarán esos días para la fecha de vencimiento.
-- **Riesgo actual**: (calculado automáticamente) es el importe que suman todas las facturas y albaranes sin pagar del cliente.
-- **Riesgo máximo**: (opcional) el importe máximo que autorizamos a este cliente, por ejemplo 2 000€. Una vez alcanzado, el sistema no permitirá hacer más ventas a este cliente.
-- **Régimen de impuestos**: general, recargo de equivalencia o exento.
-- [Retención de IRPF](https://facturascripts.com/publicaciones/impuestos-967): (opcional) la retención que se asignará automáticamente a las facturas de este cliente.
-- **Fecha de baja**: (opcional) podemos dar de baja un cliente asignando una fecha de baja.
+## 📞 Información de contacto
 
-### Direcciones de cliente
-Después de guardar los datos mediante el **botón guardar**,  abajo a la derecha, se activarán el resto de secciones.  También se habrá creado una dirección para el cliente (se puede observar que en el apartado **Información de contacto**, ya aparece esta dirección bajo la denominación de **Dirección de facturación**), que se ha de completar con los datos correspondientes:
-- **Descripción**: Dato necesario para reconocer las diferentes direcciones de un cliente. También podemos indicar una Dirección de envío(opcional), en ese mismo apartado, que tendrá que estar dada de alta como una dirección mas del cliente.
-- **Dirección**: (opcional) indique el nombre la la vía (calle, plaza, etc.) del cliente.
-- **Apartado**: (opcional) indique el apartado de correos del cliente, si lo tiene.
-- **Código Postal**: (opcional) código postal para esta dirección del cliente.
-- **Ciudad**: (opcional) Población de esta dirección del cliente.
-- **Provincia**: (opcional) Provincia de esta dirección del cliente.
-- **País**: seleccione, en el desplegable, el país correspondiene a esta dirección del cliente.
-- **Nombre**: puede ser distinto al del cliente. Se trata de indicar el nombre del contacto para esa dirección. Ejemplo: (Sr. Antonio) para el cliente &quot;Empresa Pruebas SL&quot;.
-- **Apellidos**: (opcional) apellidos del contacto en esa dirección (Sr. Antonio). Ejemplo: López González.
-- **Teléfono**: (opcional) número de teléfono del contacto en esa dirección (Sr. Antonio).
-- **Teléfono 2**: (opcional) otro número de teléfono del contacto en esa dirección (Sr. Antonio).
-- **Email**: (opcional) dirección de correo electrónico del contacto en esa dirección (Sr. Antonio).
+En la ficha principal puedes guardar los teléfonos, el email, el idioma y las direcciones predeterminadas de facturación y envío.
 
-### Cuentas bancarias de cliente
-Después de guardar los datos mediante el **botón guardar** (abajo a la derecha) se activarán el resto de secciones  como de la que estamos detallando. En esta sección añadiremos todas las cuentas bancarias que nuestro cliente nos informe para su uso. Para añadir dichas cuentas bancarias tendríamos que ir rellenando los campos siguientes:
+Al guardar un cliente nuevo, FacturaScripts crea automáticamente su primer contacto. En la pestaña **Direcciones y contactos** puedes completar esa dirección y añadir tantas como necesites. Cada registro puede contener una descripción, dirección postal, país, nombre de contacto, teléfonos y email.
 
-- **Descripción**: Dato necesario para reconocer las diferentes cuentas de nuestro cliente.
-- **IBAN**:  El IBAN es el código de identificación del número de cuenta y sucursal, pero es aquel que identifica las cuentas internacionales de bancos europeos.
-- **Swift/BIC**:  El código BIC (Bank Identifier Code) o SWIFT sirve para identificar al banco beneficiario de una transferencia (o banco destino).
-- **Fecha Mandato**:  Normalmente es la fecha del mandato SEPA.
-- **Principal**:  De todas las cuentas bancarias que nos suministre el cliente, la que marquemos como principal será la que normalmente usará FacturaScripts.
+Después, selecciona en la ficha principal qué contacto se usará como **Dirección de facturación** y cuál como **Dirección de envío**.
 
-### Subcuentas de cliente
-En esta sección podemos ver la cuenta contable del cliente. Una para cada ejercicio. Si quiere [cambiar la subcuenta del cliente, puede activar el campo subcuenta desde el botón opciones](https://facturascripts.com/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
+## 💼 Términos comerciales
 
-## Eliminar un cliente
-Podremos eliminar el cliente, pulsando el botón eliminar situado abajo a la izquierda, siempre que este cliente no tenga ya facturas, albaranes, pedidos o presupuestos asignados. Si ya los tiene, lo mejor es **dar de caja** el cliente.
+- **Agente**: comercial que se asignará a los nuevos documentos del cliente.
+- [**Tarifa**](https://facturascripts.com/publicaciones/las-tarifas-de-precios-por-clientes-o-grupos): tarifa de venta propia del cliente. Tiene prioridad sobre la tarifa de su grupo.
+- [**Grupo**](https://facturascripts.com/publicaciones/los-grupos-de-clientes): permite aplicar al cliente la tarifa o subcuenta configurada en el grupo.
+- [**Serie**](https://facturascripts.com/publicaciones/series-470): serie predeterminada de sus documentos de venta.
+- [**Forma de pago**](https://facturascripts.com/publicaciones/formas-de-pago-729): forma de pago predeterminada.
+- **Días de pago**: días concretos del mes en los que vence el pago, separados por comas; por ejemplo, `1,15`.
+- **Riesgo actual**: suma calculada a partir de pedidos pendientes, albaranes pendientes y facturas sin cobrar.
+- **Riesgo máximo**: límite de crédito autorizado. Si el cliente ya ha superado el límite, FacturaScripts impide guardar nuevas ventas y muestra un aviso.
+- **Régimen de IVA**, **Operación**, **Excepción de IVA** y [**Retención**](https://facturascripts.com/publicaciones/impuestos-967): valores fiscales que se copiarán a los nuevos documentos del cliente.
+- **Fecha de baja**: permite desactivar al cliente sin borrar su historial.
 
-### Dar de baja el cliente
-Para dar de baja un cliente y que no aparezca más al hacer facturas, simplemente debemos asignar una fecha de baja.
+Los cambios en estas condiciones se aplican a los documentos nuevos; no modifican automáticamente los documentos que ya existen.
 
-![desactivar cliente](https://i.imgur.com/pKQyNPu.png)
+## 🏦 Cuentas bancarias
 
-## Mostrar clientes dados de baja
-Para mostrar los clientes dados de baja nos dirigimos al menú ventas, clientes, pulsamos el botón filtros y en el selector que indica &quot;solamente activos&quot; seleccionamos &quot;solamente suspendidos&quot;.
+En la pestaña **Cuentas bancarias de cliente** puedes añadir sus cuentas. La **Descripción** es obligatoria; también puedes indicar IBAN, SWIFT/BIC, mandato SEPA, fecha del mandato y cuál es la cuenta principal.
 
-![listar clientes desactivados](https://i.imgur.com/sDB0URw.png)
+## 📚 Subcuentas contables
+
+La pestaña **Subcuentas** muestra la cuenta contable del cliente en cada ejercicio. No necesitas crearla al dar de alta al cliente: FacturaScripts puede generarla cuando se contabiliza la primera factura.
+
+Si necesitas usar una cuenta concreta, consulta [cómo asignar una subcuenta a un cliente](https://facturascripts.com/publicaciones/como-asignar-una-subcuenta-a-un-cliente).
+
+## 🗑️ Eliminar o dar de baja un cliente
+
+Puedes eliminar un cliente con el botón **Eliminar** de su ficha si no tiene registros asociados. Si ya tiene documentos, recibos u otros datos relacionados, conserva el historial y asígnale una **Fecha de baja**.
+
+Los clientes dados de baja dejan de aparecer al crear ventas. Para consultarlos, ve a **Ventas → Clientes**, pulsa **Filtros** y cambia **Solamente activos** por **Solamente suspendidos**.
+
+![Listar clientes dados de baja](https://i.imgur.com/sDB0URw.png)

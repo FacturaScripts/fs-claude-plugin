@@ -9,7 +9,7 @@ betaversion: 1.1
 mincore: 2025.2
 maxcore: 2025.81
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/TPVneo_Vales

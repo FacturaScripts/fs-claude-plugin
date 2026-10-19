@@ -5,7 +5,7 @@ permalink: informesestadisticos
 creationdate: 22-01-2024
 lastmod: 09-07-2026
 version: 2.07
-betaversion: 
+betaversion: 0
 mincore: 2026
 maxcore: 2026.41
 compatible: 

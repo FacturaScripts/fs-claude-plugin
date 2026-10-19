@@ -5,11 +5,11 @@ permalink: dlmrefproveedor
 creationdate: 20-09-2023
 lastmod: 17-10-2023
 version: 1.1
-betaversion: 
+betaversion: 0
 mincore: 2022.5
 maxcore: 2024.1
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/dlmRefProveedor

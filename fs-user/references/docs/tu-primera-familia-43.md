@@ -3,7 +3,7 @@ id: 795
 permalink: tu-primera-familia-43
 title: Cómo crear familias en FacturaScripts
 creationdate: 08-01-2019 00:00:00
-lastmod: 18-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/tu-primera-familia-43
 ---
 Accede a la vista de familias desde el **menú Almacén → Familias**.
@@ -13,9 +13,10 @@ Para crear una nueva familia, sigue estos pasos desde el **menú Almacén → Fa
 
 1. Haz clic en el **botón Nuevo** (*símbolo de más con fondo verde*).
 2. Completa los siguientes campos obligatorios:
-   - **Referencia:** Introduce el identificador único de la familia.
+   - **Código:** Introduce el identificador único de la familia. Si lo dejas en blanco, el programa genera uno.
    - **Descripción:** Proporciona una descripción detallada de la familia.
    - **Padre:** Indica si la familia pertenece a otra de nivel superior (opcional).
+   - **Imagen:** Una imagen para representar la familia (opcional). Se elige de la [biblioteca de archivos](https://facturascripts.com/publicaciones/la-biblioteca-de-archivos).
 
 Una vez que hayas creado la familia, podrás asignar productos a ella y crear subfamilias según sea necesario desde la parte inferior.
 
@@ -30,6 +31,8 @@ Si decides agrupar productos en familias y subfamilias, puedes asignar cuentas c
 - **Cuenta para compras:** Número o iniciales de la cuenta contable para compras.
 - **Cuenta de ventas:** Cuenta que se utilizará para la generación de asientos contables en ventas.
 - **Cuenta para retenciones:** Cuenta designada para retenciones, en caso de que los productos de esta familia lo requieran.
+
+Las cuentas de la familia actúan como **respaldo**: al contabilizar una factura, si el producto no tiene su propia cuenta configurada, se usa la de su familia. Por eso lo práctico es configurarlas una vez por familia y no producto a producto.
 
 **Nota:** Las cuentas se buscan utilizando el número de cuenta.
 

@@ -3,7 +3,7 @@ id: 776
 permalink: impuestos-967
 title: Configuración de impuestos y retenciones
 creationdate: 24-12-2018 00:00:00
-lastmod: 22-07-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/impuestos-967
 ---
 Antes de empezar a facturar, es necesario configurar los impuestos (el **IVA**). Puedes crear, editar o eliminar impuestos desde el menú Contabilidad → Impuestos. Al instalar FacturaScripts se crean automáticamente los impuestos predeterminados para tu país. Si has seleccionado España, se crean los impuestos para España.
@@ -11,7 +11,7 @@ Antes de empezar a facturar, es necesario configurar los impuestos (el **IVA**).
 ![Listado de impuestos de IVA](https://i.imgur.com/yGwg9MP.png)
 
 ## Impuesto predeterminado
-El impuesto predeterminado se selecciona desde el menú Administrador → Panel de control. Será el impuesto que se aplique a los nuevos productos o líneas de factura.
+El impuesto predeterminado se selecciona desde el **menú Administrador → Panel de control**, sección *Por defecto*. Será el impuesto que se aplique a los nuevos productos o líneas de factura.
 
 ![Selección del impuesto por defecto](https://i.imgur.com/uwf8Xlo.png)
 
@@ -31,9 +31,16 @@ Si eres un profesional obligado a retener **IRPF** en tus facturas emitidas, con
 
 - Para que **las facturas de un cliente** tengan una retención determinada, asigna esa retención al cliente desde su ficha.
 ![Retención en la ficha del cliente](https://i.imgur.com/550mqa6.png)
-- Para que **todas las facturas** de venta tengan una retención determinada, asígnala en el [panel de control](https://facturascripts.com/publicaciones/configuracion-15).
+- Para que **todas las facturas** de venta tengan una retención determinada, asígnala en el [panel de control](https://facturascripts.com/publicaciones/el-panel-de-control), sección *Por defecto*, campo **Retención**.
 ![Retención en el panel de control](https://i.imgur.com/5LbYkIv.png)
 - [Cómo hacer una factura con IRPF](https://facturascripts.com/publicaciones/como-hacer-una-factura-con-irpf).
 
 ## Informes
 Puedes consultar un desglose de todos los impuestos de las facturas desde el menú Informes → Impuestos.
+
+## Ver también
+
+- [El Panel de control](https://facturascripts.com/publicaciones/el-panel-de-control)
+- [Cuentas especiales](https://facturascripts.com/publicaciones/cuentas-especiales)
+- [Régimen IVA](https://facturascripts.com/publicaciones/regimen-iva-369)
+- [Menú Contabilidad](https://facturascripts.com/publicaciones/menu-contabilidad)

@@ -3,11 +3,11 @@ idproject: 651
 name: ProyectosArq
 permalink: proyectosarq
 creationdate: 26-06-2026
-lastmod: 20-08-2026
-version: 2.2
-betaversion: 
+lastmod: 03-09-2026
+version: 2.9
+betaversion: 0
 mincore: 2025.81
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: Proyectos

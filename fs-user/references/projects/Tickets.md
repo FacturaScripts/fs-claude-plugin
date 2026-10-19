@@ -3,11 +3,11 @@ idproject: 140
 name: Tickets
 permalink: tickets
 creationdate: 07-08-2021
-lastmod: 30-07-2026
-version: 3.11
-betaversion: 3.01
-mincore: 2026
-maxcore: 2026.6
+lastmod: 11-09-2026
+version: 3.12
+betaversion: 3.2
+mincore: 2026.4
+maxcore: 2026.7
 compatible: PrePagos
 min_php: 8.1
 require: 

@@ -5,11 +5,11 @@ permalink: grupoclientescrm
 creationdate: 09-05-2022
 lastmod: 30-03-2026
 version: 1.3
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: CRM
 require_php: 
 url: https://facturascripts.com/plugins/GrupoClientesCRM

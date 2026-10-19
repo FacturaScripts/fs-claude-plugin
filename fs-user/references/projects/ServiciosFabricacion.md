@@ -7,9 +7,9 @@ lastmod: 03-06-2026
 version: 2.9
 betaversion: 2.6
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: StockAvanzado
-min_php: 
+min_php: 8
 require: Servicios
 require_php: 
 url: https://facturascripts.com/plugins/ServiciosFabricacion

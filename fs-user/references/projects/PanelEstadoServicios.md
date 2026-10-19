@@ -5,11 +5,11 @@ permalink: panelestadoservicios
 creationdate: 12-02-2026
 lastmod: 11-08-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2025.5
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: Servicios
 require_php: 
 url: https://facturascripts.com/plugins/PanelEstadoServicios

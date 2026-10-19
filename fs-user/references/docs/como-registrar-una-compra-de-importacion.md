@@ -3,18 +3,20 @@ id: 2628
 permalink: como-registrar-una-compra-de-importacion
 title: Cómo registrar una compra de importación
 creationdate: 11-03-2026 12:02:30
-lastmod: 16-03-2026
+lastmod: 21-09-2026
 url: https://facturascripts.com/publicaciones/como-registrar-una-compra-de-importacion
 ---
 Una importación se produce cuando compras mercancía a un proveedor de fuera de la Unión Europea (China, Estados Unidos, Reino Unido, etc.). A diferencia de las compras intracomunitarias, aquí no hay autorepercusión: el IVA se liquida en la aduana mediante el DUA (Documento Único Administrativo), que es un documento independiente de la factura del proveedor.
 
 ## Crear la factura en FacturaScripts
 
-1. Ve a Contabilidad &gt; Facturas de proveedor y pulsa Nuevo.
+1. Ve a **Compras → Facturas** y pulsa **Nuevo**.
 2. Selecciona el proveedor extranjero y completa los datos habituales (serie, fecha, forma de pago).
 3. En el campo Operación, selecciona Importación.
 4. Añade las líneas de la factura con el importe. El IVA que selecciones da igual, FacturaScripts lo pondrá a 0% automáticamente.
 5. Guarda la factura.
+
+![Factura de importacion](https://i.imgur.com/fM8Xm80.png)
 
 ### Qué hace FacturaScripts automáticamente
 Al seleccionar la operación de importación:
@@ -24,13 +26,18 @@ Al seleccionar la operación de importación:
 - Elimina el recargo de equivalencia.
 - No establece excepción fiscal en las líneas, ya que la exención no aplica de la misma forma que en operaciones intracomunitarias o de inversión del sujeto pasivo.
 
-### El total de la factura coincide con el neto (base imponible).
-Ejemplo práctico
+### Ejemplo práctico
+
+El total de la factura coincide con el neto (base imponible):
 
 - Base imponible: 5.000,00
 - IVA en línea: 0% (automático)
 - Total IVA en factura: 0,00
 - Total factura: 5.000,00
+
+![Linea de importacion](https://i.imgur.com/J50cIdp.png)
+
+![Pie de la factura](https://i.imgur.com/2DJXeFM.png)
 
 ### El DUA (liquidación aduanera)
 El IVA de la importación se paga en la aduana y se documenta a través del DUA. Este documento es independiente de la factura del proveedor y se contabiliza por separado:
@@ -52,6 +59,8 @@ Intracomunitaria (dentro de la UE):
 - El IVA se autoliquida mediante autorepercusión
 - Las líneas mantienen el % de IVA para contabilidad
 - El total sigue siendo igual al neto
+
+![Asiento de la factura](https://i.imgur.com/meC6Q1b.png)
 
 ## Notas
 

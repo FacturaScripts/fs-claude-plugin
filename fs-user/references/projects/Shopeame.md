@@ -3,13 +3,13 @@ idproject: 101
 name: Shopeame
 permalink: shopeame
 creationdate: 08-10-2020
-lastmod: 05-08-2026
-version: 2.1
+lastmod: 23-09-2026
+version: 2.3
 betaversion: 1.8
-mincore: 2026
-maxcore: 2026.6
+mincore: 2026.1
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Shopeame

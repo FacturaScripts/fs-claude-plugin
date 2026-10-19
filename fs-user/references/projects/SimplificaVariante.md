@@ -5,7 +5,7 @@ permalink: simplificavariante
 creationdate: 21-02-2026
 lastmod: 28-05-2026
 version: 1.01
-betaversion: 
+betaversion: 0
 mincore: 2026
 maxcore: 2026.41
 compatible: 

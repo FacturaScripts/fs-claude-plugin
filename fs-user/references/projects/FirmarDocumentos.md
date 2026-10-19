@@ -5,11 +5,11 @@ permalink: firmardocumentos
 creationdate: 09-08-2022
 lastmod: 30-07-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2026.1
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FirmarDocumentos

@@ -5,9 +5,9 @@ permalink: triwus
 creationdate: 03-09-2024
 lastmod: 29-01-2026
 version: 2.1
-betaversion: 
+betaversion: 0
 mincore: 2025.1
-maxcore: 2026
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

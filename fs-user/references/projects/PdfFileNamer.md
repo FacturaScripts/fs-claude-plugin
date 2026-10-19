@@ -3,11 +3,11 @@ idproject: 539
 name: PdfFileNamer
 permalink: pdffilenamer
 creationdate: 01-02-2026
-lastmod: 13-08-2026
-version: 5.1
+lastmod: 29-09-2026
+version: 5.3
 betaversion: 1
-mincore: 2025
-maxcore: 2026.65
+mincore: 2025.43
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

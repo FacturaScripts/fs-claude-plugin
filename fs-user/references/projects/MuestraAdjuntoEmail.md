@@ -3,13 +3,13 @@ idproject: 571
 name: MuestraAdjuntoEmail
 permalink: muestraadjuntoemail
 creationdate: 30-03-2026
-lastmod: 30-03-2026
+lastmod: 04-10-2026
 version: 1
-betaversion: 
+betaversion: 1.1
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Template1_ext
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MuestraAdjuntoEmail
@@ -26,3 +26,5 @@ Muy útil cuando tenemos muchos formatos de Impresión o cambiamos con frecuenci
 Recordad que este plugin opcional Template1_ext permite asignar formatos de Impresión y configuraciones diferentes para cada Cliente, con lo que antes de ENVIAR el email con el adjunto, podemos abrir y ver este documento pdf y o guardarlo, o cancelar el envío.
 
 Si pulsamos sobre el nombre del adjunto se abrirá el pdf.
+
+VOTA EL PLUGIN CON LOS CORAZONES PARA QUE NO DESAPAREZCA.

@@ -3,13 +3,13 @@ idproject: 294
 name: MegaMod
 permalink: megamod
 creationdate: 28-02-2023
-lastmod: 21-07-2026
-version: 1.4
+lastmod: 11-09-2026
+version: 1.5
 betaversion: 1.1
-mincore: 2026
-maxcore: 2026.5
+mincore: 2026.4
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/MegaMod

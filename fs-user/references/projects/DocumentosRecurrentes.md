@@ -3,11 +3,11 @@ idproject: 109
 name: DocumentosRecurrentes
 permalink: documentosrecurrentes
 creationdate: 11-11-2020
-lastmod: 05-08-2026
-version: 3.23
-betaversion: 
+lastmod: 07-10-2026
+version: 3.25
+betaversion: 0
 mincore: 2026.5
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

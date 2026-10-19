@@ -5,11 +5,11 @@ permalink: ieinventariovalorado
 creationdate: 16-02-2024
 lastmod: 18-08-2026
 version: 1.7
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/IeInventarioValorado

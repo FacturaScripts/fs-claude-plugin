@@ -7,7 +7,7 @@ lastmod: 18-08-2026
 version: 1.51
 betaversion: 1.5
 mincore: 2026
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: RemesasSEPA
 min_php: 8.1
 require: CSVimport

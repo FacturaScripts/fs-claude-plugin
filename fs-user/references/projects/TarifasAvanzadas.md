@@ -3,29 +3,48 @@ idproject: 89
 name: TarifasAvanzadas
 permalink: tarifasavanzadas
 creationdate: 07-07-2020
-lastmod: 31-07-2026
+lastmod: 29-09-2026
 version: 2.52
-betaversion: 2.41
+betaversion: 2.66
 mincore: 2026.1
-maxcore: 2026.6
-compatible: CSVimport
+maxcore: 2026.7
+compatible: Tickets,CSVimport,PlantillasPDF
 min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/TarifasAvanzadas
 ---
-Añade gestión de descuentos de venta, ya sea por cliente, por grupo de clientes, por familia, por producto, por fecha o incluso descuentos generales. Los descuentos se pueden acumular o no, y con las prioridades podemos indicar qué descuentos queremos aplicar antes que otros o colocar excepciones.
+Amplía las tarifas de FacturaScripts con precios por volumen, descuentos automáticos y cupones, para que cada cliente vea siempre el precio correcto sin tener que calcularlo a mano.
 
-Ejemplos que se pueden conseguir con este plugin:
-- Descuento del 5% para todas las compras de un cliente concreto.
-- Descuento del 10% para todas las compras de un grupo de clientes, excepto en la familia BOX, que será del 2%.
-- Descuento general del 7% para todas las ventas durante el black friday.
-- Descuento del 20% para las ventas del producto 123 hasta final de mes.
-- Descuento del 15% para el cliente Pepe cuando compra el producto 222.
+## Descuentos automáticos
 
-Este plugins añade la sección de precios en los productos. Desde esta sección puede modificar los precios y tarifas de las variantes del producto.
+Crea descuentos de venta y deja que se apliquen solos al añadir las líneas:
 
-Además este plugin amplia las opciones de tarifas de venta. Las tarifas en FacturaScripts son fórmulas para calcular precios de venta distintos al general.
-- Permite definir reglas distintas por familias. Por ejemplo, podemos indicar que para la familia 123 queremos un descuento del 5%, mientras que para el resto queremos un 10%.
-- Permite definir precios fijos por tarifa en productos.
-- Permite indicar los precios finales con impuestos incluidos, es decir, podemos indicar que queremos que un producto se venda a 10€. El precio sin IVA se calculará automáticamente.
+- Por cliente, grupo de clientes, familia, producto o generales.
+- Con fechas de inicio y fin, para campañas y promociones.
+- Acumulables o excluyentes, con prioridad para decidir cuál manda y definir excepciones.
+
+**Ejemplos:** un 5 % a un cliente concreto; un 10 % a un grupo, salvo la familia BOX que lleva un 2 %; un 7 % general durante las rebajas; un 20 % en un producto hasta fin de mes.
+
+## Cupones de descuento
+
+Convierte cualquier descuento en un cupón con código, que solo se aplica cuando alguien lo introduce en el documento:
+
+- Vigencia por fechas y límite de usos, tanto global como por cliente.
+- Se aplica desde el propio presupuesto, pedido, albarán o factura, con un botón.
+- Listado de los documentos en los que se ha usado cada cupón.
+
+## Precios por volumen
+
+Define escalados de precio por cantidad, en el producto o en la familia: desde 1 unidad un precio, desde 10 otro, desde 100 otro.
+
+- El precio se ajusta solo al añadir la línea y al cambiar la cantidad.
+- Puedes desactivar el recálculo en una línea concreta si quieres fijar el precio a mano.
+
+## Tarifas más potentes
+
+- Reglas de tarifa distintas por familia de productos.
+- Precios fijos por tarifa en cada producto o variante.
+- Introduce el precio final con impuestos incluidos y se calcula solo la base.
+- Pestaña de precios en la ficha del producto, con cambios globales sobre todas las variantes y botones para reiniciar tarifas.
+- Control de qué usuarios pueden ver y editar los precios, por nivel.

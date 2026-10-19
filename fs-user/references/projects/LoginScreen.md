@@ -5,11 +5,11 @@ permalink: loginscreen
 creationdate: 04-04-2025
 lastmod: 26-12-2025
 version: 1.35
-betaversion: 
+betaversion: 0
 mincore: 2025.6
-maxcore: 2026.3
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/LoginScreen

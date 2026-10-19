@@ -3,13 +3,13 @@ idproject: 222
 name: IeOmitelineas
 permalink: ieomitelineas
 creationdate: 31-05-2022
-lastmod: 03-09-2025
-version: 2.2
-betaversion: 
+lastmod: 07-10-2026
+version: 2.3
+betaversion: 0
 mincore: 2025.3
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/IeOmitelineas

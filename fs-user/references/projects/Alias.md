@@ -5,7 +5,7 @@ permalink: alias
 creationdate: 07-07-2026
 lastmod: 07-07-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2025
 maxcore: 2026.3
 compatible: 

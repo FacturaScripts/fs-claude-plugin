@@ -3,7 +3,7 @@ id: 2033
 permalink: los-precios-del-producto
 title: Los precios de los productos
 creationdate: 31-01-2025 19:55:05
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/los-precios-del-producto
 ---
 Cada producto en FacturaScripts tiene al menos una variante, y los precios se asignan a través de estas variantes. Para modificar el precio de un producto, sigue estos pasos:

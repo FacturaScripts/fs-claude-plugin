@@ -3,11 +3,11 @@ idproject: 449
 name: TicketPrinter
 permalink: ticketprinter
 creationdate: 31-05-2025
-lastmod: 18-01-2026
-version: 1.57
-betaversion: 
-mincore: 2025.51
-maxcore: 2025.9
+lastmod: 21-09-2026
+version: 1.58
+betaversion: 0
+mincore: 2026.4
+maxcore: 2026.65
 compatible: POS
 min_php: 8.3
 require: 

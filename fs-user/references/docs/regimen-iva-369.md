@@ -3,7 +3,7 @@ id: 778
 permalink: regimen-iva-369
 title: Régimen IVA
 creationdate: 24-12-2018 00:00:00
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/regimen-iva-369
 ---
 FacturaScripts implementa los regímenes de IVA más utilizados:

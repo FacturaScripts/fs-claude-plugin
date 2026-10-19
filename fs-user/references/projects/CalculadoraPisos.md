@@ -4,12 +4,12 @@ name: CalculadoraPisos
 permalink: calculadorapisos
 creationdate: 11-12-2022
 lastmod: 13-12-2022
-version: 
+version: 0
 betaversion: 1.1
-mincore: 
+mincore: 0
 maxcore: 2022.51
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CalculadoraPisos

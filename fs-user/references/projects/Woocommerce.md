@@ -9,7 +9,7 @@ betaversion: 1.2
 mincore: 2024.5
 maxcore: 2024.92
 compatible: 
-min_php: 
+min_php: 7.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Woocommerce

@@ -5,11 +5,11 @@ permalink: darkmode
 creationdate: 15-10-2020
 lastmod: 15-10-2020
 version: 1
-betaversion: 
-mincore: 
+betaversion: 0
+mincore: 2020.71
 maxcore: 
 compatible: 
-min_php: 
+min_php: 7.1.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/DarkMode

@@ -5,11 +5,11 @@ permalink: extradatafactura
 creationdate: 09-02-2025
 lastmod: 09-07-2026
 version: 1.54
-betaversion: 
+betaversion: 0
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.65
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/ExtraDataFactura

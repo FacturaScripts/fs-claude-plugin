@@ -5,9 +5,9 @@ permalink: recordatorioimpagos
 creationdate: 29-05-2026
 lastmod: 09-07-2026
 version: 1.31
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

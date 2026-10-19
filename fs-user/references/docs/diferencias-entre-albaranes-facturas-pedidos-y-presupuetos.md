@@ -3,42 +3,71 @@ id: 1088
 permalink: diferencias-entre-albaranes-facturas-pedidos-y-presupuetos
 title: Diferencias entre Albaranes, Facturas, Pedidos y Presupuestos
 creationdate: 19-03-2022 19:24:30
-lastmod: 09-04-2026
+lastmod: 04-09-2026
 url: https://facturascripts.com/publicaciones/diferencias-entre-albaranes-facturas-pedidos-y-presupuetos
 ---
-FacturaScripts te permite gestionar Albaranes, Facturas, Pedidos y Presupuestos sin necesidad de instalar nada, tanto en **compras** como en **ventas**.
+FacturaScripts permite trabajar con presupuestos, pedidos, albaranes y facturas tanto en compras como en ventas. Cada documento representa una fase distinta de la operación y puede generar el siguiente sin tener que volver a escribir las líneas.
 
-## Presupuestos
-El presupuesto es el punto de partida para muchas empresas. Si un cliente o posible cliente solicita el precio de un servicio o material, lo habitual es crear un presupuesto de venta (menú **Ventas &gt; Presupuestos**). Los presupuestos **no modifican el stock** del almacén; no se reserva nada, simplemente se ofrece un precio.
+## 📝 Presupuestos
 
-A los presupuestos se les puede asignar una **fecha de vencimiento**, a partir de la cual caducan. Esta fecha se puede asignar en el campo de vencimiento en los detalles del presupuesto y también se puede configurar de forma global en el panel de control.
+Un presupuesto comunica precios y condiciones a un cliente o recoge una oferta de un proveedor. No confirma todavía la operación y, con los estados predeterminados, **no modifica el stock**.
 
-![Fin oferta presupuesto](https://i.imgur.com/4RpvrpU.png)
+Los presupuestos de venta pueden tener una **fecha de caducidad**. Puedes indicar el plazo predeterminado en **Administrador → Panel de control** y cambiar la fecha en cada presupuesto. Al abrir el listado, los presupuestos vencidos pasan al estado de caducado.
 
-Los presupuestos se pueden rechazar o **convertir en pedidos** o facturas simplemente cambiando su estado. También se pueden agrupar o dividir.
+Cuando se acepta un presupuesto, puedes convertirlo en pedido o directamente en factura mediante sus estados.
 
-![Aprobar presupuesto](https://i.imgur.com/WUI1dah.png)
+- [Cómo hacer un presupuesto de venta](https://facturascripts.com/publicaciones/tu-primer-presupuesto-de-venta-351)
+- [Cómo aprobar parcialmente un presupuesto](https://facturascripts.com/publicaciones/como-aprobar-parcialmente-un-presupuesto)
 
-## Pedidos
-Se considera un pedido cuando el cliente muestra una clara intención de compra y se establece un compromiso (menú **Ventas &gt; Pedidos**). Los pedidos **reservan stock**. Cuando se trata de pedidos de compra, las cantidades se suman al campo **pendiente de recibir** del stock del producto. En el caso de los pedidos de venta, las cantidades se suman al campo **reservada**.
+## 🛒 Pedidos
 
-![Cantidad reservada y pendiente de recepción](https://i.imgur.com/2lVM5Op.png)
+Un pedido refleja un compromiso de compra o venta. Con los estados predeterminados:
 
-Los pedidos se pueden cancelar o **convertir en albaranes** o facturas cambiando su estado. Junto a este menú tenemos acceso al presupuesto asociado a este pedido. También se pueden agrupar o dividir.
+- Un **pedido de venta** suma unidades a **Reservado**: siguen físicamente en el almacén, pero ya están comprometidas con un cliente.
+- Un **pedido de compra** suma unidades a **Pendiente de recibir**: todavía no han llegado, pero esperas recibirlas del proveedor.
 
-![Aprobar pedido](https://i.imgur.com/fDuJYKo.png)
+Los pedidos se pueden cancelar o convertir en albaranes o facturas.
 
-## Albaranes
-El albarán es un documento que acredita la **entrada o salida de material del almacén** (menú **Ventas &gt; Albaranes** o **Menú Compras &gt; Albaranes**). Los albaranes de compra **aumentan el stock**, y los de venta **disminuyen el stock** ya que corresponden a material que sale del almacén.
+- [Cómo hacer un pedido de venta](https://facturascripts.com/publicaciones/como-hacer-un-pedido-de-venta)
+- [Cómo registrar un pedido de compra](https://facturascripts.com/publicaciones/como-registrar-un-pedido-de-compra)
 
-Los albaranes pueden ser devueltos o **convertidos en facturas**, y también se pueden agrupar o dividir. Junto a este menú tenemos acceso al pedido asociado a este albarán.
+## 📦 Albaranes
 
-![Aprobar albarán](https://i.imgur.com/ClFiqKy.png)
+Un albarán acredita la entrega o recepción de mercancía. Con los estados predeterminados, el albarán de venta **resta existencias** y el de compra **suma existencias**.
 
-## Facturas
-Las facturas (menú **Ventas &gt; Facturas** o **Menú Compras &gt; Facturas**) actúan de manera similar a los albaranes respecto al stock. Las facturas de compra **aumentan el stock**, mientras que las de venta **disminuyen el stock**. Aquí también tenemos  acceso al albarán asociado a esta factura.
+Después puedes convertir uno o varios albaranes en una factura. Si agrupas varios, obtendrás una sola factura con las cantidades pendientes.
 
-![Ejempo factura](https://i.imgur.com/TgxTXmN.png)
+- [Cómo hacer un albarán de venta](https://facturascripts.com/publicaciones/como-hacer-un-albaran-de-venta)
+- [Cómo registrar un albarán de compra](https://facturascripts.com/publicaciones/registrar-un-albaran-de-compra)
+- [Cómo agrupar albaranes en una sola factura](https://facturascripts.com/publicaciones/como-agrupar-albaranes-en-una-sola-factura)
 
-## Estados y Transiciones
-Puedes configurar los estados de cada tipo de documento y las transiciones que se pueden realizar desde el **panel de control**, en la [sección Estados](https://facturascripts.com/publicaciones/estados-del-documento-680).
+## 🧾 Facturas
+
+La factura es el documento fiscal de la operación y permite controlar cobros o pagos mediante recibos. Con los estados predeterminados, las facturas de venta restan stock y las de compra lo suman.
+
+Si la factura procede de un albarán, el programa traspasa el movimiento: el documento de destino actualiza el stock y no se cuenta dos veces.
+
+- [Cómo hacer una factura de venta](https://facturascripts.com/publicaciones/como-hacer-una-factura-de-venta)
+- [Cómo registrar una factura de compra](https://facturascripts.com/publicaciones/como-registrar-una-factura-de-compra)
+
+## 🔄 El papel de los estados
+
+El efecto real de un documento no depende solo de que sea un presupuesto, pedido, albarán o factura: lo determina su **estado**. Cada estado indica si el documento es editable, cómo actualiza el stock y qué tipo de documento puede generar.
+
+Los valores de **Actualizar stock** son:
+
+- **No hacer nada**: no altera ninguna cantidad.
+- **Reservar**: aumenta la cantidad reservada.
+- **Prever**: aumenta la cantidad pendiente de recibir.
+- **Restar**: reduce las existencias físicas.
+- **Sumar**: aumenta las existencias físicas.
+
+Puedes consultar y configurar los estados en **Administrador → Panel de control → Estados**. Si los personalizas, el comportamiento puede ser distinto del descrito arriba.
+
+Para ampliar la información, consulta [los estados del documento](https://facturascripts.com/publicaciones/estados-del-documento-680) y [el stock del producto](https://facturascripts.com/publicaciones/el-stock-de-productos).
+
+## 🪄 Agrupar, dividir o aprobar parcialmente
+
+Desde los listados de presupuestos, pedidos y albaranes puedes seleccionar uno o varios documentos y abrir **Acciones → Agrupar o dividir**. El asistente permite combinar documentos compatibles o generar solamente parte de sus líneas.
+
+Consulta [el asistente para agrupar o partir documentos](https://facturascripts.com/publicaciones/el-asistente-para-agrupar-o-partir-documentos).

@@ -3,7 +3,7 @@ id: 792
 permalink: tu-primer-asiento-463
 title: Cómo hacer un asiento contable
 creationdate: 24-12-2018 00:00:00
-lastmod: 22-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/tu-primer-asiento-463
 ---
 Puedes ver y crear asientos contables desde el menú Contabilidad → Asientos contables. Pulsa el botón `Nuevo` y, en la siguiente pantalla, selecciona la fecha y escribe el concepto. Para añadir líneas escribe la subcuenta que quieras o pulsa el botón para mostrar el listado de subcuentas y elegir una. No olvides guardar.
@@ -23,7 +23,7 @@ El siguiente paso es añadir las líneas. Sitúate en el campo `Subcuenta` y esc
 
 ![Selección de subcuenta desde el listado](https://i.imgur.com/twPylbd.png)
 
-Si quieres importar un plan de cuentas, consulta la sección de documentación Configuración → Plan de cuentas.
+Si aún no tienes cuentas ni subcuentas, o quieres importar un plan de cuentas, consulta [el plan contable](https://facturascripts.com/publicaciones/plan-contable-442). Sin plan contable no se pueden crear asientos.
 
 Solo queda completar el `Debe` o el `Haber` y repetir con la siguiente línea, igual que con la primera. Verás que el sistema completa automáticamente el importe contrario a partir de la primera línea.
 
@@ -50,3 +50,11 @@ El orden que se aplica es:
 - Como último criterio de desempate, el identificador interno del asiento.
 
 Ten en cuenta que **solo se pueden renumerar los ejercicios abiertos**. Si el ejercicio está cerrado, el proceso no hace nada y te avisa de ello. La renumeración se realiza dentro de una transacción, así que si algo falla no se aplica ningún cambio.
+
+## Ver también
+
+- [El plan contable](https://facturascripts.com/publicaciones/plan-contable-442)
+- [Los conceptos predefinidos](https://facturascripts.com/publicaciones/los-conceptos-predefinidos)
+- [Los diarios contables](https://facturascripts.com/publicaciones/los-diarios-contables)
+- [Los ejercicios contables](https://facturascripts.com/publicaciones/los-ejercicios-contables)
+- [No se actualizan los saldos de las cuentas](https://facturascripts.com/publicaciones/no-se-actualizan-los-saldos-de-las-cuentas)

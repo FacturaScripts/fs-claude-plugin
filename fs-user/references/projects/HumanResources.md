@@ -3,11 +3,11 @@ idproject: 114
 name: HumanResources
 permalink: humanresources
 creationdate: 16-02-2021
-lastmod: 10-08-2026
-version: 2.15
-betaversion: 2.16
-mincore: 2026
-maxcore: 2026.6
+lastmod: 10-10-2026
+version: 2.19
+betaversion: 2.18
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

@@ -3,7 +3,7 @@ id: 2623
 permalink: registrar-un-albaran-de-compra
 title: Registrar un albarán de compra
 creationdate: 10-03-2026 17:49:47
-lastmod: 10-07-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/registrar-un-albaran-de-compra
 ---
 Un albarán de compra es un albarán que registra la entrada de productos o servicios comprados a un proveedor. Puedes añadir albaranes de compra desde el menú `Compras → Albaranes`.

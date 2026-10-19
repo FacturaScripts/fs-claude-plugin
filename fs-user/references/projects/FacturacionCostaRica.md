@@ -6,10 +6,10 @@ creationdate: 18-01-2019
 lastmod: 18-08-2019
 version: 1
 betaversion: 1
-mincore: 
+mincore: 2018.06
 maxcore: 
 compatible: 
-min_php: 
+min_php: 7.0.8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FacturacionCostaRica

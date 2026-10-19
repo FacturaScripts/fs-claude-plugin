@@ -9,7 +9,7 @@ betaversion: 1.1
 mincore: 2021
 maxcore: 2026.2
 compatible: 
-min_php: 
+min_php: 8
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/DocumentosSinIVA

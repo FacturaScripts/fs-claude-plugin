@@ -5,7 +5,7 @@ permalink: zonascomerciales
 creationdate: 06-01-2025
 lastmod: 22-09-2025
 version: 2
-betaversion: 
+betaversion: 0
 mincore: 2025
 maxcore: 2026.41
 compatible: 

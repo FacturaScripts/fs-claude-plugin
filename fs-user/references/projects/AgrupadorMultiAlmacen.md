@@ -4,12 +4,12 @@ name: AgrupadorMultiAlmacen
 permalink: agrupadormultialmacen
 creationdate: 25-10-2021
 lastmod: 17-07-2026
-version: 1.7
-betaversion: 1.8
-mincore: 2026
-maxcore: 2026.5
+version: 1.8
+betaversion: 1.4
+mincore: 2026.4
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: StockAvanzado
 require_php: 
 url: https://facturascripts.com/plugins/AgrupadorMultiAlmacen

@@ -5,9 +5,9 @@ permalink: facturapdf1
 creationdate: 18-02-2025
 lastmod: 31-08-2026
 version: 2.6
-betaversion: 
+betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Verifactu
 min_php: 8
 require: 

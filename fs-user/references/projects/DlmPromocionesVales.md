@@ -5,11 +5,11 @@ permalink: dlmpromocionesvales
 creationdate: 15-12-2023
 lastmod: 05-02-2025
 version: 2.3
-betaversion: 
+betaversion: 0
 mincore: 2023.09
 maxcore: 2024.94
 compatible: 
-min_php: 
+min_php: 7.3
 require: Tickets
 require_php: 
 url: https://facturascripts.com/plugins/DlmPromocionesVales

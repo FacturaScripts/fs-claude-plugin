@@ -7,9 +7,9 @@ lastmod: 17-07-2026
 version: 3.9
 betaversion: 3.5
 mincore: 2026
-maxcore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: Comisiones
 require_php: 
 url: https://facturascripts.com/plugins/DobleAgente

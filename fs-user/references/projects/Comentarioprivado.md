@@ -3,18 +3,18 @@ idproject: 482
 name: Comentarioprivado
 permalink: comentarioprivado
 creationdate: 22-11-2025
-lastmod: 15-08-2026
+lastmod: 07-10-2026
 version: 2
-betaversion: 
+betaversion: 2.1
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Comentarioprivado
 ---
-Añade un campo de texto llamado Comentario privado en el pie de cada documento de venta y de compra: Albaranes, Facturas, Pedidos y Presupuestos. Este nuevo campo de comentario creado es para uso interno y no es imprimible en el mismo documento generado, al contrario que el campo Observaciones que es imprimible e integrado en el documento por defecto.
+Añade un campo de texto llamado Comentario privado en el pie de cada documento de venta y de compra: Albaranes, Facturas, Pedidos y Presupuestos, editable incluso en documentos cerrados. Este nuevo campo de comentario creado es para uso interno y no es imprimible en el mismo documento generado,  al contrario que el campo Observaciones que es imprimible e integrado en el documento por defecto.
 
 Puede servir para realizar anotaciones referente al documento:
 - Falta servir X

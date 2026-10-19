@@ -3,7 +3,7 @@ id: 2627
 permalink: como-registrar-una-compra-intracomunitaria
 title: Cómo registrar una compra intracomunitaria
 creationdate: 11-03-2026 11:57:22
-lastmod: 16-03-2026
+lastmod: 21-09-2026
 url: https://facturascripts.com/publicaciones/como-registrar-una-compra-intracomunitaria
 ---
 Una adquisición intracomunitaria de bienes (AIB) se produce cuando compras mercancía a un proveedor de otro país de la Unión Europea. En estas operaciones el proveedor te factura sin IVA (está exento en su país por entrega intracomunitaria) y tú, como comprador, debes autoliquidar el IVA español mediante el mecanismo de autorepercusión.
@@ -13,13 +13,17 @@ Una adquisición intracomunitaria de bienes (AIB) se produce cuando compras merc
 - Tanto tú como tu proveedor debéis estar dados de alta en el ROI (Registro de Operadores Intracomunitarios) y disponer de un NIF-IVA válido.
 - El proveedor debe figurar en FacturaScripts con su NIF intracomunitario (por ejemplo, DE123456789 para un proveedor alemán).
 
+![NIF](https://i.imgur.com/5nlYh21.png)
+
 ## Crear la factura en FacturaScripts
 
-1. Ve a Contabilidad &gt; Facturas de proveedor y pulsa Nuevo.
+1. Ve a **Compras → Facturas** y pulsa **Nuevo**.
 2. Selecciona el proveedor comunitario y completa los datos habituales (serie, fecha, forma de pago).
 3. En el campo Operación, selecciona Intracomunitaria.
 4. Añade las líneas de la factura con el importe y el impuesto que corresponda (por ejemplo, IVA 21%).
 5. Guarda la factura.
+
+![Factura intracomunitaria](https://i.imgur.com/O7IowBs.png)
 
 ### Qué hace FacturaScripts automáticamente
 
@@ -30,8 +34,14 @@ Al seleccionar la operación intracomunitaria en una factura de compra, FacturaS
 - Elimina el recargo de equivalencia si lo hubiera, ya que no aplica en operaciones intracomunitarias.
 - Anula el IVA en los totales del documento, de modo que el total de la factura es igual al neto (base imponible). No pagas IVA al proveedor.
 
+![Linea factura intracomunitaria](https://i.imgur.com/xCmu1Pv.png)
+
+![Pie de factura intracomunitaria](https://i.imgur.com/AU3a3Z0.png)
+
 ### Asiento contable
  Al aprobar la factura, FacturaScripts genera automáticamente el asiento con la autorepercusión del IVA:
+ 
+ ![Asiento intracomunitaria](https://i.imgur.com/ODrkLH8.png)
 
 ### Factura con varios tipos de IVA
 Es posible que una misma factura contenga líneas con distintos tipos de IVA (por ejemplo, unas al 21% y otras al 10%). FacturaScripts calcula la autorepercusión de cada tipo por separado y neutraliza cada uno de ellos en los totales del documento.

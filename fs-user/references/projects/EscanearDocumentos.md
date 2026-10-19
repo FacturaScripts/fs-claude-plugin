@@ -7,9 +7,9 @@ lastmod: 16-07-2026
 version: 3.9
 betaversion: 3.5
 mincore: 2026.1
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/EscanearDocumentos

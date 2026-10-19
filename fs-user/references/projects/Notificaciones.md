@@ -7,9 +7,9 @@ lastmod: 06-05-2026
 version: 2.2
 betaversion: 1.8
 mincore: 2026.1
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: RemesasSEPA,InformeSII,Verifactu,Ticketbai,TPVneo,Modelo111,Modelo115,Modelo130,Modelo303,Modelo347
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Notificaciones

@@ -7,9 +7,9 @@ lastmod: 18-05-2026
 version: 3.6
 betaversion: 3.1
 mincore: 2025.6
-maxcore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo347

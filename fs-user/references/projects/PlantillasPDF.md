@@ -3,11 +3,11 @@ idproject: 47
 name: PlantillasPDF
 permalink: plantillaspdf
 creationdate: 12-04-2019
-lastmod: 19-06-2026
-version: 6.71
-betaversion: 6.51
-mincore: 2026.1
-maxcore: 2026.65
+lastmod: 18-09-2026
+version: 6.81
+betaversion: 6.8
+mincore: 2026.4
+maxcore: 2026.7
 compatible: Verifactu,Ticketbai,Proyectos,RemesasSEPA
 min_php: 8.1
 require: 

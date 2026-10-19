@@ -5,7 +5,7 @@ permalink: tiemposdeentrega
 creationdate: 21-02-2026
 lastmod: 21-02-2026
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2025.6
 maxcore: 2026.41
 compatible: 

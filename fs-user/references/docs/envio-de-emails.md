@@ -3,7 +3,7 @@ id: 876
 permalink: envio-de-emails
 title: Envío de emails
 creationdate: 17-12-2020 23:09:58
-lastmod: 17-04-2026
+lastmod: 03-09-2026
 url: https://facturascripts.com/publicaciones/envio-de-emails
 ---
 Puede configurar el envío de emails en FacturaScripts desde el **menú Administrador**, **Email**. En el cual podemos usar diferentes proveedores de email, donde recibir la respuesta de email e incluso configurar email con copia. A continuación encontrará la configuración necesaria para los principales proveedores de email.

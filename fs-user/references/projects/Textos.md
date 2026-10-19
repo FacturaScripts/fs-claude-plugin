@@ -7,7 +7,7 @@ lastmod: 02-09-2026
 version: 4.22
 betaversion: 3.02
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: Anticipos,Proyectos,Servicios,Tickets
 min_php: 7.4
 require: 
@@ -23,3 +23,5 @@ En la ventana Modal también disponemos de dos cuadros de búsqueda, para una r�
 2- Localizar por el Contenido del Texto.
 
 También se puede acceder desde su propio menú en la barra de menú general.
+
+**AVISO**: *Desde el 15-10-2026 en adelante, el plazo mínimo de suscripción pasa de 6 a 12 meses con el consiguiente ajuste en el importe*

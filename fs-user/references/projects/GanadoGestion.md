@@ -9,7 +9,7 @@ betaversion: 5
 mincore: 2022
 maxcore: 2023.05
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/GanadoGestion

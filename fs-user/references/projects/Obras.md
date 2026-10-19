@@ -5,11 +5,11 @@ permalink: obras
 creationdate: 30-06-2026
 lastmod: 30-06-2026
 version: 1.02
-betaversion: 
+betaversion: 0
 mincore: 2025
 maxcore: 2026.2
 compatible: 
-min_php: 
+min_php: 8
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Obras

@@ -5,11 +5,11 @@ permalink: fsvarios
 creationdate: 28-05-2021
 lastmod: 15-05-2022
 version: 21.08
-betaversion: 
-mincore: 
+betaversion: 0
+mincore: 2022.06
 maxcore: 2022.6
 compatible: 
-min_php: 
+min_php: 7.2.5
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/FSVarios

@@ -3,13 +3,13 @@ idproject: 61
 name: Proyectos
 permalink: proyectos
 creationdate: 26-08-2019
-lastmod: 12-08-2026
+lastmod: 24-09-2026
 version: 5.2
-betaversion: 4.51
+betaversion: 5.21
 mincore: 2026.5
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: FacturasProgramadas
-min_php: 
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Proyectos

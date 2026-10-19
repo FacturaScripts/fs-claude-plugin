@@ -3,11 +3,11 @@ idproject: 682
 name: MaxSign
 permalink: maxsign
 creationdate: 05-07-2026
-lastmod: 29-08-2026
-version: 1.5
-betaversion: 
+lastmod: 06-10-2026
+version: 1.8
+betaversion: 0
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.7
 compatible: 
 min_php: 8.1
 require: 

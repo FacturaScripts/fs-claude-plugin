@@ -7,9 +7,9 @@ lastmod: 14-04-2026
 version: 2.81
 betaversion: 2.7
 mincore: 2025
-maxcore: 2026.3
+maxcore: 2026.7
 compatible: 
-min_php: 
+min_php: 8
 require: Informes
 require_php: 
 url: https://facturascripts.com/plugins/DiarioAgrupado

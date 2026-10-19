@@ -5,11 +5,11 @@ permalink: plancontablecooperativasesp
 creationdate: 11-07-2021
 lastmod: 02-07-2022
 version: 1
-betaversion: 
+betaversion: 0
 mincore: 2021.32
 maxcore: 2023.16
 compatible: 
-min_php: 
+min_php: 7.1.3
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/PlanContableCooperativasESP
