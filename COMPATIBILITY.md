@@ -6,6 +6,7 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 |---|---|---|---|
 | Skills | Nativas | Nativas | `*/skills/*/SKILL.md` |
 | Agentes especializados | Agentes Markdown nativos | Perfiles leídos por las skills; delegación genérica opcional | `*/agents/*.md` |
+| Scripts y referencias desde skills y perfiles | `${CLAUDE_PLUGIN_ROOT}` sustituida en el contenido; no existe en Bash | Rutas relativas al `SKILL.md` o al perfil | `fs-dev/scripts/`, `*/references/` |
 | Modelo de cada perfil | Campo `model` del agente | Solicitado por la skill al delegar; sin delegación, el modelo de la sesión | Tabla de equivalencias de este documento |
 | Inicio de sesión | `SessionStart` | `SessionStart` | `*/hooks/hooks.json` |
 | Cambio de directorio | Requiere sesión nueva; `CwdChanged` no añade su salida al contexto | Requiere hilo nuevo; el evento no existe | Solo `SessionStart` |
@@ -16,6 +17,8 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 ## Automatización de ediciones
 
 El hook `PostToolUse` normaliza los formatos de entrada de ambos hosts. Procesa todos los archivos de un parche en orden estable y ejecuta primero la actualización de copyright y después la ordenación de la clase PHP. De este modo no hay dos hooks escribiendo simultáneamente el mismo archivo.
+
+El hook nunca bloquea: sale siempre con código 0 y deja los errores en stderr, porque Codex no documenta la salida 1 en `PostToolUse`. Cuando modifica un archivo, devuelve `hookSpecificOutput.additionalContext` en ambos hosts para que el modelo lo relea antes de volver a editarlo. Un archivo cuenta como nuevo cuando `Write` informa `tool_response.type: "create"` (Claude Code) o el parche usa `*** Add File:` (Codex).
 
 En Codex, los hooks instalados deben revisarse desde `/hooks`. Cualquier cambio en `hooks.json` invalida la confianza anterior. El modificador de clase solo actúa sobre archivos PHP con namespace `FacturaScripts\\`.
 
@@ -28,6 +31,17 @@ Las referencias viven fuera de `agents/` para que ningún host las interprete co
 - `fs-user/references/projects/`: catálogo de extensiones.
 
 Los agentes de Claude Code precargan la skill `docs-expert`. En Codex, cada skill especializada lee el mismo perfil Markdown y puede aplicarlo en el hilo principal o proporcionárselo a un subagente genérico.
+
+Hay dos excepciones al patrón «perfil = skill del mismo nombre»:
+
+- `docs-expert`: la skill contiene las instrucciones completas y el agente de Claude Code la precarga; la skill no lee el perfil.
+- `compatibility-auditor`: su skill se llama `verificar-min-version`, que ejecuta los scripts y lee el perfil para interpretar el informe.
+
+## Scripts y referencias desde skills y perfiles
+
+Claude Code sustituye `${CLAUDE_PLUGIN_ROOT}` en el cuerpo de skills y agentes al cargarlos, pero la variable no existe en el entorno de los comandos que el modelo ejecuta con Bash, y un perfil abierto como archivo conserva el texto literal. Codex no sustituye la variable en ningún caso.
+
+Por eso las skills y los perfiles indican las rutas de forma relativa al propio archivo: desde un `SKILL.md`, `../../scripts/` y `../../references/docs/`; desde un perfil de `agents/`, `../scripts/` y `../references/docs/`. `${CLAUDE_PLUGIN_ROOT}` solo se cita como equivalente en Claude Code. El comando que se ejecuta lleva la ruta absoluta ya resuelta y entre comillas.
 
 ## Modelos de los perfiles
 

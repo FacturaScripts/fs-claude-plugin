@@ -13,7 +13,10 @@ Plugin para Claude Code y Codex orientado a desarrolladores que crean o mantiene
 
 ## Skills disponibles
 
-Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crear-plugin`, `/fs-dev:analizar-bug`.
+Las skills se activan solas cuando la petición encaja con su descripción. Para invocarlas explícitamente:
+
+- **Claude Code**: escribe `/` seguido de su nombre, por ejemplo `/fs-dev:crear-plugin` o `/fs-dev:analizar-bug`.
+- **Codex**: elígela en el selector de `/skills` o menciónala en el mensaje escribiendo `$` seguido de su nombre.
 
 ### Creación de estructura
 
@@ -53,7 +56,7 @@ Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crea
 |---|---|
 | `fs-dev:fullstack-developer` | Desarrollo completo end-to-end: modelo + tabla + controlador + vista + extensiones + Init.php |
 | `fs-dev:api-rest` | Explica la API REST, autenticación por token y cómo añadir endpoints personalizados |
-| `fs-dev:api-designer` | Diseña y crea nuevos endpoints REST delegando al agente especializado |
+| `fs-dev:api-designer` | Diseña y crea nuevos endpoints REST con el perfil especializado (agente nativo en Claude Code; perfil aplicado directamente en Codex) |
 
 ### Documentación y análisis
 
@@ -72,12 +75,13 @@ Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crea
 |---|---|
 | `fs-dev:skill-commit` | Buenas prácticas para commits claros, atómicos y bien descritos |
 | `fs-dev:skill-pull-request` | Crea pull requests bien estructurados con resumen y plan de pruebas |
+| `fs-dev:skill-notice` | Redacta en el chat un changelog o noticia de cambios a partir de un rango de commits o versiones |
 
 ---
 
 ## Agentes especializados
 
-En Claude Code, estos archivos se cargan como agentes nativos. En Codex, las skills leen los mismos archivos como perfiles de especialidad y los aplican directamente o los entregan a un subagente genérico cuando procede.
+En Claude Code, estos archivos se cargan como agentes nativos y las skills de perfil (`api-designer`, `testing-expert`, etc.) delegan en ellos. En Codex, las skills leen los mismos archivos como perfiles de especialidad y los aplican directamente o los entregan a un subagente genérico cuando procede.
 
 | Agente | Modelo en Claude Code | Modelo en Codex al delegar | Rol |
 |---|---|---|---|
@@ -108,24 +112,30 @@ Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto co
 
 ## Scripts automáticos
 
-El plugin ejecuta un hook secuencial tras cada escritura o edición. Acepta `Write`/`Edit` de Claude Code y `apply_patch` de Codex, incluso cuando un parche modifica varios archivos.
+El plugin ejecuta un hook `PostToolUse` secuencial tras cada escritura o edición: primero actualiza el copyright y después ordena la clase. Acepta `Write`/`Edit` de Claude Code y `apply_patch` de Codex (con `tool_input.command` como texto o como lista), incluso cuando un parche modifica varios archivos. Procesa archivos `.php`, `.xml` y `.twig`.
+
+- **Nunca bloquea:** sale siempre con código 0 y deja los errores y avisos en stderr.
+- **Avisa al modelo:** si modifica un archivo, devuelve `hookSpecificOutput.additionalContext` para que el modelo lo relea antes de volver a editarlo. Si no cambia nada, no escribe en stdout.
+- **Respeta el formato:** conserva los finales de línea (LF o CRLF) y el BOM, y no modifica los archivos que no son UTF-8 válido.
 
 ### Actualización de copyright
 
-Actualiza el año en las cabeceras de copyright de los archivos PHP, XML y Twig que hayas modificado. El formato estándar de FacturaScripts es:
+Actualiza el año de la cabecera de copyright de los archivos modificados. El formato estándar de FacturaScripts es:
 
 ```php
  * This file is part of FacturaScripts
- * Copyright (C) 2013-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * Copyright (C) 2013-2026 Carlos Garcia Gomez <carlos@facturascripts.com>
 ```
 
-El script detecta el año actual y actualiza el rango si es necesario, sin modificar el resto de la cabecera.
+- Solo cambia la primera línea `Copyright (C)` del primer bloque de comentario (`/* */`, `<!-- -->` o `{# #}`), sin tocar otros autores ni cadenas del código.
+- Amplía el rango hasta el año actual y admite variantes como `2023, Autor`, rangos con espacios, líneas sin autor o sin año y listas de años (amplía el último). Los años futuros no se tocan.
+- Un archivo nuevo recibe solo el año actual: en Claude Code, cuando `Write` crea el archivo (`tool_response.type` es `create`); en Codex, con `*** Add File:`. Reescribir un archivo existente conserva su rango.
 
 Solo actúa sobre archivos de FacturaScripts: los que declaran un namespace `FacturaScripts\\` o están dentro de un plugin (carpeta con `facturascripts.ini`) o de una instalación del core. Los archivos de otros proyectos, como Laravel o módulos de terceros, no se modifican aunque el plugin esté activo globalmente.
 
 ### Ordenación de miembros de clase
 
-Ordena automáticamente los miembros de las clases PHP según el estándar de FacturaScripts:
+Ordena los miembros de las clases PHP según el estándar de FacturaScripts:
 
 1. Traits usados por la clase
 2. Constantes
@@ -135,23 +145,31 @@ Ordena automáticamente los miembros de las clases PHP según el estándar de Fa
 6. Métodos públicos
 7. Métodos protegidos y privados
 
-Cada grupo se ordena alfabéticamente. La transformación solo actúa sobre clases con namespace `FacturaScripts\\`.
+Cada grupo se ordena alfabéticamente. La transformación solo actúa sobre clases con namespace `FacturaScripts\\` y es conservadora:
 
-Esto garantiza que el código siempre siga el mismo orden, facilitando la revisión y la consistencia entre plugins.
+- Reconoce `final const`, constantes tipadas, `var` y `use A, B { … }`, y mantiene cada comentario junto a su miembro, incluidos los de la línea de `{` y los posteriores al último miembro.
+- No reordena si encuentra algún miembro que no reconoce, y no toca los `enum` ni las clases anónimas.
+- No escribe si el resultado no conserva exactamente los mismos caracteres visibles que el original.
 
 ### Auditoría de `min_version`
 
 `scripts/check-min-version.py` no es un hook: se ejecuta a petición, desde la skill `fs-dev:verificar-min-version` o a mano.
 
 ```bash
-python3 fs-dev/scripts/check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json]
+python3 fs-dev/scripts/check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json] [--include-tests] [--min-confidence alta|media|baja] [--plugins-dir <dir>] [--max-version <versión>] [--workers <n>]
 ```
 
-Extrae del plugin las clases, llamadas estáticas, métodos, propiedades y puntos de extensión `pipe` del core, y comprueba en qué etiqueta de versión aparece cada uno (`git grep` con búsqueda por bisección sobre el repositorio del core). Con eso calcula el `min_version` real, avisa de los símbolos eliminados en versiones recientes y devuelve `0` si el plugin cumple, `1` si no y `2` si falta el clon del core.
+- `--include-tests`: analiza también `Test/`, excluido por defecto.
+- `--min-confidence`: descarta los símbolos de confianza inferior a la indicada.
+- `--plugins-dir`: directorio `Plugins/` donde atribuir los símbolos de otros plugins y auditar los de `require`.
+- `--max-version`: versión del core que el plugin debe soportar; incumple si usa algo retirado en ella o antes.
+- `--workers`: consultas simultáneas a git (8 por defecto).
+
+Extrae del plugin las clases (incluidos los `use` agrupados con llaves), llamadas estáticas (también con el nombre completo de la clase), métodos, propiedades y puntos de extensión `pipe` del core, y comprueba en qué etiqueta de versión aparece cada uno (`git grep` con búsqueda por bisección sobre el repositorio del core). Con eso calcula el `min_version` real, avisa de los símbolos eliminados en versiones recientes y devuelve `0` si el plugin cumple, `1` si no y `2` ante un error de configuración (la ruta no contiene `facturascripts.ini` o faltan el clon del core o git) o un error inesperado.
 
 Para no confundir el código del core con el ajeno, descarta los campos que el plugin declara en sus XML de tabla y los métodos de clases nativas de PHP, y atribuye a su origen los símbolos que aportan otros plugins instalados (prefiriendo los de `require`) o las librerías de `vendor/`. Un `pipe('X')` que no existe en el core y que nada del plugin invoca se señala aparte: esa extensión probablemente nunca llega a ejecutarse.
 
-La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
+La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
 
 ### Auditoría de seguridad
 
@@ -163,9 +181,11 @@ python3 fs-dev/scripts/check-security.py <ruta_plugin> [--json] [--min-severity 
 
 Enumera lo que conviene conocer antes de confiar en un plugin: ejecución de comandos del sistema, código dinámico u ofuscado, conexiones de red salientes con su destino, scripts cargados desde terceros, lectura de credenciales o datos de la instalación, escritura de código o de la configuración del servidor, controladores sin autenticación, concesión de privilegios, credenciales escritas en el código y archivos que el servidor podría ejecutar fuera de FacturaScripts (por ejemplo, PHP dentro de `Assets/`). Señala como posible envío de datos los archivos que leen datos sensibles y abren una conexión, e inventaría los dominios externos que menciona el código.
 
-Antes de buscar llamadas elimina comentarios y cadenas, de modo que un `exec` en un comentario, en un texto o como nombre de método no cuenta. Cada hallazgo indica su severidad y cuándo se ejecuta: al instalar (`Init::update()`), en cada petición (`Init::init()`), en cron, desde un controlador público o en el navegador. Los scripts que abortan fuera de `php-cli`, como el `Translation/updater.php` que genera fsmaker, se rebajan un nivel. `Test/` y `vendor/` se excluyen salvo que se pidan.
+Antes de buscar llamadas elimina comentarios y cadenas, de modo que un `exec` en un comentario, en un texto o como nombre de método no cuenta. Cada hallazgo indica su severidad y cuándo se ejecuta: al instalar (`Init::update()`), en cada petición (`Init::init()`), en cron, desde un controlador público o en el navegador. Los scripts que abortan fuera de `php-cli`, como el `Translation/updater.php` que genera fsmaker, se rebajan un nivel. Los tests, a cualquier profundidad, y `vendor/` se excluyen salvo que se pidan.
 
-Ninguno de estos comportamientos está prohibido: el informe no decide si el plugin es malicioso. Devuelve `0` si no hay hallazgos de severidad media o alta, `1` si los hay y `2` si la ruta no es válida.
+Analiza también las extensiones PHP no estándar (`.phtml`, `.inc`, `.pht`, `.php3` a `.php8`): dentro de `Assets/`, cualquier PHP o ejecutable es de gravedad alta; fuera, esas extensiones son de gravedad baja. Señala además las llamadas dinámicas (`$var(`, callbacks con una función peligrosa literal) y los `include` construidos con `__DIR__` y una variable.
+
+Ninguno de estos comportamientos está prohibido: el informe no decide si el plugin es malicioso. Devuelve `0` si no hay hallazgos de severidad media o alta, `1` si los hay y `2` si la ruta no es válida o se produce un error inesperado.
 
 ---
 
