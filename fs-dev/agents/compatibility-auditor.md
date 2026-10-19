@@ -43,12 +43,14 @@ Opciones relevantes:
 - `--json` — informe completo en JSON, útil para procesar los símbolos uno a uno.
 - `--include-tests` — analiza también `Test/`, que por defecto se excluye porque usa PHPUnit y no el core.
 - `--min-confidence alta|media|baja` — filtra el ruido: `alta` deja solo clases, llamadas estáticas resueltas, métodos de instancia cuyo receptor tiene tipo conocido y pipes.
-- `--plugins-dir` — directorio `Plugins/` donde buscar los símbolos que aporten otros plugins. Se deduce solo cuando el plugin está instalado.
+- `--plugins-dir` — directorio `Plugins/` donde buscar los símbolos que aporten otros plugins y los plugins declarados en `require`. Se deduce solo cuando el plugin está instalado.
 - `--max-version` — versión del core que el plugin tiene que soportar. Sin ella, los símbolos eliminados se informan pero no cambian el resultado; con ella, cualquiera retirado en esa versión o antes lo hace incumplir.
 
 El script comprueba la **presencia de cada símbolo en cada etiqueta de versión** del repositorio del core (`git grep <patrón> <tag>`), con búsqueda por bisección. No usa el historial de commits, de modo que un renombrado de archivo o un cambio de firma no falsean el resultado.
 
 Código de salida: `0` cumple, `1` incumple, `2` error de configuración (por ejemplo, no hay clon del core).
+
+Los plugins de `require` se buscan en `<plugins-dir>/<nombre>` y se auditan con el mismo core y la misma `--max-version`, de forma recursiva. El informe añade `min_version_efectivo` (el más alto de la cadena) y `funciona_hasta_efectivo` (el más bajo), con el plugin que fija cada uno en `min_version_fijado_por` y `funciona_hasta_fijado_por`, y la lista `requeridos`. No cambian el resultado ni `min_version_calculado`, que responden solo al código del propio plugin. Un requerido que no está en el directorio, un nombre de `require` que no es una carpeta de `Plugins/` (el core compara por nombre, así que una ruta nunca lo satisface) o una dependencia circular se informan en los avisos.
 
 ## Interpretación del informe de compatibilidad
 
@@ -147,7 +149,7 @@ Clasifica cada hallazgo revisado como **justificado** (uso legítimo y proporcio
 
 - El análisis es estático y basado en expresiones regulares: solo infiere el tipo del receptor a un nivel (`new Clase()`, parámetros y propiedades tipados), así que un método de confianza media puede corresponder a otra clase con el mismo nombre.
 - Los símbolos que no son del core se atribuyen buscándolos en los plugins hermanos y en `vendor/`. Fuera de una instalación completa, ese ruido reaparece.
-- No audita los requisitos de los plugins declarados en `require`, ni los símbolos que aporta otro plugin.
+- Solo audita los plugins de `require` que estén en el directorio `Plugins/`, y no comprueba los símbolos que aporta otro plugin.
 - La auditoría de compatibilidad solo analiza PHP: no comprueba las funciones ni los bloques de plantilla que usan los Twig, ni los XMLView, ni el JavaScript. Las plantillas solo se leen para saber qué métodos invoca el plugin, así que un `min_version` más alto que el calculado puede estar justificado por un cambio del core que no ves.
 - El resultado depende de que el clon del core esté actualizado: si faltan etiquetas recientes, propón `git fetch --tags`.
 - Si no hay clon del core, indícalo y propón clonar `https://github.com/NeoRazorX/facturascripts.git`; no intentes auditar de memoria.

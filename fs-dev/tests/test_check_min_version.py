@@ -537,6 +537,33 @@ class ProviderTest(unittest.TestCase):
             self.assertEqual('rospdf/pdf-php', results[0].provider)
 
 
+    def test_directories_starting_with_a_dash_are_not_grep_options(self) -> None:
+        """Un directorio relativo que empieza por guion se busca, no se toma por opción de grep."""
+        import os
+
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / '-Plugins' / 'Comisiones').mkdir(parents=True)
+            (Path(tmp) / '-Plugins' / 'Comisiones' / 'Comision.php').write_text('<?php\nclass Comision {}\n')
+            (Path(tmp) / '--version' / 'rospdf' / 'pdf-php').mkdir(parents=True)
+            (Path(tmp) / '--version' / 'rospdf' / 'pdf-php' / 'Cezpdf.php').write_text(
+                '<?php\nclass Cezpdf {}\n')
+            from_plugin = CHECKER.Symbol(kind='clase', label='Comision', patterns=('class Comision',),
+                                         pathspecs=('Core/',), origin='Init.php')
+            from_vendor = CHECKER.Symbol(kind='clase', label='Cezpdf', patterns=('class Cezpdf',),
+                                         pathspecs=('Core/',), origin='Init.php')
+
+            cwd = os.getcwd()
+            os.chdir(tmp)
+            try:
+                plugin = CHECKER.sibling_provider(from_plugin, Path('-Plugins'), 'MiPlugin')
+                vendor = CHECKER.vendor_provider(from_vendor, [Path('--version')])
+            finally:
+                os.chdir(cwd)
+
+            self.assertEqual('Comisiones', plugin)
+            self.assertEqual('rospdf/pdf-php', vendor)
+
+
 class PipeAuditTest(unittest.TestCase):
     """Comprueba cómo se resuelven los Closures de las extensiones."""
 
@@ -826,6 +853,216 @@ class RemovedApiTest(unittest.TestCase):
                                      capture_output=True, text=True, check=False)
             self.assertEqual(1, failing.returncode)
             self.assertIn('INCUMPLE. Usa símbolos que ya no existen en v2026', failing.stdout)
+
+
+def build_installed_plugin(plugins_dir: Path, name: str, min_version: str, body: str,
+                           require: str = '') -> Path:
+    """Crea un plugin de prueba dentro de un directorio Plugins/, con su require."""
+    plugin = plugins_dir / name
+    plugin.mkdir(parents=True, exist_ok=True)
+    (plugin / 'facturascripts.ini').write_text(
+        f"name = '{name}'\ndescription = 'prueba'\nversion = 1.0\nmin_version = {min_version}\n"
+        f"require = '{require}'\n"
+    )
+    (plugin / 'Init.php').write_text(body)
+    return plugin
+
+
+class RequireTest(unittest.TestCase):
+    """Los plugins declarados en require se auditan y fijan el rango efectivo."""
+
+    CLEAN = '<?php\nclass Init {}\n'
+    USES_ENV = (
+        '<?php\n'
+        'use FacturaScripts\\Core\\Tools;\n'
+        'class Init { public function init(): void { Tools::env(); } }\n'
+    )
+    USES_ANTIGUO = RemovedApiTest.USES_ANTIGUO
+
+    def run_checker(self, tmp: str, *extra: str) -> tuple[int, dict]:
+        """Audita el plugin Raiz con la salida JSON y devuelve el código y el informe."""
+        import contextlib
+        import io
+        import json
+
+        core = build_core(Path(tmp))
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = CHECKER.main([str(Path(tmp) / 'Plugins' / 'Raiz'), '--core', str(core),
+                                 '--json', '--workers', '2', *extra])
+        return code, json.loads(output.getvalue())
+
+    def test_required_plugin_raises_the_effective_min_version(self) -> None:
+        """Un requerido que necesita v2026 sube el mínimo efectivo, no el calculado."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.USES_ENV)
+
+            code, report = self.run_checker(tmp)
+
+            self.assertEqual(0, code)
+            self.assertTrue(report['plugin']['cumple'])
+            self.assertEqual(2025, report['plugin']['min_version_calculado'])
+            self.assertEqual(2026, report['plugin']['min_version_efectivo'])
+            self.assertEqual('Base', report['plugin']['min_version_fijado_por'])
+            self.assertTrue(any('lo fija Base' in warning for warning in report['avisos']))
+
+    def test_required_plugin_lowers_the_effective_ceiling(self) -> None:
+        """Un requerido que usa algo retirado en v2026 baja el techo efectivo."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.USES_ANTIGUO)
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual('v2026', report['plugin']['funciona_hasta'])
+            self.assertEqual('v2025', report['plugin']['funciona_hasta_efectivo'])
+            self.assertEqual('Base', report['plugin']['funciona_hasta_fijado_por'])
+
+    def test_requirements_are_followed_recursively(self) -> None:
+        """Raiz requiere Medio, que requiere Base: el mínimo lo fija Base."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Medio')
+            build_installed_plugin(plugins, 'Medio', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.USES_ENV)
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual(2026, report['plugin']['min_version_efectivo'])
+            self.assertEqual('Base', report['plugin']['min_version_fijado_por'])
+            base = [entry for entry in report['requeridos'] if entry['name'] == 'Base']
+            self.assertEqual('Medio', base[0]['requerido_por'])
+
+    def test_own_plugin_wins_a_tie(self) -> None:
+        """Si el plugin y su requerido necesitan la misma versión, la fija el propio plugin."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2026', self.USES_ENV, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.USES_ENV)
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual(2026, report['plugin']['min_version_efectivo'])
+            self.assertEqual('Raiz', report['plugin']['min_version_fijado_por'])
+
+    def test_shared_requirement_is_audited_once(self) -> None:
+        """Un plugin que requieren dos ramas de la cadena aparece una sola vez."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Uno,Dos')
+            build_installed_plugin(plugins, 'Uno', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Dos', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.CLEAN)
+
+            _, report = self.run_checker(tmp)
+
+            names = [entry['name'] for entry in report['requeridos']]
+            self.assertEqual(['Uno', 'Base', 'Dos'], names)
+
+    def test_missing_required_plugin_is_reported(self) -> None:
+        """Un requerido que no está en Plugins/ se informa y no cambia el resultado."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Falta')
+
+            code, report = self.run_checker(tmp)
+
+            self.assertEqual(0, code)
+            self.assertEqual('no encontrado', report['requeridos'][0]['estado'])
+            self.assertTrue(any('Falta' in warning and 'no se han auditado' in warning
+                                for warning in report['avisos']))
+
+    def test_circular_requirement_is_reported(self) -> None:
+        """Raiz requiere Base y Base requiere Raiz: termina e informa del ciclo."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base')
+            build_installed_plugin(plugins, 'Base', '2025', self.CLEAN, require='Raiz')
+
+            _, report = self.run_checker(tmp)
+
+            cycles = [entry for entry in report['requeridos'] if entry['estado'] == 'ciclo']
+            self.assertEqual([['Raiz', 'Base', 'Raiz']], [entry['ciclo'] for entry in cycles])
+            self.assertTrue(any('Raiz → Base → Raiz' in warning for warning in report['avisos']))
+
+    def test_require_with_a_path_is_not_followed(self) -> None:
+        """Una ruta relativa o absoluta en require no se audita: el core compara por nombre."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(Path(tmp), 'Fuera', '2025', self.USES_ENV)
+            outside = str(Path(tmp) / 'Fuera')
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require=f'../Fuera,{outside}')
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual(['nombre inválido', 'nombre inválido'],
+                             [entry['estado'] for entry in report['requeridos']])
+            self.assertEqual(2025, report['plugin']['min_version_efectivo'])
+            self.assertEqual(2, len([warning for warning in report['avisos'] if 'no es un nombre' in warning]))
+
+    def test_other_spellings_of_a_name_are_not_audited_again(self) -> None:
+        """./Base o Base// no son nombres de plugin: Base se audita una sola vez."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base,./Base,Base//')
+            build_installed_plugin(plugins, 'Base', '2025', self.CLEAN)
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual([('Base', 'auditado'), ('./Base', 'nombre inválido'), ('Base//', 'nombre inválido')],
+                             [(entry['name'], entry['estado']) for entry in report['requeridos']])
+
+    def test_symlinked_plugin_folder_is_audited(self) -> None:
+        """El core carga una carpeta de Plugins/ que sea un enlace, así que se audita."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(Path(tmp) / 'repos', 'Base', '2025', self.USES_ENV)
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base')
+            (plugins / 'Base').symlink_to(Path(tmp) / 'repos' / 'Base', target_is_directory=True)
+
+            _, report = self.run_checker(tmp)
+
+            self.assertEqual('auditado', report['requeridos'][0]['estado'])
+            self.assertEqual('Base', report['plugin']['min_version_fijado_por'])
+
+    def test_deep_chain_does_not_hit_the_recursion_limit(self) -> None:
+        """Una cadena más larga que el límite de recursión de Python se recorre entera."""
+        depth = sys.getrecursionlimit() + 50
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='P0')
+            for index in range(depth):
+                last = index == depth - 1
+                build_installed_plugin(plugins, f'P{index}', '2025', self.USES_ENV if last else self.CLEAN,
+                                       require='' if last else f'P{index + 1}')
+
+            code, report = self.run_checker(tmp)
+
+            self.assertEqual(0, code)
+            self.assertEqual(depth, len(report['requeridos']))
+            self.assertEqual(f'P{depth - 1}', report['plugin']['min_version_fijado_por'])
+
+    def test_text_output_names_who_fixes_each_bound(self) -> None:
+        """La salida de texto dice el rango efectivo y quién lo fija."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_core(Path(tmp))
+            plugins = Path(tmp) / 'Plugins'
+            build_installed_plugin(plugins, 'Raiz', '2025', self.CLEAN, require='Base,Falta')
+            build_installed_plugin(plugins, 'Base', '2025', self.USES_ENV)
+
+            result = subprocess.run(
+                (sys.executable, str(SCRIPT_PATH), str(plugins / 'Raiz'), '--core', str(core)),
+                capture_output=True, text=True, check=False,
+            )
+
+            self.assertEqual(0, result.returncode)
+            self.assertIn('min_version efectivo con los requeridos: 2026 (lo fija Base)', result.stdout)
+            self.assertIn('(sin auditar: Falta)', result.stdout)
+            self.assertIn('Funciona hasta con los requeridos: v2026 (lo fija Raiz)', result.stdout)
+            self.assertIn('Plugins requeridos:', result.stdout)
 
 
 if __name__ == '__main__':

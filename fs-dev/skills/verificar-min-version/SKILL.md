@@ -26,7 +26,7 @@ La auditoría tiene dos partes independientes: la **compatibilidad** con el core
 
 6. Revisa en el código cada hallazgo de severidad alta o media siguiendo el apartado «Cómo revisar los hallazgos» del perfil, y clasifícalo como justificado, a vigilar o sospechoso.
 7. Concluye con dos apartados:
-   - **Compatibilidad**: el `min_version` correcto, el símbolo concreto que lo determina y el archivo donde aparece.
+   - **Compatibilidad**: el `min_version` correcto, el símbolo concreto que lo determina y el archivo donde aparece. Si el plugin tiene `require`, también el mínimo y el techo efectivos de la cadena y qué plugin fija cada uno.
    - **Seguridad**: los hallazgos revisados con su archivo, contexto de ejecución, destino y clasificación; los dominios externos; y lo que ha quedado sin revisar.
 
 ## Opciones de `check-min-version.py`
@@ -36,7 +36,7 @@ La auditoría tiene dos partes independientes: la **compatibilidad** con el core
 | `--json` | Informe completo para procesar símbolo a símbolo |
 | `--include-tests` | Analiza también `Test/`, excluido por defecto |
 | `--min-confidence alta` | Deja solo clases, llamadas estáticas, métodos con receptor tipado y pipes |
-| `--plugins-dir` | Directorio `Plugins/` para atribuir los símbolos de otros plugins |
+| `--plugins-dir` | Directorio `Plugins/` para atribuir los símbolos de otros plugins y auditar los de `require` |
 | `--max-version X` | Incumple si el plugin usa algo retirado en la versión `X` del core o antes |
 | `--workers N` | Ajusta las consultas simultáneas a git |
 
@@ -90,7 +90,7 @@ extensión y nada del plugin invoca el método: esa extensión seguramente nunca
 
 ## Límites del análisis
 
-La auditoría de compatibilidad es estática y solo audita PHP: infiere el tipo del receptor solo a un nivel (`new Clase()`, parámetros y propiedades tipados), no comprueba las funciones ni los bloques de plantilla que usan los Twig, ni los XMLView, ni el JavaScript, y no audita los plugins declarados en `require`. Las plantillas solo se leen para saber qué métodos invoca el plugin.
+La auditoría de compatibilidad es estática y solo audita PHP: infiere el tipo del receptor solo a un nivel (`new Clase()`, parámetros y propiedades tipados), no comprueba las funciones ni los bloques de plantilla que usan los Twig, ni los XMLView, ni el JavaScript. Los plugins declarados en `require` solo se auditan si están en el directorio `Plugins/`; los que no, se informan como no auditados. Las plantillas solo se leen para saber qué métodos invoca el plugin.
 
 Por eso un `min_version` más alto que el calculado puede estar justificado por un cambio del core que esta herramienta no ve. Declara siempre estas limitaciones en la conclusión y marca como dudosos los símbolos que no hayas verificado a mano.
 

@@ -18,6 +18,10 @@ Además informa hasta qué versión funciona el plugin: la última en la que
 existen todos los símbolos que usa. Con ``--max-version`` el resultado pasa a
 ser incumple si alguno se retiró en esa versión o antes.
 
+Los plugins declarados en ``require`` se buscan en el directorio ``Plugins/`` y
+se auditan con el mismo core, de forma recursiva. El informe da también el
+mínimo y el techo efectivos de toda la cadena y qué plugin fija cada uno.
+
 Uso:
     check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json]
                          [--include-tests] [--min-confidence alta|media|baja]
@@ -335,7 +339,7 @@ def sibling_provider(symbol: Symbol, plugins_dir: Path, own_name: str,
     args = ['grep', '-rl', '--include=*.php', '--exclude-dir=vendor', '--exclude-dir=node_modules', '-F']
     for pattern in symbol.patterns:
         args += ['-e', pattern]
-    args.append(str(plugins_dir))
+    args += ['--', str(plugins_dir)]
 
     result = subprocess.run(args, capture_output=True, text=True, check=False)
     found: list[str] = []
@@ -360,7 +364,7 @@ def vendor_provider(symbol: Symbol, vendor_dirs: list[Path]) -> str | None:
         args = ['grep', '-rl', '--include=*.php', '-F']
         for pattern in symbol.patterns:
             args += ['-e', pattern]
-        args.append(str(vendor))
+        args += ['--', str(vendor)]
 
         result = subprocess.run(args, capture_output=True, text=True, check=False)
         for line in result.stdout.splitlines():
@@ -761,7 +765,8 @@ def audit(symbols: list[Symbol], core: CoreRepo, target: tuple[float, str],
         return list(pool.map(lambda symbol: audit_symbol(symbol, core, target, versions), symbols))
 
 
-def build_warnings(plugin: PluginInfo, core: CoreRepo, results: list[SymbolResult]) -> list[str]:
+def build_warnings(plugin: PluginInfo, core: CoreRepo, results: list[SymbolResult],
+                   requeridos: list[dict] | None = None) -> list[str]:
     """Detecta problemas del ini y limitaciones del análisis."""
     warnings: list[str] = []
     latest_version, latest_tag = core.tags[-1]
@@ -798,11 +803,32 @@ def build_warnings(plugin: PluginInfo, core: CoreRepo, results: list[SymbolResul
             'de código propio no detectado o de un clon del core desactualizado (git fetch --tags).'
         )
 
-    if plugin.require:
-        warnings.append(
-            'El plugin depende de otros plugins (require = ' + ', '.join(plugin.require) +
-            '): sus requisitos de versión no se auditan aquí.'
-        )
+    if requeridos is None:
+        if plugin.require:
+            warnings.append(
+                'El plugin depende de otros plugins (require = ' + ', '.join(plugin.require) +
+                '): sus requisitos de versión no se auditan aquí.'
+            )
+        return warnings
+
+    for entry in requeridos:
+        if entry['estado'] == 'no encontrado' and entry['buscado_en']:
+            warnings.append(
+                f"El plugin requerido {entry['name']} (por {entry['requerido_por']}) no está en "
+                f"{entry['buscado_en']}: sus requisitos de versión no se han auditado."
+            )
+        elif entry['estado'] == 'no encontrado':
+            warnings.append(
+                f"No se localiza el directorio Plugins/ y no se ha auditado el plugin requerido "
+                f"{entry['name']}. Indícalo con --plugins-dir."
+            )
+        elif entry['estado'] == 'ciclo':
+            warnings.append('Dependencia circular entre plugins: ' + ' → '.join(entry['ciclo']) + '.')
+        elif entry['estado'] == 'nombre inválido':
+            warnings.append(
+                f"{entry['requerido_por']} declara en require «{entry['name']}», que no es un nombre de "
+                'plugin: el core compara los requeridos por nombre y una ruta nunca los satisface.'
+            )
 
     return warnings
 
@@ -826,15 +852,37 @@ def retired_by(core: CoreRepo, results: list[SymbolResult],
 
 def build_report(plugin: PluginInfo, core: CoreRepo, target: tuple[float, str],
                  results: list[SymbolResult], external: list[str],
-                 max_target: tuple[float, str] | None = None) -> dict:
+                 max_target: tuple[float, str] | None = None,
+                 requeridos: list[dict] | None = None) -> dict:
     """Construye la estructura de datos del informe final.
 
     Sin ``max_target``, los símbolos eliminados se informan pero no cambian el
     resultado. Con él, cualquiera retirado en esa versión o antes lo hace incumplir.
+
+    ``requeridos`` es la auditoría de los plugins de ``require`` (ver
+    ``audit_requires``). Solo aporta los campos ``*_efectivo``: el resultado y
+    ``min_version_calculado`` responden únicamente al código del propio plugin.
     """
     later = [item for item in results if item.status == 'posterior']
     required = max([item.since_version or 0 for item in later] + [plugin.min_version, 2025.0])
     retired = retired_by(core, results, max_target) if max_target else []
+    until = works_until(core, results)
+
+    # En caso de empate gana el propio plugin, que va primero.
+    audited = [entry for entry in requeridos or [] if entry['estado'] == 'auditado']
+    floor = max([(required, plugin.name)] + [(entry['min_version_calculado'], entry['name'])
+                                             for entry in audited], key=lambda item: item[0])
+    versions = {tag: version for version, tag in core.tags}
+    ceiling = min([(until, plugin.name)] + [(entry['funciona_hasta'], entry['name'])
+                                            for entry in audited],
+                  key=lambda item: versions.get(item[0], 0))
+
+    warnings = build_warnings(plugin, core, results, requeridos)
+    if floor[1] != plugin.name and floor[0] > plugin.min_version:
+        warnings.append(
+            f'Los plugins requeridos exigen min_version = {floor[0]:g} (lo fija {floor[1]}), '
+            f'por encima del declarado ({plugin.min_version:g}).'
+        )
 
     return {
         'plugin': {
@@ -845,7 +893,11 @@ def build_report(plugin: PluginInfo, core: CoreRepo, target: tuple[float, str],
             'min_php': plugin.min_php,
             'require': list(plugin.require),
             'cumple': not later and plugin.min_version >= 2025 and not retired,
-            'funciona_hasta': works_until(core, results),
+            'funciona_hasta': until,
+            'min_version_efectivo': floor[0],
+            'min_version_fijado_por': floor[1],
+            'funciona_hasta_efectivo': ceiling[0],
+            'funciona_hasta_fijado_por': ceiling[1],
             'retirados': [item.symbol.label for item in retired],
             'path': str(plugin.path),
         },
@@ -870,7 +922,8 @@ def build_report(plugin: PluginInfo, core: CoreRepo, target: tuple[float, str],
             for item in results
         ],
         'plugins_externos': external,
-        'avisos': build_warnings(plugin, core, results),
+        'requeridos': requeridos or [],
+        'avisos': warnings,
     }
 
 
@@ -886,6 +939,13 @@ def print_report(report: dict, results: list[SymbolResult]) -> None:
     if core['version_maxima']:
         print(f"Versión máxima comprobada: {core['version_maxima']}")
     print(f"Funciona hasta: {plugin['funciona_hasta']}")
+    if report['requeridos']:
+        pending = [entry['name'] for entry in report['requeridos'] if entry['estado'] != 'auditado']
+        note = f"  (sin auditar: {', '.join(pending)})" if pending else ''
+        print(f"min_version efectivo con los requeridos: {plugin['min_version_efectivo']:g}"
+              f" (lo fija {plugin['min_version_fijado_por']}){note}")
+        print(f"Funciona hasta con los requeridos: {plugin['funciona_hasta_efectivo']}"
+              f" (lo fija {plugin['funciona_hasta_fijado_por']}){note}")
     print()
 
     later = [item for item in results if item.status == 'posterior']
@@ -937,6 +997,23 @@ def print_report(report: dict, results: list[SymbolResult]) -> None:
                   f"  [{item.symbol.origin}]")
         print()
 
+    if report['requeridos']:
+        print('Plugins requeridos:')
+        for entry in report['requeridos']:
+            if entry['estado'] == 'auditado':
+                print(f"  - {entry['name']} {entry['version']} (por {entry['requerido_por']}): "
+                      f"min_version declarado {entry['min_version_declarado']:g}, "
+                      f"calculado {entry['min_version_calculado']:g}, funciona hasta {entry['funciona_hasta']}"
+                      + ('' if entry['cumple'] else ', INCUMPLE'))
+            elif entry['estado'] == 'ciclo':
+                print(f"  - {entry['name']} (por {entry['requerido_por']}): dependencia circular "
+                      + ' → '.join(entry['ciclo']))
+            elif entry['estado'] == 'nombre inválido':
+                print(f"  - {entry['name']} (por {entry['requerido_por']}): nombre inválido, sin auditar")
+            else:
+                print(f"  - {entry['name']} (por {entry['requerido_por']}): no encontrado, sin auditar")
+        print()
+
     if report['plugins_externos']:
         print('Dependencias de otros plugins (no auditables con este script):')
         for name in report['plugins_externos']:
@@ -954,6 +1031,78 @@ def print_report(report: dict, results: list[SymbolResult]) -> None:
           f"eliminados {len(removed)}, ajenos al core {len(provided)}, no encontrados {len(missing)})")
 
 
+def audit_plugin(plugin: PluginInfo, core: CoreRepo, plugins_dir: Path | None, include_tests: bool,
+                 threshold: int, workers: int) -> tuple[tuple[float, str], list[SymbolResult], list[str]]:
+    """Audita el código de un plugin contra el core y atribuye lo que no es del core."""
+    symbols, external = collect_symbols(plugin.path, include_tests)
+    symbols = [symbol for symbol in symbols if CONFIDENCE_ORDER[symbol.confidence] >= threshold]
+
+    target = core.target_tag(plugin.min_version)
+    results = audit(symbols, core, target, workers)
+    resolve_providers(results, plugins_dir, plugin.path.name,
+                      [core.path / 'vendor', plugin.path / 'vendor'], plugin.require, workers)
+    return target, results, external
+
+
+def audit_requires(plugin: PluginInfo, core: CoreRepo, plugins_dir: Path | None, include_tests: bool,
+                   threshold: int, max_target: tuple[float, str] | None, workers: int) -> list[dict]:
+    """Audita de forma recursiva los plugins declarados en ``require``.
+
+    Igual que el core, cada requerido se busca en ``<plugins_dir>/<nombre>``, y
+    el nombre tiene que ser una entrada de ese directorio: el core los compara
+    por nombre, así que una ruta nunca satisface un ``require``. Cada plugin se
+    audita una sola vez aunque lo requieran varios, y una dependencia circular
+    se informa en vez de seguirla. El recorrido usa una pila y no recursión, de
+    modo que la profundidad de la cadena no tiene límite.
+    """
+    entries: list[dict] = []
+    seen = {plugin.name}
+    # Cada elemento: plugin, camino desde la raíz y requeridos que le quedan por recorrer.
+    stack = [(plugin, [plugin.name], iter(plugin.require))]
+
+    while stack:
+        current, chain, pending = stack[-1]
+        name = next(pending, None)
+        if name is None:
+            stack.pop()
+            continue
+
+        entry = {'name': name, 'requerido_por': current.name}
+        if name in ('', '.', '..') or '/' in name or '\\' in name:
+            entries.append({**entry, 'estado': 'nombre inválido'})
+            continue
+        if name in chain:
+            entries.append({**entry, 'estado': 'ciclo', 'ciclo': chain[chain.index(name):] + [name]})
+            continue
+        if name in seen:
+            continue
+        seen.add(name)
+
+        folder = plugins_dir / name if plugins_dir else None
+        if folder is None or not (folder / 'facturascripts.ini').is_file():
+            entries.append({**entry, 'estado': 'no encontrado',
+                            'buscado_en': str(plugins_dir) if plugins_dir else None})
+            continue
+
+        info = read_plugin_ini(folder)
+        target, results, external = audit_plugin(info, core, plugins_dir, include_tests, threshold, workers)
+        report = build_report(info, core, target, results, external, max_target)['plugin']
+        entries.append({
+            **entry,
+            'estado': 'auditado',
+            'version': report['version'],
+            'path': str(folder),
+            'min_version_declarado': report['min_version_declarado'],
+            'min_version_calculado': report['min_version_calculado'],
+            'funciona_hasta': report['funciona_hasta'],
+            'cumple': report['cumple'],
+            'require': report['require'],
+        })
+        stack.append((info, chain + [name], iter(info.require)))
+
+    return entries
+
+
 def main(argv: list[str] | None = None) -> int:
     """Punto de entrada del script."""
     parser = argparse.ArgumentParser(
@@ -966,7 +1115,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--min-confidence', choices=('alta', 'media', 'baja'), default='baja',
                         help='Descarta los símbolos con confianza inferior a la indicada')
     parser.add_argument('--plugins-dir',
-                        help='Directorio Plugins/ donde buscar los símbolos que aporten otros plugins')
+                        help='Directorio Plugins/ donde buscar los símbolos que aporten otros plugins '
+                             'y los plugins declarados en require')
     parser.add_argument('--max-version', type=float,
                         help='Versión del core que el plugin debe soportar: incumple si usa algo retirado '
                              'en ella o antes')
@@ -984,16 +1134,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f'Error: {error}', file=sys.stderr)
         return 2
 
-    symbols, external = collect_symbols(plugin_dir, args.include_tests)
     threshold = CONFIDENCE_ORDER[args.min_confidence]
-    symbols = [symbol for symbol in symbols if CONFIDENCE_ORDER[symbol.confidence] >= threshold]
-
-    target = core.target_tag(plugin.min_version)
-    results = audit(symbols, core, target, args.workers)
-    resolve_providers(results, find_plugins_dir(args.plugins_dir, plugin_dir), plugin_dir.name,
-                      [core.path / 'vendor', plugin_dir / 'vendor'], plugin.require, args.workers)
+    plugins_dir = find_plugins_dir(args.plugins_dir, plugin_dir)
+    target, results, external = audit_plugin(plugin, core, plugins_dir, args.include_tests,
+                                             threshold, args.workers)
     max_target = core.target_tag(args.max_version) if args.max_version else None
-    report = build_report(plugin, core, target, results, external, max_target)
+    requeridos = audit_requires(plugin, core, plugins_dir, args.include_tests, threshold,
+                                max_target, args.workers)
+    report = build_report(plugin, core, target, results, external, max_target, requeridos)
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
