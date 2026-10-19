@@ -3,7 +3,7 @@ id: 919
 permalink: extensiones-de-controladores
 title: Extensiones de controladores
 creationdate: 08-05-2021 11:27:09
-lastmod: 19-03-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/extensiones-de-controladores
 ---
 Para modificar el comportamiento o añadir pestañas o secciones a controladores de otros plugins (o del core) podemos usar una extensión o pipe, es decir, crearemos un archivo php con el mismo nombre que el controlador en la carpeta **Extension/Controller** de nuestro plugin.
@@ -130,6 +130,44 @@ class ListProducto
 ```
 
 Recuerda que las funciones deben tener un **return function()** y que debes cargar la extensión desde el archivo **Init.php** del plugin.
+
+### Agrupar pestañas
+Desde la versión 2026.7, en los controladores con pestañas a la izquierda (como EditCliente o EditProducto) puedes colocar las pestañas que añades en un grupo con encabezado, o mover a un grupo las del controlador. Basta con indicar el ajuste `group` de la vista con una clave de traducción:
+
+```
+public function createViews(): Closure
+{
+   return function() {
+      $this-&gt;addListView(&#39;ListMiModelo&#39;, &#39;MiModelo&#39;, &#39;my-tab&#39;, &#39;fa-solid fa-list&#39;)
+         -&gt;setSettings(&#39;group&#39;, &#39;sales&#39;);
+   };
+}
+```
+
+Más detalles en la sección **Agrupar pestañas** del [PanelController](https://facturascripts.com/publicaciones/panelcontroller-845).
+
+### Guardar datos en propiedades del controlador
+Las funciones de la extensión se ejecutan dentro del controlador, así que pueden guardar datos en una propiedad nueva con `$this-&gt;miPropiedad` para usarlos después en otra función o en la plantilla. Desde la versión 2026.7 los controladores admiten estas propiedades dinámicas, por lo que ya no aparece el aviso de obsolescencia de PHP 8.2 o superior.
+
+```
+public function execPreviousAction(): Closure
+{
+   return function($action) {
+      $this-&gt;miTotal = 0;
+   };
+}
+
+public function loadData(): Closure
+{
+   return function($viewName, $view) {
+      if ($viewName === &#39;ListMiModelo&#39;) {
+         $this-&gt;miTotal = $view-&gt;count;
+      }
+   };
+}
+```
+
+Usa nombres con un prefijo propio de tu plugin para no coincidir con propiedades del controlador o de otros plugins.
 
 ### Cargar extensiones en el Init.php
 Las extensiones de archivos xml se integran automáticamente al activar el plugin o reconstruir Dinamic. En cambio, las extensiones de archivos php se deben cargar explícitamente llamando al método ``loadExtension()`` del [archivo Init.php del plugin](https://facturascripts.com/publicaciones/el-archivo-init-php-307), en el método **init()**.

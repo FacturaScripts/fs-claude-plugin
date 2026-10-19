@@ -3,7 +3,7 @@ id: 653
 permalink: widget-238
 title: Widget (XMLView)
 creationdate: 07-05-2018 00:00:00
-lastmod: 01-04-2026
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-238
 ---
 El **widget** es un componente que pertenece a una columna y se encarga de representar el contenido. Cada columna puede contener únicamente un widget.
@@ -56,4 +56,32 @@ Similar a las [status row types](https://facturascripts.com/publicaciones/row-st
 
 ## Tipos de Widgets
 
-El núcleo de FacturaScripts incluye los siguientes tipos de widgets: **text**, **textarea**, **password**, **number**, **money**, **autocomplete**, **select**, **checkbox**, **date**, y **file**. Además, cada plugin puede añadir nuevos tipos de widgets o personalizar los existentes en el núcleo.
+El núcleo de FacturaScripts incluye los siguientes tipos de widgets. Indica el tipo en el atributo **type** del widget:
+
+- [**autocomplete**](https://facturascripts.com/publicaciones/widget-autocomplete-946): selecciona un valor de otra tabla buscando mientras se escribe.
+- [**bytes**](https://facturascripts.com/publicaciones/widget-bytes): muestra tamaños de archivo en KB, MB, GB o TB.
+- [**checkbox**](https://facturascripts.com/publicaciones/widget-checkbox-35): casilla para valores verdadero o falso.
+- [**color**](https://facturascripts.com/publicaciones/widget-color-63): selector de color en hexadecimal.
+- [**datalist**](https://facturascripts.com/publicaciones/widget-datalist): selecciona un valor de otra tabla con sugerencias según el texto introducido.
+- [**date**](https://facturascripts.com/publicaciones/widget-date-39): fechas.
+- [**datetime**](https://facturascripts.com/publicaciones/widget-datetime): fecha y hora.
+- [**file**](https://facturascripts.com/publicaciones/widget-file-359): subida de archivos.
+- [**info**](https://facturascripts.com/publicaciones/widget-info): textos informativos, avisos y enlaces, sin campo asociado.
+- [**json**](https://facturascripts.com/publicaciones/widget-json): muestra de forma legible un campo con datos JSON.
+- [**library**](https://facturascripts.com/publicaciones/widget-library): selecciona o sube archivos adjuntos.
+- [**link**](https://facturascripts.com/publicaciones/widget-link-84): enlace a la URL guardada en el campo.
+- [**money**](https://facturascripts.com/publicaciones/widget-money-681): importes con el símbolo de la divisa.
+- [**number**](https://facturascripts.com/publicaciones/widget-number-39): números.
+- [**password**](https://facturascripts.com/publicaciones/widget-password-421): contraseñas.
+- [**percentage**](https://facturascripts.com/publicaciones/widget-percentage): porcentajes, con el símbolo %.
+- [**radio**](https://facturascripts.com/publicaciones/widget-radio): selección de una opción entre varias con botones de radio.
+- [**seconds**](https://facturascripts.com/publicaciones/widget-seconds): duraciones guardadas en segundos, mostradas en s, m, h o d.
+- [**select**](https://facturascripts.com/publicaciones/widget-select-557): lista desplegable de opciones.
+- [**stars**](https://facturascripts.com/publicaciones/widget-stars): valoración de 0 a 5 estrellas.
+- [**subcuenta**](https://facturascripts.com/publicaciones/widget-subcuenta): selección de subcuentas contables.
+- [**text**](https://facturascripts.com/publicaciones/widget-text-96): texto de una línea.
+- [**textarea**](https://facturascripts.com/publicaciones/widget-textarea-699): texto de varias líneas.
+- [**time**](https://facturascripts.com/publicaciones/widget-time): horas.
+- [**variante**](https://facturascripts.com/publicaciones/widget-variante): selección de variantes de producto.
+
+Además, cada plugin puede añadir nuevos tipos de widgets o personalizar los existentes en el núcleo.

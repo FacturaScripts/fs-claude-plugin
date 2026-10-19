@@ -3,7 +3,7 @@ id: 703
 permalink: actualizar-un-recurso-existente-631
 title: Modificar registros desde la API
 creationdate: 14-05-2018 00:00:00
-lastmod: 07-07-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/actualizar-un-recurso-existente-631
 ---
 Para modificar o actualizar un registro a través de la API, realizaremos un **PUT** a la ruta sobre el recurso concreto del modelo, indicando solamente los atributos a cambiar. Para este ejemplo modificaremos la divisa `123`, que creamos en el ejemplo anterior, por tanto haremos una petición PUT a `http://localhost:8000/api/3/divisas/123`
@@ -48,6 +48,7 @@ Cuando la actualización no se puede realizar, la respuesta incluye la clave `er
 - **Registro no encontrado** (HTTP `404`): no existe ningún registro con esa clave primaria en la ruta. Recuerda que a diferencia del alta, el PUT necesita que el recurso ya exista.
 - **Faltan datos** (HTTP `400`): no se ha enviado ningún campo que modificar.
 - **Error de validación** (HTTP `400`): algún campo no cumple las restricciones definidas en el método test del modelo. El mensaje de `error` incluye el detalle, el mismo que vería el usuario en la aplicación, y en `data` se devuelve el estado del registro.
+- **Campos no permitidos** (HTTP `400`): desde la versión 2026.7, la API rechaza sin guardar nada las peticiones que intentan escribir en campos ocultos, como `password`, `logkey` o `two_factor_secret_key` de los usuarios o `apikey` de las claves de API. El mensaje indica los campos rechazados (`api: fields not allowed: password`). Para cambiar la contraseña de un usuario envía `newPassword` y `newPassword2`, y se guardará cifrada.
 
 ```json
 {

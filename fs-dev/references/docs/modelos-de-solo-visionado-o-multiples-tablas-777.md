@@ -3,26 +3,35 @@ id: 669
 permalink: modelos-de-solo-visionado-o-multiples-tablas-777
 title: Modelos de Más de Una Tabla
 creationdate: 11-05-2018 00:00:00
-lastmod: 17-07-2026
+lastmod: 16-10-2026
 url: https://facturascripts.com/publicaciones/modelos-de-solo-visionado-o-multiples-tablas-777
 ---
 En ocasiones, es necesario mostrar listados que consulten **más de una tabla**. Si el [widget select](https://facturascripts.com/publicaciones/widget-select-557) o el [widget autocomplete](https://facturascripts.com/publicaciones/widget-autocomplete-946) no resuelven nuestro problema, podemos utilizar **JoinModel** para solucionarlo.
 
 ## ¿Qué es un JoinModel?
-El JoinModel es un tipo especial de modelo que **se utiliza exclusivamente para listados**. Esto significa que **no está diseñado** para crear, editar o eliminar datos. Su única función es la visualización de datos.
+El JoinModel es un tipo especial de modelo pensado para **consultar y mostrar** datos de varias tablas, normalmente en listados. Es un modelo **de solo lectura**: no tiene método `save()`, así que no permite crear ni modificar registros.
+
+Lo que sí puede hacer es trabajar con un **modelo principal** (*master*): a través de él se eliminan registros, se comprueba si existen y se obtiene la URL de cada fila del listado. Lo vemos en el apartado «El modelo principal».
 
 ### Ejemplo de Uso de JoinModel
 Para crear un JoinModel, debemos definir una clase en la carpeta **Model/Join** de nuestro plugin que herede de **Core/Template/JoinModel**. Esta clase debe implementar los métodos `getTables()`, `getFields()` y `getSQLFrom()`, los cuales especificarán las tablas y campos a utilizar.
 
-**Ejemplo: Model/Join/PartidaAsiento.php**: A continuación, crearemos un JoinModel que combine las tablas `partidas` y `asientos`.
+**Ejemplo: Model/Join/PartidaAsiento.php**: A continuación, crearemos un JoinModel que combine las tablas `partidas` y `asientos`, con `Partida` como modelo principal.
 
 ```php
 namespace FacturaScripts\Plugins\MyNewPlugin\Model\Join;
 
 use FacturaScripts\Core\Template\JoinModel;
+use FacturaScripts\Dinamic\Model\Partida;
 
 class PartidaAsiento extends JoinModel
 {
+    public function __construct(array $data = [])
+    {
+        parent::__construct($data);
+        $this-&gt;setMasterModel(new Partida());
+    }
+
     protected function getFields(): array
     {
         return [
@@ -48,23 +57,32 @@ class PartidaAsiento extends JoinModel
 }
 ```
 
+Fíjate en que `getFields()` incluye `idpartida`, la clave primaria de `Partida`, con su mismo nombre como alias. Es necesario para que funcionen `load()`, `id()`, `delete()`, `exists()` y `url()`.
+
 ### Descripción de los Métodos
 
 #### `getTables()`
-Este método debe devolver el listado de tablas que vamos a utilizar:
+Este método debe devolver el listado de **todas** las tablas que intervienen en la consulta, incluidas las de los `JOIN`:
 ```php
 protected function getTables(): array
 {
     return [
         &#39;asientos&#39;,
+        &#39;cuentasesp&#39;,
         &#39;partidas&#39;,
         &#39;subcuentas&#39;
     ];
 }
 ```
 
+Esta lista se usa para tres cosas:
+
+- **Comprobar que existen las tablas**: si falta alguna, `all()` y `count()` no devuelven resultados.
+- **Obtener el tipo de cada campo**: solo se detecta el tipo de los campos cuya tabla está en la lista.
+- **Invalidar la caché**: los resultados de `count()` y `totalSum()` sin filtros se guardan en caché y se borran cuando cambia alguna de estas tablas. Si olvidas una, podrías ver totales desactualizados.
+
 #### `getFields()`
-Este método debe devolver un array asociativo con los campos que vamos a utilizar y a qué tabla corresponden:
+Este método debe devolver un array asociativo con los campos de la consulta: la clave es el **alias** con el que accederemos al campo (`$fila-&gt;iva`) y el valor, la **expresión SQL** (normalmente `tabla.columna`, aunque también admite funciones como `SUM()`):
 ```php
 protected function getFields(): array
 {
@@ -79,6 +97,8 @@ protected function getFields(): array
     ];
 }
 ```
+
+Si el JoinModel tiene modelo principal, incluye su clave primaria con su mismo nombre como alias.
 
 #### `getSQLFrom()`
 Este método debe devolver la consulta SQL con los JOIN correspondientes:
@@ -154,10 +174,28 @@ $total = PartidaAsiento::count([
 ]);
 ```
 
+## Cargar un registro: load(), loadWhere() y loadWhereEq()
+Para cargar una sola fila en el propio objeto se usan los mismos métodos que en el resto de modelos. Todos devuelven `true` si encuentran el registro y, si no, limpian el modelo y devuelven `false`:
+
+- **`load($code)`**: carga la fila cuya clave primaria del modelo principal es `$code`. Requiere modelo principal y que su clave primaria esté en `getFields()`.
+- **`loadWhere($where, $order)`**: carga la primera fila que cumple los filtros.
+- **`loadWhereEq($campo, $valor)`**: atajo de `loadWhere()` para un único filtro de igualdad.
+
+Igual que en `all()`, los filtros usan el nombre SQL real del campo:
+
+```php
+$fila = new PartidaAsiento();
+if ($fila-&gt;load($idpartida)) {
+    echo $fila-&gt;numero . &#39;: &#39; . $fila-&gt;concepto;
+}
+
+$fila-&gt;loadWhereEq(&#39;asientos.numero&#39;, 125);
+```
+
 ## Métodos Opcionales
 
 ### `getGroupFields()`
-En casos donde se desee agrupar información para obtener totales o datos estadísticos, podemos definir las cláusulas *GROUP BY* y *HAVING* de la sentencia SQL mediante este método. Debe devolver una cadena de texto con los valores a aplicar:
+En casos donde se desee agrupar información para obtener totales o datos estadísticos, podemos definir la cláusula *GROUP BY* de la sentencia SQL mediante este método. Debe devolver una cadena de texto con los campos por los que agrupar:
 ```php
 protected function getGroupFields(): string
 {
@@ -167,8 +205,12 @@ protected function getGroupFields(): string
 }
 ```
 
+Devuelve **solo la lista de campos**: no añadas aquí un `HAVING` ni otras cláusulas, porque `count()` también usa esta cadena dentro del `SELECT` y la consulta fallaría.
+
 ### `id()`
-Este método permite especificar cuál es la clave primaria. Al cargar el JoinModel, los checkboxes de cada fila tendrán como valor la clave primaria correspondiente. Este método es necesario si se requiere añadir alguna función extra, como un botón personalizado que interactúe con los checkboxes seleccionados:
+Devuelve el valor de la clave primaria de cada fila. Por defecto es el valor de la clave primaria del modelo principal (en el ejemplo, `idpartida`); sin modelo principal, devuelve `null`. Al cargar el JoinModel en un listado, los checkboxes de cada fila tienen este valor, así que es lo que reciben los botones personalizados que trabajan con las filas seleccionadas.
+
+Puedes sobrescribirlo para usar otro campo:
 ```php
 public function id()
 {
@@ -176,22 +218,30 @@ public function id()
 }
 ```
 
-En versiones anteriores este método se llamaba `primaryColumnValue()`, que sigue funcionando pero está deprecado.
+Ten en cuenta que `delete()`, `exists()` y `url()` también usan `id()` para buscar el registro del modelo principal: si lo sobrescribes, debe seguir devolviendo un valor de su clave primaria.
 
-## Edición y Borrado de Datos
-Este modelo no permite la edición ni el borrado directamente, ya que utiliza distintas tablas en el proceso de visualización de datos. Sin embargo, se puede establecer un modelo como *principal* sobre el cual se realizarán los procesos de edición y borrado.
+En versiones anteriores este método se llamaba `primaryColumnValue()`, que sigue funcionando pero está obsoleto (*deprecated*).
 
-Para establecer el modelo principal, se debe llamar al método **setMasterModel()** desde el constructor, pasándole una instancia del modelo:
+## El modelo principal
+El JoinModel combina varias tablas, así que no sabe por sí solo sobre qué registro debe actuar. Para eso se establece un modelo **principal** llamando a **setMasterModel()** desde el constructor y pasándole una instancia de un modelo que herede de `Core/Template/ModelClass`:
 ```php
-public function __construct($data = [])
+public function __construct(array $data = [])
 {
     parent::__construct($data);
     $this-&gt;setMasterModel(new Cliente());
 }
 ```
 
+Con el modelo principal establecido, estos métodos trabajan sobre el registro del modelo principal cuya clave primaria es `id()`:
+
+- **`delete()`**: carga el registro completo del modelo principal y llama a su `delete()`. Así se aplican sus comprobaciones y sus extensiones: por ejemplo, al borrar desde `PartidaAsiento` no se puede eliminar una partida de un asiento bloqueado. Devuelve `false` si no hay modelo principal o si su `delete()` no permite el borrado.
+- **`exists()`**: comprueba si existe ese registro en la tabla del modelo principal. Sin modelo principal, devuelve `true` si la consulta tiene algún resultado.
+- **`url()`**: devuelve la URL del registro en el modelo principal, que es la que se abre al pulsar una fila del listado. Sin modelo principal, devuelve una cadena vacía.
+
+Para crear o modificar datos, usa directamente el modelo principal (o el modelo que corresponda), nunca el JoinModel.
+
 ### Métodos `clear()` y `loadFromData()`
-Si necesitamos calcular algunos valores, podemos utilizar los métodos `clear()` o `loadFromData()` para ello:
+Si necesitamos calcular algunos valores, podemos sobrescribir los métodos `clear()` o `loadFromData()`. Respeta su firma pública, con todos sus parámetros, o PHP dará un error fatal:
 ```php
 public function clear(): void
 {
@@ -201,9 +251,9 @@ public function clear(): void
     $this-&gt;total = 0.00;
 }
 
-protected function loadFromData(array $data): void
+public function loadFromData(array $data = [], array $exclude = []): void
 {
-    parent::loadFromData($data);
+    parent::loadFromData($data, $exclude);
     $this-&gt;cuotaiva = $this-&gt;baseimponible * ($this-&gt;iva / 100.00);
     $this-&gt;cuotarecargo = $this-&gt;baseimponible * ($this-&gt;recargo / 100.00);
     $this-&gt;total = $this-&gt;baseimponible + $this-&gt;cuotaiva + $this-&gt;cuotarecargo;

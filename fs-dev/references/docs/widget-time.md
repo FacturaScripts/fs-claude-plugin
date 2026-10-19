@@ -3,7 +3,7 @@ id: 1188
 permalink: widget-time
 title: Widget Time
 creationdate: 08-06-2022 23:41:12
-lastmod: 06-02-2026
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-time
 ---
 En los **archivos XMLView** podemos utilizar un widget de tipo `time`, también conocido como **WidgetTime**, para mostrar o editar horas.

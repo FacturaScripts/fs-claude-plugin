@@ -3,7 +3,7 @@ id: 681
 permalink: editcontroller-642
 title: EditController
 creationdate: 30-04-2018 00:00:00
-lastmod: 12-07-2026
+lastmod: 05-10-2026
 url: https://facturascripts.com/publicaciones/editcontroller-642
 ---
 Es un **controlador extendido** para editar muy rápidamente los valores de un modelo. Como el resto de controladores extendidos, hace uso de [vistas XML](https://facturascripts.com/publicaciones/las-vistas-xml-xmlview-668).
@@ -14,7 +14,7 @@ Es un **controlador extendido** para editar muy rápidamente los valores de un m
 Este es un controlador muy sencillo para editar el modelo Fabricante. Basta con indicar el nombre del modelo; del resto se encarga EditController:
 ```php
 &lt;?php
-namespace FacturaScripts\Core\Controller;
+namespace FacturaScripts\Plugins\MyNewPlugin\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\EditController;
 
@@ -146,3 +146,18 @@ $model = $this-&gt;activeTab()-&gt;model;
 ```
 
 Tienes más detalle en la documentación de [PanelController](https://facturascripts.com/publicaciones/panelcontroller-845).
+
+## 📑 Agrupar pestañas: setTabGroup()
+
+Desde la versión 2026.7, cuando las pestañas están a la izquierda (posición por defecto), puedes agrupar las pestañas que añades bajo un encabezado con `setTabGroup()`, indicando el nombre de la vista y la clave del grupo, que se traduce:
+
+```php
+protected function createViews()
+{
+    parent::createViews();
+    $this-&gt;addListView(&#39;ListProducto&#39;, &#39;Producto&#39;, &#39;products&#39;, &#39;fas fa-cubes&#39;);
+    $this-&gt;setTabGroup(&#39;ListProducto&#39;, &#39;warehouse&#39;);
+}
+```
+
+La pestaña principal y el resto de pestañas sin grupo se muestran primero, y después cada grupo con su encabezado. Si reutilizas una clave del core, como `sales`, `purchases` o `warehouse`, ya tiene traducción. Tienes más detalle en la documentación de [PanelController](https://facturascripts.com/publicaciones/panelcontroller-845).

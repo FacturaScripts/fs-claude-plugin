@@ -3,7 +3,7 @@ id: 1064
 permalink: widget-datalist
 title: Widget Datalist
 creationdate: 03-03-2022 09:46:21
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-datalist
 ---
 El **Widget Datalist**, también conocido como **WidgetList**, es una especialización del [WidgetSelect](https://facturascripts.com/publicaciones/widget-select-557) que permite mostrar valores relacionados con otras tablas (o incluso con la misma tabla) en función del texto introducido por el usuario. A diferencia de mostrar la lista completa de valores, este widget presenta una lista de posibles coincidencias conforme el usuario escribe.

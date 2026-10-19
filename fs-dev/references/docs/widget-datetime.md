@@ -3,7 +3,7 @@ id: 1286
 permalink: widget-datetime
 title: Widget Datetime
 creationdate: 30-09-2022 13:00:01
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-datetime
 ---
 En los **archivos XMLView** podemos usar un widget de fecha y hora, o WidgetDatetime, para mostrar o editar fecha y hora a la vez.

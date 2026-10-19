@@ -3,7 +3,7 @@ id: 1627
 permalink: widget-library
 title: Widget Library
 creationdate: 06-12-2023 20:55:37
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-library
 ---
 El widget de archivos adjuntos, conocido como **WidgetLibrary**, permite seleccionar o subir archivos adjuntos. Este widget es ideal cuando se desea que el usuario suba un archivo específico, como un logotipo o similar.

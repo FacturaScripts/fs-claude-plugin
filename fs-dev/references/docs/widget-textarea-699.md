@@ -3,7 +3,7 @@ id: 656
 permalink: widget-textarea-699
 title: Widget Textarea
 creationdate: 06-10-2018 00:00:00
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-textarea-699
 ---
 El widget de textarea, o WidgetTextarea, permite mostrar y editar contenido como texto plano, pero con varias diferencias respecto al [widget text](https://facturascripts.com/publicaciones/widget-text-96):

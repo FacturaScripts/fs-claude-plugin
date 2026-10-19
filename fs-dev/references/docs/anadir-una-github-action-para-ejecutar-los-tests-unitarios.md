@@ -3,7 +3,7 @@ id: 2124
 permalink: anadir-una-github-action-para-ejecutar-los-tests-unitarios
 title: Añadir una github action para ejecutar los tests unitarios
 creationdate: 24-05-2025 18:30:49
-lastmod: 17-03-2026
+lastmod: 19-09-2026
 url: https://facturascripts.com/publicaciones/anadir-una-github-action-para-ejecutar-los-tests-unitarios
 ---
 Para añadir un GitHub Action que ejecute los tests unitarios en el repositorio de un plugin de FacturaScripts, sigue estos pasos:
@@ -45,7 +45,7 @@ on:
 jobs:
   tests:
     name: Tests en ${{ matrix.database }} con PHP ${{ matrix.php-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     strategy:
       fail-fast: false
@@ -188,6 +188,9 @@ jobs:
             docker logs $(docker ps -q --filter ancestor=postgres:13) || true
           fi
 ```
+
+### Versión del runner
+El workflow fija el runner en `ubuntu-26.04` en lugar de usar `ubuntu-latest`. GitHub cambia la imagen a la que apunta `ubuntu-latest` cada cierto tiempo y, con ello, el software preinstalado. Fijar la versión evita que los tests fallen por un cambio en el runner que no hemos revisado. Cuando salga una imagen más nueva, cambia esa línea y comprueba que los tests siguen pasando.
 
 ### Dependencias de otros plugins
 Si tu plugin depende de otro plugin, puedes añadir ese paso. No olvides que debes ejecutar `php Test/install-plugins.php` tantas veces como plugins haya que instalar.

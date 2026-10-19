@@ -3,7 +3,7 @@ id: 968
 permalink: como-crear-facturas-desde-api
 title: Cómo crear facturas, albaranes, pedidos y presupuestos desde API
 creationdate: 05-08-2021 13:44:13
-lastmod: 08-07-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/como-crear-facturas-desde-api
 ---
 Podemos crear facturas de venta con una sola petición **POST** a la API al endpoint `crearFacturaCliente`. Una forma sencilla de comprobar si tu API lo permite es [consultar la lista de recursos](https://facturascripts.com/publicaciones/listado-de-recursos-modelos-102). Si aparece crearFacturaCliente, entonces puedes usarlo.
@@ -31,6 +31,9 @@ Datos del ejemplo:
 Aunque la API responde siempre con JSON, para enviar los datos debemos hacerlo como lo haríamos a un formulario, es decir, mediante **form URL encoded**:
 
 ![enviar datos api](https://i.imgur.com/3gP30u7.png)
+
+### Fecha y hora
+Si no envías `fecha`, el documento se crea con la fecha actual. Si envías la fecha sin `hora`, o con la hora vacía, se usa la hora actual.
 
 ### Crear factura de proveedor
 Para crear facturas de compra simplemente hay que usar el endpoint `crearFacturaProveedor` y proporcionar un `codproveedor` en lugar del codcliente.

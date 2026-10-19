@@ -3,7 +3,7 @@ id: 3038
 permalink: como-editar-facturas-albaranes-pedidos-y-presupuestos-desde-api
 title: Cómo editar facturas, albaranes, pedidos y presupuestos desde API
 creationdate: 18-06-2026 13:04:10
-lastmod: 08-07-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/como-editar-facturas-albaranes-pedidos-y-presupuestos-desde-api
 ---
 Al igual que podemos crear documentos con una sola petición, también podemos editar un documento de negocio ya existente (factura, albarán, pedido o presupuesto, tanto de venta como de compra) en una única llamada a la API. En la misma operación se actualizan la cabecera y las líneas, se recalculan los totales y se mantiene el stock consistente.
@@ -45,8 +45,16 @@ Para no romper la integridad del documento, hay campos que no se pueden cambiar 
 
 Tampoco se modifican por asignación directa la clave primaria ni la numeración del documento (`numero`, `codigo`, `codejercicio`), que se gestionan por sus propios mecanismos.
 
+## Fecha y hora
+Puedes cambiar la fecha con el campo `fecha` y la hora con `hora`. Si envías la fecha sin hora, o con la hora vacía, se conserva la hora que ya tenía el documento.
+
+## Cambiar el estado del documento
+Desde la versión 2026.7, en un documento editable puedes enviar también `idestado` junto al resto de cambios. El nuevo estado se aplica **al final**, cuando la cabecera y las líneas ya se han guardado, igual que al cambiarlo desde la web. Así, el stock y los documentos que genere el estado (por ejemplo, aprobar un pedido para generar el albarán) se calculan sobre el documento ya actualizado.
+
+El estado debe estar **activo** y pertenecer al **mismo tipo de documento** (por ejemplo, un estado de pedidos de cliente para `editarPedidoCliente`). Si no, la API responde con `422` y el mensaje `invalid-status`. Puedes consultar los estados disponibles con el recurso `estadodocumentos` de la API.
+
 ## Documentos no editables
-Si el documento no es editable (por ejemplo, una factura ya cerrada), solo se admiten los campos desbloqueados (como `pagada` o el estado del documento). Cualquier intento de modificar las líneas o el resto de la cabecera se rechaza con un error.
+Si el documento no es editable (por ejemplo, una factura ya cerrada), solo se admiten los campos desbloqueados (como `pagada` o `idestado`) y no hay que enviar `lineas`. Cualquier intento de modificar las líneas o el resto de la cabecera se rechaza con un error. Al cambiar el estado se aplica la misma validación del apartado anterior.
 
 ## Marcar la factura como pagada
 Si el documento es una factura y envías el campo `pagada` con valor `1`, se marcarán como pagados sus recibos. Para gestionar el pago con más detalle (fecha y forma de pago) existe un endpoint específico: [marcar una factura como pagada desde API](https://facturascripts.com/publicaciones/como-marcar-una-factura-como-pagada-desde-api).
@@ -74,7 +82,7 @@ Si algo falla, la respuesta incluye la clave `status` con el valor `error` y un 
 - `405` si el método no es PUT ni PATCH.
 - `400` si falta el identificador en la URL o el campo `lineas`.
 - `404` si no existe ningún documento con ese identificador.
-- `422` si se intenta cambiar el sujeto, la empresa o el almacén, si el documento no es editable, o si no se pueden recalcular los totales.
+- `422` si se intenta cambiar el sujeto, la empresa o el almacén, si el documento no es editable, si el estado no es válido para ese documento o si no se pueden recalcular los totales.
 
 ```json
 {

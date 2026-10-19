@@ -3,7 +3,7 @@ id: 682
 permalink: panelcontroller-845
 title: PanelController
 creationdate: 30-04-2018 00:00:00
-lastmod: 11-07-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/panelcontroller-845
 ---
 El PanelController, al igual que el [ListController](https://facturascripts.com/publicaciones/listcontroller-232), es un **controlador extendido** que permite múltiples vistas o pestañas. En este caso, admite distintos tipos de vistas:
@@ -125,3 +125,35 @@ $model = $this-&gt;activeTab()-&gt;model;
 ```
 
 Es equivalente a `$this-&gt;tab($this-&gt;active)`.
+
+### 📑 Agrupar pestañas: setTabGroup()
+
+Desde la versión 2026.7, cuando las pestañas están a la izquierda (posición por defecto), se pueden agrupar bajo un encabezado. Usa `setTabGroup()` con el nombre de la vista y la clave del grupo, que se traduce con el [sistema de traducciones](https://facturascripts.com/publicaciones/las-traducciones-en-plugins):
+
+```php
+protected function createViews() {
+    $this-&gt;addEditView(&#39;EditCliente&#39;, &#39;Cliente&#39;, &#39;customer&#39;);
+    $this-&gt;addListView(&#39;ListFacturaCliente&#39;, &#39;FacturaCliente&#39;, &#39;invoices&#39;);
+    $this-&gt;addListView(&#39;ListAlbaranCliente&#39;, &#39;AlbaranCliente&#39;, &#39;delivery-notes&#39;);
+
+    $this-&gt;setTabGroup(&#39;ListFacturaCliente&#39;, &#39;sales&#39;);
+    $this-&gt;setTabGroup(&#39;ListAlbaranCliente&#39;, &#39;sales&#39;);
+}
+```
+
+`setTabGroup()` es un atajo de `setSettings($viewName, &#39;group&#39;, $group)` y devuelve la vista, así que también puedes indicarlo al crearla:
+
+```php
+$this-&gt;addListView(&#39;ListFacturaCliente&#39;, &#39;FacturaCliente&#39;, &#39;invoices&#39;)
+    -&gt;setSettings(&#39;group&#39;, &#39;sales&#39;);
+```
+
+Las pestañas sin grupo se muestran primero y después cada grupo con su encabezado, en el orden en que aparece por primera vez. `getTabGroups()` devuelve las vistas agrupadas por clave (las que no tienen grupo, bajo la clave vacía).
+
+Los plugins pueden agrupar sus propias pestañas, o las del core, desde una [extensión del controlador](https://facturascripts.com/publicaciones/extensiones-de-controladores) llamando a `setSettings($viewName, &#39;group&#39;, $group)`. En el core se usan los grupos `sales` y `purchases` en clientes, proveedores y agentes, y `warehouse` en productos.
+
+### ↔️ Navegación entre registros
+
+Desde la versión 2026.7, cuando se abre un registro haciendo clic en una fila de un listado (ListView), la cabecera del controlador muestra unas flechas **‹ n/m ›** para pasar al registro anterior o al siguiente del mismo listado, con sus filtros, búsqueda y orden.
+
+No hay que hacer nada para activarla: el listado guarda en caché los destinos de sus filas (el controlador y el código de `url()` de cada modelo) bajo un token que añade a los enlaces como parámetro `navfrom`. Si el registro abierto no está en esa lista o el token ha caducado, las flechas no se muestran. `getNavigation()` devuelve los datos de navegación (`prev`, `next`, `position` y `count`) o un array vacío.

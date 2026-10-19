@@ -3,7 +3,7 @@ id: 1636
 permalink: widget-radio
 title: Widget Radio
 creationdate: 14-12-2023 16:49:31
-lastmod: 10-01-2026
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-radio
 ---
 El **Widget Radio** permite a los usuarios elegir entre varias opciones de manera visual. En todo momento, se pueden ver todas las opciones disponibles sin necesidad de desplegar ningún menú.

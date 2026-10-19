@@ -3,7 +3,7 @@ id: 2307
 permalink: widget-subcuenta
 title: Widget Subcuenta
 creationdate: 23-10-2025 20:00:33
-lastmod: 07-11-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-subcuenta
 ---
 El widget Subcuenta permite seleccionar una subcuenta desde el listado de cuentas, donde podemos buscar y filtrar por ejercicio.

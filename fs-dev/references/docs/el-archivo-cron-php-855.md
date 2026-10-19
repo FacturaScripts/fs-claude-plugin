@@ -3,7 +3,7 @@ id: 671
 permalink: el-archivo-cron-php-855
 title: Uso del Archivo Cron.php en FacturaScripts
 creationdate: 25-06-2018 00:00:00
-lastmod: 12-06-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/el-archivo-cron-php-855
 ---
 Para que tu plugin **ejecute tareas periódicas**, puedes utilizar el archivo `Cron.php` de tu plugin. El cron de FacturaScripts gestionará todos los procesos cron de los **plugins activos**, siempre y cuando **haya sido configurado** correctamente en el sistema o hosting. Si necesitas ejecutar algo de forma periódica, el mejor lugar para hacerlo es el cron de tu plugin.
@@ -174,6 +174,9 @@ $this-&gt;job(&#39;trabajo2&#39;)
         // esto se ejecutará cada día a las 8h y no podrá ejecutarse junto a trabajo3 o trabajo4
     });
 ```
+
+### 👀 Consultar la Frecuencia Programada
+Desde la versión 2026.7, cada trabajo guarda cómo se programó, con el nombre del método y sus parámetros, por ejemplo `every(6 hours)`, `everyDayAt(8)` o `everyMondayAt(9, strict)`. Se guarda en la siguiente ejecución del trabajo y se muestra en el **menú Administrador** → **Logs**, pestaña **Crons**, y en la ficha de cada trabajo, junto con la fecha de la última ejecución, la duración y el número de fallos.
 
 ### ⚠️ Limitaciones
 - Si hay una tarea que se ejecuta cada minuto y otra que se ejecuta menos frecuentemente y sin solapamiento, puede ocurrir que la segunda nunca llegue a ejecutarse, ya que siempre coincidirá cuando la primera esté en ejecución.

@@ -3,7 +3,7 @@ id: 1631
 permalink: widget-variante
 title: Widget Variante
 creationdate: 07-12-2023 23:38:56
-lastmod: 01-04-2026
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-variante
 ---
 El widget Variante permite seleccionar un producto o variante desde el catálogo de productos, donde podemos buscar y filtrar por fabricante y familia.

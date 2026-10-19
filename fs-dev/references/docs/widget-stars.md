@@ -3,7 +3,7 @@ id: 1628
 permalink: widget-stars
 title: Widget Stars
 creationdate: 06-12-2023 20:58:52
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-stars
 ---
 El widget de estrellas, o **WidgetStars**, permite seleccionar un calificación entre 0 y 5 estrellas. Este widget es perfecto para calificaciones de productos, servicios, etc.

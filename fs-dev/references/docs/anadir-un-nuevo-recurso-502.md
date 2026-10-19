@@ -3,7 +3,7 @@ id: 702
 permalink: anadir-un-nuevo-recurso-502
 title: Crear o añadir registros desde la API
 creationdate: 14-05-2018 00:00:00
-lastmod: 07-07-2026
+lastmod: 03-10-2026
 url: https://facturascripts.com/publicaciones/anadir-un-nuevo-recurso-502
 ---
 Para crear o añadir un nuevo registro mediante la API, por ejemplo un producto, utilizaremos el método **POST** sobre la ruta del recurso del modelo, donde para los atributos del modelo en concreto, como mínimo, serán obligatorios todos aquellos que no puedan ser nulos. Para este ejemplo crearemos una nueva divisa, por lo que haremos una consulta POST a `http://localhost:8000/api/3/divisas`
@@ -50,6 +50,7 @@ Cuando el guardado no se puede realizar, la respuesta incluye la clave `error` c
 - **Faltan datos** (HTTP `400`): no se ha enviado ningún campo en la petición.
 - **Registro duplicado** (HTTP `400`): ya existe un registro con esa clave primaria. En `data` se devuelve el registro existente.
 - **Error de validación** (HTTP `400`): algún campo no cumple las restricciones definidas en el método test del modelo (longitud, tipo, valores obligatorios...). El mensaje de `error` incluye el detalle del problema, el mismo que vería el usuario en la aplicación.
+- **Campos no permitidos** (HTTP `400`): desde la versión 2026.7, la API rechaza sin guardar nada las peticiones que intentan escribir en campos ocultos, como `password`, `logkey` o `two_factor_secret_key` de los usuarios o `apikey` de las claves de API. El mensaje indica los campos rechazados (`api: fields not allowed: password`). Para cambiar la contraseña de un usuario envía `newPassword` y `newPassword2`, y se guardará cifrada.
 
 ```json
 {

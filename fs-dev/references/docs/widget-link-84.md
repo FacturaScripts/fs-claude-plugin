@@ -3,7 +3,7 @@ id: 664
 permalink: widget-link-84
 title: Widget Link
 creationdate: 07-11-2018 00:00:00
-lastmod: 31-10-2025
+lastmod: 15-10-2026
 url: https://facturascripts.com/publicaciones/widget-link-84
 ---
 El widget **Link** se puede utilizar dentro de una columna de un **archivo XMLView** para añadir un enlace que nos llevará a la URL especificada en el campo `fieldname`.

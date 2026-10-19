@@ -1,6 +1,6 @@
 {
   "name": "fs-dev",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "Plugin de desarrollo de FacturaScripts para Claude Code y Codex: skills portables, perfiles especializados, documentación técnica y automatizaciones.",
   "author": {
     "name": "Daniel Fernández Giménez",

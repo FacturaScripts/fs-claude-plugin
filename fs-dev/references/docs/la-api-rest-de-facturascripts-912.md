@@ -1,12 +1,12 @@
 ---
 id: 698
 permalink: la-api-rest-de-facturascripts-912
-title: Guía de la API REST
+title: API REST de FacturaScripts: guía para desarrolladores
 creationdate: 01-05-2018 00:00:00
-lastmod: 19-03-2025
+lastmod: 21-09-2026
 url: https://facturascripts.com/publicaciones/la-api-rest-de-facturascripts-912
 ---
-La API REST de FacturaScripts ofrece a los desarrolladores una forma sencilla de acceder, crear, modificar y eliminar datos desde aplicaciones externas.
+Cómo activar y autenticar la API REST de FacturaScripts, versión /api/3, tokens y errores habituales. Con vídeo paso a paso.
 
 ## ¿Cómo usar la API?
 
@@ -16,11 +16,11 @@ A continuación, utilizaremos [Insomnia](https://insomnia.rest/download/) para r
 
 ## Activación y autenticación de la API
 
-1. **Activar la API:** Dirígete al **menú Administrador** y selecciona **Panel de control**. En la sección **Por defecto**, marca la casilla **Activar API** y haz clic en **Guardar**.
+1. **Activar la API:** Dirígete al **menú Administrador** y selecciona **Panel de control**. En la sección **Avanzado**, marca la casilla **Activar API** y haz clic en **Guardar**.
 
    ![Activar API](https://i.imgur.com/krqvZOV.png)
 
-2. **Crear una API Key:** Haz clic en la sección **API Keys** y presiona el botón **Nuevo** para crear una nueva clave. Asegúrate de marcar la opción **Acceso completo**.
+2. **Crear una API Key:** Haz clic en la pestaña **Claves API** y presiona el botón **Nuevo** para crear una nueva clave. Asegúrate de marcar la opción **Acceso completo**.
 
    ![Nueva clave API](https://i.imgur.com/j0lz4E8.png)
 

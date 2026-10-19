@@ -3,10 +3,12 @@ id: 2514
 permalink: migraciones-de-tablas
 title: Migraciones de tablas
 creationdate: 05-02-2026 18:08:22
-lastmod: 05-02-2026
+lastmod: 19-09-2026
 url: https://facturascripts.com/publicaciones/migraciones-de-tablas
 ---
 El sistema de migraciones de FacturaScripts permite a los plugins ejecutar cambios en los datos de la base de datos de forma controlada y segura. Las migraciones se ejecutan **automáticamente tras instalar o actualizar un plugin** y solo se ejecutan una única vez, quedando registradas en `MyFiles/migrations.json` para evitar su re-ejecución.
+
+Si una migración falla (lanza una excepción), el error se registra en el log, la migración **no se marca como ejecutada** y se reintentará en la siguiente actualización.
 
 ## ¿Cuándo usar migraciones?
 
@@ -27,12 +29,17 @@ Las migraciones son útiles para **operaciones sobre datos** que deben ejecutars
 ### Componentes principales
 
 1. **`Core/Migrations.php`**: Clase que gestiona la ejecución de migraciones
-   - `runPluginMigration(MigrationClass $migration)`: Ejecuta una migración individual
-   - `runPluginMigrations(array $migrations)`: Ejecuta múltiples migraciones
+   - `runPluginMigration(MigrationClass $migration): bool`: Ejecuta una migración individual. Devuelve `true` si se ha aplicado (o ya lo estaba) y `false` si ha fallado
+   - `runPluginMigrations(array $migrations): bool`: Ejecuta varias migraciones **en el orden recibido** y se detiene en la primera que falla
+   - `run(): bool`: Ejecuta las migraciones del núcleo, también deteniéndose en la primera que falla
 
 2. **`Core/Template/MigrationClass.php`**: Clase base abstracta para crear migraciones
+   - `run(): void`: método abstracto donde escribes la migración
+   - `exec(string $sql): void`: ejecuta SQL y lanza `RuntimeException` si falla
+   - `db(): DataBase`: conexión a la base de datos (compartida entre migraciones)
+   - `getFullMigrationName(): string`: identificador con el que se registra la migración
 
-3. **`MyFiles/migrations.json`**: Archivo que registra las migraciones ejecutadas
+3. **`MyFiles/migrations.json`**: Archivo que registra las migraciones ejecutadas, por su nombre completo
 
 ### Flujo de ejecución
 
@@ -46,8 +53,11 @@ Migrations::runPluginMigration()
 ¿Ya ejecutada? (verifica migrations.json)
     ↓ No
 Migration-&gt;run() (ejecuta las operaciones SQL)
-    ↓
-Marcar como ejecutada en migrations.json
+    ↓                        ↘ lanza excepción
+Marcar como ejecutada        Se registra el error en el log,
+en migrations.json           NO se marca como ejecutada
+    ↓                        y se detienen las siguientes
+Devuelve true                Devuelve false
 ```
 
 **Momento de ejecución:**
@@ -99,8 +109,9 @@ class RellenarEstadoPedidos extends MigrationClass
 
         // Rellenar el nuevo campo &#39;estado&#39; con valor por defecto
         // para pedidos que no lo tengan
-        $sql = &quot;UPDATE pedidoscli SET estado = &#39;pendiente&#39; WHERE estado IS NULL OR estado = &#39;&#39;&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        // exec() lanza una excepción si el SQL falla, así la migración no
+        // se marca como ejecutada y se reintenta en la próxima actualización
+        $this-&gt;exec(&quot;UPDATE pedidoscli SET estado = &#39;pendiente&#39; WHERE estado IS NULL OR estado = &#39;&#39;&quot;);
     }
 }
 ```
@@ -113,8 +124,9 @@ En el método `update()` de tu plugin:
 &lt;?php
 namespace FacturaScripts\Plugins\MiPlugin;
 
-use FacturaScripts\Core\Base\InitClass;
 use FacturaScripts\Core\Migrations;
+use FacturaScripts\Core\Template\InitClass;
+use FacturaScripts\Core\Tools;
 
 class Init extends InitClass
 {
@@ -137,6 +149,66 @@ class Init extends InitClass
     }
 }
 ```
+
+### Paso 3 (opcional): Comprobar el resultado
+
+Tanto `runPluginMigration()` como `runPluginMigrations()` devuelven `bool`, así que puedes reaccionar si algo ha fallado:
+
+```php
+public function update(): void
+{
+    if (false === Migrations::runPluginMigrations([
+        new Migration\RellenarEstadoPedidos(),
+        new Migration\MigrarTiposCliente(),
+    ])) {
+        // alguna migración ha fallado: el error ya está en el log
+        // y las pendientes se reintentarán en la próxima actualización
+        Tools::log()-&gt;warning(&#39;Hay migraciones pendientes de MiPlugin.&#39;);
+    }
+}
+```
+
+## Identificador de la migración
+
+Una migración se registra en `migrations.json` con su **nombre completo**, que devuelve `getFullMigrationName()`:
+
+```
+NombreDelPlugin::MIGRATION_NAME
+```
+
+El nombre del plugin se deduce del namespace de la clase (`FacturaScripts\Plugins\MiPlugin\Migration\...`), por lo que dos plugins pueden usar el mismo `MIGRATION_NAME` sin colisionar. Aun así, conviene que el nombre sea descriptivo e incluya la versión.
+
+## Control de errores
+
+El núcleo captura cualquier excepción lanzada desde `run()`. Cuando una migración falla:
+
+- Se registra el error en el log con el nombre de la migración, la clase de la excepción, el archivo y la línea (`MIGRATION ERROR: MiPlugin::mi_migracion - mensaje`)
+- **No** se marca como ejecutada, así que se reintentará en la próxima actualización del plugin
+- `runPluginMigration()` devuelve `false`
+- Si la lanzaste con `runPluginMigrations()`, **las migraciones siguientes no se ejecutan**: el orden de la lista se entiende como dependencia, y todas ellas quedan pendientes junto con la fallida
+
+Como las migraciones pueden reintentarse (y porque al borrar `migrations.json` se ejecutarían todas de nuevo), escríbelas siempre de forma idempotente.
+
+### El helper `exec()`
+
+`DataBase::exec()` devuelve `false` cuando el SQL falla y deja el error solo en el log de base de datos, donde pasa desapercibido: la migración se marcaría como ejecutada aunque no haya hecho nada. Por eso `MigrationClass` incorpora `exec()`, que lanza una `RuntimeException` si la sentencia falla:
+
+```php
+public function run(): void
+{
+    if (!$this-&gt;db()-&gt;tableExists(&#39;clientes&#39;)) {
+        return;
+    }
+
+    // ✓ BIEN: si el SQL falla, lanza excepción y la migración se reintenta
+    $this-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39; WHERE tipo IS NULL&quot;);
+
+    // ✗ MAL: el fallo se ignora y la migración queda marcada como ejecutada
+    $this-&gt;db()-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39; WHERE tipo IS NULL&quot;);
+}
+```
+
+Para señalar cualquier otro problema, lanza una excepción desde `run()`. `run()` sigue devolviendo `void`, por lo que las migraciones de plugins ya publicadas no necesitan ningún cambio.
 
 ## Ejemplos prácticos
 
@@ -173,8 +245,7 @@ class RellenarPrioridadClientes extends MigrationClass
         }
 
         // Establecer prioridad &#39;normal&#39; para clientes existentes sin prioridad
-        $sql = &quot;UPDATE clientes SET prioridad = &#39;normal&#39; WHERE prioridad IS NULL OR prioridad = &#39;&#39;&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        $this-&gt;exec(&quot;UPDATE clientes SET prioridad = &#39;normal&#39; WHERE prioridad IS NULL OR prioridad = &#39;&#39;&quot;);
     }
 }
 ```
@@ -201,8 +272,7 @@ class NormalizarCodigosPostales extends MigrationClass
         }
 
         // Normalizar formato de códigos postales
-        $sql = &quot;UPDATE direcciones SET codpostal = UPPER(TRIM(codpostal)) WHERE codpostal IS NOT NULL&quot;;
-        $this-&gt;db()-&gt;exec($sql);
+        $this-&gt;exec(&quot;UPDATE direcciones SET codpostal = UPPER(TRIM(codpostal)) WHERE codpostal IS NOT NULL&quot;);
     }
 }
 ```
@@ -253,21 +323,41 @@ public function run(): void
     }
 
     // Solo actualizar registros que necesitan cambio
-    $sql = &quot;UPDATE clientes SET tipo = &#39;particular&#39;
-            WHERE tipo IS NULL OR tipo = &#39;&#39;&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $this-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39;
+            WHERE tipo IS NULL OR tipo = &#39;&#39;&quot;);
 }
 
 // ✗ MAL: Sin verificaciones
 public function run(): void
 {
     // Podría fallar si la tabla no existe
-    $sql = &quot;UPDATE clientes SET tipo = &#39;particular&#39;&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $this-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39;&quot;);
 }
 ```
 
-### 4. Compatibilidad con múltiples motores de base de datos
+### 4. Informa de los fallos
+
+Usa `$this-&gt;exec()` en lugar de `$this-&gt;db()-&gt;exec()` y lanza una excepción cuando detectes un problema. Si te tragas el error, la migración quedará marcada como ejecutada y no volverá a intentarse:
+
+```php
+// ✓ BIEN: el fallo hace que la migración se reintente
+public function run(): void
+{
+    $this-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39; WHERE tipo IS NULL&quot;);
+}
+
+// ✗ MAL: si el SQL falla, nadie se entera
+public function run(): void
+{
+    try {
+        $this-&gt;db()-&gt;exec(&quot;UPDATE clientes SET tipo = &#39;particular&#39; WHERE tipo IS NULL&quot;);
+    } catch (Exception $e) {
+        // silencio
+    }
+}
+```
+
+### 5. Compatibilidad con múltiples motores de base de datos
 
 ```php
 // Usar sintaxis SQL estándar compatible con MySQL y PostgreSQL
@@ -284,7 +374,7 @@ if ($this-&gt;db()-&gt;getEngine() === &#39;mysql&#39;) {
 $valor = $this-&gt;db()-&gt;var2str(&#39;valor&#39;);  // Escapa correctamente para el motor
 ```
 
-### 5. Documentación
+### 6. Documentación
 
 ```php
 /**
@@ -304,7 +394,7 @@ class FixFacturasDuplicadas extends MigrationClass
 }
 ```
 
-### 6. No eliminar migraciones antiguas
+### 7. No eliminar migraciones antiguas
 
 Una vez que una migración se ha publicado, **nunca la elimines**. Los usuarios que actualicen desde versiones antiguas necesitan que todas las migraciones intermedias se ejecuten en orden:
 
@@ -321,7 +411,7 @@ Migrations::runPluginMigrations([
 // y sus datos quedarán inconsistentes
 ```
 
-### 7. Considera el momento de ejecución
+### 8. Considera el momento de ejecución
 
 Las migraciones se ejecutan tras instalar/actualizar, ten en cuenta:
 
@@ -330,8 +420,7 @@ Las migraciones se ejecutan tras instalar/actualizar, ten en cuenta:
 public function run(): void
 {
     // Esta migración solo afecta a datos existentes
-    $sql = &quot;UPDATE clientes SET prioridad = &#39;alta&#39; WHERE total_anual &gt; 100000&quot;;
-    $this-&gt;db()-&gt;exec($sql);
+    $this-&gt;exec(&quot;UPDATE clientes SET prioridad = &#39;alta&#39; WHERE total_anual &gt; 100000&quot;);
 }
 
 // ✗ EVITAR: Migraciones que dependen de acciones del usuario
@@ -345,7 +434,7 @@ public function run(): void
 }
 ```
 
-### Forzar re-ejecución de una migración (solo desarrollo)
+## Forzar re-ejecución de una migración (solo desarrollo)
 
 Si necesitas probar una migración múltiples veces durante el desarrollo:
 

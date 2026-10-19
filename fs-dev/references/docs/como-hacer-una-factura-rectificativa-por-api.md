@@ -3,12 +3,12 @@ id: 2149
 permalink: como-hacer-una-factura-rectificativa-por-api
 title: Cómo hacer una factura rectificativa por API
 creationdate: 18-06-2025 18:55:50
-lastmod: 15-07-2026
+lastmod: 01-10-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-rectificativa-por-api
 ---
-Desde la versión `2024.94` de FacturaScripts es posible crear facturas rectificativas con una sola petición POST a la API, utilizando el endpoint `crearFacturaRectificativaCliente`.
+Desde la versión `2024.94` de FacturaScripts es posible crear facturas rectificativas de cliente con una sola petición a la API, utilizando el endpoint `crearFacturaRectificativaCliente`. Se puede rectificar la factura completa o solo algunas de sus líneas, y en cada línea la cantidad que quieras.
 
-```
+```plaintext
 POST /api/3/crearFacturaRectificativaCliente
 ```
 
@@ -26,36 +26,89 @@ No puedes rectificar una factura que ya sea una rectificativa: si la factura ind
 
 ### 🧾 Crear factura rectificativa
 
-Haremos una petición POST al endpoint `crearFacturaRectificativaCliente` y le pasaremos los siguientes campos:
+Haremos una petición **POST** (también se admite **PUT**) al endpoint `crearFacturaRectificativaCliente`. Como en el resto de la API, los datos se envían como un formulario (**form URL encoded**) y la respuesta es JSON.
+
+Campos que admite:
 
 - `idfactura`: el ID de la factura original (obligatorio).
-- `fecha`: fecha en la que se hace la rectificación (obligatorio).
-- `hora`: hora exacta.
-- `refund_1`: cantidad a devolver.
-- `refund_2`: cantidad a devolver.
-- `refund_3`: cantidad a devolver.
+- `fecha`: fecha de la rectificativa (obligatorio).
+- `hora`: hora de la rectificativa (opcional; si no se indica, se usa la hora actual).
+- `refund_IDLINEA`: cantidad a rectificar de la línea con ese `idlinea` (opcional, ver más abajo).
+- `codserie`: serie de la rectificativa (opcional; por defecto, la de la factura original).
+- `idestado`: estado de la rectificativa (opcional; por defecto, el mismo estado que la factura original).
+- `nick` y `observaciones`: usuario y observaciones de la rectificativa (opcionales).
 
-Opcionalmente también puedes enviar `codserie`, `nick`, `observaciones` e `idestado` para la nueva factura rectificativa.
+### 🔢 Elegir qué líneas rectificar
 
-Debes enviar tantas variables `refund` como líneas quieras devolver, donde el número es el id de la línea original. Por ejemplo, para devolver 2 unidades de la línea 4 enviarías `refund_4`: 2.
+Cada campo `refund_` lleva detrás el **`idlinea`** de la línea de la factura original, **no su posición** dentro de la factura. Por ejemplo, si la factura tiene dos líneas con `idlinea` 1533 y 1534, y quieres devolver 2 unidades de la segunda, debes enviar `refund_1534` con valor `2`. Enviar `refund_2` no se refiere a la segunda línea.
+
+Para conocer los `idlinea` de una factura puedes consultar sus líneas:
+
+```plaintext
+GET /api/3/lineafacturaclientes?filter[idfactura]=1234
+```
+
+Cómo se interpretan los campos `refund_`:
+
+- La cantidad se indica en **positivo**: la API la convierte en negativo en la rectificativa.
+- Solo se incluyen en la rectificativa las líneas con un `refund_` distinto de cero.
+- Si no envías ningún `refund_` (o todos valen cero), se rectifica la **factura completa**: todas las líneas con su cantidad original.
+- Desde la versión `2026.7`, si envías un `refund_` que no corresponde a ninguna línea de esa factura, la API responde con `400` indicando la clave incorrecta y no crea la rectificativa. En versiones anteriores, si ninguna clave coincidía, se rectificaba la factura completa.
+
+Ejemplo de petición para devolver 2 unidades de una sola línea:
+
+- Petición: POST
+- URL: http://localhost:8000/api/3/crearFacturaRectificativaCliente
+- Cabeceras:
+	- Token: XXXXXX
+- Valores del formulario:
+	- idfactura: 1234
+	- fecha: 2026-10-01
+	- refund_1534: 2
 
 📷 Resultado de la rectificación:
 
 ![Imagen de la factura rectificativa generada](https://imgur.com/TnsnnxD.png)
 
-Esta operación crea automáticamente una nueva factura rectificativa, que referencia a la original. Puedes ver cuál ha sido la factura original a través del campo `idfacturarect`.
+### ⚙️ Qué hace la API al rectificar
 
-Si todo va bien, la API responde con código HTTP `200` y un objeto JSON con la nueva factura rectificativa y sus líneas (`doc` y `lines`). Si algo falla, devuelve un objeto con `status` a `error` y un `message` con el detalle (por ejemplo, `400` si falta `idfactura` o `fecha`, o si la factura original ya es una rectificativa, y `404` si la factura original no existe).
+- Si la factura original todavía es editable, la pasa al primer estado activo no editable (por ejemplo, **Emitida**), ya que una factura rectificada no debe poder modificarse.
+- Crea la nueva factura rectificativa, que referencia a la original mediante los campos `idfacturarect` (el `idfactura` de la original) y `codigorect` (su código). Cada línea de la rectificativa guarda en `idlinearect` el `idlinea` de la línea original.
+- Asigna a la rectificativa el `idestado` indicado o, si no se indica, el estado de la factura original. Desde la versión `2026.7` esto también se aplica cuando no se envía `idestado`; en versiones anteriores la rectificativa quedaba sin estado y no actualizaba el stock, así que en ellas conviene enviarlo siempre.
+- Si la factura original estaba pagada, marca como pagados los recibos de la rectificativa.
+
+Todo se hace en una transacción: si algún paso falla, no se guarda nada.
 
 📷 Relación entre factura original y rectificativa:
 
 ![Imagen que muestra la relación entre los identificadores de la factura original y la rectificativa](https://i.imgur.com/yM9WrAv.png)
 
+### 📤 Qué devuelve la API
+
+Si todo va bien, la API responde con código HTTP `200` y un objeto JSON con la nueva factura rectificativa y sus líneas:
+
+```json
+{
+    &quot;doc&quot;: { &quot;...&quot;: &quot;campos de la factura rectificativa&quot; },
+    &quot;lines&quot;: [ &quot;...líneas de la rectificativa...&quot; ]
+}
+```
+
+Si algo falla, devuelve un objeto con `status` a `error` y un `message` con el detalle:
+
+- `400` si falta `idfactura` o `fecha`, si la factura original ya es una rectificativa o si algún `refund_` no corresponde a una línea de la factura.
+- `404` si la factura original no existe.
+- `405` si el método no es POST ni PUT.
+
 ---
 
 ### 🔍 Ver si una factura ha sido rectificada
 
-Si quieres comprobar si una factura ha sido rectificada, simplemente haz una búsqueda de facturas donde `idfacturarect` sea igual al `idfactura` que quieres comprobar. Si la lista está vacía, es que aún no ha sido rectificada.
+Para comprobar si una factura ha sido rectificada, busca las facturas cuyo `idfacturarect` sea el `idfactura` que quieres comprobar. Si la lista está vacía, es que aún no ha sido rectificada.
+
+```plaintext
+GET /api/3/facturaclientes?filter[idfacturarect]=1234
+```
 
 📷 Ejemplo de listado de facturas rectificadas:
 
