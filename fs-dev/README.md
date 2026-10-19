@@ -79,20 +79,20 @@ Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-dev:crea
 
 En Claude Code, estos archivos se cargan como agentes nativos. En Codex, las skills leen los mismos archivos como perfiles de especialidad y los aplican directamente o los entregan a un subagente genérico cuando procede.
 
-| Agente | Modelo | Rol |
-|---|---|---|
-| `fs-dev:api-designer` | Opus | Diseño de endpoints REST y API personalizada |
-| `fs-dev:backend-developer` | Opus | Desarrollo backend: modelos, BD, Workers, Cron |
-| `fs-dev:compatibility-auditor` | Sonnet | Compatibilidad de un plugin con las versiones del core (`min_version`) y auditoría de seguridad |
-| `fs-dev:docs-expert` | Haiku | Documentación oficial y preguntas de programación |
-| `fs-dev:document-expert` | Opus | Documentos de compra y venta (presupuestos, facturas, albaranes, pedidos) |
-| `fs-dev:extension-developer` | Sonnet | Creación de extensiones para el Core o plugins externos |
-| `fs-dev:frontend-developer` | Sonnet | Capa frontend, plantillas Twig, JavaScript y CSS |
-| `fs-dev:fullstack-developer` | Opus | Funcionalidades completas end-to-end |
-| `fs-dev:php-expert` | Sonnet | PHP idiomático y patrones de calidad para FacturaScripts |
-| `fs-dev:sql-expert` | Opus | Base de datos, optimización SQL y migraciones |
-| `fs-dev:testing-expert` | Sonnet | Tests, PHPUnit, PHPStan y control de calidad |
-| `fs-dev:ui-designer` | Sonnet | Diseño de interfaces XMLView |
+| Agente | Modelo en Claude Code | Modelo en Codex al delegar | Rol |
+|---|---|---|---|
+| `fs-dev:api-designer` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Diseño de endpoints REST y API personalizada |
+| `fs-dev:backend-developer` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Desarrollo backend: modelos, BD, Workers, Cron |
+| `fs-dev:compatibility-auditor` | Sonnet | `gpt-6.1-sol` | Compatibilidad de un plugin con las versiones del core (`min_version`) y auditoría de seguridad |
+| `fs-dev:docs-expert` | Haiku | No aplica: la skill se usa directamente | Documentación oficial y preguntas de programación |
+| `fs-dev:document-expert` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Documentos de compra y venta (presupuestos, facturas, albaranes, pedidos) |
+| `fs-dev:extension-developer` | Sonnet | `gpt-6.1-sol` | Creación de extensiones para el Core o plugins externos |
+| `fs-dev:frontend-developer` | Sonnet | `gpt-6.1-sol` | Capa frontend, plantillas Twig, JavaScript y CSS |
+| `fs-dev:fullstack-developer` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Funcionalidades completas end-to-end |
+| `fs-dev:php-expert` | Sonnet | `gpt-6.1-sol` | PHP idiomático y patrones de calidad para FacturaScripts |
+| `fs-dev:sql-expert` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Base de datos, optimización SQL y migraciones |
+| `fs-dev:testing-expert` | Sonnet | `gpt-6.1-sol` | Tests, PHPUnit, PHPStan y control de calidad |
+| `fs-dev:ui-designer` | Sonnet | `gpt-6.1-sol` | Diseño de interfaces XMLView |
 
 ---
 

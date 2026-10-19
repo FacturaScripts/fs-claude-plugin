@@ -15,6 +15,6 @@ description: Diagnostica y corrige comportamientos incorrectos, errores inespera
 
 ## Ejecución portable
 
-En Claude Code puedes delegar cada fase a sus agentes nativos. En Codex aplica los perfiles directamente o usa subagentes genéricos para tareas acotadas cuando estén disponibles y aporten valor. Si no hay delegación, completa el flujo tú mismo.
+En Claude Code puedes delegar cada fase a sus agentes nativos. En Codex aplica los perfiles directamente o usa subagentes genéricos para tareas acotadas cuando estén disponibles y aporten valor. Si delegas, pide para la fase de `backend-developer` el modelo `gpt-6.1-sol` con esfuerzo de razonamiento `high` y para la de `testing-expert` el modelo `gpt-6.1-sol` con el esfuerzo de razonamiento predeterminado, equivalentes a los `model` de sus perfiles; si tu cuenta no dispone de esos modelos, usa el que esté disponible. Si no hay delegación, completa el flujo tú mismo.
 
 Si el usuario solo pide diagnóstico, no cambies archivos. No amplíes el alcance ni atribuyas al bug problemas preexistentes sin evidencia.

@@ -6,6 +6,7 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 |---|---|---|---|
 | Skills | Nativas | Nativas | `*/skills/*/SKILL.md` |
 | Agentes especializados | Agentes Markdown nativos | Perfiles leídos por las skills; delegación genérica opcional | `*/agents/*.md` |
+| Modelo de cada perfil | Campo `model` del agente | Solicitado por la skill al delegar; sin delegación, el modelo de la sesión | Tabla de equivalencias de este documento |
 | Inicio de sesión | `SessionStart` | `SessionStart` | `*/hooks/hooks.json` |
 | Cambio de directorio | `CwdChanged` | No disponible; requiere hilo nuevo | Hook conservado para Claude Code |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
@@ -27,6 +28,18 @@ Las referencias viven fuera de `agents/` para que ningún host las interprete co
 - `fs-user/references/projects/`: catálogo de extensiones.
 
 Los agentes de Claude Code precargan la skill `docs-expert`. En Codex, cada skill especializada lee el mismo perfil Markdown y puede aplicarlo en el hilo principal o proporcionárselo a un subagente genérico.
+
+## Modelos de los perfiles
+
+Claude Code aplica el campo `model` del frontmatter de cada agente. Codex no carga los agentes Markdown, su manifiesto de plugin no admite agentes y ni el frontmatter de `SKILL.md` ni `agents/openai.yaml` permiten fijar un modelo. Por eso cada skill de perfil indica, para cuando delega en un subagente, el modelo y el esfuerzo de razonamiento equivalentes. Codex documenta que el modelo puede pedirse en la propia delegación. Si la skill aplica el perfil en el hilo principal, se usa el modelo de la sesión.
+
+| `model` en Claude Code | Modelo solicitado en Codex | Esfuerzo de razonamiento |
+|---|---|---|
+| `haiku` | `gpt-6-luna` | `high` |
+| `sonnet` | `gpt-6.1-sol` | Predeterminado del cliente |
+| `opus` | `gpt-6.1-sol` | `high` |
+
+Fuentes: <https://learn.chatgpt.com/docs/agent-configuration/subagents> y <https://learn.chatgpt.com/docs/models>, consultadas en octubre de 2026. Si OpenAI retira o renombra estos modelos, actualiza esta tabla y las skills que los citan (`rg "gpt-6" fs-dev/skills fs-user/skills`). Quien quiera fijar el modelo de forma permanente puede definir sus propios agentes TOML en `~/.codex/agents/`; esa configuración es del usuario y el plugin no la instala.
 
 ## Recarga durante desarrollo local
 

@@ -98,6 +98,6 @@ La auditoría de seguridad se basa en patrones: no sigue el flujo de datos, no v
 
 ## Ejecución portable
 
-En Claude Code puedes delegar la interpretación al agente `fs-dev:compatibility-auditor`. En Codex aplica el perfil directamente. Si no hay delegación disponible, completa el flujo tú mismo.
+En Claude Code puedes delegar la interpretación al agente `fs-dev:compatibility-auditor`. En Codex aplica el perfil directamente; si delegas en un subagente, pide el modelo `gpt-6.1-sol` con el esfuerzo de razonamiento predeterminado, equivalente al `model: sonnet` del perfil; si tu cuenta no dispone de ese modelo, usa el que esté disponible. Si no hay delegación disponible, completa el flujo tú mismo.
 
 Esta skill solo diagnostica: no modifiques el plugin ni su `facturascripts.ini` salvo petición expresa del usuario, y no ejecutes su código para comprobar lo que hace.

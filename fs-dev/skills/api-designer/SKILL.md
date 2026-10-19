@@ -11,6 +11,7 @@ Usa como instrucciones de especialidad el perfil [`../../agents/api-designer.md`
 
 - En Claude Code, delega al agente nativo `api-designer` cuando esté disponible.
 - En Codex, aplica el perfil directamente. Si hay delegación genérica disponible y aporta valor, entrega al subagente una tarea acotada junto con el perfil y el contexto relevante.
+- Si en Codex delegas en un subagente, pide el modelo `gpt-6.1-sol` con esfuerzo de razonamiento `high`, equivalente al `model: opus` del perfil; si tu cuenta no dispone de ese modelo, usa el que esté disponible.
 - Si no puedes delegar, realiza tú mismo el trabajo siguiendo el perfil.
 - Consulta `fs-dev:docs-expert` antes de afirmar detalles propios del framework y contrasta la implementación con el código local.
 
