@@ -15,6 +15,10 @@ Responde a partir de la documentación incluida en [`../../references/docs/`](..
 4. Cita los archivos consultados mediante enlaces o rutas precisas.
 5. Separa con claridad lo documentado, lo verificado en código y cualquier inferencia.
 
+Los ejemplos de la documentación contienen entidades HTML (`&lt;`, `&gt;`, `&#39;`, `&quot;`): decodifícalas antes de mostrarlos o reutilizarlos y verifica el código contra el core, porque algún ejemplo trae errores de sintaxis.
+
+Las preguntas sobre el uso del ERP, y no sobre su programación, corresponden a la skill `fs-user:docs-expert`.
+
 No inventes comportamiento específico del framework. Si las fuentes incluidas no cubren el tema y no hay código local que lo confirme, indícalo.
 
 ## Compatibilidad de agentes

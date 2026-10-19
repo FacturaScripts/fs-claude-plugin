@@ -1,59 +1,58 @@
 ---
 name: crear-html-twig
-description: Crea, usa y extiende vistas Twig en FacturaScripts, incluyendo herencia desde Core o plugins y ganchos para extensión por otros plugins.
+description: Guía para escribir una plantilla Twig concreta de FacturaScripts, con su herencia, sus funciones, su uso desde el controlador y sus ganchos de extensión.
 ---
 
-# Skill: Crear Vistas HTML Twig en FacturaScripts
+# Skill: crear vistas HTML Twig en FacturaScripts
 
-Las vistas Twig son archivos `.html.twig` ubicados en la carpeta `View/` del plugin. Permiten construir interfaces completamente personalizadas usando el motor de plantillas Twig 3.
+Las vistas Twig son archivos `.html.twig` en la carpeta `View/` del plugin. Se basan en Twig 3 (`las-vistas-html-69.md`).
 
 ## Atajo con fsmaker
-
-Para generar una vista Twig con la estructura base ya preparada:
 
 ```bash
 fsmaker view
 ```
 
-fsmaker solicita el nombre de la vista y genera el archivo `.html.twig` en `View/` con la herencia de plantilla correcta. Los apartados siguientes documentan la estructura completa y las funciones disponibles.
+fsmaker pide el nombre de la vista y genera el archivo en `View/` con la herencia correcta.
 
 ---
 
 ## 1. Crear una vista básica
 
 ### Ubicación
+
 ```
 Plugins/MiPlugin/View/MiVista.html.twig
 ```
 
 ### Estructura mínima con menú
+
 ```twig
 {% extends "Master/MenuTemplate.html.twig" %}
 
 {% block body %}
     {{ parent() }}
     <div class="container-fluid">
-        <h1>{{ trans('my-title') }}</h1>
+        <h1 class="h3">{{ trans('my-title') }}</h1>
     </div>
 {% endblock %}
 
 {% block css %}
     {{ parent() }}
-    {# CSS adicional aquí #}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {# JS adicional aquí #}
 {% endblock %}
 ```
 
-### Sin menú (interfaz mínima)
+### Sin menú
+
 ```twig
 {% extends "Master/MicroTemplate.html.twig" %}
 
 {% block body %}
-    <h1>Vista mínima</h1>
+    <h1>{{ trans('my-title') }}</h1>
 {% endblock %}
 ```
 
@@ -61,27 +60,51 @@ Plugins/MiPlugin/View/MiVista.html.twig
 
 ## 2. Usar la vista desde el controlador
 
-### Como vista principal del controlador
-```php
-// En el método exec() o privateCore() del controlador:
-$this->setTemplate('MiVista'); // carga View/MiVista.html.twig
-```
+### Controlador nuevo (`Core\Template\Controller`)
 
-Para desactivar la salida HTML (respuestas JSON, descargas, etc.):
-```php
-$this->setTemplate(false);
-```
+La vista se pinta con `$this->view()`, indicando la extensión:
 
-### Como pestaña dentro de un PanelController o EditController
 ```php
-protected function createViews(): void
+<?php
+namespace FacturaScripts\Plugins\MiPlugin\Controller;
+
+use FacturaScripts\Core\Template\Controller;
+
+class MiVista extends Controller
 {
-    // addHtmlView(viewName, templateName, modelName, title, icon)
-    $this->addHtmlView('tab-producto', 'Tab/MiTab', 'Producto', 'producto', 'fas fa-box');
+    /** @var array Datos que la vista lee como fsc.datos */
+    public $datos = [];
+
+    public function run(): void
+    {
+        parent::run();
+        $this->datos = ['clave' => 'valor'];
+        $this->view('MiVista.html.twig'); // View/MiVista.html.twig
+    }
 }
 ```
-- El archivo debe estar en `View/Tab/MiTab.html.twig`
-- El modelo puede ser cualquier string si no se necesita modelo específico
+
+### Controlador antiguo o extendido (`Core\Base\Controller`, List, Edit, Panel)
+
+```php
+// en privateCore() o en una acción
+$this->setTemplate('MiVista'); // carga View/MiVista.html.twig
+$this->setTemplate(false);     // desactiva la salida HTML (JSON, descargas...); booleano, no la cadena 'false'
+```
+
+### Como pestaña de un EditController o PanelController
+
+```php
+protected function createViews()
+{
+    parent::createViews(); // en EditController
+    // addHtmlView(viewName, plantilla, modelo, título, icono)
+    $this->addHtmlView('tab-producto', 'Tab/MiTab', 'Producto', 'product', 'fa-solid fa-box');
+}
+```
+
+- El archivo debe estar en `View/Tab/MiTab.html.twig` (`addhtmlview-794.md`).
+- El modelo puede ser cualquier nombre si no necesitas uno concreto.
 
 ---
 
@@ -89,31 +112,17 @@ protected function createViews(): void
 
 | Variable | Descripción |
 |---|---|
-| `fsc` | Referencia al controlador (acceso a propiedades/métodos públicos) |
+| `fsc` | El controlador: sus propiedades y métodos públicos |
 | `controllerName` | Nombre del controlador activo |
-| `template` | Nombre de la plantilla cargada |
-| `assetManager` | Assets CSS/JS cargados desde el controlador |
+| `template` | Plantilla cargada (controladores antiguos y extendidos) |
+| `assetManager` | CSS y JS cargados desde el controlador |
 | `log` | Instancia de MiniLog |
 
-### Pasar datos desde el controlador
-Declara propiedades públicas en el controlador:
-```php
-class MiControlador extends Controller
-{
-    public array $datos = [];
+Las propiedades públicas del controlador se leen como `{{ fsc.datos }}`:
 
-    public function privateCore(&$response, $user, $permissions): void
-    {
-        parent::privateCore($response, $user, $permissions);
-        $this->datos = ['clave' => 'valor'];
-    }
-}
-```
-
-En la vista:
 ```twig
-{% for item in fsc.datos %}
-    <p>{{ item }}</p>
+{% for clave, valor in fsc.datos %}
+    <p>{{ clave }}: {{ valor }}</p>
 {% endfor %}
 ```
 
@@ -122,7 +131,7 @@ En la vista:
 ## 4. Funciones Twig disponibles
 
 ```twig
-{# Traducción #}
+{# Traducción, con parámetros entre % y con idioma concreto #}
 {{ trans('save') }}
 {{ trans('record-save-ok', {'%code%': 'FAC001'}) }}
 {{ trans('save', {}, 'de_DE') }}
@@ -134,19 +143,17 @@ En la vista:
 {# Usuario actual #}
 {{ fsc.user.nick }}
 
-{# Token CSRF en formularios #}
+{# Token de seguridad de los formularios #}
 {{ formToken() }}
-{{ formToken(false) }}  {# solo el valor del token #}
+{{ formToken(false) }}  {# solo el valor #}
 
-{# Formateo de números #}
+{# Números y precios #}
 {{ number(20.338547) }}
 {{ number(20.338547, 4) }}
-
-{# Formateo de precios #}
 {{ money(15.42) }}
 {{ money(15.42, 'EUR') }}
 
-{# Configuración de la aplicación #}
+{# Configuración #}
 {% set divisa = settings('default', 'coddivisa') %}
 {% set dias = settings('default', 'dias', 7) %}
 
@@ -154,23 +161,23 @@ En la vista:
 {% set file = attachedFile(5) %}
 {{ file.path }}
 
-{# Toasts / notificaciones JS #}
+{# Avisos emergentes con JavaScript #}
 {% include 'Macro/Toasts.html.twig' %}
-<script>setToast('Mensaje', 'warning', 'Título', 10000);</script>
+<script>setToast('{{ trans('saved')|e('js') }}', 'warning', '{{ trans('title')|e('js') }}', 10000);</script>
 ```
 
 ---
 
-## 5. Añadir funciones Twig personalizadas
+## 5. Añadir funciones Twig propias
 
-Desde `Init.php` del plugin, registrar funciones globales usando `Html::addFunction()`:
+Se registran en `Init::init()` con `Html::addFunction()`:
 
 ```php
 <?php
 namespace FacturaScripts\Plugins\MiPlugin;
 
 use FacturaScripts\Core\Html;
-use FacturaScripts\Core\Base\InitClass;
+use FacturaScripts\Core\Template\InitClass;
 use Twig\TwigFunction;
 
 class Init extends InitClass
@@ -178,109 +185,98 @@ class Init extends InitClass
     public function init(): void
     {
         Html::addFunction(
-            new TwigFunction('fechaFormato', function (string $formato = 'Y-m-d') {
+            new TwigFunction('miPluginFecha', function (string $formato = 'Y-m-d') {
                 return date($formato);
             })
         );
     }
 
-    public function update(): void {}
+    public function uninstall(): void
+    {
+    }
+
+    public function update(): void
+    {
+    }
 }
 ```
 
-Uso en cualquier vista Twig:
-```twig
-{{ fechaFormato() }}
-{{ fechaFormato('d/m/Y') }}
-```
+Uso: `{{ miPluginFecha() }}` o `{{ miPluginFecha('d/m/Y') }}`. Usa un prefijo propio para no colisionar con otras funciones.
 
 ---
 
 ## 6. Herencia de plantillas
 
-### Heredar de una plantilla del Core
+### Reemplazar una plantilla del core y heredar de ella
+
 ```twig
 {% extends '@Core/Master/MenuTemplate.html.twig' %}
 
 {% block body %}
-    <h1>Contenido que reemplaza el bloque body del Core</h1>
+    <h1>{{ trans('my-title') }}</h1>
 {% endblock %}
 ```
 
 ### Heredar de una plantilla de otro plugin
+
 ```twig
 {% extends "@PluginNombrePlugin/MiPlantilla.html.twig" %}
 
 {% block body %}
     {{ parent() }}
-    <p>Contenido extra añadido al bloque del plugin</p>
+    <p>{{ trans('extra-content') }}</p>
 {% endblock %}
 ```
 
-> Usa el identificador `@Core/` para plantillas del Core y `@PluginNombrePlugin/` para plantillas de un plugin concreto. Esto permite reemplazar la plantilla en `Dinamic/` mientras se sigue heredando de la original.
+Usa `@Core/` para el core y `@Plugin{Nombre}/` para un plugin; la ruta es relativa a su carpeta `View/` (`herencia-de-plantillas-904.md`).
 
 ---
 
-## 7. Ganchos (hooks): permitir que otros plugins extiendan tu vista
+## 7. Assets
 
-Añade puntos de extensión con `getIncludeViews()` en tu plantilla:
+- Los archivos `Assets/CSS/{Controlador}.css`, `Assets/JS/{Controlador}.js` y `Assets/JS/{Controlador}.mjs` se cargan solos en ese controlador.
+- Para otros archivos, usa `FacturaScripts\Dinamic\Lib\AssetManager` desde el controlador: `addCss()`, `addJs()`, `addJsModule()` y la ruta `FS_ROUTE . '/Plugins/MiPlugin/Assets/...'` (`assetmanager-309.md`).
+- No añadas `<link>` ni `<script>` a mano para los assets del plugin.
+
+---
+
+## 8. Ganchos: permitir que otros plugins extiendan tu vista
 
 ```twig
 {# View/MiPlantilla.html.twig #}
-<html>
-    <head>
-        {% for includeView in getIncludeViews('MiPlantilla', 'head') %}
-            {% include includeView['path'] %}
-        {% endfor %}
-    </head>
-    <body>
-        {% for includeView in getIncludeViews('MiPlantilla', 'body') %}
-            {% include includeView['path'] %}
-        {% endfor %}
+{% for includeView in getIncludeViews('MiPlantilla', 'head') %}
+    {% include includeView['path'] %}
+{% endfor %}
 
-        <div id="sidebar">
-            {% for includeView in getIncludeViews('MiPlantilla', 'sidebar') %}
-                {% include includeView['path'] %}
-            {% endfor %}
-        </div>
-    </body>
-</html>
+<div id="sidebar">
+    {% for includeView in getIncludeViews('MiPlantilla', 'sidebar') %}
+        {% include includeView['path'] %}
+    {% endfor %}
+</div>
 ```
 
-- El primer parámetro es el nombre de la plantilla (sin extensión)
-- El segundo parámetro es el nombre de la posición (inventado por el autor)
-- Se pueden añadir tantas posiciones como se desee
+- El primer parámetro es el nombre de la plantilla, sin extensión ni guiones bajos.
+- El segundo es el nombre de la ubicación, que eliges tú y **no puede contener `_`**.
+- Puedes añadir tantas ubicaciones como quieras.
 
 ---
 
-## 8. Extender la vista de otro plugin desde tu plugin
+## 9. Extender la vista de otro plugin o del core
 
-Crea los archivos en `Extension/View/` siguiendo la nomenclatura:
+Crea los archivos en `Extension/View/` con el nombre `NOMBREPLANTILLA_UBICACION[_ORDEN].html.twig` (`extensiones-de-vistas-html.md`):
 
-```
-NOMBRE_PLANTILLA_POSICION_ORDEN.html.twig
-```
-
-### Ejemplos de archivos
 ```
 Plugins/MiPlugin/Extension/View/MiPlantilla_head_05.html.twig
-Plugins/MiPlugin/Extension/View/MiPlantilla_body_10.html.twig
-Plugins/MiPlugin/Extension/View/MiPlantilla_sidebar_15.html.twig
+Plugins/MiPlugin/Extension/View/MiPlantilla_sidebar.html.twig      (orden 10)
+Plugins/MiPlugin/Extension/View/MenuTemplate_BodyEnd_20.html.twig  (gancho real del core)
 ```
 
-- El orden es un número de 2 dígitos (menor = antes). Por defecto es `10`.
-- Si hay varios plugins, se ordenan alfabéticamente si no tienen número.
+- El orden es un número entero; sin número se usa `10`.
+- Ganchos reales del core: `MenuTemplate` (`HeadEnd`, `CssAfter`, `BodyEnd`, `JsFooter`...), `PanelController` (`topButtons`), `Dashboard` (`sectionsAfter`...). Busca más con `rg -n "getIncludeViews" Core/View`.
+- La plantilla incluida recibe el contexto de la original (`fsc`, `controllerName`...): úsalo para limitarla a un controlador.
 
-### Contenido de ejemplo
-
-`MiPlantilla_head_05.html.twig`:
 ```twig
-<meta name="mi-plugin" content="activo">
-<link rel="stylesheet" href="{{ asset('Plugins/MiPlugin/Assets/CSS/mi-estilo.css') }}">
-```
-
-`MiPlantilla_body_10.html.twig`:
-```twig
+{# Extension/View/MiPlantilla_sidebar.html.twig #}
 <div class="alert alert-info">
     {{ trans('my-plugin-info') }}
 </div>
@@ -288,17 +284,15 @@ Plugins/MiPlugin/Extension/View/MiPlantilla_sidebar_15.html.twig
 
 ---
 
-## 9. Resumen de ubicaciones
+## 10. Resumen de ubicaciones
 
 | Archivo | Ubicación |
 |---|---|
-| Vista principal del plugin | `Plugins/MiPlugin/View/MiVista.html.twig` |
-| Pestaña HTML (tab) | `Plugins/MiPlugin/View/Tab/MiTab.html.twig` |
-| Extensión de vista de otro plugin | `Plugins/MiPlugin/Extension/View/NombrePlantilla_posicion_orden.html.twig` |
-
----
-
+| Vista principal | `Plugins/MiPlugin/View/MiVista.html.twig` |
+| Pestaña HTML | `Plugins/MiPlugin/View/Tab/MiTab.html.twig` |
+| Bloque reutilizable | `Plugins/MiPlugin/View/Block/MiBloque.html.twig` |
+| Extensión de una vista ajena | `Plugins/MiPlugin/Extension/View/NombrePlantilla_ubicacion_orden.html.twig` |
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre vistas Twig y herencia de plantillas, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert` para revisar la documentación oficial. Para una capa de presentación completa (varias plantillas, JavaScript y assets), usa `fs-dev:frontend-developer`.

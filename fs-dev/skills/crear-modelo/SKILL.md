@@ -74,10 +74,14 @@ class NombreModelo extends ModelClass
     public function test(): bool
     {
         // Validaciones antes de guardar
+        $this->name = Tools::noHtml($this->name);
         if (empty($this->name)) {
-            Tools::log()->error('El nombre es obligatorio');
+            // clave de traducción del plugin, definida en Translation/es_ES.json
+            Tools::log()->warning('mi-plugin-nombre-obligatorio');
             return false;
         }
+
+        // comprueba los NOT NULL y la longitud máxima de cada columna
         return parent::test();
     }
 }
@@ -107,7 +111,7 @@ Archivo: `Plugins/MiPlugin/Table/nombre_tabla.xml`
     </column>
     <column>
         <name>creation_date</name>
-        <type>timestamp without time zone</type>
+        <type>timestamp</type>
     </column>
     <constraint>
         <name>nombre_tabla_pkey</name>
@@ -132,42 +136,56 @@ El `<index>` es opcional: úsalo cuando una columna (no clave) se use habitualme
 | `string` largo | `text` |
 | `bool` | `boolean` |
 | `date` | `date` |
-| `datetime` | `timestamp without time zone` |
+| `datetime` | `timestamp` |
+| hora | `time` |
 
 ## Operaciones comunes con modelos
 
 ```php
+use FacturaScripts\Core\Where;
+
 // Crear
 $modelo = new NombreModelo();
 $modelo->name = 'Mi nombre';
-$modelo->save();
+$modelo->save();                               // llama a test() antes de guardar
+$modelo = NombreModelo::create(['name' => 'Otro']);
 
-// Leer por ID
+// Leer
+$modelo = NombreModelo::find($id);             // ?NombreModelo
+$modelo = NombreModelo::findWhereEq('name', 'Mi nombre');
 $modelo = new NombreModelo();
-$modelo->load($id);
+$modelo->load($id);                            // o loadWhere([...]) / loadWhereEq('campo', $valor)
 
-// Listar todos
-$lista = NombreModelo::all();
+// Listar y contar
+$lista = NombreModelo::all([Where::eq('active', true)], ['name' => 'ASC'], 0, 50);
+$lista = NombreModelo::allWhereEq('active', true);
+$total = NombreModelo::count([Where::eq('active', true)]);
 
-// Filtrar
-use FacturaScripts\Core\Where;
-$where = [Where::eq('active', true)];
-$lista = NombreModelo::all($where, ['name' => 'ASC']);
+// Actualizar y detectar cambios
+$modelo->name = 'Nuevo nombre';
+if ($modelo->isDirty('name')) {
+    $anterior = $modelo->getOriginal('name');
+}
+$modelo->save();
 
 // Eliminar
 $modelo->delete();
+NombreModelo::deleteWhere([Where::eq('active', false)]);
 ```
 
-## Reglas importantes
-- Nombre del modelo: singular, PascalCase (`Project`, `Edificio`)
-- Nombre de la tabla: plural, snake_case (`projects`, `edificios`)
-- Evitar columnas llamadas `action` o `code`
-- Usar solo minúsculas en nombres de columnas y en formato snake_case
-- El XML va en `Table/`, no en `Data/Table/`
-- La tabla se crea automáticamente, no hace falta SQL manual
-- Además de `<constraint>` (PRIMARY KEY, FOREIGN KEY, UNIQUE), el XML admite la etiqueta `<index>` para índices normales. Para índices compuestos o casos avanzados, invoca al agente `sql-expert`
+Evita `loadFromCode()` y `primaryColumnValue()`, que están obsoletos: usa `load()`/`loadWhere()` e `id()`. Para relaciones entre modelos usa `belongsTo()` y `hasMany()` (`relaciones-de-tablas.md`).
 
+## Reglas importantes
+
+- Nombre del modelo: singular, PascalCase (`Project`, `Edificio`).
+- Nombre de la tabla: plural, snake_case (`projects`, `edificios`).
+- Evita columnas llamadas `action`, `activetab` o `code`, que están reservadas.
+- Usa solo minúsculas y snake_case en los nombres de columna.
+- El XML va en `Table/`, con el mismo nombre que la tabla.
+- La tabla se crea automáticamente; no hace falta SQL manual. Tras cambiar el XML, pulsa **Reconstruir** en Administrador → Plugins.
+- Las validaciones van en `test()`; no existe `validate()`.
+- Además de `<constraint>` (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`), el XML admite `<index>`; los índices compuestos se declaran con varias columnas separadas por comas. Para diseño avanzado de datos, consulta la skill `fs-dev:sql-expert`.
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre modelos y tablas en FacturaScripts, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert` y, en `../../references/docs/`, los documentos `los-modelos-228.md`, `la-definicion-de-la-estructura-de-la-tabla-514.md`, `test-625.md` y `metodos-getoriginal-isdirty-y-getdirty-del-modelo.md`.

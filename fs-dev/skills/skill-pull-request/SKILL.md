@@ -33,7 +33,7 @@ refactor-modelo-presupuestos
 
 ### Flujo al crear la rama
 
-1. Asegúrate de estar en la rama base actualizada (`main` o `master`): `git checkout main && git pull`
+1. Asegúrate de estar en la rama base actualizada. Detecta la rama por defecto del repositorio (el core de FacturaScripts usa `master`) con `git symbolic-ref --short refs/remotes/origin/HEAD` y ejecuta `git checkout <rama-base> && git pull`
 2. Crea la nueva rama: `git checkout -b <nombre-rama>`
 3. Si el usuario dio un número de tarea, confirma el nombre propuesto antes de crearla
 
@@ -88,7 +88,7 @@ Describe los cambios principales de forma breve pero suficiente para que el revi
 Incluye pasos concretos y reproducibles. El revisor debería poder seguirlos sin conocimiento previo del cambio. Cosas como:
 
 - "Crear una factura con fecha de vencimiento futura y verificar que aparece el campo de descuento"
-- "Ejecutar `php artisan test --filter=IvaTest`"
+- "Ejecutar `fsmaker run-tests ../..` desde la carpeta del plugin" o, desde la raíz de FacturaScripts, "`vendor/bin/phpunit -c phpunit-plugins.xml --filter IvaTest`"
 - "Navegar a Informes > Trimestral y comprobar que el total de IVA coincide"
 
 ## Flujo completo al crear una PR
@@ -97,10 +97,10 @@ Cuando el usuario pida crear un pull request, sigue este orden:
 
 1. Ejecuta `git status` para ver archivos pendientes (nunca uses `-uall`)
 2. Ejecuta `git diff` para revisar los cambios staged y unstaged
-3. Ejecuta `git log --oneline` y `git diff main...HEAD` para entender todos los commits de la rama
+3. Ejecuta `git log --oneline <rama-base>..HEAD` y `git diff <rama-base>...HEAD` para entender todos los commits de la rama
 4. Verifica que la rama tiene un nombre correcto según las convenciones (si no, sugiere renombrarla)
 5. Comprueba si la rama está subida al remoto; si no, haz `git push -u origin <rama>`
-6. Redacta el título y cuerpo de la PR siguiendo la estructura anterior
+6. Redacta el título y cuerpo de la PR siguiendo la estructura anterior. Si el repositorio tiene plantilla de PR (`.github/pull_request_template.md` o similar), respeta sus pautas
 7. Si el usuario mencionó un número de tarea, incluye el enlace `[Tarea #XXXX](https://facturascripts.com/roadmap/XXXX)`
 8. Crea la PR con `gh pr create`
 9. Muestra la URL resultante al usuario
@@ -114,3 +114,4 @@ Un buen pull request facilita la revisión de código y reduce la fricción en e
 - Asegúrate de que los **tests pasan** antes de crear la PR. Menciona en la sección de pruebas qué tests se ejecutaron.
 - No incluyas cambios de formato o estilo mezclados con cambios funcionales; esos van en PRs separadas.
 - Si la PR depende de otra PR que aún no se ha mergeado, indícalo claramente en la descripción.
+- Para contribuir a un repositorio en el que no tienes permiso de escritura, como el core de FacturaScripts, trabaja sobre tu fork y abre la PR contra el repositorio original (`gh pr create --repo <propietario>/<repositorio>`), tal como describe `como-hacer-un-pull-request.md` en [`../../references/docs/`](../../references/docs/).

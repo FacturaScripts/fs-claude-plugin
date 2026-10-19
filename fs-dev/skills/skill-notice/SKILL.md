@@ -18,7 +18,8 @@ programa.
    el texto en un fichero del proyecto salvo que el usuario lo pida explícitamente.
 2. **Acota el rango.** El usuario indicará el alcance de los cambios, normalmente de una de estas
    formas:
-   - Por **versiones**: "desde la versión 1.1.0 hasta la 1.2.0".
+   - Por **versiones**: "desde la versión 1.1 hasta la 1.2". Las versiones de FacturaScripts y de sus
+     plugins son números enteros o decimales (`1.2`, `2025.71`), no semver como `1.2.0`.
    - Por **commits**: "desde el commit `abc123` hasta `HEAD`".
    - Por **referencia temporal**: "los cambios de la última semana", "desde el último release".
    Si no indica rango, **pregúntale** desde qué versión/commit hasta cuál quiere la noticia.
@@ -33,7 +34,7 @@ Cuando el usuario pida la noticia de cambios, sigue este orden:
 1. **Determina el rango de commits.** Según lo que indique el usuario:
    - Entre dos versiones (si están etiquetadas como tags de git):
      ```
-     git log v1.1.0..v1.2.0 --pretty=format:"%h %s" --no-merges
+     git log v1.1..v1.2 --pretty=format:"%h %s" --no-merges
      ```
    - Entre dos commits:
      ```
@@ -79,7 +80,7 @@ Devuelve siempre la noticia dentro de un bloque de código markdown como este (a
 plugin y a la versión):
 
 ````markdown
-## NombreDelPlugin 1.2.0
+## NombreDelPlugin 1.2
 
 ### 🚀 Novedades
 - Nuevo informe de antigüedad de cobros con prioridades de seguimiento
@@ -97,7 +98,7 @@ plugin y a la versión):
 ### Notas sobre el formato
 
 - Usa el **nombre real del plugin** y el **número de versión** de destino en el encabezado. Si la
-  noticia abarca varias versiones, puedes poner un rango (`## NombrePlugin 1.1.0 → 1.2.0`) o una
+  noticia abarca varias versiones, puedes poner un rango (`## NombrePlugin 1.1 → 1.2`) o una
   sección por versión.
 - Mantén solo las categorías que tengan contenido.
 - Si el rango no tiene cambios relevantes para el usuario, indícalo claramente en lugar de inventar

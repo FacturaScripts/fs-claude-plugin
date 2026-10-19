@@ -7,21 +7,25 @@ description: Audita un plugin de FacturaScripts antes de instalarlo o publicarlo
 
 La auditoría tiene dos partes independientes: la **compatibilidad** con el core (`min_version`) y la **seguridad** (qué hace el plugin en el servidor y en el navegador). Haz las dos salvo que el usuario pida solo una. La de seguridad no necesita el clon del core: si falta, hazla igualmente.
 
+## Rutas de los scripts
+
+Los scripts están en [`../../scripts/`](../../scripts/), relativa a este `SKILL.md`; en Claude Code equivale a `${CLAUDE_PLUGIN_ROOT}/scripts/`. La variable `CLAUDE_PLUGIN_ROOT` no existe en el entorno de Bash: resuelve antes la ruta absoluta de la carpeta y úsala entre comillas en los comandos. En los ejemplos, `<scripts>` representa esa ruta.
+
 ## Flujo
 
-1. Lee el `facturascripts.ini` del plugin y anota `min_version`, `min_php` y `require`.
-2. Localiza un clon git del core con todas sus etiquetas. Orden de búsqueda del script: `--core`, `FS_CORE_PATH`, `settings.corePath` de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/`, y el directorio actual. Si no hay ninguno, pide clonar `https://github.com/NeoRazorX/facturascripts.git` y detente: sin historial no se puede datar ningún símbolo.
-3. Ejecuta el script de auditoría:
+1. Lee el `facturascripts.ini` del plugin y anota `min_version`, `min_php`, `require` y `require_php`.
+2. Localiza un clon git del core con todas sus etiquetas. Orden de búsqueda del script: `--core`, `FS_CORE_PATH`, `settings.corePath` (o `settings.coreRepoPath`) de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/`, y el directorio actual. Si no hay ninguno, pide clonar `https://github.com/NeoRazorX/facturascripts.git` y omite la parte de compatibilidad, porque sin historial no se puede datar ningún símbolo; continúa con la de seguridad (paso 5).
+3. Ejecuta el script de auditoría (`--core` es opcional si el clon se detecta solo):
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-min-version.py" <ruta_plugin> --core <ruta_core>
+   python3 "<scripts>/check-min-version.py" <ruta_plugin> --core <ruta_core>
    ```
 
 4. Lee completo el perfil [`../../agents/compatibility-auditor.md`](../../agents/compatibility-auditor.md) para interpretar el informe y verificar a mano los símbolos de confianza media o baja.
 5. Ejecuta la auditoría de seguridad:
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check-security.py" <ruta_plugin>
+   python3 "<scripts>/check-security.py" <ruta_plugin>
    ```
 
 6. Revisa en el código cada hallazgo de severidad alta o media siguiendo el apartado «Cómo revisar los hallazgos» del perfil, y clasifícalo como justificado, a vigilar o sospechoso.
@@ -40,7 +44,7 @@ La auditoría tiene dos partes independientes: la **compatibilidad** con el core
 | `--max-version X` | Incumple si el plugin usa algo retirado en la versión `X` del core o antes |
 | `--workers N` | Ajusta las consultas simultáneas a git |
 
-Código de salida: `0` cumple, `1` incumple, `2` error de configuración.
+Código de salida: `0` cumple, `1` incumple, `2` error de configuración (falta el `facturascripts.ini`, el clon del core o git) o error inesperado.
 
 ## Opciones de `check-security.py`
 

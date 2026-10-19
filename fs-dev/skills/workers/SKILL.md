@@ -5,7 +5,9 @@ description: Explica cómo funcionan los workers y la cola de trabajos en Factur
 
 # Skill: Workers — Cola de Trabajos en FacturaScripts
 
-Los workers permiten ejecutar procesos en **segundo plano** al final de cada ejecución de página. Se usan para tareas no críticas que no necesitan ejecutarse en el momento exacto de la acción (por ejemplo, actualizar contadores, enviar notificaciones, sincronizar datos).
+Los workers permiten ejecutar procesos en **segundo plano**: al final de cada carga de página se procesa un evento de la cola, y cada ejecución del cron procesa un lote, por lo que con el cron configurado la cola avanza mucho más rápido. Se usan para tareas no críticas que no necesitan ejecutarse en el momento exacto de la acción (por ejemplo, actualizar contadores, enviar notificaciones, sincronizar datos).
+
+Documento de referencia: `../../references/docs/la-cola-de-trabajos.md`.
 
 La cola de trabajos se compone de **eventos** y **workers**:
 - Los **eventos** se lanzan automáticamente cuando se crea, modifica o elimina un registro.
@@ -41,18 +43,21 @@ Ejemplos:
 ## Lanzar eventos personalizados
 
 ```php
-use FacturaScripts\Core\Model\WorkEvent;
 use FacturaScripts\Core\WorkQueue;
 
 // lanzar un evento inmediatamente
 WorkQueue::send('mi-evento', 'valor-identificador');
 
-// lanzar un evento con parámetros adicionales
-WorkQueue::send('mi-evento', $modelo->id(), $modelo->toArray());
+// lanzar un evento con parámetros adicionales (el valor es un string)
+WorkQueue::send('mi-evento', (string)$modelo->id(), $modelo->toArray());
 
 // lanzar un evento para ejecutarse en el futuro (en segundos)
 WorkQueue::sendFuture(300, 'mi-evento', 'valor'); // en 5 minutos
 ```
+
+- Un evento **solo se guarda en la cola si algún worker lo escucha**; si nadie lo escucha, se descarta.
+- `send()` devuelve `true` si el evento se ha encolado y `false` si nadie lo escucha o está bloqueado.
+- Si se lanza el mismo evento con los mismos datos varias veces en la misma ejecución, solo se encola una vez.
 
 ---
 
@@ -77,6 +82,11 @@ class MiWorker extends WorkerClass
     }
 }
 ```
+
+`run()` debe devolver un booleano mediante una de estas ayudas:
+
+- `return $this->done();` — el worker ha terminado y los siguientes workers del evento pueden ejecutarse.
+- `return $this->stopPropagation();` — el worker ha terminado y **no** se ejecuta ningún otro worker para este evento.
 
 ---
 
@@ -107,9 +117,22 @@ class Init extends InitClass
 
         // escucha todos los eventos del sistema
         WorkQueue::addWorker('MiWorker', '*');
+
+        // tercer parámetro: posición; se ejecutan de menor a mayor (0 por defecto)
+        WorkQueue::addWorker('OtroWorker', 'Model.Producto.Update', -1); // antes que el resto
+    }
+
+    public function update(): void
+    {
+    }
+
+    public function uninstall(): void
+    {
     }
 }
 ```
+
+`update()` y `uninstall()` son abstractos en `InitClass` y deben existir aunque estén vacíos.
 
 > **Importante:** Si lanzas eventos en `Init::update()`, debes registrar los workers necesarios también en `update()`, ya que `update()` se ejecuta antes que `init()`.
 
@@ -152,7 +175,7 @@ Con `WorkQueue::send()`, tú decides qué enviar:
 // enviar el ID y todos los datos de una factura
 WorkQueue::send(
     'Model.FacturaCliente.Paid',
-    $factura->idfactura,
+    (string)$factura->idfactura,
     $factura->toArray()
 );
 
@@ -182,6 +205,8 @@ public function run(WorkEvent $event): bool
 }
 ```
 
+Los eventos `Model.WorkEvent.*` están siempre bloqueados, para evitar bucles al guardar los propios eventos de la cola.
+
 ---
 
 ## Ver la cola de trabajos
@@ -193,4 +218,4 @@ La lista de eventos pendientes de procesar se puede consultar desde:
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre workers y cola de trabajos, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert` y `../../references/docs/la-cola-de-trabajos.md`.

@@ -1,56 +1,54 @@
 ---
 name: crear-controlador
-description: Crea controladores de FacturaScripts (Controller con vista Twig, ListController, EditController o PanelController) con su vista asociada.
+description: Guía para escribir un controlador concreto de FacturaScripts (Controller con Twig, ListController, EditController o PanelController) y su vista asociada.
 ---
 
-# Skill: Crear Controlador FacturaScripts
+# Skill: crear un controlador de FacturaScripts
 
-Cuando el usuario pida crear un controlador, determina el tipo adecuado y genera el código.
+Cuando el usuario pida un controlador, determina el tipo adecuado y genera el código (`los-controladores-410.md`, `controladores-extendidos-367.md`).
 
 ## Atajo con fsmaker
-
-Antes de crear los archivos a mano, considera usar la herramienta CLI:
 
 ```bash
 fsmaker controller
 ```
 
-fsmaker solicita el nombre del controlador, el tipo (ListController, EditController, etc.) y genera el PHP y el XMLView asociado. Los apartados siguientes documentan la estructura completa para cuando necesites crearlos o ajustarlos manualmente.
+fsmaker pide el nombre y el tipo, y genera el PHP y el XMLView asociado. Los apartados siguientes sirven para crearlos o ajustarlos a mano.
 
 ## Tipos de controlador
 
-| Tipo | Uso | Nombre convención |
-|------|-----|-------------------|
-| `Controller` | Página personalizada con vista HTML Twig libre | `NombreLibre` |
-| `ListController` | Listado de registros con filtros | `ListNombreModelo` |
-| `EditController` | Formulario de edición de un registro | `EditNombreModelo` |
-| `PanelController` | Combinación de vistas (cabecera + pestañas) | `EditNombreModelo` |
+| Tipo | Uso | Convención de nombre |
+|------|-----|----------------------|
+| `Controller` (`Core\Template\Controller`) | Página libre con plantilla Twig | `NombreLibre` |
+| `ListController` | Listado con búsqueda, filtros y pestañas | `ListNombreModelo` |
+| `EditController` | Ficha de edición de un registro, con pestañas opcionales | `EditNombreModelo` |
+| `PanelController` | Varias pestañas definidas a mano | `EditNombreModelo` |
 
-## Controller (vista HTML Twig)
+## Controller (vista Twig libre)
 
-Usar cuando se necesita una página completamente personalizada con una plantilla `.html.twig` en lugar de un XMLView. Ideal para dashboards, páginas de configuración visual, formularios custom, etc.
+Para dashboards, asistentes o formularios a medida. Hereda de `FacturaScripts\Core\Template\Controller`: la lógica va en `run()`, la petición se lee con `$this->request()` y la vista se pinta con `$this->view()`, indicando la extensión `.html.twig`.
 
 Archivo PHP: `Plugins/MiPlugin/Controller/MiPagina.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Controller;
 
 use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Tools;
 
 class MiPagina extends Controller
 {
-    // Propiedades públicas accesibles desde la vista con {{ fsc.miPropiedad }}
-    public string $miVariable = '';
+    /** @var string Valor que la vista lee como fsc.miVariable */
+    public $miVariable = '';
 
     public function getPageData(): array
     {
         $data = parent::getPageData();
-        $data['title'] = 'mi-pagina';    // clave de traducción
-        $data['menu'] = 'admin';         // ventas, purchases, accounting, admin...
-        $data['icon'] = 'fas fa-home';
-        // $data['showonmenu'] = false;  // descomentar para ocultar del menú
+        $data['title'] = 'my-page';   // clave de traducción
+        $data['menu'] = 'admin';      // sales, purchases, accounting, warehouse, admin...
+        $data['icon'] = 'fa-solid fa-house';
+        // $data['showonmenu'] = false;
         return $data;
     }
 
@@ -58,15 +56,16 @@ class MiPagina extends Controller
     {
         parent::run();
 
-        // Leer parámetros de URL o formulario
-        $id = $this->request->query('id');
-        $valor = $this->request->input('campo');
+        // Parámetros de la URL y del formulario
+        $id = $this->request()->query('id');
+        $valor = $this->request()->input('campo');
 
-        // Asignar datos que la vista usará como {{ fsc.miVariable }}
+        if ($this->request()->input('action') === 'save' && $this->validateFormToken()) {
+            Tools::log()->notice('record-updated-correctly');
+        }
+
         $this->miVariable = 'Hola mundo';
-
-        // Seleccionar la plantilla (por defecto usa el nombre de la clase)
-        $this->setTemplate('MiPagina'); // carga View/MiPagina.html.twig
+        $this->view('MiPagina.html.twig'); // View/MiPagina.html.twig
     }
 }
 ```
@@ -75,54 +74,30 @@ Vista Twig: `Plugins/MiPlugin/View/MiPagina.html.twig`
 
 ```twig
 {% extends "Master/MenuTemplate.html.twig" %}
-{# Usar "Master/MicroTemplate.html.twig" si no se quiere el menú superior #}
+{# "Master/MicroTemplate.html.twig" si no se quiere el menú superior #}
 
 {% block body %}
     {{ parent() }}
-
     <div class="container-fluid">
-        <div class="row">
-            <div class="col">
-                <h1>{{ trans('mi-pagina') }}</h1>
+        <h1 class="h3">{{ trans('my-page') }}</h1>
+        <p>{{ fsc.miVariable }}</p>
 
-                {# Acceder a propiedades públicas del controlador #}
-                <p>{{ fsc.miVariable }}</p>
-
-                {# URL del controlador actual #}
-                <p>URL: {{ fsc.url() }}</p>
-
-                {# Formulario con token de seguridad #}
-                <form method="post" action="{{ fsc.url() }}">
-                    {{ formToken() }}
-                    <input type="text" name="campo" class="form-control">
-                    <button type="submit" class="btn btn-primary">
-                        {{ trans('save') }}
-                    </button>
-                </form>
-            </div>
-        </div>
+        <form method="post" action="{{ fsc.url() }}">
+            {{ formToken() }}
+            <input type="hidden" name="action" value="save"/>
+            <input type="text" name="campo" class="form-control mb-3">
+            <button type="submit" class="btn btn-primary">{{ trans('save') }}</button>
+        </form>
     </div>
-{% endblock %}
-
-{% block css %}
-    {{ parent() }}
-    {# CSS adicional aquí #}
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    {# JavaScript adicional aquí #}
 {% endblock %}
 ```
 
-### Notas clave del Controller con Twig
+### Notas del Controller
 
-- La vista se ubica en `View/` (no en `XMLView/`) y tiene extensión `.html.twig`.
-- `setTemplate('NombreVista')` carga `View/NombreVista.html.twig`.
-- Las propiedades `public` del controlador son accesibles en Twig como `{{ fsc.propiedad }}`.
-- Usar `{{ formToken() }}` en formularios POST para seguridad CSRF.
-- Para redirigir: `$this->redirect('OtroControlador');`
-- Para desactivar salida HTML (respuestas JSON/API): `$this->setTemplate('false');`
+- La vista va en `View/` con extensión `.html.twig`, y las propiedades `public` se leen como `{{ fsc.propiedad }}`.
+- Respuestas sin HTML: `$this->response()->json($datos);` o `$this->response()->file($ruta, $nombre)` (`objeto-response-como-devolver-datos.md`).
+- Redirección: `$this->response()->redirect('OtroControlador')->send();`.
+- `Core\Template\Controller` no tiene `setTemplate()`, `redirect()` ni la propiedad `$this->request`, y no admite extensiones. Esos métodos pertenecen al `Core\Base\Controller` antiguo, en el que se basan los controladores extendidos.
 
 ---
 
@@ -132,19 +107,20 @@ Archivo: `Plugins/MiPlugin/Controller/ListNombreModelo.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\ListController;
+use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 
 class ListNombreModelo extends ListController
 {
     public function getPageData(): array
     {
         $page = parent::getPageData();
-        $page['title'] = 'nombre-modelo'; // clave de traducción
-        $page['menu'] = 'sales';          // ventas, purchases, accounting, admin
-        $page['icon'] = 'fas fa-list';
+        $page['title'] = 'model-names';
+        $page['menu'] = 'sales';
+        $page['icon'] = 'fa-solid fa-list';
         return $page;
     }
 
@@ -155,10 +131,24 @@ class ListNombreModelo extends ListController
 
     protected function createViewsNombreModelo(string $viewName = 'ListNombreModelo'): void
     {
-        $this->addView($viewName, 'NombreModelo', 'nombre-modelo', 'fas fa-list')
+        $this->addView($viewName, 'NombreModelo', 'model-names', 'fa-solid fa-list')
             ->addOrderBy(['name'], 'name')
             ->addOrderBy(['creation_date'], 'date', 2)
-            ->addSearchFields(['name']);
+            ->addSearchFields(['name'])
+            // filtros encadenados sobre la vista: sin $viewName
+            ->addFilterCheckbox('active', 'active', 'active')
+            ->addFilterPeriod('creation_date', 'period', 'creation_date')
+            ->addFilterSelect('codpais', 'country', 'codpais', $this->codeModel->all('paises', 'codpais', 'nombre'))
+            ->addFilterSelectWhere('type', [
+                ['label' => Tools::trans('all'), 'where' => []],
+                ['label' => Tools::trans('only-active'), 'where' => [Where::eq('active', true)]],
+            ]);
+
+        $this->tab($viewName)->addButton([
+            'action' => 'recalculate',
+            'icon' => 'fa-solid fa-calculator',
+            'label' => 'recalculate',
+        ]);
     }
 }
 ```
@@ -170,17 +160,35 @@ XMLView: `Plugins/MiPlugin/XMLView/ListNombreModelo.xml`
 <view>
     <columns>
         <column name="name" order="100">
-            <widget type="text" fieldname="name" />
+            <widget type="text" fieldname="name"/>
         </column>
-        <column name="creation-date" order="200">
-            <widget type="date" fieldname="creation_date" />
+        <column name="creation-date" display="right" order="110">
+            <widget type="date" fieldname="creation_date"/>
         </column>
-        <column name="active" display="center" order="300">
-            <widget type="checkbox" fieldname="active" />
+        <column name="active" display="center" order="120">
+            <widget type="checkbox" fieldname="active"/>
         </column>
     </columns>
 </view>
 ```
+
+### Filtros
+
+Los métodos de `ListController` reciben el `$viewName` como primer parámetro; los de la vista (`$this->listView($viewName)` o el encadenado tras `addView()`), no.
+
+| Método del controlador | Parámetros tras `$viewName` |
+|------------------------|-----------------------------|
+| `addFilterCheckbox()` | `key, label, field, operation = '=', matchValue = true, default = []` |
+| `addFilterSelect()` | `key, label, field, array $values` |
+| `addFilterSelectWhere()` | `key, array $values` (etiqueta y array de `Where` por opción) |
+| `addFilterAutocomplete()` | `key, label, field, table, fieldcode, fieldtitle, where` |
+| `addFilterNumber()` | `key, label, field, operation = '>='` |
+| `addFilterDatePicker()` | `key, label, field, operation = '>='` |
+| `addFilterPeriod()` | `key, label, field, dateTime = false` |
+
+Usa `Where` (`FacturaScripts\Core\Where`) en lugar del obsoleto `DataBaseWhere`. Consulta cada `addfilter*.md`.
+
+---
 
 ## EditController
 
@@ -188,10 +196,10 @@ Archivo: `Plugins/MiPlugin/Controller/EditNombreModelo.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\EditController;
+use FacturaScripts\Core\Where;
 
 class EditNombreModelo extends EditController
 {
@@ -203,14 +211,40 @@ class EditNombreModelo extends EditController
     public function getPageData(): array
     {
         $page = parent::getPageData();
-        $page['title'] = 'nombre-modelo';
+        $page['title'] = 'model-name';
         $page['menu'] = 'sales';
-        $page['icon'] = 'fas fa-edit';
-        $page['showonmenu'] = false; // No mostrar en el menú principal
+        $page['icon'] = 'fa-solid fa-pen-to-square';
         return $page;
+    }
+
+    protected function createViews()
+    {
+        parent::createViews(); // crea la pestaña principal EditNombreModelo
+
+        $this->addListView('ListOtroModelo', 'OtroModelo', 'related', 'fa-solid fa-list');
+        $this->setTabGroup('ListOtroModelo', 'sales'); // grupo de pestañas (2026.7)
+    }
+
+    protected function loadData($viewName, $view)
+    {
+        switch ($viewName) {
+            case 'ListOtroModelo':
+                $where = [Where::eq('id_nombre_modelo', $this->getModel()->id())];
+                $view->loadData('', $where);
+                break;
+
+            default:
+                parent::loadData($viewName, $view); // carga la pestaña principal
+                break;
+        }
     }
 }
 ```
+
+- `EditController` crea la pestaña principal `Edit{Modelo}` y la carga por el parámetro `code`; sobrescribe `createViews()` y `loadData()` llamando al padre (`editcontroller-642.md`).
+- `getModel()` devuelve el modelo de la pestaña principal (solo en `EditController`).
+- `tab($viewName)` devuelve una pestaña y `activeTab()`, la seleccionada; `setReadOnly(true)` deja de solo lectura una pestaña de edición (`EditView`).
+- `EditController` fuerza `showonmenu = false`, y su pestaña principal tiene `btnPrint` activado.
 
 XMLView: `Plugins/MiPlugin/XMLView/EditNombreModelo.xml`
 
@@ -220,144 +254,98 @@ XMLView: `Plugins/MiPlugin/XMLView/EditNombreModelo.xml`
     <columns>
         <group name="data" numcolumns="8">
             <column name="name" numcolumns="8" order="100">
-                <widget type="text" fieldname="name" required="true" />
+                <widget type="text" fieldname="name" required="true"/>
             </column>
-            <column name="creation-date" numcolumns="4" order="200">
-                <widget type="date" fieldname="creation_date" />
+            <column name="creation-date" numcolumns="4" order="110">
+                <widget type="date" fieldname="creation_date"/>
             </column>
         </group>
-        <group name="options" numcolumns="4">
+        <group name="options" numcolumns="4" valign="bottom">
             <column name="active" order="100">
-                <widget type="checkbox" fieldname="active" />
+                <widget type="checkbox" fieldname="active"/>
             </column>
         </group>
     </columns>
 </view>
 ```
 
+---
+
 ## PanelController
 
-Divide la pantalla en zona de navegación (izquierda) y zona de contenido (derecha) con múltiples pestañas. Admite vistas de tipo `EditView`, `ListView`, `EditListView` y `HtmlView`.
+Divide la pantalla en navegación (pestañas) y contenido. Admite pestañas `EditView`, `ListView`, `EditListView` y `HtmlView` (`panelcontroller-845.md`).
 
 Archivo: `Plugins/MiPlugin/Controller/EditNombreModelo.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Controller;
 
-use FacturaScripts\Core\Where;
 use FacturaScripts\Core\Lib\ExtendedController\PanelController;
+use FacturaScripts\Core\Where;
 
 class EditNombreModelo extends PanelController
 {
     public function getPageData(): array
     {
         $page = parent::getPageData();
-        $page['title'] = 'nombre-modelo';
+        $page['title'] = 'model-name';
         $page['menu'] = 'sales';
-        $page['icon'] = 'fas fa-edit';
+        $page['icon'] = 'fa-solid fa-pen-to-square';
         $page['showonmenu'] = false;
         return $page;
     }
 
-    protected function createViews(): void
+    protected function createViews()
     {
-        // Primera pestaña: formulario de edición del modelo principal (cabecera)
-        $this->addEditView('EditNombreModelo', 'NombreModelo', 'nombre-modelo', 'fas fa-edit');
+        // Primera pestaña: la principal
+        $this->addEditView('EditNombreModelo', 'NombreModelo', 'model-name', 'fa-solid fa-pen-to-square');
 
-        // Segunda pestaña: listado de registros relacionados
-        $this->addListView('ListOtroModelo', 'OtroModelo', 'otro-modelo', 'fas fa-list');
+        // Pestañas relacionadas, agrupadas bajo un encabezado (2026.7)
+        $this->addListView('ListOtroModelo', 'OtroModelo', 'related', 'fa-solid fa-list')
+            ->setSettings('group', 'sales');
 
-        // Opcional: posición de las pestañas
-        // $this->setTabsPosition('bottom'); // left | top | bottom | left-bottom
+        // $this->setTabsPosition('top'); // left (por defecto) | top | bottom | left-bottom
     }
 
-    protected function loadData($viewName, $view): void
+    protected function loadData($viewName, $view)
     {
         switch ($viewName) {
             case 'EditNombreModelo':
-                $code = $this->request->query('code');
-                $view->loadData($code);
+                $view->loadData($this->request->get('code'));
                 break;
 
             case 'ListOtroModelo':
-                // Filtrar los registros relacionados por la PK del modelo principal
-                $where = [Where::eq('id_nombre_modelo', $this->getModel()->id())];
-                $view->loadData('', $where);
+                // PanelController no tiene getModel(): se lee el modelo de la pestaña principal
+                $id = $this->tab('EditNombreModelo')->model->id();
+                $view->loadData('', [Where::eq('id_nombre_modelo', $id)]);
                 break;
         }
     }
 }
 ```
 
-XMLView cabecera: `Plugins/MiPlugin/XMLView/EditNombreModelo.xml`
+### Notas del PanelController
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<view>
-    <columns>
-        <group name="data" numcolumns="8">
-            <column name="name" numcolumns="8" order="100">
-                <widget type="text" fieldname="name" required="true" />
-            </column>
-            <column name="creation-date" numcolumns="4" order="200">
-                <widget type="date" fieldname="creation_date" />
-            </column>
-        </group>
-        <group name="options" numcolumns="4">
-            <column name="active" order="100">
-                <widget type="checkbox" fieldname="active" />
-            </column>
-        </group>
-    </columns>
-</view>
-```
-
-XMLView pestaña relacionada: `Plugins/MiPlugin/XMLView/ListOtroModelo.xml`
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<view>
-    <columns>
-        <column name="name" order="100">
-            <widget type="text" fieldname="name" />
-        </column>
-        <column name="creation-date" order="200">
-            <widget type="date" fieldname="creation_date" />
-        </column>
-    </columns>
-</view>
-```
-
-### Notas clave del PanelController
-
-- La **primera vista** que se añade es la principal (cabecera). Si su modelo no existe en BD, el resto de pestañas quedan bloqueadas.
-- Para forzar pestañas siempre activas: `$this->hasData = true;` dentro de `loadData()`.
-- Métodos para añadir vistas: `addEditView()`, `addListView()`, `addEditListView()`, `addHtmlView()`.
-- Si necesitas dos pestañas del mismo XMLView, añade un sufijo numérico: `'ListOtroModelo-1'`, `'ListOtroModelo-2'`.
+- La **primera pestaña** es la principal. Si su registro no existe, las demás quedan bloqueadas; `$this->hasData = true;` en `loadData()` las mantiene activas.
+- Métodos para añadir pestañas: `addEditView()`, `addListView()`, `addEditListView()` y `addHtmlView()`.
+- Para dos pestañas con el mismo XMLView, añade un sufijo numérico: `'ListOtroModelo-1'` y `'ListOtroModelo-2'`.
+- **Agrupar pestañas (2026.7)**: con las pestañas a la izquierda, `setTabGroup($viewName, 'clave')` o `setSettings('group', 'clave')`; `getTabGroups()` devuelve las vistas agrupadas por clave.
+- **Navegación entre registros (2026.7)**: al abrir un registro desde un listado aparecen las flechas ‹ n/m ›. Es automático (parámetro `navfrom`); `getNavigation()` devuelve `prev`, `next`, `position` y `count`, o un array vacío.
+- Botones: `$this->tab($viewName)->addButton([...])` y `addButtonGroup([...])`. La forma `$this->addButton($viewName, [...])` está obsoleta.
+- Valores de otra pestaña: `$this->tabModelValue($viewName, $campo)` desde 2026.5; antes, `getViewModelValue()`.
 
 ---
 
 ## Menús disponibles
 
-- `sales` — Ventas
-- `purchases` — Compras
-- `accounting` — Contabilidad
-- `warehouse` — Almacén
-- `admin` — Administrador
-
-## Añadir filtros al ListController
-
-```php
-// En createViewsNombreModelo():
-->addFilterCheckbox($viewName, 'active', 'active')
-->addFilterDatePicker($viewName, 'creation_date', 'date')
-->addFilterSelect($viewName, 'estado', 'state', 'estados', 'nombre')
-->addFilterPeriod($viewName, 'creation_date', 'period')
-```
-
+- `sales`: Ventas
+- `purchases`: Compras
+- `accounting`: Contabilidad
+- `warehouse`: Almacén
+- `reports`: Informes
+- `admin`: Administrador
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre controladores y vistas HTML, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert` para revisar la documentación oficial. Para el diseño detallado de los XMLView, usa `fs-dev:crear-xmlview` o `fs-dev:ui-designer`.

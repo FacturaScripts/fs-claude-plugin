@@ -7,20 +7,16 @@ description: Explica y usa la herramienta CLI fsmaker para generar automáticame
 
 `fsmaker` es una herramienta de línea de comandos (CLI) que genera automáticamente los archivos con la estructura base necesaria para desarrollar plugins en FacturaScripts. Evita escribir código repetitivo a mano y garantiza que los archivos siguen las convenciones del framework.
 
-## Versión actual
+## Versión y comandos disponibles
+
+Los comandos cambian entre versiones: comprueba siempre la versión instalada y su listado antes de usarlos.
 
 ```bash
 fsmaker --version
-# fsmaker 2.2.0
-```
-
-## Listado de comandos
-
-```bash
-fsmaker
-# o
 fsmaker list
 ```
+
+La tabla siguiente corresponde a fsmaker 2.3.0:
 
 | Comando | Descripción |
 |---------|-------------|
@@ -41,9 +37,9 @@ fsmaker list
 | `translations` | Actualiza los archivos de traducción |
 | `upgrade` | Actualiza archivos PHP, XML, Twig e INI del plugin |
 | `upgrade-bs5` | Actualiza las vistas XML de Bootstrap 4 a Bootstrap 5 |
-| `github-action` | Crea un archivo de GitHub Action para testing |
+| `github-action` | Gestiona archivos de GitHub Actions para el plugin |
+| `github-run` | Ejecuta un workflow de GitHub Actions con `gh workflow run` |
 | `gitignore` | Crea un archivo .gitignore para FacturaScripts |
-| `agent-ai` | Copia los archivos de configuración de IA para Claude Code |
 | `zip` | Genera un archivo ZIP del plugin actual |
 
 ---
@@ -90,13 +86,13 @@ Genera una extensión de modelo, controlador, XMLView, tabla o vista para modifi
 ```bash
 fsmaker test
 ```
-Genera un archivo de test PHPUnit en `Test/` listo para ejecutar.
+Genera un archivo de test PHPUnit en `Test/main/` (namespace `FacturaScripts\Test\Plugins`) listo para ejecutar.
 
 ### Ejecutar tests
 ```bash
-fsmaker run-tests
+fsmaker run-tests ../..
 ```
-Lanza los tests del plugin con PHPUnit (equivalente a `vendor/bin/phpunit`).
+Lanza los tests del plugin con PHPUnit. Recibe como parámetro la ruta relativa a la instalación de FacturaScripts; desde la carpeta del plugin suele ser `../..` (`testeo-de-plugins.md`).
 
 ### Crear CronJob
 ```bash
@@ -114,7 +110,7 @@ Genera la clase Worker y la registra en `Init.php`.
 ```bash
 fsmaker migration
 ```
-Genera el archivo de migración para cambios estructurales en tablas.
+Genera una migración de **datos** que se ejecuta una sola vez al activar o actualizar el plugin. Los cambios de estructura no van en migraciones, sino en los XML de `Table/` (skill `fs-dev:migraciones`).
 
 ### Generar endpoints API REST
 ```bash
@@ -162,4 +158,4 @@ Genera un archivo ZIP del plugin listo para distribuir.
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre migraciones en FacturaScripts, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert`, la ayuda de cada comando (`fsmaker help <comando>`) y la página oficial <https://facturascripts.com/fsmaker>.

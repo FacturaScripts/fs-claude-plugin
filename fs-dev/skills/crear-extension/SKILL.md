@@ -1,117 +1,144 @@
 ---
 name: crear-extension
-description: Crea extensiones de FacturaScripts para modificar modelos, controladores o vistas del core o de otros plugins sin modificar su código fuente.
+description: Guía para escribir un archivo de extensión concreto de FacturaScripts (modelo, controlador, tabla, XMLView o vista Twig) y registrarlo en Init.php.
 ---
 
-# Skill: Crear Extensión FacturaScripts
+# Skill: crear una extensión de FacturaScripts
 
-Las extensiones permiten añadir funcionalidad a clases del core o de otros plugins **sin modificar su código fuente**.
+Las extensiones añaden o modifican funcionalidad de clases del core o de otros plugins **sin modificar su código fuente**. No son herencia: varios plugins pueden extender la misma clase (`las-extensiones-334.md`).
 
 ## Atajo con fsmaker
-
-Antes de crear los archivos a mano, considera usar la herramienta CLI:
 
 ```bash
 fsmaker extension
 ```
 
-fsmaker solicita el tipo de extensión (tabla, modelo, controlador, XMLView o vista Twig) y el nombre de la clase a extender, y genera el archivo base con la estructura correcta. Los apartados siguientes documentan la estructura completa para cuando necesites ajustar o completar la extensión manualmente.
+fsmaker pregunta el tipo (tabla, modelo, controlador, XMLView o vista) y el nombre, y genera el archivo base. Los apartados siguientes sirven para completarlo o crearlo a mano.
 
-## Extensión de Modelo
+## Extensión de modelo
 
-Archivo: `Plugins/MiPlugin/Extension/Model/NombreModelo.php`
+Archivo: `Plugins/MiPlugin/Extension/Model/Producto.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Extension\Model;
 
 use Closure;
+use FacturaScripts\Core\Tools;
 
-class NombreModelo
+class Producto
 {
-    // Se ejecuta ANTES de guardar el modelo
-    public function saveInsert(): Closure
+    // ANTES de insertar: devolver false impide la inserción
+    public function saveInsertBefore(): Closure
     {
         return function () {
-            // $this es el modelo original
-            // Código a ejecutar antes de insertar
+            // $this es el modelo Producto
         };
     }
 
-    // Se ejecuta DESPUÉS de guardar
+    // DESPUÉS de actualizar
     public function saveUpdate(): Closure
     {
         return function () {
-            // Código a ejecutar después de actualizar
+            if ($this->isDirty('precio')) {
+                Tools::log()->notice('price-changed');
+            }
         };
     }
 
-    // Se ejecuta al eliminar
-    public function delete(): Closure
+    // ANTES de borrar: devolver false impide el borrado
+    public function deleteBefore(): Closure
     {
         return function () {
-            // Código a ejecutar al eliminar
         };
     }
 
-    // Se ejecuta en test() (validación)
-    public function test(): Closure
+    // ANTES de validar: devolver false impide test() y, por tanto, save()
+    public function testBefore(): Closure
     {
         return function () {
-            // Añadir validaciones extra
-            // Retorna void, el pipe continúa
+        };
+    }
+
+    // Método nuevo: $producto->miPluginUsado()
+    public function miPluginUsado(): Closure
+    {
+        return function () {
+            return (bool)$this->usado;
         };
     }
 }
 ```
 
-### Métodos disponibles para extender en modelos
-- **clear()** — al instanciar el modelo, asigna valores predeterminados
-- **delete()** — tras el delete() del modelo
-- **deleteBefore()** — antes del delete(); si devuelve `false`, impide el borrado
-- **save()** — tras el save() del modelo
-- **saveBefore()** — antes del save(); si devuelve `false`, impide el guardado
-- **saveInsert()** — tras el saveInsert() del modelo
-- **saveInsertBefore()** — antes del saveInsert(); si devuelve `false`, lo impide
-- **saveUpdate()** — tras el saveUpdate() del modelo
-- **saveUpdateBefore()** — antes del saveUpdate(); si devuelve `false`, lo impide
-- **test()** — tras el test() del modelo
-- **testBefore()** — antes del test(); si devuelve `false`, lo impide
-- **url()** — tras el url() del modelo
-- **onChange()** — antes del saveUpdate(), para detectar cambios en columnas
+### Métodos disponibles para extender en modelos (`extensiones-de-modelos.md`)
 
-## Extensión de Controlador
+- **clear()**: al instanciar el modelo; asigna valores predeterminados.
+- **delete()**: después del `delete()` del modelo.
+- **deleteBefore()**: antes del `delete()`; si devuelve `false`, impide el borrado.
+- **save()**: después del `save()` del modelo.
+- **saveBefore()**: antes del `save()`; si devuelve `false`, impide el guardado.
+- **saveInsert()**: después del `saveInsert()` del modelo.
+- **saveInsertBefore()**: antes del `saveInsert()`; si devuelve `false`, lo impide.
+- **saveUpdate()**: después del `saveUpdate()` del modelo.
+- **saveUpdateBefore()**: antes del `saveUpdate()`; si devuelve `false`, lo impide.
+- **test()**: después del `test()` del modelo.
+- **testBefore()**: antes del `test()`; si devuelve `false`, lo impide.
+- **url()**: después del `url()` del modelo.
+- **onChange()**: antes del `saveUpdate()`, para detectar cambios en columnas.
 
-Archivo: `Plugins/MiPlugin/Extension/Controller/ListProducto.php`
+Para comparar valores usa `isDirty()`, `getOriginal()` y `getDirty()` (`metodos-getoriginal-isdirty-y-getdirty-del-modelo.md`).
+
+## Extensión de controlador
+
+Archivo: `Plugins/MiPlugin/Extension/Controller/EditProducto.php`
 
 ```php
 <?php
-
 namespace FacturaScripts\Plugins\MiPlugin\Extension\Controller;
 
 use Closure;
+use FacturaScripts\Core\Where;
 
-class ListProducto
+class EditProducto
 {
     public function createViews(): Closure
     {
         return function () {
-            // Añadir nueva pestaña al listado de productos
-            $this->addView('ListMiModelo', 'MiModelo', 'mi-modelo')
-                ->addOrderBy(['name'], 'name')
-                ->addSearchFields(['name']);
+            // $this es el controlador EditProducto
+            $this->addListView('ListMiModelo', 'MiModelo', 'my-model', 'fa-solid fa-list')
+                ->addOrderBy(['fecha'], 'date', 2)
+                ->addSearchFields(['nombre'])
+                ->setSettings('group', 'warehouse'); // grupo de pestañas (2026.7)
+        };
+    }
+
+    public function loadData(): Closure
+    {
+        return function ($viewName, $view) {
+            if ($viewName === 'ListMiModelo') {
+                $idproducto = $this->tabModelValue('EditProducto', 'idproducto'); // 2026.5+
+                $view->loadData('', [Where::eq('idproducto', $idproducto)]);
+                $this->miPluginTotal = $view->count; // propiedad dinámica con prefijo propio
+            }
         };
     }
 }
 ```
 
-### Métodos disponibles para extender en controladores
-- **createViews()** — tras el createViews() del controlador
-- **execPreviousAction($action)** — tras execPreviousAction(); si devuelve `false`, detiene el controlador
-- **loadData($viewName, $view)** — tras loadData() del controlador
-- **execAfterAction($action)** — tras execAfterAction() del controlador
-- **selectAction($data, $required)** — antes de cargar datos en un widget select; debe devolver array clave=valor
+### Métodos disponibles para extender en controladores (`extensiones-de-controladores.md`)
+
+- **createViews()**: después del `createViews()` del controlador.
+- **execPreviousAction($action)**: después del `execPreviousAction()`; si devuelve `false`, detiene el controlador.
+- **loadData($viewName, $view)**: después del `loadData()` del controlador.
+- **execAfterAction($action)**: después del `execAfterAction()` del controlador.
+- **selectAction($data, $required)**: antes de cargar los datos de un widget select; devuelve un array de pares `key`/`value`.
+
+Novedades de la versión 2026.7:
+
+- **Agrupar pestañas**: `->setSettings('group', 'clave')` en la vista que añades, o `$this->setSettings($viewName, 'group', 'clave')` para mover una del controlador. Las claves `sales`, `purchases` y `warehouse` ya tienen traducción.
+- **Propiedades dinámicas**: `$this->miPropiedad` ya no provoca el aviso de PHP 8.2; usa un prefijo propio del plugin.
+
+Solo los controladores extendidos (List, Edit, Panel) y los antiguos de `Core\Base\Controller` admiten extensiones; los que heredan de `Core\Template\Controller`, no.
 
 ## Extensión de XMLView
 
@@ -124,17 +151,17 @@ Archivo: `Plugins/MiPlugin/Extension/XMLView/EditProducto.xml`
 <view>
     <columns>
         <group name="options" numcolumns="12" valign="bottom">
-            <column name="usado">
-                <widget type="checkbox" fieldname="usado" />
+            <column name="usado" order="500">
+                <widget type="checkbox" fieldname="usado"/>
             </column>
         </group>
     </columns>
 </view>
 ```
 
-### Editar una columna ya existente
+### Reemplazar una columna existente
 
-Usar el atributo **`overwrite="true"`** en la columna que se desea modificar:
+Repite el grupo y la columna con el mismo `name` y añade **`overwrite="true"`**:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -152,13 +179,11 @@ Usar el atributo **`overwrite="true"`** en la columna que se desea modificar:
 </view>
 ```
 
-Sin `overwrite="true"`, la columna se añade de nuevo en lugar de reemplazar la existente.
+Sin `overwrite="true"`, los elementos con el mismo `name` se fusionan y los hijos nuevos se añaden; una columna acabaría con dos widgets.
 
-> **Nota:** Si la vista original ha sido modificada desde el botón de opciones, puede que no se muestre el campo añadido, ya que prevalecerá el estado guardado en la base de datos.
+> **Nota:** si la vista se ha personalizado con el botón de opciones, prevalece la configuración guardada en la base de datos.
 
-Los XMLView de extensión se fusionan automáticamente con el original.
-
-## Extensión de Tabla
+## Extensión de tabla
 
 Archivo: `Plugins/MiPlugin/Extension/Table/productos.xml`
 
@@ -172,85 +197,76 @@ Archivo: `Plugins/MiPlugin/Extension/Table/productos.xml`
 </table>
 ```
 
-Las extensiones de tabla también se fusionan automáticamente.
+No crees `Table/productos.xml` en tu plugin: indicaría que la tabla solo tiene esa columna. El modelo carga la columna nueva sin cambios (`extensiones-de-tablas.md`).
 
-## Extensión de Vistas HTML (Twig)
+## Extensión de vista Twig
 
-Permite añadir contenido en ubicaciones (hooks) definidas en plantillas Twig de otros plugins o del core, **sin sobrescribir** la plantilla original.
+Añade contenido en ubicaciones (ganchos) de una plantilla, **sin sobrescribirla** (`extensiones-de-vistas-html.md`).
 
-### Requisito: la plantilla original debe definir ubicaciones
-
-Para que una plantilla pueda ser extendida, debe llamar a `getIncludeViews()` en cada posición donde permita extensiones:
+### La plantilla original debe declarar el gancho
 
 ```twig
-<html>
-    <head>
-        {% for includeView in getIncludeViews('MiPlantilla', 'head') %}
-            {% include includeView['path'] %}
-        {% endfor %}
-    </head>
-    <body>
-        {% for includeView in getIncludeViews('MiPlantilla', 'body') %}
-            {% include includeView['path'] %}
-        {% endfor %}
-    </body>
-</html>
+{% for includeView in getIncludeViews('MiPlantilla', 'head') %}
+    {% include includeView['path'] %}
+{% endfor %}
 ```
 
-### Crear la extensión desde el plugin
-
-Los archivos se guardan en `Extension/View/` con la nomenclatura obligatoria:
+### Nombre del archivo en `Extension/View/`
 
 ```
-NOMBRE_PLANTILLA_UBICACION.html.twig           (orden por defecto: 10)
-NOMBRE_PLANTILLA_UBICACION_ORDEN.html.twig     (orden personalizado)
+NOMBREPLANTILLA_UBICACION.html.twig          (orden 10)
+NOMBREPLANTILLA_UBICACION_ORDEN.html.twig    (orden propio)
 ```
 
-Ejemplos:
-- `Extension/View/MiPlantilla_head.html.twig` → orden 10 (por defecto)
-- `Extension/View/MiPlantilla_head_05.html.twig` → carga antes (orden 5)
-- `Extension/View/MiPlantilla_body_20.html.twig` → carga después (orden 20)
+- El core separa las partes por `_`: ni la plantilla ni la ubicación pueden contener guiones bajos.
+- Los archivos se ordenan por el número de orden; sin número se asume `10`.
 
-Si varios plugins extienden la misma ubicación, se ordenan numéricamente. Sin número se asume 10 y se ordenan alfabéticamente entre ellos.
+Ejemplos con ganchos reales del core:
 
-Ejemplo de contenido del archivo de extensión:
+- `Extension/View/MenuTemplate_JsFooter_20.html.twig`: al final de todas las páginas con menú.
+- `Extension/View/PanelController_topButtons.html.twig`: botones superiores de los controladores de pestañas (filtra con `{% if controllerName == 'EditProducto' %}`).
+- `Extension/View/Dashboard_sectionsAfter.html.twig`: secciones extra del escritorio.
 
-```twig
-{# Extension/View/MiPlantilla_head_05.html.twig #}
-<meta name="description" content="Mi descripción"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-```
+Busca más ganchos con `rg -n "getIncludeViews" Core/View`.
 
-Las extensiones de vistas HTML se cargan **automáticamente**, no hace falta registrarlas en `Init.php`.
-
-## Cargar extensiones PHP en Init.php
-
-Las extensiones de PHP (modelos y controladores) **deben cargarse** en `Init.php`:
+## Cargar las extensiones PHP en Init.php
 
 ```php
-public function init(): void
-{
-    // Extensiones de modelos
-    $this->loadExtension(new Extension\Model\Producto());
-    $this->loadExtension(new Extension\Model\Cliente());
+<?php
+namespace FacturaScripts\Plugins\MiPlugin;
 
-    // Extensiones de controladores
-    $this->loadExtension(new Extension\Controller\ListProducto());
-    $this->loadExtension(new Extension\Controller\EditProducto());
+use FacturaScripts\Core\Template\InitClass;
+
+class Init extends InitClass
+{
+    public function init(): void
+    {
+        $this->loadExtension(new Extension\Model\Producto());
+        $this->loadExtension(new Extension\Controller\EditProducto());
+    }
+
+    public function uninstall(): void
+    {
+    }
+
+    public function update(): void
+    {
+    }
 }
 ```
 
+`loadExtension()` acepta también extensiones de clases base que se aplican a varias clases: `BusinessDocument`, `SalesDocument`, `PurchaseDocument` y sus líneas, o todos los `EditController` o `ListController` (`el-archivo-init-php-307.md`).
+
 ## Reglas importantes
 
-- Las extensiones XML (tablas, XMLViews) y Twig se cargan automáticamente
-- Las extensiones PHP deben registrarse en `Init.php`
-- No es herencia: múltiples plugins pueden extender la misma clase
-- No se pueden extender clases de `Core/Base`, `Core/Model/Base` ni `Core/Lib/ExtendedController`
-- **Solo se pueden extender funciones con soporte** (las que internamente usan `pipe()`). Si la función que se quiere modificar no tiene `pipe()`, la única opción es usar herencia PHP convencional
-- Cada función de extensión debe devolver un `return function() { ... }`
-- No usar `&` en parámetros por referencia dentro del `return function()`
-
+- Las extensiones XML (tablas y XMLView) y Twig se cargan automáticamente; las PHP, en `Init::init()`.
+- No se pueden extender clases de `Core/Base`, `Core/Model/Base` ni `Core/Lib/ExtendedController`.
+- **Solo se pueden extender los métodos con `pipe()`/`pipeFalse()`**. Si no existe ese punto, la alternativa es la herencia convencional, con sus limitaciones.
+- Cada método de la extensión devuelve una `Closure`; dentro, `$this` es el objeto extendido.
+- Devolver `false` solo detiene la ejecución en los puntos `*Before` y en `execPreviousAction`.
+- No uses `&` en los parámetros de la closure; devuelve el valor modificado.
+- Usa `Where` para los filtros y `Tools::log()` para los mensajes.
 
 ## Para más información
 
-Para consultar la documentación oficial completa sobre extensiones de modelos, controladores y vistas, invoca el agente **docs-expert** que te proporcionará detalles completos directamente desde la documentación oficial del framework.
+Consulta la skill `fs-dev:docs-expert` para revisar la documentación oficial. Para una tarea que abarque varias extensiones a la vez, usa `fs-dev:extension-developer`.
