@@ -1,154 +1,63 @@
 ---
 name: stock-bajo
-description: Identifica productos con stock por debajo del mínimo y genera alertas de reposición
+description: "Detecta en FacturaScripts, mediante fs-mcp, las variantes con stock disponible por debajo de su stock mínimo en cada almacén y genera alertas de reposición priorizadas, teniendo en cuenta lo reservado y lo pendiente de recibir."
 ---
 
-## Descripción
+# Stock bajo mínimos
 
-Este skill detecta automáticamente:
-- Productos con stock actual < stock mínimo
-- Cuánta cantidad falta
-- Recomendación de reorden
-- Productos sin movimiento (sin venta)
+Genera una lista de reposición a partir del stock mínimo configurado. En FacturaScripts el stock se lleva **por variante y almacén**, y cada registro tiene cuatro cantidades: cantidad física, reservada (pedidos de cliente), pendiente de recepción (pedidos a proveedor) y disponible (cantidad menos reservada). El stock mínimo y el máximo se fijan por variante y almacén (`el-stock-de-productos`).
 
-Esencial para gestión de inventario y evitar roturas de stock.
+Antes de empezar, lee completo el perfil [`../../agents/reporting-analyst.md`](../../agents/reporting-analyst.md): sus reglas de conexión y paginación son obligatorias en esta skill. Si en Codex delegas el análisis en un subagente, sigue las indicaciones de [`reporting-analyst`](../reporting-analyst/SKILL.md).
 
-## Cómo usar
+## Datos que puedes pedir (opcionales)
 
-1. Activa el skill: `/stock-bajo`
-2. Responde (opcional):
-   - **¿Incluir solo productos sin venta?** Sí/No
-   - **Almacén específico o todos?** (si tienes múltiples)
-   - **Ordenar por:** Urgencia, Referencia, Stock
+- **Almacén:** uno concreto o todos (predeterminado).
+- **Orden:** por urgencia (predeterminado), referencia o cobertura.
+- **Objetivo de reposición:** hasta el stock máximo (predeterminado cuando existe) o hasta el mínimo.
 
-3. Recibirás tabla con productos a reponer
+## Definiciones
 
-## Lo que necesita
+- **Registro analizable:** registro de stock con `stockmin > 0` de un producto que controla stock (`nostock = false`) y no está bloqueado (`bloqueado = false`).
+- **Stock proyectado:** `disponible + pterecibir`.
+- **Bajo mínimos:** stock proyectado menor que `stockmin`.
+- **Cantidad sugerida:** `stockmax − stock proyectado` si `stockmax > stockmin`; en otro caso, `stockmin − stock proyectado`. Si el resultado es negativo, no sugieras compra.
+- **Urgencia:**
+  - **Crítica:** `disponible ≤ 0`. El disponible puede ser negativo si el producto permite la venta sin stock.
+  - **Alta:** `disponible` por debajo del 50 % del `stockmin`.
+  - **Media:** el resto de los registros bajo mínimos.
+  - Si un registro tiene `disponible < stockmin` pero lo pendiente de recibir ya lo cubre, no es una alerta: inclúyelo en la sección **cubierto por pedidos en curso**.
 
-- Conexión activa a FacturaScripts vía fs-mcp
-- Productos configurados con stock mínimo
-- Almacenes registrados
+## Procedimiento
 
-## Información que obtendrás
+1. **Conexión y almacenes.** Elige la conexión según el perfil y obtén los almacenes con `get_almacenes`.
+2. **Stock.** Obtén todos los registros con `get_stocks` (filtrando por `codalmacen` si el usuario lo pide), recorriendo `offset`. Cada registro incluye `referencia` (de la variante), `idproducto`, `codalmacen`, `cantidad`, `reservada`, `pterecibir`, `disponible`, `stockmin` y `stockmax`.
+   No uses `get_productos_bajo_stock` para esta skill: compara la cantidad con un umbral global y no con el `stockmin` de cada registro.
+3. **Productos.** Para los registros con `stockmin > 0`, obtén con `get_productos` la `descripcion`, `nostock`, `bloqueado`, `secompra` y `codfamilia`. Descarta los que no controlan stock o están bloqueados.
+4. **Clasificación.** Aplica las definiciones y calcula la cantidad sugerida de cada registro bajo mínimos.
+5. **Proveedores y coste** (opcional). Con `get_productoproveedores` (por `referencia`), indica el proveedor y el último precio de compra registrado. Si no lo hay, usa el `coste` de la variante (`get_variantes`). Estima el importe de reposición y avisa si faltan precios.
+6. **Configuración incompleta.** Cuenta los registros de productos con control de stock que tienen `stockmin = 0`: no se pueden evaluar y conviene configurarlos.
 
-### Tabla de productos bajo stock
-Columnas:
-- **Referencia:** Código único del producto
-- **Descripción:** Nombre comercial
-- **Stock actual:** Cantidad en almacén ahora
-- **Stock mínimo:** Cantidad configurada como mínimo
-- **Falta:** Cuántas unidades ordenar para llegar a mínimo
-- **Almacén:** Dónde está el problema
+## Informe
 
-### Productos sin venta
-Apartado separado con:
-- Productos que nunca se vendieron
-- Productos sin movimiento hace > X meses
-- Recomendación: ¿Descatar? ¿Promocionar?
+Usa el formato de informe del perfil con estas secciones:
 
-### Resumen de acción
-- Total productos bajo stock
-- Total unidades faltantes
-- Urgencia: Cuántos son CRÍTICO (0 unidades)
-- Gasto estimado de reposición (si tienes costos)
+1. **Resumen:** registros bajo mínimos por urgencia, unidades sugeridas, importe estimado de reposición y almacenes afectados.
+2. **Reposición necesaria:** tabla con referencia, descripción, almacén, cantidad, reservada, pendiente de recibir, disponible, mínimo, máximo, cantidad sugerida, urgencia y proveedor habitual. Cada variante va en su propia fila.
+3. **Cubierto por pedidos en curso:** registros cuya reposición ya está pedida.
+4. **Configuración pendiente:** número de productos sin stock mínimo y ejemplos.
+5. **Recomendaciones:** agrupar las compras por proveedor, revisar los mínimos de los productos que caen a menudo en urgencia crítica y, si hay varios almacenes, valorar redistribuir existencias entre ellos.
+6. **Notas sobre los datos:** fecha de corte, número de registros analizados y limitaciones.
 
-## Categorización por urgencia
+## Cómo actuar en el ERP
 
-- 🔴 **CRÍTICO:** Stock = 0 (sin existencias)
-- 🟠 **ALTO:** Stock < 50% mínimo
-- 🟡 **MEDIO:** Stock entre 50-100% mínimo
-- 🟢 **OK:** Monitoreo regular
-
-## Cómo interpretar
-
-### "Falta" (Quantity to Order)
-Diferencia entre stock mínimo y stock actual.
-Ejemplo: Mínimo 100, Actual 30 → Falta 70
-
-**Acción:** Ordena al proveedor esa cantidad (o más).
-
-### Productos sin venta
-No aparecen en facturas de cliente. Opciones:
-- **Mantener:** Repuestos o productos lentamente movibles
-- **Promocionar:** Hacer oferta para mover stock
-- **Descartar:** Si obsoleto, eliminar para liberar capital
-
-### Stock en múltiples almacenes
-Si tienes varios almacenes:
-- Verás por almacén dónde hay faltante
-- Opción: Trasladar entre almacenes
-- Opción: Ordenar solo donde hace falta
-
-## Estrategia de reposición
-
-### Paso 1: Priorizar por urgencia
-1. Repone CRÍTICOS (stock = 0) inmediatamente
-2. Repone ALTO en siguiente orden
-3. MEDIO según disponibilidad de caja
-
-### Paso 2: Crear orden de compra
-Usa esta información para generar **Pedido a proveedor**:
-1. Ve a **Compras > Pedidos de proveedores**
-2. Crea pedido con las cantidades recomendadas
-3. FacturaScripts sugiere proveedor y precio
-
-### Paso 3: Monitorear recepción
-Cuando llega la mercancía:
-1. Recíbela en **Albarán de proveedor**
-2. Stock se actualiza automáticamente
-3. Retirado de lista de "bajo stock"
-
-## Productos relacionados
-
-### Familias de bajo stock
-Si una familia completa está baja (ej: "Camisetas rojas talla M, L, XL"):
-- **Consideración:** ¿Es patrón de venta? ¿Tendencia?
-- **Acción:** Compra al mayorista para todo el rango
-
-### Variantes
-Si tienes variantes de producto (colores, tallas):
-- El skill muestra cada variante por separado
-- Cada una tiene su stock mínimo configurado
+- El stock de cada producto está en **Almacén → Productos**, pestaña **Stock**, donde se fijan el mínimo, el máximo y la ubicación por variante y almacén (`el-stock-de-productos`).
+- Para reponer, crea un pedido desde **Compras → Pedidos** y selecciona el proveedor. El ERP propone el último precio de compra registrado para ese proveedor y producto (`como-registrar-un-pedido-de-compra`, `menu-compras`).
+- Con los estados predeterminados, el pedido a proveedor suma a **pendiente de recepción**, y el albarán o la factura de compra suman a la cantidad física (`el-stock-de-productos`, `menu-compras`).
+- Si el stock no cuadra con lo esperado, revisa el campo **Actualizar stock** de los estados del documento (`estados-del-documento-680`).
+- El core no genera pedidos ni avisos automáticos de reposición, ni mueve stock entre almacenes. Existen plugins para ello, como **IePedidoBajoMinimos** (añade al pedido de compra los productos bajo mínimos; requiere StockAvanzado), **EasyPurchase** (propone pedidos y calcula mínimos y máximos) y **StockAvanzado** (transferencias entre almacenes, movimientos e inventario). Preséntalos como opcionales y con los datos de su ficha.
 
 ## Limitaciones
 
-- Solo detecta productos con stock mínimo configurado
-- Requiere que almacenes estén registrados
-- No predice demanda futura
-
-## Consejos
-
-💡 Configura stock mínimo realista:
-- Para productos de venta rápida: stock mínimo = 1-2 semanas de venta
-- Para lentos: stock mínimo = stock de seguridad
-
-💡 Ejecuta este skill semanalmente
-
-💡 Combina con datos de proveedores:
-- Si proveedor tarda 2 semanas → sube stock mínimo
-- Si proveedor es rápido → baja stock mínimo
-
-💡 Exporta a Excel para compartir con almacén
-
-💡 Usa alertas automáticas para CRÍTICOS
-
-## Acciones por tipo de producto
-
-### Productos de venta alta
-Reposición frecuente y cantidades grandes:
-- **Ejemplo:** Botella de agua
-- **Acción:** Orden semanal, stock mínimo alto
-
-### Productos lentos
-Reposición ocasional:
-- **Ejemplo:** Equipo especial
-- **Acción:** Orden bajo demanda, stock mínimo bajo
-
-### Productos estacionales
-Varían según temporada:
-- **Ejemplo:** Ropa de invierno
-- **Acción:** Sube mínimo en otoño/invierno, baja primavera
-
-### Productos sin venta
-- **Evaluación:** ¿Es necesario mantener?
-- **Acción:** Considera descartar o promocionar
+- Solo se evalúan los registros con stock mínimo configurado.
+- La cantidad sugerida no predice la demanda futura. Para estimar la cobertura, `get_rotacion_stock` relaciona las ventas recientes con el stock actual.
+- Para productos sin venta o con exceso de stock, usa `get_stock_muerto` o `get_productos_sobrestock` desde [`crear-informe`](../crear-informe/SKILL.md). No los mezcles con esta lista de reposición.

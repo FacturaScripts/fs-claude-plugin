@@ -14,37 +14,41 @@ Permite analizar datos del ERP, generar informes ejecutivos y resolver dudas sob
 
 ## Skills disponibles
 
-Invoca cualquier skill escribiendo su nombre en el chat. Ejemplos: `/fs-user:analizar-ventas`, `/fs-user:como-usar-erp`.
+En Claude Code invoca una skill con `/fs-user:<nombre>`, por ejemplo `/fs-user:analizar-ventas`. En Codex selecciónala con `/skills` o menciónala con `$`. En ambos hosts el asistente también puede elegirla automáticamente según tu petición.
 
-> Para que las skills de análisis funcionen con datos reales, necesitas tener el plugin `fs-mcp` configurado con tu conexión a FacturaScripts. Sin él, el asistente puede responder preguntas generales pero no acceder a tus datos.
+> Las skills de análisis consultan los datos reales de tu instancia, así que necesitan el plugin `fs-mcp` configurado con una conexión a FacturaScripts. Las skills de ayuda funcionan sin conexión, a partir de la documentación incluida.
 
 ### Análisis e informes
 
 | Skill | Descripción |
 |---|---|
-| `fs-user:analizar-ventas` | Analiza las ventas del período seleccionado y genera un informe ejecutivo con cifras clave, tendencias y comparativas |
-| `fs-user:clientes-morosos` | Identifica clientes con deuda pendiente, ordena por antigüedad e importe, y genera un plan de seguimiento de cobros |
-| `fs-user:stock-bajo` | Identifica productos con stock por debajo del mínimo definido y genera alertas de reposición ordenadas por urgencia |
-| `fs-user:crear-informe` | Crea un informe personalizado con cualquier dato disponible en FacturaScripts según tus necesidades |
+| `fs-user:analizar-ventas` | Informe ejecutivo de las ventas de un periodo: cifras clave, comparativas, mejores clientes y productos, y tendencias |
+| `fs-user:clientes-morosos` | Clientes con recibos vencidos sin cobrar, priorizados por antigüedad e importe, con los próximos vencimientos |
+| `fs-user:stock-bajo` | Variantes con stock disponible por debajo de su mínimo en cada almacén, con la cantidad que conviene reponer |
+| `fs-user:crear-informe` | Informe a medida: ventas por familia, agente o serie, clientes, compras, inventario, tesorería o documentos pendientes |
+| `fs-user:reporting-analyst` | Análisis puntual de cualquier pregunta de negocio con los datos del ERP |
 
 ### Asistencia y documentación
 
 | Skill | Descripción |
 |---|---|
-| `fs-user:como-usar-erp` | Asistente interactivo para aprender a usar FacturaScripts: facturación, clientes, inventario, compras y contabilidad |
-| `fs-user:docs-expert` | Responde preguntas sobre cómo hacer cualquier operación en FacturaScripts consultando la documentación oficial |
+| `fs-user:como-usar-erp` | Orientación para aprender y administrar FacturaScripts: conceptos, menús, rutas de aprendizaje, instalación y errores frecuentes |
+| `fs-user:erp-guide` | Guía paso a paso para realizar una operación concreta en el ERP |
+| `fs-user:docs-expert` | Busca y cita la documentación de usuario y, si el core no cubre la necesidad, el catálogo de plugins |
+
+La documentación incluida es una copia local de las publicaciones de <https://facturascripts.com/publicaciones> y del catálogo de plugins. Las respuestas citan el título y la URL de cada artículo.
 
 ---
 
 ## Agentes especializados
 
-Claude Code puede cargar estos perfiles como agentes nativos. En Codex, las skills aplican directamente el conocimiento y las referencias compartidas; no necesitan agentes Markdown propios.
+En Claude Code estos perfiles se cargan como agentes nativos con su propio modelo. En Codex las skills con el mismo nombre leen el perfil y lo aplican en el hilo principal; si delegan en un subagente, piden el modelo equivalente indicado en [`COMPATIBILITY.md`](../COMPATIBILITY.md#modelos-de-los-perfiles).
 
-| Agente | Modelo | Rol |
-|---|---|---|
-| `fs-user:erp-guide` | Haiku | Guía de uso para usuarios finales: facturación, gestión de clientes, inventario, compras y contabilidad |
-| `fs-user:reporting-analyst` | Sonnet | Análisis de datos e informes ejecutivos: ventas, cobros, inventario y tesorería |
-| `fs-user:docs-expert` | Haiku | Documentación oficial orientada a usuarios finales |
+| Agente | Modelo en Claude Code | Modelo en Codex al delegar | Rol |
+|---|---|---|---|
+| `fs-user:erp-guide` | Haiku | `gpt-6-luna` (esfuerzo `high`) | Guía de operaciones para usuarios finales |
+| `fs-user:reporting-analyst` | Sonnet | `gpt-6.1-sol` | Análisis de datos e informes de ventas, cobros, compras, inventario y tesorería |
+| `fs-user:docs-expert` | Haiku | No aplica: la skill se usa directamente | Consulta y cita de la documentación de usuario |
 
 ---
 
