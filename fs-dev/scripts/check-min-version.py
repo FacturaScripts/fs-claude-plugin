@@ -74,6 +74,10 @@ EXTENSION_NAMESPACES = ('Controller', 'Model', 'Lib', 'Table', 'Template', 'View
 
 CONFIDENCE_ORDER = {'alta': 3, 'media': 2, 'baja': 1}
 
+# Destinos de Extension/ sin archivo en Core/: InitClass::loadExtension() aplica estas
+# extensiones a todos los controladores Edit* o List*.
+VIRTUAL_EXTENSION_TARGETS = frozenset({'Controller/EditController.php', 'Controller/ListController.php'})
+
 TAG_PATTERN = re.compile(r'^v?(\d{4}(?:\.\d+)?)$')
 KERNEL_VERSION_PATTERN = re.compile(
     r'function\s+version\s*\(\s*\)\s*:\s*float\s*\{\s*return\s+(\d{4}(?:\.\d+)?)\s*;')
@@ -651,11 +655,16 @@ def collect_symbols(plugin_dir: Path, include_tests: bool) -> tuple[list[Symbol]
             declares_trait = re.search(rf'\btrait\s+{re.escape(Path(tail[-1]).stem)}\b', content) is not None
             if (len(tail) >= 2 and tail[0] in EXTENSION_NAMESPACES and not declares_trait
                     and not (plugin_dir / Path(*tail)).is_file()):
+                stem = Path(tail[-1]).stem
+                virtual = '/'.join(tail) in VIRTUAL_EXTENSION_TARGETS
                 add(Symbol(
                     kind='clase extendida',
                     label='FacturaScripts\\Core\\' + '\\'.join(tail).removesuffix('.php'),
-                    patterns=(f'class {Path(tail[-1]).stem}',),
-                    pathspecs=('Core/' + '/'.join(tail),),
+                    # Para un destino virtual se busca el case de InitClass que lo
+                    # atiende. Sin la barra invertida: git grep -F no encuentra un
+                    # patrón que contenga «\E», como 'Controller\\EditController'.
+                    patterns=(f"{stem}':",) if virtual else (f'class {stem}',),
+                    pathspecs=('Core/',) if virtual else ('Core/' + '/'.join(tail),),
                     origin=relative,
                 ))
 
@@ -726,7 +735,10 @@ def audit_symbol(symbol: Symbol, core: CoreRepo, target: tuple[float, str],
     # Puede estar declarado en una clase padre: repite la búsqueda en todo Core/.
     # Un método de instancia que su clase sí declara en la última versión no se
     # ensancha: otra clase con un método homónimo daría una fecha que no es la suya.
-    if symbol.pathspecs != ('Core/',) and not (
+    # Una clase tampoco: solo puede estar en su propio archivo, y en otra carpeta de
+    # Core/ puede haber otra con el mismo nombre corto (Core\Model\Base\JoinModel y
+    # Core\Template\JoinModel).
+    if symbol.pathspecs != ('Core/',) and symbol.kind not in ('clase', 'clase extendida') and not (
             symbol.kind == 'método' and core.exists_in(core.tags[-1][1], symbol)):
         wider = symbol.widened()
         if core.exists_in(target_tag, wider):

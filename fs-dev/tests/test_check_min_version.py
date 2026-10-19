@@ -736,6 +736,103 @@ class AuditTest(unittest.TestCase):
             self.assertEqual(['media'], [item['confianza'] for item in inherited])
 
 
+def build_moved_class_core(root: Path) -> Path:
+    """Core en el que JoinModel aparece en Core/Template en v2026.
+
+    Core/Model/Base/JoinModel.php, homónimo, existe desde v2025, igual que las
+    extensiones de Controller\\EditController y Controller\\ListController, que
+    InitClass aplica a todos los Edit* y List*.
+    """
+    core = root / 'core'
+    (core / 'Core' / 'Model' / 'Base').mkdir(parents=True)
+    (core / 'Core' / 'Template').mkdir(parents=True)
+
+    def git(*args: str) -> None:
+        subprocess.run(('git', '-C', str(core), *args), check=True, capture_output=True)
+
+    def commit(tag: str) -> None:
+        git('add', '-A')
+        git('-c', 'user.email=test@test', '-c', 'user.name=test', 'commit', '-m', tag)
+        git('tag', tag)
+
+    subprocess.run(('git', 'init', '-q', str(core)), check=True, capture_output=True)
+    (core / 'Core' / 'Model' / 'Base' / 'JoinModel.php').write_text('<?php\nabstract class JoinModel\n{\n}\n')
+    (core / 'Core' / 'Template' / 'InitClass.php').write_text(
+        "<?php\nclass InitClass\n{\n    protected function loadExtension($extension)\n    {\n"
+        "        switch ($className) {\n"
+        "            case 'Controller\\\\EditController':\n"
+        "            case 'Controller\\\\ListController':\n"
+        "                return true;\n        }\n    }\n}\n")
+    commit('v2025')
+    (core / 'Core' / 'Template' / 'JoinModel.php').write_text('<?php\nabstract class JoinModel\n{\n}\n')
+    commit('v2026')
+    return core
+
+
+class MovedClassTest(unittest.TestCase):
+    """Una clase se busca en su archivo, no por otra del mismo nombre en otra carpeta."""
+
+    def audit_report(self, plugin: Path, core: Path) -> dict:
+        """Audita el plugin con el core indicado y devuelve el informe."""
+        core_repo = CHECKER.CoreRepo(path=core)
+        core_repo.load_tags()
+        info = CHECKER.read_plugin_ini(plugin)
+        symbols, external = CHECKER.collect_symbols(plugin, include_tests=False)
+        target = core_repo.target_tag(info.min_version)
+        results = CHECKER.audit(symbols, core_repo, target, workers=2)
+        return CHECKER.build_report(info, core_repo, target, results, external)
+
+    def test_class_is_not_dated_by_a_namesake_in_another_folder(self) -> None:
+        """Core\\Template\\JoinModel llega en v2026 aunque Core\\Model\\Base\\JoinModel exista antes."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_moved_class_core(Path(tmp))
+            plugin = build_plugin(Path(tmp), '2025', (
+                '<?php\n'
+                'use FacturaScripts\\Core\\Template\\JoinModel;\n'
+                'class Init extends JoinModel {}\n'
+            ))
+
+            report = self.audit_report(plugin, core)
+
+            found = [(item['estado'], item['desde']) for item in report['symbols']
+                     if item['simbolo'] == 'FacturaScripts\\Core\\Template\\JoinModel']
+            self.assertEqual([('posterior', 'v2026')], found)
+            self.assertEqual(2026, report['plugin']['min_version_calculado'])
+            self.assertFalse(report['plugin']['cumple'])
+
+    def test_extended_class_is_not_dated_by_a_namesake_in_another_folder(self) -> None:
+        """Extender Template/JoinModel exige la versión en que aparece ese archivo."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_moved_class_core(Path(tmp))
+            plugin = build_plugin(Path(tmp), '2025', '<?php\nclass Init {}\n')
+            (plugin / 'Extension' / 'Template').mkdir(parents=True)
+            (plugin / 'Extension' / 'Template' / 'JoinModel.php').write_text('<?php\nclass JoinModel {}\n')
+
+            report = self.audit_report(plugin, core)
+
+            found = [(item['estado'], item['desde']) for item in report['symbols']
+                     if item['tipo'] == 'clase extendida']
+            self.assertEqual([('posterior', 'v2026')], found)
+            self.assertEqual(2026, report['plugin']['min_version_calculado'])
+
+    def test_edit_and_list_controller_extensions_exist_without_a_core_file(self) -> None:
+        """Extension/Controller/EditController y ListController no tienen archivo y son válidas."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_moved_class_core(Path(tmp))
+            plugin = build_plugin(Path(tmp), '2025', '<?php\nclass Init {}\n')
+            (plugin / 'Extension' / 'Controller').mkdir(parents=True)
+            for name in ('EditController', 'ListController'):
+                (plugin / 'Extension' / 'Controller' / f'{name}.php').write_text(f'<?php\nclass {name} {{}}\n')
+
+            report = self.audit_report(plugin, core)
+
+            found = sorted((item['simbolo'], item['estado'], item['desde']) for item in report['symbols']
+                           if item['tipo'] == 'clase extendida')
+            self.assertEqual([('FacturaScripts\\Core\\Controller\\EditController', 'ok', 'v2025'),
+                              ('FacturaScripts\\Core\\Controller\\ListController', 'ok', 'v2025')], found)
+            self.assertTrue(report['plugin']['cumple'])
+
+
 class CliTest(unittest.TestCase):
     """Comprueba la interfaz de línea de comandos."""
 
