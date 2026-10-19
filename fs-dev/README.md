@@ -98,12 +98,9 @@ En Claude Code, estos archivos se cargan como agentes nativos. En Codex, las ski
 
 ## Detección automática de contexto
 
-El plugin detecta automáticamente si el directorio de trabajo es un proyecto de FacturaScripts y activa el contexto de desarrollo correspondiente:
+Al iniciar la sesión (`SessionStart`), el plugin comprueba si el directorio de trabajo está dentro de una instalación de FacturaScripts (la raíz del core o un plugin bajo `Plugins/`) y, si es así, añade el contexto de desarrollo correspondiente. Un repositorio de plugin situado fuera de una instalación no se detecta.
 
-- **Al iniciar la sesión** — se analiza el directorio de trabajo actual.
-- **Al cambiar de directorio en Claude Code** — el evento `CwdChanged` actualiza el contexto.
-
-Codex no ofrece `CwdChanged`; si cambias el directorio de trabajo, abre un hilo nuevo para volver a ejecutar `SessionStart`.
+La detección solo se hace al iniciar la sesión, en ambos hosts. Si cambias de directorio durante la sesión, abre una sesión nueva en Claude Code o un hilo nuevo en Codex para volver a detectarlo. El evento `CwdChanged` de Claude Code no se usa porque su salida no se añade al contexto del modelo.
 
 Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto completo del framework para dar respuestas más precisas.
 

@@ -8,7 +8,7 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 | Agentes especializados | Agentes Markdown nativos | Perfiles leídos por las skills; delegación genérica opcional | `*/agents/*.md` |
 | Modelo de cada perfil | Campo `model` del agente | Solicitado por la skill al delegar; sin delegación, el modelo de la sesión | Tabla de equivalencias de este documento |
 | Inicio de sesión | `SessionStart` | `SessionStart` | `*/hooks/hooks.json` |
-| Cambio de directorio | `CwdChanged` | No disponible; requiere hilo nuevo | Hook conservado para Claude Code |
+| Cambio de directorio | Requiere sesión nueva; `CwdChanged` no añade su salida al contexto | Requiere hilo nuevo; el evento no existe | Solo `SessionStart` |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
 | Servidor MCP | Raíz mediante `CLAUDE_PLUGIN_ROOT` | Raíz mediante el directorio de trabajo del plugin | Lanzador portable definido en `fs-mcp/.claude-plugin/plugin.json` |
 | Módulos privados | `settings.localModulesPath` | `settings.localModulesPath` | `~/.fs-claude.json` |

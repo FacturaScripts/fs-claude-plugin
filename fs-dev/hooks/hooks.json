@@ -12,17 +12,6 @@
         ]
       }
     ],
-    "CwdChanged": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|apply_patch",

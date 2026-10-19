@@ -1,6 +1,8 @@
 #!/bin/bash
-# Detecta si el directorio de trabajo actual pertenece a un proyecto FacturaScripts ERP
-# o a uno de sus plugins. Si lo detecta, inyecta contexto en la sesión del host para
+# Detecta si el directorio de trabajo actual está dentro de una instalación de FacturaScripts
+# ERP, por ejemplo en la raíz del core o en uno de sus plugins bajo Plugins/. Un repositorio
+# de plugin situado fuera de una instalación no se detecta. Se ejecuta en SessionStart y, si
+# detecta la instalación, imprime en stdout el contexto que el host añade a la sesión para
 # que use automáticamente las skills del plugin fs-dev.
 
 is_facturascripts_root() {

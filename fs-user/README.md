@@ -54,4 +54,6 @@ En Claude Code estos perfiles se cargan como agentes nativos con su propio model
 
 ## Detección automática de contexto
 
-El plugin detecta automáticamente si el directorio de trabajo está relacionado con FacturaScripts. Se ejecuta al iniciar sesión en ambos hosts y también al cambiar de directorio en Claude Code. Como Codex no ofrece `CwdChanged`, después de cambiar el directorio conviene abrir un hilo nuevo.
+Al iniciar la sesión, en ambos hosts, el plugin comprueba si el directorio de trabajo está dentro de una instalación de FacturaScripts y, si es así, recuerda al asistente qué plugin usar para cada tipo de petición: `fs-user` para el uso del ERP, `fs-mcp` para consultar datos y `fs-dev` para programación. Las skills funcionan igual aunque no se detecte ninguna instalación.
+
+Si cambias de directorio durante la sesión, abre una sesión nueva en Claude Code o un hilo nuevo en Codex para volver a detectarlo.
