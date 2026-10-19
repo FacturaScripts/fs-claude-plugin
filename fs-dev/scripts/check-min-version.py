@@ -25,7 +25,24 @@ mínimo y el techo efectivos de toda la cadena y qué plugin fija cada uno.
 Uso:
     check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json]
                          [--include-tests] [--min-confidence alta|media|baja]
-                         [--max-version <versión>]
+                         [--plugins-dir <ruta_Plugins>] [--max-version <versión>]
+                         [--workers <n>]
+
+La ruta del core se busca, por este orden, en ``--core``, la variable
+``FS_CORE_PATH``, las claves ``settings.corePath`` o ``settings.coreRepoPath``
+de ``~/.fs-claude.json``, la raíz de la instalación cuando el plugin vive en
+``Plugins/`` y el directorio actual. ``--plugins-dir`` indica el directorio
+``Plugins/`` donde buscar los plugins de ``require`` y los símbolos que aportan
+otros plugins; si no se indica, se deduce cuando el plugin está instalado.
+``--workers`` fija el número de consultas simultáneas a git (8 por defecto).
+
+Las clases se reconocen por sus ``use`` simples o agrupados con llaves
+(``use FacturaScripts\\Core\\{Tools, Where};``) y por las llamadas estáticas con
+el nombre completo (``\\FacturaScripts\\Core\\Tools::lang()``).
+
+Código de salida: 0 si cumple, 1 si incumple y 2 si hay un error de
+configuración (la ruta no es un plugin, falta el clon del core o git) o un
+error inesperado.
 
 El script solo informa: nunca modifica el ``facturascripts.ini`` del plugin.
 """
@@ -83,7 +100,12 @@ KERNEL_VERSION_PATTERN = re.compile(
     r'function\s+version\s*\(\s*\)\s*:\s*float\s*\{\s*return\s+(\d{4}(?:\.\d+)?)\s*;')
 USE_PATTERN = re.compile(r'^\s*use\s+(FacturaScripts\\[\w\\]+)(?:\s+as\s+(\w+))?\s*;', re.MULTILINE)
 EXTENDS_PATTERN = re.compile(r'\b(?:extends|implements)\s+([\w\\, ]+?)\s*[{\n]')
-STATIC_CALL_PATTERN = re.compile(r'(?<![\w$>])([A-Z]\w*)::\s*(\w+)\s*\(')
+# Importación agrupada: use FacturaScripts\Core\{Tools, Model\Cliente as C};
+GROUP_USE_PATTERN = re.compile(r'^\s*use\s+(FacturaScripts(?:\\\w+)*)\\\{([^}]*)\}\s*;', re.MULTILINE)
+# Llamada estática por alias. Se excluye la precedida de «\», que es un nombre completo.
+STATIC_CALL_PATTERN = re.compile(r'(?<![\w$>\\])([A-Z]\w*)::\s*(\w+)\s*\(')
+# Llamada estática con el nombre completo: \FacturaScripts\Core\Tools::lang(...).
+FQCN_STATIC_CALL_PATTERN = re.compile(r'(?<![\w$>\\])\\?(FacturaScripts(?:\\\w+)+)::\s*(\w+)\s*\(')
 METHOD_CALL_PATTERN = re.compile(r'->\s*(\w+)\s*\(')
 # Inferencia de tipos de un nivel: $x = new Clase(...), y parámetros o propiedades tipados.
 NEW_ASSIGN_PATTERN = re.compile(r'\$(?P<var>\w+)\s*=\s*new\s+(?P<type>\\?[A-Z][\w\\]*)')
@@ -186,11 +208,18 @@ class CoreRepo:
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def git(self, *args: str) -> subprocess.CompletedProcess:
-        """Ejecuta un comando git dentro del repositorio del core."""
-        return subprocess.run(
-            ('git', '-C', str(self.path), *args),
-            capture_output=True, text=True, check=False,
-        )
+        """Ejecuta un comando git dentro del repositorio del core.
+
+        Raises:
+            AuditError: si git no está instalado o no se puede ejecutar.
+        """
+        try:
+            return subprocess.run(
+                ('git', '-C', str(self.path), *args),
+                capture_output=True, text=True, check=False,
+            )
+        except OSError as error:
+            raise AuditError(f'No se puede ejecutar git ({error}). Instálalo o añádelo al PATH.') from error
 
     def load_tags(self) -> None:
         """Carga las etiquetas de versión ordenadas numéricamente."""
@@ -421,7 +450,7 @@ def read_plugin_ini(plugin_dir: Path) -> PluginInfo:
         if '=' not in line or line.strip().startswith((';', '#')):
             continue
         key, raw_value = line.split('=', 1)
-        values[key.strip()] = raw_value.strip().strip('"\'')
+        values[key.strip()] = ini_value(raw_value)
 
     def as_float(key: str) -> float:
         """Convierte a decimal un valor del ini, con 0 como valor por defecto."""
@@ -439,6 +468,45 @@ def read_plugin_ini(plugin_dir: Path) -> PluginInfo:
         require=tuple(item.strip() for item in values.get('require', '').split(',') if item.strip()),
         declares_min_version='min_version' in values,
     )
+
+
+def ini_value(raw: str) -> str:
+    """Interpreta el valor de una línea del ini como lo hace ``parse_ini_file``.
+
+    Un valor entre comillas termina en la comilla de cierre; uno sin comillas
+    termina en el primer ``;``, que inicia un comentario.
+
+    Args:
+        raw: Texto a la derecha del ``=``.
+
+    Returns:
+        El valor sin comillas, comentario ni espacios.
+    """
+    value = raw.strip()
+    if value[:1] in ('"', "'"):
+        end = value.find(value[0], 1)
+        return value[1:end] if end != -1 else value[1:]
+    return value.split(';', 1)[0].strip()
+
+
+def php_uses(content: str) -> list[tuple[str, str]]:
+    """Devuelve las clases de FacturaScripts importadas con ``use`` y su alias.
+
+    Admite importaciones simples y agrupadas con llaves.
+
+    Args:
+        content: Código PHP del archivo.
+
+    Returns:
+        Pares ``(fqcn, alias)``; el alias es la cadena vacía si no se declara.
+    """
+    uses = list(USE_PATTERN.findall(content))
+    for prefix, group in GROUP_USE_PATTERN.findall(content):
+        for item in group.split(','):
+            match = re.fullmatch(r'\s*([\w\\]+?)(?:\s+as\s+(\w+))?\s*', item)
+            if match:
+                uses.append((prefix + '\\' + match.group(1), match.group(2) or ''))
+    return uses
 
 
 def php_files(plugin_dir: Path, include_tests: bool) -> list[Path]:
@@ -574,8 +642,8 @@ def collect_symbols(plugin_dir: Path, include_tests: bool) -> tuple[list[Symbol]
         content = path.read_text(encoding='utf-8', errors='replace')
         aliases: dict[str, str] = {}
 
-        # 1. Clases importadas con use.
-        for fqcn, alias in USE_PATTERN.findall(content):
+        # 1. Clases importadas con use, simple o agrupado.
+        for fqcn, alias in php_uses(content):
             short = alias or fqcn.split('\\')[-1]
             if fqcn.split('\\')[1] == 'Plugins':
                 external.add(fqcn)
@@ -629,6 +697,31 @@ def collect_symbols(plugin_dir: Path, include_tests: bool) -> tuple[list[Symbol]
                 origin=relative,
                 confidence='alta' if target else 'media',
             ))
+
+        # 3b. Llamadas estáticas con el nombre completo de la clase, sin use.
+        for fqcn, method in FQCN_STATIC_CALL_PATTERN.findall(content):
+            if fqcn.split('\\')[1] == 'Plugins':
+                external.add(fqcn)
+                continue
+            target = class_path(fqcn)
+            if target is None or is_own_class(fqcn, plugin_dir):
+                continue
+            short_name = fqcn.split('\\')[-1]
+            add(Symbol(
+                kind='clase',
+                label=fqcn,
+                patterns=(f'class {short_name}', f'interface {short_name}', f'trait {short_name}'),
+                pathspecs=(target,),
+                origin=relative,
+            ))
+            if method.lower() not in IGNORED_METHODS:
+                add(Symbol(
+                    kind='método estático',
+                    label=f'{short_name}::{method}()',
+                    patterns=(f'function {method}(',),
+                    pathspecs=(target,),
+                    origin=relative,
+                ))
 
         # 4. Puntos de extensión usados por las clases de Extension/.
         if 'Extension' in relative_parts:
@@ -1116,7 +1209,14 @@ def audit_requires(plugin: PluginInfo, core: CoreRepo, plugins_dir: Path | None,
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Punto de entrada del script."""
+    """Punto de entrada del script.
+
+    Args:
+        argv: Argumentos de la línea de comandos; por defecto, los del proceso.
+
+    Returns:
+        0 si cumple, 1 si incumple y 2 ante un error de configuración o inesperado.
+    """
     parser = argparse.ArgumentParser(
         description='Audita el min_version declarado por un plugin de FacturaScripts.')
     parser.add_argument('plugin', help='Ruta del plugin a auditar')
@@ -1136,15 +1236,32 @@ def main(argv: list[str] | None = None) -> int:
                         help='Número de consultas simultáneas a git')
     args = parser.parse_args(argv)
 
-    plugin_dir = Path(args.plugin).expanduser().resolve()
-
     try:
-        plugin = read_plugin_ini(plugin_dir)
-        core = CoreRepo(path=find_core(args.core, plugin_dir))
-        core.load_tags()
+        return run(args)
     except AuditError as error:
         print(f'Error: {error}', file=sys.stderr)
         return 2
+    except Exception as error:  # noqa: BLE001 - un fallo inesperado no debe confundirse con «incumple».
+        print(f'Error inesperado durante la auditoría: {error!r}', file=sys.stderr)
+        return 2
+
+
+def run(args: argparse.Namespace) -> int:
+    """Ejecuta la auditoría con los argumentos ya interpretados y muestra el informe.
+
+    Args:
+        args: Argumentos de la línea de comandos.
+
+    Returns:
+        0 si el plugin cumple y 1 si incumple.
+
+    Raises:
+        AuditError: si la ruta no es un plugin o falta el clon del core o git.
+    """
+    plugin_dir = Path(args.plugin).expanduser().resolve()
+    plugin = read_plugin_ini(plugin_dir)
+    core = CoreRepo(path=find_core(args.core, plugin_dir))
+    core.load_tags()
 
     threshold = CONFIDENCE_ORDER[args.min_confidence]
     plugins_dir = find_plugins_dir(args.plugins_dir, plugin_dir)

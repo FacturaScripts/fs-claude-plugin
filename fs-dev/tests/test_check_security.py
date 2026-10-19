@@ -317,5 +317,105 @@ class SecurityAuditTest(unittest.TestCase):
         self.assertIn('fetch(', code)
 
 
+class EvasionTest(unittest.TestCase):
+    """Comprueba las formas de ejecutar código que evitan los patrones directos."""
+
+    def setUp(self) -> None:
+        """Prepara un directorio temporal para cada prueba."""
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+
+    def tearDown(self) -> None:
+        """Elimina el directorio temporal."""
+        self.tmp.cleanup()
+
+    def audit(self, files: dict[str, str], **kwargs) -> dict:
+        """Audita un plugin construido con los archivos indicados."""
+        return CHECKER.audit(build_plugin(self.root, files), **kwargs)
+
+    @staticmethod
+    def by_title(report: dict) -> dict[str, list[dict]]:
+        """Agrupa los hallazgos por título."""
+        grouped: dict[str, list[dict]] = {}
+        for item in report['hallazgos']:
+            grouped.setdefault(item['titulo'], []).append(item)
+        return grouped
+
+    def test_extensiones_php_alternativas_se_analizan(self) -> None:
+        """.phtml, .inc, .php5, .php7 y .pht se analizan como PHP."""
+        files = {f'Lib/x{suffix}': "<?php exec($_GET['c']);" for suffix in ('.phtml', '.inc', '.php5', '.php7', '.pht')}
+        report = self.audit(files)
+
+        analysed = {item['archivo'] for item in report['hallazgos'] if item['categoria'] == 'ejecucion-comandos'}
+        self.assertEqual(set(files), analysed)
+        self.assertEqual(5, report['analizados']['por_lenguaje']['php'])
+
+    def test_ejecutables_en_assets_son_alta(self) -> None:
+        """Cualquier PHP o ejecutable dentro de Assets/ tiene gravedad alta."""
+        report = self.audit({
+            'Assets/shell.phtml': '<?php echo 1;',
+            'Assets/js/run.sh': 'echo hola\n',
+            'Assets/js/app.js': 'console.log(1);\n',
+        })
+        structure = {item['archivo']: item for item in report['hallazgos'] if item['categoria'] == 'estructura'
+                     and 'Assets/' in item['titulo']}
+
+        self.assertEqual('alta', structure['Assets/shell.phtml']['severidad'])
+        self.assertEqual('alta', structure['Assets/js/run.sh']['severidad'])
+        self.assertNotIn('Assets/js/app.js', structure)
+
+    def test_callbacks_peligrosos(self) -> None:
+        """call_user_func, array_map o usort con una función peligrosa como literal son alta."""
+        body = ("        call_user_func('system', $_GET['c']);\n"
+                "        array_map('\\\\passthru', [$_GET['c']]);\n"
+                "        usort($filas, 'strcmp');\n"
+                "        array_map(fn($fila) => $fila, $filas);\n")
+        report = self.audit({'Lib/Uno.php': php_class('Uno', body)})
+
+        findings = self.by_title(report)['Pasa una función que ejecuta comandos o código como callback']
+        self.assertEqual([(8, 'alta'), (9, 'alta')], [(item['linea'], item['severidad']) for item in findings])
+        self.assertIn('callback: passthru', findings[1]['notas'])
+
+    def test_llamadas_a_funcion_variable(self) -> None:
+        """$f(...) es alta si $f nombra una función peligrosa y se ignora si es una closure."""
+        body = ("        $f = 'shell_' . 'exec';\n        $f($_GET['c']);\n"
+                "        $g = function ($x) { return $x; };\n        $g(1);\n"
+                "        $callback(2);\n"
+                "        $obj = new $clase();\n")
+        report = self.audit({'Lib/Dos.php': php_class('Dos', body)})
+
+        findings = self.by_title(report)['Llama a una función cuyo nombre está en una variable']
+        self.assertEqual([(9, 'alta'), (12, 'baja')], [(item['linea'], item['severidad']) for item in findings])
+        self.assertIn('$f contiene el nombre de la función shell_exec', findings[0]['notas'])
+
+    def test_include_con_directorio_fijo_y_variable(self) -> None:
+        """__DIR__ seguido de una variable se señala; __DIR__ con un literal no."""
+        body = ("        require_once __DIR__ . '/vendor/autoload.php';\n"
+                "        require __DIR__ . '/../' . $_GET['pagina'];\n")
+        report = self.audit({'Lib/Tres.php': php_class('Tres', body)})
+
+        findings = self.by_title(report)['Incluye un archivo PHP calculado en tiempo de ejecución']
+        self.assertEqual([9], [item['linea'] for item in findings])
+        self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
+
+    def test_tests_anidados_se_excluyen(self) -> None:
+        """Un directorio tests/ dentro de Lib/ también se excluye salvo que se pida."""
+        files = {'Lib/tests/UnoTest.php': php_class('UnoTest', "        exec('id');")}
+
+        self.assertEqual([], self.audit(files)['hallazgos'])
+        self.assertTrue(self.audit(files, include_tests=True)['hallazgos'])
+
+    def test_error_inesperado_sale_con_dos(self) -> None:
+        """Una excepción durante el análisis devuelve 2, no 1."""
+        plugin = build_plugin(self.root, {'Lib/Cuatro.php': php_class('Cuatro', '        return 1;')})
+        stderr = io.StringIO()
+        with unittest.mock.patch.object(CHECKER, 'audit', side_effect=RuntimeError('fallo')), \
+                redirect_stdout(io.StringIO()), unittest.mock.patch('sys.stderr', stderr):
+            code = CHECKER.main([str(plugin)])
+
+        self.assertEqual(2, code)
+        self.assertIn('fallo', stderr.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()

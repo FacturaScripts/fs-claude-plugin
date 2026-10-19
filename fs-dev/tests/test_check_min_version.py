@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
+import io
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 
@@ -16,6 +19,22 @@ assert SPEC is not None and SPEC.loader is not None
 CHECKER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = CHECKER
 SPEC.loader.exec_module(CHECKER)
+
+# HOME aislado y sin FS_CORE_PATH para que la configuración del usuario no altere las pruebas.
+_HOME = tempfile.TemporaryDirectory()
+_ENV_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
+
+
+def setUpModule() -> None:
+    """Aísla HOME y FS_CORE_PATH durante todo el módulo; los subprocesos heredan el entorno."""
+    _ENV_PATCH.start()
+    os.environ.pop('FS_CORE_PATH', None)
+
+
+def tearDownModule() -> None:
+    """Restaura el entorno original y elimina el directorio temporal."""
+    _ENV_PATCH.stop()
+    _HOME.cleanup()
 
 
 def build_core(root: Path) -> Path:
@@ -1160,6 +1179,114 @@ class RequireTest(unittest.TestCase):
             self.assertIn('(sin auditar: Falta)', result.stdout)
             self.assertIn('Funciona hasta con los requeridos: v2026 (lo fija Raiz)', result.stdout)
             self.assertIn('Plugins requeridos:', result.stdout)
+
+
+class ImportFormsTest(unittest.TestCase):
+    """Comprueba las formas de referirse a clases del core sin un use simple."""
+
+    def test_grouped_use_is_expanded(self) -> None:
+        """use FacturaScripts\\Core\\{Tools, Model\\Cliente as C}; importa ambas clases."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugin = build_plugin(Path(tmp), '2025', (
+                '<?php\n'
+                'use FacturaScripts\\Core\\{Tools, Model\\Cliente as C};\n'
+                'class Init { public function init(): void { Tools::decimals(); C::table(); } }\n'
+            ))
+
+            symbols, _ = CHECKER.collect_symbols(plugin, include_tests=False)
+            labels = {symbol.label: symbol for symbol in symbols}
+
+            self.assertIn('FacturaScripts\\Core\\Tools', labels)
+            self.assertIn('FacturaScripts\\Core\\Model\\Cliente', labels)
+            self.assertEqual(('Core/Tools.php',), labels['Tools::decimals()'].pathspecs)
+            self.assertEqual(('Core/Model/Cliente.php',), labels['C::table()'].pathspecs)
+
+    def test_fully_qualified_static_call(self) -> None:
+        """\\FacturaScripts\\Core\\Tools::env() se audita contra Core/Tools.php."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core_repo = CHECKER.CoreRepo(path=build_core(Path(tmp)))
+            core_repo.load_tags()
+            plugin = build_plugin(Path(tmp), '2025', (
+                '<?php\n'
+                'class Init { public function init(): void { \\FacturaScripts\\Core\\Tools::env(); } }\n'
+            ))
+            info = CHECKER.read_plugin_ini(plugin)
+            symbols, _ = CHECKER.collect_symbols(plugin, include_tests=False)
+            target = core_repo.target_tag(info.min_version)
+            results = CHECKER.audit(symbols, core_repo, target, workers=2)
+            report = CHECKER.build_report(info, core_repo, target, results, [])
+
+            later = [item['simbolo'] for item in report['symbols'] if item['estado'] == 'posterior']
+            self.assertEqual(['Tools::env()'], later)
+            self.assertFalse(report['plugin']['cumple'])
+
+    def test_fully_qualified_plugin_class_is_external(self) -> None:
+        """Una llamada estática a otro plugin con su nombre completo se lista como dependencia."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugin = build_plugin(Path(tmp), '2025', (
+                '<?php\nclass Init { public function init(): void { '
+                '\\FacturaScripts\\Plugins\\Otro\\Lib\\Util::run(); } }\n'
+            ))
+
+            _, external = CHECKER.collect_symbols(plugin, include_tests=False)
+
+            self.assertEqual(['FacturaScripts\\Plugins\\Otro\\Lib\\Util'], external)
+
+
+class IniValueTest(unittest.TestCase):
+    """Comprueba la interpretación de los valores del facturascripts.ini."""
+
+    def test_inline_comment_and_quotes(self) -> None:
+        """Un comentario «;» tras el valor se descarta y las comillas delimitan el valor."""
+        self.assertEqual('2025.5', CHECKER.ini_value(' 2025.5 ; comentario'))
+        self.assertEqual('Mi; plugin', CHECKER.ini_value(" 'Mi; plugin' ; comentario"))
+        self.assertEqual('A,B', CHECKER.ini_value(' "A,B"'))
+
+    def test_min_version_with_inline_comment(self) -> None:
+        """min_version = 2025.5 ; comentario se lee como 2025.5."""
+        with tempfile.TemporaryDirectory() as tmp:
+            plugin = Path(tmp) / 'Demo'
+            plugin.mkdir()
+            (plugin / 'facturascripts.ini').write_text(
+                "name = 'Demo' ; nombre\nmin_version = 2025.5 ; mínimo\nrequire = 'A,B'\n", encoding='utf-8')
+
+            info = CHECKER.read_plugin_ini(plugin)
+
+            self.assertEqual('Demo', info.name)
+            self.assertEqual(2025.5, info.min_version)
+            self.assertEqual(('A', 'B'), info.require)
+
+
+class ErrorExitTest(unittest.TestCase):
+    """Comprueba que los errores de entorno no se confunden con «incumple»."""
+
+    def test_missing_git_exits_with_two(self) -> None:
+        """Sin git en el PATH el script sale con 2 y lo explica."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_core(Path(tmp))
+            plugin = build_plugin(Path(tmp), '2025', '<?php\nclass Init {}\n')
+
+            result = subprocess.run(
+                (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(core)),
+                capture_output=True, text=True, check=False,
+                env={'PATH': str(Path(tmp) / 'sin-git'), 'HOME': tmp},
+            )
+
+            self.assertEqual(2, result.returncode)
+            self.assertIn('git', result.stderr)
+
+    def test_unexpected_error_exits_with_two(self) -> None:
+        """Una excepción inesperada devuelve 2."""
+        with tempfile.TemporaryDirectory() as tmp:
+            core = build_core(Path(tmp))
+            plugin = build_plugin(Path(tmp), '2025', '<?php\nclass Init {}\n')
+            stderr = io.StringIO()
+            with unittest.mock.patch.object(CHECKER, 'collect_symbols', side_effect=RuntimeError('fallo')), \
+                    unittest.mock.patch('sys.stderr', stderr):
+                code = CHECKER.main([str(plugin), '--core', str(core)])
+
+            self.assertEqual(2, code)
+            self.assertIn('fallo', stderr.getvalue())
 
 
 if __name__ == '__main__':

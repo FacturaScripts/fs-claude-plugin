@@ -17,13 +17,18 @@ El análisis es estático: elimina comentarios y cadenas antes de buscar llamada
 de modo que un ``exec`` dentro de un comentario o de un texto no cuenta, pero no
 resuelve tipos ni sigue el flujo de datos.
 
+Analiza como PHP también las extensiones que el servidor puede ejecutar como
+tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…). Los directorios de
+tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a cualquier
+profundidad salvo con ``--include-tests``.
+
 Uso:
     check-security.py <ruta_plugin> [--json] [--min-severity alta|media|baja|info]
                       [--include-tests] [--include-vendor]
 
 Código de salida: 0 sin hallazgos de severidad media o alta, 1 con hallazgos que
-revisar y 2 si la ruta no es válida. El script solo informa: nunca modifica el
-plugin.
+revisar y 2 si la ruta no es válida o se produce un error inesperado. El script
+solo informa: nunca modifica el plugin.
 """
 
 from __future__ import annotations
@@ -45,8 +50,30 @@ EXCLUDED_DIRS = frozenset({'.git', 'node_modules'})
 VENDOR_DIR = 'vendor'
 TEST_DIRS = frozenset({'Test', 'Tests', 'test', 'tests'})
 
+# Extensiones que un servidor web puede interpretar como PHP o que se incluyen como PHP.
+PHP_EXTENSIONS = frozenset({'.php', '.phtml', '.inc', '.php3', '.php4', '.php5', '.php7', '.php8', '.pht'})
+
 # Extensiones de texto que se analizan y lenguaje con el que se interpretan.
-LANGUAGES = {'.php': 'php', '.js': 'js', '.mjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml'}
+LANGUAGES = {
+    **{suffix: 'php' for suffix in PHP_EXTENSIONS},
+    '.js': 'js', '.mjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml',
+}
+
+# Funciones que ejecutan comandos o código y que no deben usarse como callback.
+DANGEROUS_FUNCTIONS = (
+    'exec', 'shell_exec', 'system', 'passthru', 'proc_open', 'popen', 'pcntl_exec', 'expect_popen',
+    'assert', 'create_function', 'eval',
+)
+# Admite el nombre cualificado con barras invertidas, escapadas o no dentro del literal.
+DANGEROUS_NAME_PATTERN = re.compile(r'^\\*(?:' + '|'.join(DANGEROUS_FUNCTIONS) + r')$', re.I)
+
+# Funciones que reciben un callback, que puede ser el nombre de una función nativa.
+CALLBACK_FUNCTIONS = (
+    'call_user_func', 'call_user_func_array', 'forward_static_call', 'forward_static_call_array',
+    'array_map', 'array_filter', 'array_walk', 'array_walk_recursive', 'array_reduce', 'usort', 'uasort',
+    'uksort', 'preg_replace_callback', 'register_shutdown_function', 'register_tick_function',
+    'set_error_handler', 'set_exception_handler', 'spl_autoload_register', 'iterator_apply', 'ob_start',
+)
 
 # Archivos que un plugin no necesita y que el servidor podría ejecutar.
 EXECUTABLE_EXTENSIONS = frozenset({
@@ -158,6 +185,30 @@ class Source:
                 depth -= 1
             elif char == ',' and depth == 0:
                 return self.text[start + 1:index]
+        return self.text[start + 1:start + limit]
+
+    def arguments(self, offset: int, limit: int = 1200) -> str:
+        """Devuelve todos los argumentos de la llamada cuyo paréntesis abre en ``offset``.
+
+        Args:
+            offset: Posición desde la que se busca el paréntesis de apertura.
+            limit: Longitud máxima que se examina.
+
+        Returns:
+            El texto entre los paréntesis, con sus cadenas y sin comentarios.
+        """
+        start = self.code.find('(', offset)
+        if start == -1:
+            return ''
+        depth = 0
+        for index in range(start + 1, min(len(self.code), start + limit)):
+            char = self.code[index]
+            if char in '([{':
+                depth += 1
+            elif char in ')]}':
+                if depth == 0:
+                    return self.text[start + 1:index]
+                depth -= 1
         return self.text[start + 1:start + limit]
 
 
@@ -548,11 +599,61 @@ def decode_check(source: Source, match: re.Match) -> tuple[bool, list[str], str 
 
 
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
-    """Descarta los ``include`` de rutas fijas, como el autoload del propio plugin."""
-    rest = source.code[match.end():match.end() + 200].lstrip(' (\t')
+    """Descarta los ``include`` de rutas fijas, como el autoload del propio plugin.
+
+    Una ruta que empieza por ``__DIR__``, ``dirname()``, ``FS_FOLDER`` o un
+    literal solo se descarta si no concatena variables: ``__DIR__ . $pagina``
+    permite incluir cualquier archivo.
+    """
+    end = source.code.find(';', match.end())
+    statement = source.code[match.end():end if end != -1 else match.end() + 200]
+    rest = statement.lstrip(' (\t')
+    if re.search(r'\$\w', statement):
+        if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
+            return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
+        return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
+
+
+def literal_strings(text: str) -> list[str]:
+    """Devuelve el contenido de los literales de cadena de un fragmento de PHP.
+
+    Args:
+        text: Fragmento de código con sus cadenas.
+
+    Returns:
+        El contenido de cada literal entre comillas simples o dobles, en orden.
+    """
+    return [match.group(2) for match in re.finditer(r'''(['"])((?:\\.|(?!\1).)*)\1''', text)]
+
+
+def dangerous_callback(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Acepta una función que recibe un callback si alguno de sus argumentos es una función peligrosa."""
+    names = [value for value in literal_strings(source.arguments(match.end() - 1))
+             if DANGEROUS_NAME_PATTERN.match(value.strip())]
+    if not names:
+        return False, [], None
+    return True, ['callback: ' + ', '.join(sorted(set(name.strip().lstrip('\\') for name in names)))], None
+
+
+def variable_function(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Evalúa una llamada ``$variable(...)`` según lo último asignado a la variable.
+
+    Se descarta si la variable guarda una closure; es alta si su valor contiene
+    el nombre de una función peligrosa, incluso construido por concatenación.
+    """
+    variable = match.group('var')
+    value = variable_value(source, variable, match.start())
+    if re.match(r'\s*(?:static\s+)?(?:function\b|fn\b|\\?Closure::|\[)', value):
+        return False, [], None
+    joined = ''.join(literal_strings(value)).strip()
+    if joined and DANGEROUS_NAME_PATTERN.match(joined):
+        return True, [f'{variable} contiene el nombre de la función {joined.lstrip(chr(92))}'], 'alta'
+    if value:
+        return True, [f'{variable} = ' + re.sub(r'\s+', ' ', value)[:120]], None
+    return True, [f'no se ve qué valor tiene {variable}'], None
 
 
 def external_url_call(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
@@ -686,6 +787,10 @@ RULES: list[Rule] = [
          re.compile(r'`'), PHP, check=backtick_check),
     Rule('ejecucion-comandos', 'alta', 'Usa Symfony Process para lanzar procesos',
          re.compile(r'Symfony\\Component\\Process|\bProcess::fromShellCommandline\b'), PHP, target='text'),
+    Rule('ejecucion-comandos', 'alta', 'Pasa una función que ejecuta comandos o código como callback',
+         php_call(*CALLBACK_FUNCTIONS), PHP, check=dangerous_callback),
+    Rule('codigo-dinamico', 'baja', 'Llama a una función cuyo nombre está en una variable',
+         re.compile(r'(?<![\w$>:\\])(?<!new )(?P<var>\$(?!this\b)\w+)\s*\('), PHP, check=variable_function),
 
     # Código dinámico.
     Rule('codigo-dinamico', 'alta', 'Evalúa código PHP en tiempo de ejecución',
@@ -816,8 +921,9 @@ def iter_files(plugin_dir: Path, include_vendor: bool,
                include_tests: bool = False) -> tuple[list[Path], list[Path]]:
     """Devuelve los archivos del plugin y, aparte, los de ``vendor/`` que no se analizan.
 
-    Los directorios de tests se omiten salvo que se pidan: FacturaScripts no los
-    carga y sus datos de prueba (claves, contraseñas) solo generan ruido.
+    Los directorios de tests se omiten a cualquier profundidad salvo que se
+    pidan, igual que en ``check-min-version.py``: FacturaScripts no los carga y
+    sus datos de prueba (claves, contraseñas) solo generan ruido.
     """
     files: list[Path] = []
     vendor: list[Path] = []
@@ -825,7 +931,7 @@ def iter_files(plugin_dir: Path, include_vendor: bool,
         relative_parts = Path(root).relative_to(plugin_dir).parts
         dirs[:] = sorted(
             name for name in dirs
-            if name not in EXCLUDED_DIRS and (include_tests or relative_parts or name not in TEST_DIRS)
+            if name not in EXCLUDED_DIRS and (include_tests or name not in TEST_DIRS)
         )
         in_vendor = VENDOR_DIR in relative_parts
         for name in sorted(names):
@@ -992,10 +1098,18 @@ def structure_findings(plugin_dir: Path, files: list[Path], sources: list[Source
         name = path.name
         suffix = path.suffix.lower()
 
-        if suffix == '.php' and parts[0] == 'Assets':
+        in_assets = parts[0] == 'Assets'
+        if in_assets and suffix in PHP_EXTENSIONS:
             add('alta', 'Archivo PHP dentro de Assets/', relative,
                 ['Assets/ se publica en Dinamic/Assets/, que el .htaccess sirve sin pasar por index.php: '
                  'el servidor podría ejecutarlo directamente'])
+        elif in_assets and (suffix in EXECUTABLE_EXTENSIONS or (os.access(path, os.X_OK) and has_shebang(path))):
+            add('alta', 'Ejecutable o script dentro de Assets/', relative,
+                ['Assets/ se publica en Dinamic/Assets/ y se sirve directamente: un script ahí '
+                 'puede ejecutarse o descargarse sin pasar por FacturaScripts'])
+        elif suffix in PHP_EXTENSIONS - {'.php', '.inc'}:
+            add('baja', 'Archivo PHP con una extensión distinta de .php', relative,
+                [f'algunos servidores ejecutan {suffix} como PHP si se abre directamente'])
         elif name in SERVER_CONFIG_FILES:
             add('media', 'Incluye configuración del servidor web o de PHP', relative)
         elif suffix in EXECUTABLE_EXTENSIONS:
@@ -1186,7 +1300,15 @@ def print_report(report: dict) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Punto de entrada del script."""
+    """Punto de entrada del script.
+
+    Args:
+        argv: Argumentos de la línea de comandos; por defecto, los del proceso.
+
+    Returns:
+        0 sin hallazgos de severidad media o alta, 1 con hallazgos y 2 si la ruta
+        no es válida o se produce un error inesperado.
+    """
     parser = argparse.ArgumentParser(
         description='Audita los comportamientos sensibles para la seguridad de un plugin de FacturaScripts.')
     parser.add_argument('plugin', help='Ruta del plugin a auditar')
@@ -1204,12 +1326,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f'Error: {plugin_dir} no es un directorio.', file=sys.stderr)
         return 2
 
-    report = filter_report(audit(plugin_dir, args.include_vendor, args.include_tests), args.min_severity)
-
-    if args.json:
-        print(json.dumps(report, ensure_ascii=False, indent=2))
-    else:
-        print_report(report)
+    try:
+        report = filter_report(audit(plugin_dir, args.include_vendor, args.include_tests), args.min_severity)
+        if args.json:
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+        else:
+            print_report(report)
+    except Exception as error:  # noqa: BLE001 - un fallo inesperado no debe parecer «con hallazgos».
+        print(f'Error inesperado durante la auditoría: {error!r}', file=sys.stderr)
+        return 2
 
     return 1 if report['requiere_revision'] else 0
 
