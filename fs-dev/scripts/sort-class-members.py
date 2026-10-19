@@ -1,40 +1,49 @@
 #!/usr/bin/env python3
-"""
-Ordena los miembros de una clase PHP según las convenciones de FacturaScripts.
+"""Ordena los miembros de una clase PHP según las convenciones de FacturaScripts.
 
 Orden dentro de la clase:
-  1. use (traits)            - A-Z
-  2. const                   - A-Z
-  3. variables public        - A-Z
-  4. variables protected/private (agrupadas) - A-Z
-  5. métodos abstract (cualquier visibilidad, agrupados) - A-Z
-  6. métodos public          - A-Z
-  7. métodos protected/private (agrupados)   - A-Z
 
-Solo actúa sobre archivos con 'namespace FacturaScripts\\' para garantizar
-que el archivo pertenece al core o a un plugin del ERP.
+1. ``use`` de traits, incluidos los que llevan bloque de resolución ``{ ... }`` - A-Z
+2. Constantes, con o sin ``final``, visibilidad o tipo - A-Z
+3. Propiedades públicas (incluidas las declaradas con ``var``) - A-Z
+4. Propiedades protegidas y privadas, agrupadas - A-Z
+5. Métodos abstractos, de cualquier visibilidad - A-Z
+6. Métodos públicos - A-Z
+7. Métodos protegidos y privados, agrupados - A-Z
+
+Cada miembro se mueve con sus docblocks, comentarios y atributos ``#[...]``
+previos, y con el comentario que tenga al final de su misma línea. Los
+comentarios que quedan tras el último miembro se conservan al final de la clase.
+
+Medidas de seguridad, para no corromper nunca el código:
+
+- Solo actúa sobre archivos con ``namespace FacturaScripts\\``.
+- Solo ordena la primera clase, interfaz o trait con nombre. Las clases
+  anónimas y los ``enum`` no se tocan.
+- La clase se localiza sobre una versión del archivo en la que comentarios,
+  cadenas, heredocs y HTML fuera de ``<?php`` están enmascarados.
+- Si algún miembro no se reconoce, la clase se deja como está.
+- Antes de escribir se comprueba que el resultado contiene exactamente los
+  mismos caracteres que no son espacio que el original; si no, no se escribe.
+- El archivo se lee y se escribe como bytes UTF-8 conservando sus finales de
+  línea. Si no es UTF-8 válido no se toca.
 
 Uso: sort-class-members.py <file_path>
+
+Código de salida: 0 si termina (con o sin cambios, o si se aborta por
+seguridad) y 1 si los argumentos no son válidos o el archivo no se puede leer o
+escribir. Los avisos se escriben en stderr.
 """
+from __future__ import annotations
+
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-
-def _is_sort_enabled() -> bool:
-    """Comprueba si sortClassMembers está activado en ~/.fs-claude.json (por defecto: True)."""
-    fs_claude = Path.home() / '.fs-claude.json'
-    if not fs_claude.exists():
-        return True
-    try:
-        config = json.loads(fs_claude.read_text(encoding='utf-8'))
-        return bool(config.get('settings', {}).get('sortClassMembers', True))
-    except Exception:
-        return True
-
-# Grupos de ordenación en el orden final deseado
+# Grupos de ordenación en el orden final deseado. ``unknown`` impide reordenar.
 GROUPS = [
     'trait',
     'const',
@@ -46,443 +55,537 @@ GROUPS = [
     'unknown',
 ]
 
+# Modificadores que pueden preceder a una propiedad o a un método.
+_MODIFIERS = r'(?:public|protected|private|abstract|static|final|readonly|var)'
 
-# ── Escáneres de bajo nivel ───────────────────────────────────────────────────
+# Declaración con nombre de clase, interfaz o trait sobre el código enmascarado.
+CLASS_PATTERN = re.compile(r'(?<![\w$\\])(?<!::)(?<!->)\b(class|interface|trait)\s+([A-Za-z_]\w*)')
+TRAIT_PATTERN = re.compile(r'^use\s+([\w\\]+(?:\s*,\s*[\w\\]+)*)\s*(?:;|\{)', re.DOTALL)
+CONST_PATTERN = re.compile(r'^(?:(?:final|public|protected|private)\s+)*const\b([^=;]*)=', re.DOTALL)
+METHOD_PATTERN = re.compile(r'^((?:' + _MODIFIERS + r'\s+)*)function\s+&?\s*(\w+)\s*\(')
+PROPERTY_PATTERN = re.compile(r'^((?:' + _MODIFIERS + r'\s+)+)(?:[\w\\|&?()]+\s+)?&?\$(\w+)')
+HEREDOC_PATTERN = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
 
-def scan_string(content: str, pos: int, quote: str) -> int:
-    """Avanza hasta el final de un string entre comillas simples o dobles."""
-    pos += 1  # saltar la comilla de apertura
-    n = len(content)
-    while pos < n:
-        c = content[pos]
-        if c == '\\':
-            pos += 2
+
+def _is_sort_enabled() -> bool:
+    """Comprueba si sortClassMembers está activado en ~/.fs-claude.json.
+
+    Returns:
+        ``True`` si la opción está activada o no se puede leer (valor por defecto).
+    """
+    fs_claude = Path.home() / '.fs-claude.json'
+    if not fs_claude.exists():
+        return True
+    try:
+        config = json.loads(fs_claude.read_text(encoding='utf-8'))
+        return bool(config.get('settings', {}).get('sortClassMembers', True))
+    except Exception:
+        return True
+
+
+# ── Enmascarado del código ────────────────────────────────────────────────────
+
+def _blank(segment: str) -> str:
+    """Sustituye un fragmento por espacios conservando sus saltos de línea.
+
+    Args:
+        segment: Texto que se enmascara.
+
+    Returns:
+        Texto de la misma longitud con solo espacios, ``\\n`` y ``\\r``.
+    """
+    return ''.join(char if char in '\r\n' else ' ' for char in segment)
+
+
+def mask_php(content: str) -> str:
+    """Devuelve el PHP con comentarios, cadenas, heredocs y HTML sustituidos por espacios.
+
+    La versión enmascarada tiene la misma longitud y los mismos saltos de línea
+    que el original, así que sus posiciones son válidas en ambos textos. Los
+    atributos ``#[...]`` se conservan porque son código.
+
+    Args:
+        content: Contenido completo del archivo PHP.
+
+    Returns:
+        El contenido enmascarado.
+    """
+    out: List[str] = []
+    length = len(content)
+    index = 0
+    in_php = False
+
+    while index < length:
+        if not in_php:
+            # Fuera de <?php ... ?> todo es HTML: se enmascara hasta la siguiente etiqueta.
+            found = re.compile(r'<\?(?:php\b|=)?').search(content, index)
+            end = length if found is None else found.end()
+            out.append(_blank(content[index:found.start()] if found else content[index:]))
+            if found:
+                out.append(content[found.start():end])
+            index = end
+            in_php = True
             continue
-        if c == quote:
-            return pos + 1
-        pos += 1
-    return pos
+
+        char = content[index]
+        pair = content[index:index + 2]
+
+        if pair == '?>':
+            out.append(pair)
+            index += 2
+            in_php = False
+            continue
+
+        if pair == '/*':
+            end = content.find('*/', index + 2)
+            end = length if end == -1 else end + 2
+            out.append(_blank(content[index:end]))
+            index = end
+            continue
+
+        if pair == '//' or (char == '#' and content[index + 1:index + 2] != '['):
+            end = index
+            while end < length and content[end] not in '\r\n':
+                end += 1
+            out.append(_blank(content[index:end]))
+            index = end
+            continue
+
+        if char in ('"', "'", '`'):
+            end = index + 1
+            while end < length and content[end] != char:
+                end += 2 if content[end] == '\\' else 1
+            end = min(end + 1, length)
+            out.append(_blank(content[index:end]))
+            index = end
+            continue
+
+        heredoc = HEREDOC_PATTERN.match(content, index) if pair == '<<' else None
+        if heredoc:
+            # Cierre flexible (PHP 7.3+): la etiqueta puede ir sangrada y seguida de , ) o ;.
+            closing = re.compile(r'^[ \t]*' + re.escape(heredoc.group(2)) + r'(?!\w)', re.MULTILINE)
+            found = closing.search(content, heredoc.end())
+            end = length if found is None else found.end()
+            out.append(_blank(content[index:end]))
+            index = end
+            continue
+
+        out.append(char)
+        index += 1
+
+    return ''.join(out)
 
 
-def scan_block_comment(content: str, pos: int) -> int:
-    """Avanza hasta el final de un comentario de bloque /* ... */."""
-    end = content.find('*/', pos + 2)
-    return (end + 2) if end != -1 else len(content)
+def _matching_brace(masked: str, open_pos: int) -> Optional[int]:
+    """Devuelve la posición de la llave que cierra la abierta en ``open_pos``.
+
+    Args:
+        masked: Código enmascarado.
+        open_pos: Posición de la llave de apertura.
+
+    Returns:
+        Posición de la llave de cierre, o ``None`` si no está equilibrada.
+    """
+    depth = 0
+    for pos in range(open_pos, len(masked)):
+        if masked[pos] == '{':
+            depth += 1
+        elif masked[pos] == '}':
+            depth -= 1
+            if depth == 0:
+                return pos
+    return None
 
 
-def scan_heredoc(content: str, pos: int) -> int:
-    """Avanza hasta el final de un heredoc/nowdoc."""
-    pos += 3  # saltar <<<
-    n = len(content)
-    nowdoc = pos < n and content[pos] == "'"
-    if nowdoc:
-        pos += 1
-    m = re.match(r'(\w+)', content[pos:])
-    if not m:
-        return pos
-    label = m.group(1)
-    pos += len(label)
-    if nowdoc and pos < n and content[pos] == "'":
-        pos += 1
-    # Buscar la etiqueta de cierre en su propia línea
-    pattern = re.compile(r'^\s*' + re.escape(label) + r'\s*;?\s*$', re.MULTILINE)
-    closing = pattern.search(content, pos)
-    return closing.end() if closing else n
+# ── Localizar el cuerpo de la clase en el archivo ─────────────────────────────
+
+def find_class_body(content: str, masked: Optional[str] = None) -> Optional[Tuple[int, int]]:
+    """Busca la primera clase, interfaz o trait con nombre del archivo.
+
+    Ignora las coincidencias en comentarios y cadenas, ``Foo::class``,
+    ``$class`` y las clases anónimas (``new class``), cuyo nombre aparente sería
+    ``extends`` o ``implements``.
+
+    Args:
+        content: Contenido completo del archivo.
+        masked: Versión enmascarada del contenido; se calcula si no se indica.
+
+    Returns:
+        Posiciones de la llave de apertura y de cierre, o ``None`` si no hay clase.
+    """
+    masked = mask_php(content) if masked is None else masked
+    for match in CLASS_PATTERN.finditer(masked):
+        if match.group(2).lower() in ('extends', 'implements'):
+            continue
+        if re.search(r'\bnew\s*$', masked[max(0, match.start() - 20):match.start()]):
+            continue
+        brace = re.compile(r'[{;]').search(masked, match.end())
+        if brace is None or brace.group(0) != '{':
+            continue
+        close = _matching_brace(masked, brace.start())
+        if close is None:
+            return None
+        return brace.start(), close
+    return None
 
 
 # ── Buscar el final de un miembro ─────────────────────────────────────────────
 
-def find_member_end(content: str, start: int) -> int:
-    """
-    Desde 'start', avanza hasta el final del miembro:
-    - ';'  al nivel de profundidad 0  (propiedad, constante, use de trait)
-    - '}'  que lleva la profundidad a 0 (cuerpo de método)
+def find_member_end(masked: str, start: int) -> int:
+    """Avanza desde ``start`` hasta el final del miembro sobre el código enmascarado.
 
-    Maneja correctamente strings, comentarios y anidamiento de llaves.
+    El miembro termina en un ``;`` de profundidad 0 (propiedad, constante,
+    método abstracto o ``use``) o en la ``}`` que devuelve la profundidad a 0
+    (cuerpo de un método o bloque de un ``use`` de traits).
+
+    Args:
+        masked: Cuerpo de la clase enmascarado.
+        start: Posición donde empieza la declaración.
+
+    Returns:
+        Posición siguiente al final del miembro.
     """
-    pos = start
     depth = 0
-    n = len(content)
-
-    while pos < n:
-        c = content[pos]
-
-        # Comentario de línea
-        if content[pos:pos + 2] == '//':
-            end = content.find('\n', pos)
-            pos = (end + 1) if end != -1 else n
-            continue
-
-        # Comentario de bloque
-        if content[pos:pos + 2] == '/*':
-            pos = scan_block_comment(content, pos)
-            continue
-
-        # String comilla simple o doble
-        if c in ("'", '"'):
-            pos = scan_string(content, pos, c)
-            continue
-
-        # Heredoc / Nowdoc
-        if content[pos:pos + 3] == '<<<':
-            pos = scan_heredoc(content, pos)
-            continue
-
-        if c == '{':
+    for pos in range(start, len(masked)):
+        char = masked[pos]
+        if char == '{':
             depth += 1
-        elif c == '}':
+        elif char == '}':
             depth -= 1
             if depth < 0:
-                # Llegamos al cierre de la clase (no debería ocurrir con body correcto)
                 return pos
             if depth == 0:
-                return pos + 1  # fin del cuerpo del método
-        elif c == ';' and depth == 0:
-            return pos + 1  # fin de sentencia simple
-
-        pos += 1
-
-    return pos
+                return pos + 1
+        elif char == ';' and depth == 0:
+            return pos + 1
+    return len(masked)
 
 
-# ── Saltar líneas en blanco ────────────────────────────────────────────────────
+def _skip_attributes(masked: str, pos: int) -> int:
+    """Salta los espacios y los atributos ``#[...]`` que preceden a una declaración.
 
-def skip_blank_lines(content: str, pos: int) -> int:
-    """Avanza sobre líneas que contienen únicamente espacios/tabulaciones."""
-    n = len(content)
-    while pos < n:
-        line_start = pos
-        while pos < n and content[pos] in ' \t':
-            pos += 1
-        if pos < n and content[pos] == '\n':
-            pos += 1  # línea en blanco → continuar
-        elif pos < n and content[pos] == '\r':
-            pos += 1
-            if pos < n and content[pos] == '\n':
-                pos += 1
-        else:
-            return line_start  # línea con contenido → volver al inicio de la línea
-    return pos
+    Args:
+        masked: Cuerpo de la clase enmascarado.
+        pos: Posición inicial.
 
-
-# ── Saltar docblock / atributos que preceden al miembro ───────────────────────
-
-def skip_pre_member(content: str, pos: int) -> int:
+    Returns:
+        Posición del primer carácter de la declaración.
     """
-    Avanza sobre docblocks (/** */), comentarios de bloque (/* */),
-    comentarios de línea (//) y atributos PHP 8 (#[...]) que preceden
-    a la declaración real del miembro.
+    length = len(masked)
+    while True:
+        while pos < length and masked[pos].isspace():
+            pos += 1
+        if masked[pos:pos + 2] != '#[':
+            return pos
+        depth = 0
+        while pos < length:
+            if masked[pos] == '[':
+                depth += 1
+            elif masked[pos] == ']':
+                depth -= 1
+                if depth == 0:
+                    pos += 1
+                    break
+            pos += 1
 
-    Devuelve la posición donde empieza la declaración.
+
+def _trailing_comment_end(body: str, pos: int) -> int:
+    """Incluye en el miembro el comentario que empieza en su misma línea.
+
+    Args:
+        body: Cuerpo original de la clase.
+        pos: Posición siguiente al final del miembro.
+
+    Returns:
+        Posición final del comentario, o ``pos`` si no hay comentario en la línea.
     """
-    n = len(content)
-    while pos < n:
-        # Saltar espacios/tabs de la línea actual
-        while pos < n and content[pos] in ' \t':
-            pos += 1
-
-        if pos >= n:
-            break
-
-        # Comentario de bloque / docblock
-        if content[pos:pos + 2] == '/*':
-            pos = scan_block_comment(content, pos)
-            while pos < n and content[pos] in ' \t':
-                pos += 1
-            if pos < n and content[pos] in '\n\r':
-                pos += 1
-                if content[pos - 1] == '\r' and pos < n and content[pos] == '\n':
-                    pos += 1
-            continue
-
-        # Comentario de línea
-        if content[pos:pos + 2] == '//':
-            end = content.find('\n', pos)
-            pos = (end + 1) if end != -1 else n
-            continue
-
-        # Atributo PHP 8 (#[...])
-        if content[pos:pos + 2] == '#[':
-            depth = 0
-            pos += 1
-            while pos < n:
-                if content[pos] == '[':
-                    depth += 1
-                elif content[pos] == ']':
-                    depth -= 1
-                    if depth == 0:
-                        pos += 1
-                        break
-                pos += 1
-            while pos < n and content[pos] in ' \t':
-                pos += 1
-            if pos < n and content[pos] in '\n\r':
-                pos += 1
-                if content[pos - 1] == '\r' and pos < n and content[pos] == '\n':
-                    pos += 1
-            continue
-
-        # Inicio de la declaración real
-        break
-
+    probe = pos
+    while probe < len(body) and body[probe] in ' \t':
+        probe += 1
+    if body.startswith('//', probe) or (body.startswith('#', probe) and not body.startswith('#[', probe)):
+        while probe < len(body) and body[probe] not in '\r\n':
+            probe += 1
+        return probe
+    if body.startswith('/*', probe):
+        end = body.find('*/', probe + 2)
+        return len(body) if end == -1 else end + 2
     return pos
 
 
 # ── Clasificación del miembro ─────────────────────────────────────────────────
 
 def classify_member(code: str) -> Tuple[str, str]:
+    """Clasifica un fragmento de código PHP como miembro de clase.
+
+    Args:
+        code: Declaración del miembro sin docblocks ni atributos previos.
+
+    Returns:
+        Tupla ``(kind, nombre)`` donde ``kind`` es uno de ``GROUPS`` y el nombre
+        está en minúsculas para ordenar.
     """
-    Clasifica un fragmento de código PHP como miembro de clase y devuelve
-    (kind, nombre_para_ordenar).
+    text = code.strip()
 
-    Kinds devueltos: trait | const | public_prop | prot_priv_prop |
-                     abstract_method | public_method | prot_priv_method | unknown
-    """
-    s = code.strip()
+    match = TRAIT_PATTERN.match(text)
+    if match:
+        first = match.group(1).split(',')[0].strip()
+        return 'trait', first.split('\\')[-1].lower()
 
-    # Trait use: use TraitA; | use TraitA, TraitB; | use TraitA { ... };
-    m = re.match(r'^use\s+([\w\\,\s]+?)(?:\s*\{[^}]*\})?\s*;', s, re.DOTALL)
-    if m:
-        # Nombre del primer trait (último segmento del namespace)
-        first = re.findall(r'[\w\\]+', m.group(1))
-        name = (first[0].split('\\')[-1]) if first else s[:30]
-        return 'trait', name.lower()
+    match = CONST_PATTERN.match(text)
+    if match:
+        # Con constantes tipadas (const string X = ...) el nombre es el último identificador.
+        names = re.findall(r'\w+', match.group(1))
+        if names:
+            return 'const', names[-1].lower()
 
-    # Constante: (public|protected|private)? const NOMBRE
-    m = re.match(r'^(?:public|protected|private)?\s*const\s+(\w+)', s)
-    if m:
-        return 'const', m.group(1).lower()
+    match = METHOD_PATTERN.match(text)
+    if match:
+        modifiers = match.group(1).lower()
+        name = match.group(2).lower()
+        if 'abstract' in modifiers:
+            return 'abstract_method', name
+        if 'protected' in modifiers or 'private' in modifiers:
+            return 'prot_priv_method', name
+        return 'public_method', name
 
-    # Método: visibilidades* function nombre(
-    m = re.match(
-        r'^((?:(?:public|protected|private|abstract|static|final|readonly)\s+)+)'
-        r'function\s+(\w+)\s*\(',
-        s
-    )
-    if m:
-        name = m.group(2)
-        vis = m.group(1).lower()
-        # Los métodos abstract van juntos, ordenados A-Z, sin importar la visibilidad
-        if 'abstract' in vis:
-            return 'abstract_method', name.lower()
-        if 'protected' in vis or 'private' in vis:
-            return 'prot_priv_method', name.lower()
-        return 'public_method', name.lower()
+    match = PROPERTY_PATTERN.match(text)
+    if match:
+        modifiers = match.group(1).lower()
+        name = match.group(2).lower()
+        if 'protected' in modifiers or 'private' in modifiers:
+            return 'prot_priv_prop', name
+        return 'public_prop', name
 
-    # Método sin visibilidad explícita (interfaces/traits)
-    m = re.match(r'^function\s+(\w+)\s*\(', s)
-    if m:
-        return 'public_method', m.group(1).lower()
-
-    # Propiedad: visibilidades* (tipo)? $nombre
-    m = re.match(
-        r'^((?:(?:public|protected|private|abstract|static|final|readonly)\s+)+)'
-        r'(?:[\w\\|&?]+\s+)?\$(\w+)',
-        s
-    )
-    if m:
-        name = m.group(2)
-        vis = m.group(1).lower()
-        if 'protected' in vis or 'private' in vis:
-            return 'prot_priv_prop', name.lower()
-        return 'public_prop', name.lower()
-
-    return 'unknown', s[:50].lower()
+    return 'unknown', text[:50].lower()
 
 
 # ── Extracción de miembros del cuerpo de la clase ────────────────────────────
 
-def extract_members(class_body: str) -> List[Dict]:
+def skip_blank_lines(content: str, pos: int) -> int:
+    """Avanza sobre las líneas que solo contienen espacios o tabulaciones.
+
+    Args:
+        content: Texto que se recorre.
+        pos: Posición inicial, al comienzo de una línea.
+
+    Returns:
+        Posición del comienzo de la primera línea con contenido.
     """
-    Parsea el texto interior de la clase (sin las llaves externas) y devuelve
-    una lista de dicts con:
-        text  - texto completo del miembro (docblock + código, con indentación)
-        kind  - grupo al que pertenece
-        name  - nombre en minúsculas para ordenar
+    length = len(content)
+    while pos < length:
+        line_start = pos
+        while pos < length and content[pos] in ' \t':
+            pos += 1
+        if pos < length and content[pos] == '\n':
+            pos += 1
+        elif pos < length and content[pos] == '\r':
+            pos += 1
+            if pos < length and content[pos] == '\n':
+                pos += 1
+        else:
+            return line_start
+    return pos
+
+
+def extract_members(class_body: str, masked_body: Optional[str] = None) -> Tuple[List[Dict], str]:
+    """Separa el cuerpo de una clase en miembros y comentarios finales.
+
+    Args:
+        class_body: Texto interior de la clase, sin las llaves externas.
+        masked_body: Versión enmascarada del cuerpo; se calcula si no se indica.
+
+    Returns:
+        Lista de miembros y la cola de comentarios tras el último miembro. Cada
+        miembro es un dict con ``text`` (docblock, atributos, código y
+        comentario de línea, con su sangría), ``kind`` y ``name``.
     """
-    members = []
+    if masked_body is None:
+        masked_body = mask_php('<?php ' + class_body)[6:]
+
+    members: List[Dict] = []
     pos = 0
-    n = len(class_body)
+    length = len(class_body)
 
-    while pos < n:
-        # Saltar líneas en blanco entre miembros
+    while pos < length:
         pos = skip_blank_lines(class_body, pos)
-
-        if pos >= n:
+        if pos >= length:
             break
 
-        # Seguridad: si encontramos un '}' suelto (cierre de clase), parar
-        probe = class_body[pos:].lstrip()
-        if not probe or probe[0] == '}':
-            break
+        # Solo quedan comentarios: se conservan como cola de la clase.
+        if not masked_body[pos:].strip():
+            return members, class_body[pos:].rstrip()
 
-        # El miembro comienza aquí (incluyendo su indentación y docblock)
         member_start = pos
-
-        # Avanzar sobre docblock/atributos para encontrar la declaración real
-        classify_pos = skip_pre_member(class_body, pos)
-
-        if classify_pos >= n:
+        declaration = _skip_attributes(masked_body, pos)
+        member_end = find_member_end(masked_body, declaration)
+        if member_end <= declaration:
+            # Llave de cierre suelta: no es un miembro reconocible y no se reordena.
+            members.append({'text': class_body[member_start:].rstrip(), 'kind': 'unknown', 'name': ''})
             break
+        member_end = _trailing_comment_end(class_body, member_end)
 
-        # Encontrar el final del miembro desde su declaración
-        member_end = find_member_end(class_body, classify_pos)
-
-        # Texto completo (docblock + código)
-        full_text = class_body[member_start:member_end].rstrip()
-
-        # Código sin decoradores para clasificar
-        code_raw = class_body[classify_pos:member_end].strip()
-
-        kind, name = classify_member(code_raw)
-
+        code = masked_body[declaration:member_end]
+        kind, name = classify_member(class_body[declaration:declaration + len(code.rstrip())])
         members.append({
-            'text': full_text,
+            'text': class_body[member_start:member_end].rstrip(),
             'kind': kind,
             'name': name,
         })
-
         pos = member_end
 
-    return members
-
-
-# ── Localizar el cuerpo de la clase en el archivo ─────────────────────────────
-
-def find_class_body(content: str) -> Optional[Tuple[int, int]]:
-    """
-    Busca la primera declaración de clase/interface/trait en el archivo y
-    devuelve (posición_del_{, posición_del_}).
-    Devuelve None si no se encuentra ninguna clase.
-    """
-    pattern = re.compile(
-        r'\b(?:abstract\s+|final\s+|readonly\s+)?'
-        r'(?:class|interface|trait)\s+\w+\b[^{;]*\{',
-        re.DOTALL
-    )
-    match = pattern.search(content)
-    if not match:
-        return None
-
-    open_brace = match.end() - 1  # posición del '{'
-
-    pos = match.end()
-    depth = 1
-    n = len(content)
-
-    while pos < n and depth > 0:
-        c = content[pos]
-
-        if content[pos:pos + 2] == '//':
-            end = content.find('\n', pos)
-            pos = (end + 1) if end != -1 else n
-            continue
-
-        if content[pos:pos + 2] == '/*':
-            pos = scan_block_comment(content, pos)
-            continue
-
-        if c in ("'", '"'):
-            pos = scan_string(content, pos, c)
-            continue
-
-        if content[pos:pos + 3] == '<<<':
-            pos = scan_heredoc(content, pos)
-            continue
-
-        if c == '{':
-            depth += 1
-        elif c == '}':
-            depth -= 1
-            if depth == 0:
-                return open_brace, pos
-
-        pos += 1
-
-    return None
+    return members, ''
 
 
 # ── Reconstrucción del cuerpo ordenado ───────────────────────────────────────
 
-def reconstruct_body(members: List[Dict]) -> str:
-    """
-    Agrupa los miembros por tipo, ordena cada grupo A-Z y reconstruye el cuerpo.
+def reconstruct_body(members: List[Dict], tail: str = '', newline: str = '\n',
+                     head: str = '', closing_indent: str = '') -> str:
+    """Agrupa los miembros por tipo, ordena cada grupo A-Z y reconstruye el cuerpo.
 
     Reglas de formato:
-    - Los use de traits van juntos sin línea en blanco entre ellos.
-    - El resto de miembros se separan con una línea en blanco entre cada uno.
-    - Siempre hay una línea en blanco entre grupos distintos.
+
+    - Los ``use`` de traits van juntos sin línea en blanco entre ellos.
+    - El resto de miembros se separan con una línea en blanco.
+    - La cola de comentarios va al final, tras una línea en blanco.
+
+    Args:
+        members: Miembros extraídos por ``extract_members``.
+        tail: Comentarios que había tras el último miembro.
+        newline: Final de línea del archivo (``\\n`` o ``\\r\\n``).
+        head: Comentario que había en la misma línea que la llave de apertura.
+        closing_indent: Sangría de la línea de la llave de cierre.
+
+    Returns:
+        El nuevo cuerpo de la clase, sin las llaves externas.
     """
-    groups: Dict[str, List[Dict]] = {k: [] for k in GROUPS}
-    for m in members:
-        groups.setdefault(m['kind'], groups['unknown']).append(m)
+    groups: Dict[str, List[Dict]] = {kind: [] for kind in GROUPS}
+    for member in members:
+        groups.setdefault(member['kind'], groups['unknown']).append(member)
 
-    # Ordenar cada grupo A-Z
     for kind in GROUPS:
-        groups[kind].sort(key=lambda m: m['name'])
+        groups[kind].sort(key=lambda member: member['name'])
 
-    # Construir "bloques": los traits forman un único bloque pegado,
-    # cada otro miembro es su propio bloque. Los bloques se separan con \n\n.
     blocks: List[str] = []
     for kind in GROUPS:
         if not groups[kind]:
             continue
         if kind == 'trait':
-            # Todos los traits juntos, separados solo por \n (sin línea en blanco)
-            blocks.append('\n'.join(m['text'] for m in groups[kind]))
+            blocks.append(newline.join(member['text'] for member in groups[kind]))
         else:
-            for m in groups[kind]:
-                blocks.append(m['text'])
+            blocks.extend(member['text'] for member in groups[kind])
+    if tail:
+        blocks.append(tail)
 
     if not blocks:
-        return '\n'
+        return head + newline + closing_indent
 
-    return '\n' + '\n\n'.join(blocks) + '\n'
+    return head + newline + (newline * 2).join(blocks) + newline + closing_indent
+
+
+def same_code(original: str, updated: str) -> bool:
+    """Comprueba que dos textos tienen exactamente los mismos caracteres que no son espacio.
+
+    Args:
+        original: Texto original.
+        updated: Texto reordenado.
+
+    Returns:
+        ``True`` si el multiconjunto de caracteres visibles coincide.
+    """
+    def visible(text: str) -> Counter:
+        return Counter(char for char in text if not char.isspace())
+
+    return visible(original) == visible(updated)
+
+
+def sort_content(content: str) -> Optional[str]:
+    """Ordena la primera clase del contenido indicado.
+
+    Args:
+        content: Contenido completo del archivo PHP.
+
+    Returns:
+        El contenido ordenado, o ``None`` si no hay que cambiar nada o no es
+        seguro hacerlo.
+    """
+    if 'namespace FacturaScripts\\' not in content:
+        return None
+
+    masked = mask_php(content)
+    found = find_class_body(content, masked)
+    if found is None:
+        return None
+    open_pos, close_pos = found
+
+    body = content[open_pos + 1:close_pos]
+    masked_body = masked[open_pos + 1:close_pos]
+    newline = '\r\n' if '\r\n' in content else '\n'
+
+    # Comentario en la misma línea que la llave de apertura: se queda ahí.
+    first_break = body.find('\n')
+    head = ''
+    offset = 0
+    if first_break != -1 and body[:first_break].strip():
+        if masked_body[:first_break].strip():
+            return None
+        head = body[:first_break].rstrip()
+        offset = first_break + 1
+
+    last_break = body.rfind('\n')
+    closing_indent = body[last_break + 1:] if last_break != -1 and not body[last_break + 1:].strip() else ''
+
+    members, tail = extract_members(body[offset:], masked_body[offset:])
+    if not members or any(member['kind'] == 'unknown' for member in members):
+        return None
+
+    new_body = reconstruct_body(members, tail, newline, head, closing_indent)
+    updated = content[:open_pos + 1] + new_body + content[close_pos:]
+    if updated == content:
+        return None
+    if not same_code(content, updated):
+        raise ValueError('el resultado no conserva todos los caracteres del original')
+    return updated
 
 
 # ── Punto de entrada ──────────────────────────────────────────────────────────
 
 def process_file(file_path: str) -> None:
+    """Ordena la clase del archivo indicado si es seguro hacerlo.
+
+    Args:
+        file_path: Ruta del archivo PHP.
+    """
+    path = Path(file_path)
     try:
-        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-            content = f.read()
-    except (OSError, IOError) as e:
-        print(f"Error leyendo {file_path}: {e}", file=sys.stderr)
+        raw = path.read_bytes()
+    except OSError as error:
+        print(f"Error leyendo {file_path}: {error}", file=sys.stderr)
         sys.exit(1)
 
-    # Solo actuar sobre archivos de FacturaScripts
-    if 'namespace FacturaScripts\\' not in content:
+    try:
+        content = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        print(f"Aviso: {file_path} no es UTF-8 válido; no se ordena la clase.", file=sys.stderr)
         return
-
-    result = find_class_body(content)
-    if result is None:
-        return
-
-    open_pos, close_pos = result
-
-    before = content[:open_pos + 1]        # todo hasta el '{' inclusive
-    class_body = content[open_pos + 1:close_pos]
-    after = content[close_pos:]            # desde el '}' inclusive
-
-    members = extract_members(class_body)
-    if not members:
-        return
-
-    new_body = reconstruct_body(members)
-    new_content = before + new_body + after
-
-    if new_content == content:
-        return  # Ya estaba ordenado, sin cambios
 
     try:
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-    except (OSError, IOError) as e:
-        print(f"Error escribiendo {file_path}: {e}", file=sys.stderr)
+        updated = sort_content(content)
+    except ValueError as error:
+        print(f"Aviso: no se ordena {file_path}: {error}.", file=sys.stderr)
+        return
+
+    if updated is None:
+        return
+
+    try:
+        path.write_bytes(updated.encode('utf-8'))
+    except OSError as error:
+        print(f"Error escribiendo {file_path}: {error}", file=sys.stderr)
         sys.exit(1)
 
 
 def main() -> None:
+    """Lee los argumentos y ordena la clase del archivo si la opción está activada."""
     if not _is_sort_enabled():
         sys.exit(0)
     if len(sys.argv) != 2:

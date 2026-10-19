@@ -1,39 +1,74 @@
 #!/usr/bin/env python3
-"""Actualiza el año de copyright en archivos de FacturaScripts.
+"""Actualiza el año de copyright en la cabecera de archivos de FacturaScripts.
 
-Casos que gestiona (en modo normal):
-1. Sin año → añade el año actual
-   Copyright (C) Carlos → Copyright (C) 2026 Carlos
-2. Año único igual al actual → sin cambios
-   Copyright (C) 2026 Carlos → sin cambios
-3. Año único diferente al actual → añade el año final
-   Copyright (C) 2023 Carlos → Copyright (C) 2023-2026 Carlos
-4. Rango con año final igual al actual → sin cambios
-   Copyright (C) 2023-2026 Carlos → sin cambios
-5. Rango con año final diferente al actual → actualiza el año final
-   Copyright (C) 2023-2024 Carlos → Copyright (C) 2023-2026 Carlos
+Solo modifica la primera línea ``Copyright (C)`` que aparezca dentro del primer
+bloque de comentario del archivo (``/* ... */``, ``<!-- ... -->`` o
+``{# ... #}``), que es donde FacturaScripts coloca su cabecera de licencia. Las
+menciones posteriores, como las de otros autores o las que aparecen dentro de
+cadenas del código, se conservan intactas.
 
-En modo archivo nuevo (--new):
-- Reemplaza cualquier copyright con solo el año actual
-  Copyright (C) 2023 Carlos → Copyright (C) 2026 Carlos
+Casos que gestiona (en modo normal), tomando siempre el último año o rango de
+la lista de años:
+
+1. Sin año → añade el año actual.
+   ``Copyright (C) Carlos`` → ``Copyright (C) 2026 Carlos``
+2. Año igual al actual, o posterior → sin cambios.
+   ``Copyright (C) 2026 Carlos`` → sin cambios
+3. Año anterior al actual → lo convierte en rango.
+   ``Copyright (C) 2023, Carlos`` → ``Copyright (C) 2023-2026, Carlos``
+4. Rango cuyo año final es el actual, o posterior → sin cambios.
+5. Rango cuyo año final es anterior → actualiza el año final y normaliza los
+   espacios del guion.
+   ``Copyright (C) 2023 - 2024 Carlos`` → ``Copyright (C) 2023-2026 Carlos``
+6. Lista de años → actualiza solo el último elemento.
+   ``Copyright (C) 2019, 2021 Carlos`` → ``Copyright (C) 2019, 2021-2026 Carlos``
+
+En modo archivo nuevo (``--new``) sustituye los años de la cabecera por el año
+actual: ``Copyright (C) 2013-2025 Carlos`` → ``Copyright (C) 2026 Carlos``.
 
 Solo actúa sobre archivos que pertenecen al core o a un plugin de FacturaScripts:
-- Archivos con 'namespace FacturaScripts\\'.
-- Archivos situados dentro de un plugin (carpeta con facturascripts.ini) o de una
-  instalación del core (composer.json de facturascripts/facturascripts o carpetas
-  Core, Plugins y Dinamic).
-El resto de archivos, como los de proyectos Laravel o módulos de terceros, se ignoran.
+
+- Archivos con ``namespace FacturaScripts\\``.
+- Archivos situados dentro de un plugin (carpeta con ``facturascripts.ini``) o
+  de una instalación del core (``composer.json`` de
+  ``facturascripts/facturascripts`` o carpetas ``Core``, ``Plugins`` y ``Dinamic``).
+
+El archivo se lee y se escribe como bytes UTF-8, de modo que conserva los
+finales de línea (LF o CRLF) y la marca BOM. Si no es UTF-8 válido no se toca.
 
 Uso: update-copyright.py <file_path> <current_year> [--new]
+
+Código de salida: 0 si termina (con o sin cambios) y 1 si los argumentos no son
+válidos o no se puede leer o escribir el archivo.
 """
+from __future__ import annotations
+
 import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional, Tuple
+
+# Delimitadores de los comentarios que pueden contener la cabecera de licencia.
+COMMENT_DELIMITERS: Tuple[Tuple[str, str], ...] = (('/*', '*/'), ('<!--', '-->'), ('{#', '#}'))
+
+# Un elemento de la lista de años: un año o un rango, con espacios opcionales en el guion.
+_YEAR_ITEM = r'\d{4}(?:[ \t]*-[ \t]*\d{4})?'
+
+# Línea de copyright: prefijo, lista opcional de años y lo que siga, que nunca se modifica.
+COPYRIGHT_PATTERN = re.compile(
+    r'(?P<prefix>Copyright \(C\)[ \t]*)'
+    r'(?P<years>' + _YEAR_ITEM + r'(?:[ \t]*,[ \t]*' + _YEAR_ITEM + r')*)?'
+    r'(?![\d])'
+)
 
 
 def _is_copyright_update_enabled() -> bool:
-    """Comprueba si updateCopyright está activado en ~/.fs-claude.json (por defecto: True)."""
+    """Comprueba si updateCopyright está activado en ~/.fs-claude.json.
+
+    Returns:
+        ``True`` si la opción está activada o no se puede leer (valor por defecto).
+    """
     fs_claude = Path.home() / '.fs-claude.json'
     if not fs_claude.exists():
         return True
@@ -45,7 +80,14 @@ def _is_copyright_update_enabled() -> bool:
 
 
 def _is_facturascripts_root(directory: Path) -> bool:
-    """Indica si el directorio es la raíz de una instalación del core de FacturaScripts."""
+    """Indica si el directorio es la raíz de una instalación del core de FacturaScripts.
+
+    Args:
+        directory: Directorio que se comprueba.
+
+    Returns:
+        ``True`` si su ``composer.json`` es el del core o contiene Core, Plugins y Dinamic.
+    """
     composer = directory / 'composer.json'
     if composer.is_file():
         try:
@@ -61,9 +103,16 @@ def _is_facturascripts_root(directory: Path) -> bool:
 def is_facturascripts_file(file_path: Path, content: str) -> bool:
     """Indica si el archivo pertenece al core o a un plugin de FacturaScripts.
 
-    Se considera de FacturaScripts si declara un namespace FacturaScripts\\ o si
-    algún directorio ascendente es la raíz de un plugin (contiene facturascripts.ini)
+    Se considera de FacturaScripts si declara un namespace ``FacturaScripts\\`` o si
+    algún directorio ascendente es la raíz de un plugin (contiene ``facturascripts.ini``)
     o de una instalación del core.
+
+    Args:
+        file_path: Ruta del archivo.
+        content: Contenido del archivo.
+
+    Returns:
+        ``True`` si el archivo es de FacturaScripts.
     """
     if 'namespace FacturaScripts\\' in content:
         return True
@@ -74,48 +123,86 @@ def is_facturascripts_file(file_path: Path, content: str) -> bool:
     return False
 
 
+def header_span(content: str) -> Optional[Tuple[int, int]]:
+    """Localiza el primer bloque de comentario del archivo, que contiene la cabecera.
+
+    Args:
+        content: Contenido completo del archivo.
+
+    Returns:
+        Posiciones de inicio y fin del bloque, o ``None`` si no hay ninguno. Un
+        comentario sin cerrar se extiende hasta el final del archivo.
+    """
+    best: Optional[Tuple[int, int]] = None
+    for opener, closer in COMMENT_DELIMITERS:
+        start = content.find(opener)
+        if start == -1 or (best is not None and start >= best[0]):
+            continue
+        end = content.find(closer, start + len(opener))
+        best = (start, len(content) if end == -1 else end + len(closer))
+    return best
+
+
+def _updated_years(years: Optional[str], current_year: int, is_new_file: bool) -> Optional[str]:
+    """Calcula la nueva lista de años de una línea de copyright.
+
+    Args:
+        years: Texto de los años tal como aparece en el archivo, o ``None`` si no hay.
+        current_year: Año actual.
+        is_new_file: Si es ``True`` la lista se sustituye por el año actual.
+
+    Returns:
+        El nuevo texto de los años, o ``None`` si no hay que cambiar nada.
+    """
+    if is_new_file or years is None:
+        return None if years == str(current_year) else str(current_year)
+
+    # Solo se actualiza el último elemento de la lista; el resto se conserva tal cual.
+    head, separator, last = years.rpartition(',')
+    numbers = [int(value) for value in re.findall(r'\d{4}', last)]
+    start, end = numbers[0], numbers[-1]
+
+    # El año final ya es el actual o es posterior (por ejemplo, una fecha futura): no se toca.
+    if end >= current_year:
+        return None
+
+    spacing = last[:len(last) - len(last.lstrip())]
+    return f'{head}{separator}{spacing}{start}-{current_year}'
+
+
 def update_copyright_year(content: str, current_year: int, is_new_file: bool = False) -> str:
-    """Actualiza las líneas de copyright con el año actual según las reglas definidas."""
+    """Actualiza la primera línea de copyright de la cabecera del archivo.
 
-    def replace_match(match) -> str:
-        prefix = match.group(1)     # "Copyright (C) "
-        year_part = match.group(2)  # None | "2023 " | "2023-2024 "
-        rest = match.group(3)       # "Carlos Garcia Gomez ..."
+    Args:
+        content: Contenido completo del archivo.
+        current_year: Año actual.
+        is_new_file: ``True`` si el archivo se acaba de crear y debe llevar solo el año actual.
 
-        # Para archivos nuevos: siempre usar solo el año actual
-        if is_new_file:
-            return f"{prefix}{current_year} {rest}"
+    Returns:
+        El contenido con la cabecera actualizada, o el original si no hay cambios.
+    """
+    span = header_span(content)
+    if span is None:
+        return content
 
-        # Caso 1: sin año → añadir el año actual
-        if year_part is None:
-            return f"{prefix}{current_year} {rest}"
+    match = COPYRIGHT_PATTERN.search(content, span[0], span[1])
+    if match is None:
+        return content
 
-        year_str = year_part.strip()
+    years = match.group('years')
+    new_years = _updated_years(years, current_year, is_new_file)
+    if new_years is None:
+        return content
 
-        if '-' in year_str:
-            parts = year_str.split('-', 1)
-            start_year = parts[0]
-            end_year = int(parts[1])
+    if years is not None:
+        return content[:match.start('years')] + new_years + content[match.end('years'):]
 
-            # Caso 4: rango con año final igual al actual → sin cambios
-            if end_year == current_year:
-                return match.group(0)
-
-            # Caso 5: rango con año final diferente → actualizar año final
-            return f"{prefix}{start_year}-{current_year} {rest}"
-        else:
-            single_year = int(year_str)
-
-            # Caso 2: año único igual al actual → sin cambios
-            if single_year == current_year:
-                return match.group(0)
-
-            # Caso 3: año único diferente → añadir año final
-            return f"{prefix}{year_str}-{current_year} {rest}"
-
-    # Patrón: "Copyright (C) " seguido de años opcionales (con espacio) y el resto
-    pattern = r'(Copyright \(C\) )(\d{4}(?:-\d{4})? )?(.+)'
-    return re.sub(pattern, replace_match, content)
+    # Sin años: se insertan tras «Copyright (C)» y, si sigue un autor, separados por un espacio.
+    following = content[match.end():match.end() + 1]
+    replacement = match.group('prefix').rstrip(' \t') + ' ' + new_years
+    if following not in ('', '\n', '\r'):
+        replacement += ' '
+    return content[:match.start()] + replacement + content[match.end():]
 
 
 def main() -> None:
@@ -126,7 +213,7 @@ def main() -> None:
         print(f"Uso: {sys.argv[0]} <file_path> <current_year> [--new]", file=sys.stderr)
         sys.exit(1)
 
-    file_path = sys.argv[1]
+    file_path = Path(sys.argv[1])
     is_new_file = '--new' in sys.argv
 
     try:
@@ -136,24 +223,29 @@ def main() -> None:
         sys.exit(1)
 
     try:
-        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-            original = f.read()
-    except (OSError, IOError) as e:
-        print(f"Error leyendo {file_path}: {e}", file=sys.stderr)
+        raw = file_path.read_bytes()
+    except OSError as error:
+        print(f"Error leyendo {file_path}: {error}", file=sys.stderr)
         sys.exit(1)
 
-    if not is_facturascripts_file(Path(file_path), original):
+    try:
+        original = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        print(f"Aviso: {file_path} no es UTF-8 válido; no se actualiza el copyright.", file=sys.stderr)
+        sys.exit(0)
+
+    if not is_facturascripts_file(file_path, original):
         sys.exit(0)
 
     updated = update_copyright_year(original, current_year, is_new_file)
+    if updated == original:
+        return
 
-    if updated != original:
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(updated)
-        except (OSError, IOError) as e:
-            print(f"Error escribiendo {file_path}: {e}", file=sys.stderr)
-            sys.exit(1)
+    try:
+        file_path.write_bytes(updated.encode('utf-8'))
+    except OSError as error:
+        print(f"Error escribiendo {file_path}: {error}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == '__main__':
