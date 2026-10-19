@@ -1,10 +1,13 @@
 .DS_Store
 .claude/
 
-# En producción se usa CLAUDE_PLUGIN_DATA/connections.json (fuera del repo).
-# El archivo server/connections.json sirve solo como fallback en desarrollo local.
-# Se excluye para evitar comprometer credenciales accidentalmente.
+# La configuración principal de las conexiones está en ~/.fs-claude.json, fuera del repo.
+# Se ignora cualquier connections.json heredado de versiones antiguas para no comprometer
+# credenciales accidentalmente.
 connections.json
+
+# Bytecode de Python generado al ejecutar los scripts o los tests.
+__pycache__/
 
 fs-mcp/server/node_modules/
 fs-mcp/server/*.tsbuildinfo
