@@ -24,6 +24,8 @@ const lunesIso = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart
 
 const respuestas = {
   '/api/3/reciboclientes': [{ vencimiento: dmy(lunes), importe: 100 }],
+  // Columnas reales de facturascli (Core/Table/facturascli.xml)
+  '/api/3/facturaclientes': [{ idfactura: 5, total: 121, neto: 100, totaliva: 21, pagada: true }],
 };
 const fs = await arrancarFsDePega((req) => respuestas[new URL(req.url, 'http://x').pathname] ?? []);
 const borrar = usarConexiones({
@@ -42,4 +44,11 @@ test('get_cash_flow_proyectado agrupa por el lunes local, no por su fecha en UTC
   const datos = JSON.parse(resultado.content[0].text);
   const semanas = datos.proyeccionSemanal.map((s) => s.semana);
   assert.deepEqual(semanas, [lunesIso]);
+});
+
+test('exportar_factura_cliente lee el IVA y el estado de pago de sus columnas reales', async () => {
+  const resultado = await handleAnalyticsTool('exportar_factura_cliente', { connection: 'pega', idfactura: 5 });
+  const factura = JSON.parse(resultado.content[0].text);
+  assert.equal(factura.iva, 21);
+  assert.equal(factura.pagado, true);
 });

@@ -811,10 +811,9 @@ export async function handleAnalyticsTool(name, args) {
                     cifnif: factura.cifnif,
                     email: emailCliente,
                     neto: factura.neto,
-                    iva: factura.iva,
+                    iva: factura.totaliva,
                     total: factura.total,
-                    pagado: factura.pagado,
-                    anulada: factura.anulada,
+                    pagado: factura.pagada,
                     lineas: lineas.map((linea) => ({
                         idlinea: linea.idlinea,
                         referencia: linea.referencia,
