@@ -73,3 +73,17 @@ test('guardar sustituye el archivo por rename y no deja temporales', async () =>
   assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
   assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
 });
+
+test('guardar conserva el modo 0600 de un archivo existente', async () => {
+  const anterior = process.umask(0o002);
+  try {
+    const { connectionManager, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
+    fs.chmodSync(file, 0o600);
+
+    connectionManager.addConnection('a', conexion);
+
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  } finally {
+    process.umask(anterior);
+  }
+});

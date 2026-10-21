@@ -32,6 +32,8 @@ declare class ConnectionManager {
     /**
      * Escribe el archivo de conexiones a través de un temporal en el mismo
      * directorio y un rename, para que una escritura interrumpida no lo deje a medias.
+     * El rename sustituye el archivo por el temporal, con sus permisos: se crea
+     * 0600 porque contiene los tokens de la API.
      */
     private writeFileAtomic;
     /**
