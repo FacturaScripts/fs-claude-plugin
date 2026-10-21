@@ -126,12 +126,12 @@ class ConnectionManager {
   }
 
   /**
-   * Persiste la configuración actual al archivo JSON.
+   * Persiste en el archivo JSON la configuración indicada.
    *
    * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
    * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
    */
-  private saveConnections(): void {
+  private saveConnections(config: ConnectionsConfig): void {
     const dir = path.dirname(this.connectionsPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -159,10 +159,10 @@ class ConnectionManager {
               connections: { default: "", connections: {} },
               settings: { sortClassMembers: true, updateCopyright: true },
             };
-      fsClaudeConfig.connections = this.config;
+      fsClaudeConfig.connections = config;
       this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
     } else {
-      this.writeFileAtomic(JSON.stringify(this.config, null, 2));
+      this.writeFileAtomic(JSON.stringify(config, null, 2));
     }
   }
 
@@ -242,14 +242,20 @@ class ConnectionManager {
       );
     }
 
-    this.config.connections[key] = config;
+    // Se guarda antes de aplicarlo: si no se puede guardar, la sesión sigue
+    // con la configuración anterior en vez de usar una que no consta en el archivo
+    const next: ConnectionsConfig = {
+      ...this.config,
+      connections: { ...this.config.connections, [key]: config },
+    };
 
     // Si es la primera conexión, establécela como predeterminada
-    if (!this.config.default || this.config.default === "") {
-      this.config.default = key;
+    if (!next.default || next.default === "") {
+      next.default = key;
     }
 
-    this.saveConnections();
+    this.saveConnections(next);
+    this.config = next;
   }
 
   /**
@@ -264,8 +270,9 @@ class ConnectionManager {
       );
     }
 
-    this.config.default = key;
-    this.saveConnections();
+    const next: ConnectionsConfig = { ...this.config, default: key };
+    this.saveConnections(next);
+    this.config = next;
   }
 }
 

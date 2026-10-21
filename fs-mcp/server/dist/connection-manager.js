@@ -89,12 +89,12 @@ class ConnectionManager {
         }
     }
     /**
-     * Persiste la configuración actual al archivo JSON.
+     * Persiste en el archivo JSON la configuración indicada.
      *
      * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
      * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
      */
-    saveConnections() {
+    saveConnections(config) {
         const dir = path.dirname(this.connectionsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -118,11 +118,11 @@ class ConnectionManager {
                     connections: { default: "", connections: {} },
                     settings: { sortClassMembers: true, updateCopyright: true },
                 };
-            fsClaudeConfig.connections = this.config;
+            fsClaudeConfig.connections = config;
             this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
         }
         else {
-            this.writeFileAtomic(JSON.stringify(this.config, null, 2));
+            this.writeFileAtomic(JSON.stringify(config, null, 2));
         }
     }
     /**
@@ -183,12 +183,18 @@ class ConnectionManager {
         if (!config.name || !config.url || !config.token) {
             throw new Error("La configuración debe incluir: name, url y token");
         }
-        this.config.connections[key] = config;
+        // Se guarda antes de aplicarlo: si no se puede guardar, la sesión sigue
+        // con la configuración anterior en vez de usar una que no consta en el archivo
+        const next = {
+            ...this.config,
+            connections: { ...this.config.connections, [key]: config },
+        };
         // Si es la primera conexión, establécela como predeterminada
-        if (!this.config.default || this.config.default === "") {
-            this.config.default = key;
+        if (!next.default || next.default === "") {
+            next.default = key;
         }
-        this.saveConnections();
+        this.saveConnections(next);
+        this.config = next;
     }
     /**
      * Establece la conexión por defecto
@@ -199,8 +205,9 @@ class ConnectionManager {
         if (!this.config.connections[key]) {
             throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
         }
-        this.config.default = key;
-        this.saveConnections();
+        const next = { ...this.config, default: key };
+        this.saveConnections(next);
+        this.config = next;
     }
 }
 /**

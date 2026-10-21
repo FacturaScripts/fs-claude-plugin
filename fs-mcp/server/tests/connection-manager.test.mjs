@@ -87,3 +87,17 @@ test('guardar conserva el modo 0600 de un archivo existente', async () => {
     process.umask(anterior);
   }
 });
+
+test('si no se puede guardar, el cambio no queda aplicado en memoria', async () => {
+  const otra = { ...conexion, name: 'Otra' };
+  const { connectionManager, file } = await nuevoGestor(
+    JSON.stringify({ default: 'a', connections: { a: conexion, b: otra } })
+  );
+  fs.writeFileSync(file, 'no es json', 'utf-8');
+
+  assert.throws(() => connectionManager.setDefault('b'), /no es un JSON válido/);
+  assert.equal(connectionManager.getConnection().name, 'Pruebas');
+
+  assert.throws(() => connectionManager.addConnection('c', otra), /no es un JSON válido/);
+  assert.throws(() => connectionManager.getConnection('c'), /no encontrada/);
+});

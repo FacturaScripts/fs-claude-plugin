@@ -23,7 +23,7 @@ declare class ConnectionManager {
      */
     private createEmptyConnectionsFile;
     /**
-     * Persiste la configuración actual al archivo JSON.
+     * Persiste en el archivo JSON la configuración indicada.
      *
      * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
      * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
