@@ -26,6 +26,19 @@ function mesISO(fecha: Date): string {
     return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 }
 
+/**
+ * Parsea una fecha recibida como argumento de la tool. Si no se puede leer
+ * lanza un error: compararla daría siempre false y el resultado saldría
+ * vacío o a cero como si fuera correcto.
+ */
+function fechaDeEntrada(nombre: string, valor: unknown): Date {
+    const fecha = parseFsDate(valor);
+    if (Number.isNaN(fecha.getTime())) {
+        throw new Error(`${nombre} no es una fecha válida (d-m-Y o Y-m-d): ${String(valor)}`);
+    }
+    return fecha;
+}
+
 function porcentaje(parte: number, total: number): number {
     return total > 0 ? (parte / total) * 100 : 0;
 }
@@ -666,10 +679,10 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_comparativa_ventas_periodos': {
                 // Definición: suma facturas en cada rango y calcula crecimiento % entre ambos.
-                const fia = parseFsDate(input.fecha_inicio_actual as string);
-                const ffa = parseFsDate(input.fecha_fin_actual as string);
-                const fian = parseFsDate(input.fecha_inicio_anterior as string);
-                const ffan = parseFsDate(input.fecha_fin_anterior as string);
+                const fia = fechaDeEntrada('fecha_inicio_actual', input.fecha_inicio_actual);
+                const ffa = fechaDeEntrada('fecha_fin_actual', input.fecha_fin_actual);
+                const fian = fechaDeEntrada('fecha_inicio_anterior', input.fecha_inicio_anterior);
+                const ffan = fechaDeEntrada('fecha_fin_anterior', input.fecha_fin_anterior);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 
@@ -794,8 +807,8 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_funnel_ventas': {
                 // Definición: cuenta presupuestos, pedidos, albaranes y facturas en un rango y suma sus totales.
-                const fechaInicio = input.fecha_inicio ? parseFsDate(input.fecha_inicio as string) : null;
-                const fechaFin = input.fecha_fin ? parseFsDate(input.fecha_fin as string) : null;
+                const fechaInicio = input.fecha_inicio ? fechaDeEntrada('fecha_inicio', input.fecha_inicio) : null;
+                const fechaFin = input.fecha_fin ? fechaDeEntrada('fecha_fin', input.fecha_fin) : null;
 
                 const enRango = (f: any) => {
                     const fecha = parseFsDate(f.fecha);
@@ -1527,8 +1540,8 @@ export async function handleExtendedAnalyticsTool(
             case 'get_clientes_nuevos_vs_recurrentes': {
                 // Definición: dado un periodo, separa facturación entre clientes cuya primera compra
                 // CAE en el periodo (nuevos) vs clientes con compras anteriores (recurrentes).
-                const fIni = parseFsDate(input.fecha_inicio as string);
-                const fFin = parseFsDate(input.fecha_fin as string);
+                const fIni = fechaDeEntrada('fecha_inicio', input.fecha_inicio);
+                const fFin = fechaDeEntrada('fecha_fin', input.fecha_fin);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 

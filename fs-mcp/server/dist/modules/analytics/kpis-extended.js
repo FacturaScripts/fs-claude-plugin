@@ -19,6 +19,18 @@ function diasEntre(desde, hasta) {
 function mesISO(fecha) {
     return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 }
+/**
+ * Parsea una fecha recibida como argumento de la tool. Si no se puede leer
+ * lanza un error: compararla daría siempre false y el resultado saldría
+ * vacío o a cero como si fuera correcto.
+ */
+function fechaDeEntrada(nombre, valor) {
+    const fecha = parseFsDate(valor);
+    if (Number.isNaN(fecha.getTime())) {
+        throw new Error(`${nombre} no es una fecha válida (d-m-Y o Y-m-d): ${String(valor)}`);
+    }
+    return fecha;
+}
 function porcentaje(parte, total) {
     return total > 0 ? (parte / total) * 100 : 0;
 }
@@ -597,10 +609,10 @@ export async function handleExtendedAnalyticsTool(name, args) {
             }
             case 'get_comparativa_ventas_periodos': {
                 // Definición: suma facturas en cada rango y calcula crecimiento % entre ambos.
-                const fia = parseFsDate(input.fecha_inicio_actual);
-                const ffa = parseFsDate(input.fecha_fin_actual);
-                const fian = parseFsDate(input.fecha_inicio_anterior);
-                const ffan = parseFsDate(input.fecha_fin_anterior);
+                const fia = fechaDeEntrada('fecha_inicio_actual', input.fecha_inicio_actual);
+                const ffa = fechaDeEntrada('fecha_fin_actual', input.fecha_fin_actual);
+                const fian = fechaDeEntrada('fecha_inicio_anterior', input.fecha_inicio_anterior);
+                const ffan = fechaDeEntrada('fecha_fin_anterior', input.fecha_fin_anterior);
                 const facturas = await fetchAllPaginated('/facturaclientes', {}, connection);
                 const actual = nuevoAgregadoMonetario();
                 const anterior = nuevoAgregadoMonetario();
@@ -699,8 +711,8 @@ export async function handleExtendedAnalyticsTool(name, args) {
             // ----------------------------------------------------------------
             case 'get_funnel_ventas': {
                 // Definición: cuenta presupuestos, pedidos, albaranes y facturas en un rango y suma sus totales.
-                const fechaInicio = input.fecha_inicio ? parseFsDate(input.fecha_inicio) : null;
-                const fechaFin = input.fecha_fin ? parseFsDate(input.fecha_fin) : null;
+                const fechaInicio = input.fecha_inicio ? fechaDeEntrada('fecha_inicio', input.fecha_inicio) : null;
+                const fechaFin = input.fecha_fin ? fechaDeEntrada('fecha_fin', input.fecha_fin) : null;
                 const enRango = (f) => {
                     const fecha = parseFsDate(f.fecha);
                     if (fechaInicio && fecha < fechaInicio)
@@ -1364,8 +1376,8 @@ export async function handleExtendedAnalyticsTool(name, args) {
             case 'get_clientes_nuevos_vs_recurrentes': {
                 // Definición: dado un periodo, separa facturación entre clientes cuya primera compra
                 // CAE en el periodo (nuevos) vs clientes con compras anteriores (recurrentes).
-                const fIni = parseFsDate(input.fecha_inicio);
-                const fFin = parseFsDate(input.fecha_fin);
+                const fIni = fechaDeEntrada('fecha_inicio', input.fecha_inicio);
+                const fFin = fechaDeEntrada('fecha_fin', input.fecha_fin);
                 const facturas = await fetchAllPaginated('/facturaclientes', {}, connection);
                 // Calcular primera compra de cada cliente sobre toda la historia
                 const primeraCompraPorCliente = new Map();

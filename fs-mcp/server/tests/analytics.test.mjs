@@ -52,3 +52,29 @@ test('exportar_factura_cliente lee el IVA y el estado de pago de sus columnas re
   assert.equal(factura.iva, 21);
   assert.equal(factura.pagado, true);
 });
+
+const fechasValidas = {
+  get_comparativa_ventas_periodos: {
+    fecha_inicio_actual: '2025-01-01',
+    fecha_fin_actual: '2025-12-31',
+    fecha_inicio_anterior: '2024-01-01',
+    fecha_fin_anterior: '2024-12-31',
+  },
+  get_funnel_ventas: { fecha_inicio: '2025-01-01', fecha_fin: '2025-12-31' },
+  get_clientes_nuevos_vs_recurrentes: { fecha_inicio: '2025-01-01', fecha_fin: '2025-12-31' },
+};
+
+for (const [tool, fechas] of Object.entries(fechasValidas)) {
+  for (const nombre of Object.keys(fechas)) {
+    test(`${tool} rechaza ${nombre} ilegible en vez de devolver ceros`, async () => {
+      const resultado = await handleAnalyticsTool(tool, { connection: 'pega', ...fechas, [nombre]: '31/31/2025' });
+      assert.equal(resultado.isError, true);
+      assert.match(resultado.content[0].text, new RegExp(nombre));
+    });
+  }
+
+  test(`${tool} acepta fechas válidas`, async () => {
+    const resultado = await handleAnalyticsTool(tool, { connection: 'pega', ...fechas });
+    assert.notEqual(resultado.isError, true);
+  });
+}
