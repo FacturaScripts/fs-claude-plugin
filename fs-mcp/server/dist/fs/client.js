@@ -40,6 +40,10 @@ class FacturaScriptsClient {
             },
             timeout: 30000,
             httpsAgent,
+            // La API no redirige en uso normal, y al seguir una redirección a otro
+            // host follow-redirects sólo quita Authorization y Cookie: la cabecera
+            // Token se reenviaría al destino.
+            maxRedirects: 0,
         });
         instance.interceptors.response.use((response) => response, (error) => {
             const connectionName = connection.name || resolvedKey;
