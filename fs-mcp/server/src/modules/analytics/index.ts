@@ -417,7 +417,7 @@ export async function handleAnalyticsTool(
               for (const cli of clientes) clientesPorCodigo.set(cli.codcliente, cli);
 
               const now = new Date();
-              const recibosPorCliente: Record<string, ClienteMoroso> = {};
+              const recibosPorCliente: Record<string, ClienteMoroso> = Object.create(null);
 
               for (const recibo of recibos) {
                 const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
@@ -567,7 +567,7 @@ export async function handleAnalyticsTool(
               );
 
               // Agrupar por cliente y sumar totales (incluyendo coste y beneficio para calcular margen)
-              const clientesMap: Record<string, ClienteTopFacturacion> = {};
+              const clientesMap: Record<string, ClienteTopFacturacion> = Object.create(null);
 
               for (const factura of facturas as any[]) {
                 const codcliente = factura.codcliente;
@@ -622,7 +622,7 @@ export async function handleAnalyticsTool(
               );
 
               // Agrupar por cliente
-              const clientesMap: Record<string, ClienteFrecuencia> = {};
+              const clientesMap: Record<string, ClienteFrecuencia> = Object.create(null);
 
               for (const factura of facturas as any[]) {
                 const codcliente = factura.codcliente;
@@ -683,7 +683,7 @@ export async function handleAnalyticsTool(
                 : lineasTodas;
 
               // Agrupar por referencia de producto, calculando coste y beneficio por línea (coste*cantidad)
-              const productosMap: Record<string, ProductoVendido> = {};
+              const productosMap: Record<string, ProductoVendido> = Object.create(null);
 
               for (const linea of lineas as any[]) {
                 const referencia = linea.referencia;

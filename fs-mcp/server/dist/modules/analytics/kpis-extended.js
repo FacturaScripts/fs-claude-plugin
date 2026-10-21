@@ -439,7 +439,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codagente || '(sin agente)';
                     if (!map[cod])
@@ -458,7 +458,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codserie || '(sin serie)';
                     if (!map[cod])
@@ -476,7 +476,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codalmacen || '(sin almacén)';
                     if (!map[cod])
@@ -494,7 +494,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codpago || '(sin forma de pago)';
                     if (!map[cod])
@@ -524,7 +524,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const familiaPorReferencia = new Map();
                 for (const p of productos)
                     familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
-                const map = {};
+                const map = Object.create(null);
                 for (const l of lineas) {
                     const codfamilia = familiaPorReferencia.get(l.referencia) ?? '(sin familia)';
                     if (!map[codfamilia]) {
@@ -568,7 +568,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const fabricantePorReferencia = new Map();
                 for (const p of productos)
                     fabricantePorReferencia.set(p.referencia, p.codfabricante ?? '(sin fabricante)');
-                const map = {};
+                const map = Object.create(null);
                 for (const l of lineas) {
                     const codfabricante = fabricantePorReferencia.get(l.referencia) ?? '(sin fabricante)';
                     if (!map[codfabricante]) {
@@ -635,7 +635,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codcliente;
                     if (!map[cod]) {
@@ -661,7 +661,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const lineas = idsEjercicio
                     ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
                     : lineasTodas;
-                const map = {};
+                const map = Object.create(null);
                 for (const l of lineas) {
                     const ref = l.referencia;
                     if (!map[ref]) {
@@ -762,7 +762,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                     };
                 });
                 // Agrupar por agente para tener visión por comercial
-                const porAgente = {};
+                const porAgente = Object.create(null);
                 for (const r of result) {
                     const cod = r.codagente || '(sin agente)';
                     if (!porAgente[cod])
@@ -834,7 +834,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 if (codejercicio)
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaproveedores', params, connection);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codproveedor;
                     if (!map[cod])
@@ -862,7 +862,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const familiaPorReferencia = new Map();
                 for (const p of productos)
                     familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
-                const map = {};
+                const map = Object.create(null);
                 for (const l of lineas) {
                     const codfamilia = familiaPorReferencia.get(l.referencia) ?? '(sin familia)';
                     if (!map[codfamilia])
@@ -884,7 +884,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 for (const p of proveedores)
                     proveedorPorCodigo.set(p.codproveedor, p);
                 const now = new Date();
-                const map = {};
+                const map = Object.create(null);
                 for (const recibo of recibos) {
                     const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
                     const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
@@ -1026,7 +1026,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const recibos = await fetchAllPaginated('/reciboclientes', { pagado: true }, connection);
                 let totalDias = 0;
                 let totalRecibos = 0;
-                const porCliente = {};
+                const porCliente = Object.create(null);
                 for (const r of recibos) {
                     if (!r.fecha || !r.fechapago)
                         continue;
@@ -1136,8 +1136,8 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const familiaPorReferencia = new Map();
                 for (const p of productos)
                     familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
-                const porAlmacen = {};
-                const porFamilia = {};
+                const porAlmacen = Object.create(null);
+                const porFamilia = Object.create(null);
                 let totalCantidad = 0;
                 let totalValor = 0;
                 for (const s of stocks) {
@@ -1205,7 +1205,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                         continue;
                     ventasPorReferencia.set(l.referencia, (ventasPorReferencia.get(l.referencia) || 0) + (l.cantidad || 0));
                 }
-                const stockPorReferencia = {};
+                const stockPorReferencia = Object.create(null);
                 for (const s of stocks) {
                     stockPorReferencia[s.referencia] = (stockPorReferencia[s.referencia] || 0) + (s.cantidad || 0);
                 }
@@ -1259,7 +1259,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const productoPorReferencia = new Map();
                 for (const p of productos)
                     productoPorReferencia.set(p.referencia, p);
-                const stockPorReferencia = {};
+                const stockPorReferencia = Object.create(null);
                 for (const s of stocks) {
                     stockPorReferencia[s.referencia] = (stockPorReferencia[s.referencia] || 0) + (s.cantidad || 0);
                 }
@@ -1292,7 +1292,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                 const clientePorCodigo = new Map();
                 for (const c of clientes)
                     clientePorCodigo.set(c.codcliente, c);
-                const map = {};
+                const map = Object.create(null);
                 for (const f of facturas) {
                     const cod = f.codcliente;
                     let agg = map[cod];
