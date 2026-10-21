@@ -746,12 +746,12 @@ export async function handleConfigurationTool(
 
       case 'update_serie': {
         const { connection: _conn, codserie, ...data } = args;
-        result = await fsClient.put(`/series/${codserie}`, data, connection);
+        result = await fsClient.put(`/series/${encodeURIComponent(String(codserie))}`, data, connection);
         break;
       }
 
       case 'delete_serie': {
-        result = await fsClient.delete(`/series/${args.codserie}`, connection);
+        result = await fsClient.delete(`/series/${encodeURIComponent(String(args.codserie))}`, connection);
         break;
       }
 
@@ -763,12 +763,12 @@ export async function handleConfigurationTool(
 
       case 'update_empresa': {
         const { connection: _conn, idempresa, ...data } = args;
-        result = await fsClient.put(`/empresas/${idempresa}`, data, connection);
+        result = await fsClient.put(`/empresas/${encodeURIComponent(String(idempresa))}`, data, connection);
         break;
       }
 
       case 'delete_empresa': {
-        result = await fsClient.delete(`/empresas/${args.idempresa}`, connection);
+        result = await fsClient.delete(`/empresas/${encodeURIComponent(String(args.idempresa))}`, connection);
         break;
       }
 
@@ -780,12 +780,12 @@ export async function handleConfigurationTool(
 
       case 'update_estadodocumento': {
         const { connection: _conn, idestado, ...data } = args;
-        result = await fsClient.put(`/estadodocumentos/${idestado}`, data, connection);
+        result = await fsClient.put(`/estadodocumentos/${encodeURIComponent(String(idestado))}`, data, connection);
         break;
       }
 
       case 'delete_estadodocumento': {
-        result = await fsClient.delete(`/estadodocumentos/${args.idestado}`, connection);
+        result = await fsClient.delete(`/estadodocumentos/${encodeURIComponent(String(args.idestado))}`, connection);
         break;
       }
 
@@ -797,12 +797,12 @@ export async function handleConfigurationTool(
 
       case 'update_agenciatransporte': {
         const { connection: _conn, codtrans, ...data } = args;
-        result = await fsClient.put(`/agenciatransportes/${codtrans}`, data, connection);
+        result = await fsClient.put(`/agenciatransportes/${encodeURIComponent(String(codtrans))}`, data, connection);
         break;
       }
 
       case 'delete_agenciatransporte': {
-        result = await fsClient.delete(`/agenciatransportes/${args.codtrans}`, connection);
+        result = await fsClient.delete(`/agenciatransportes/${encodeURIComponent(String(args.codtrans))}`, connection);
         break;
       }
 
@@ -814,12 +814,12 @@ export async function handleConfigurationTool(
 
       case 'update_identificadorfiscal': {
         const { connection: _conn, tipoidfiscal, ...data } = args;
-        result = await fsClient.put(`/identificadorfiscales/${tipoidfiscal}`, data, connection);
+        result = await fsClient.put(`/identificadorfiscales/${encodeURIComponent(String(tipoidfiscal))}`, data, connection);
         break;
       }
 
       case 'delete_identificadorfiscal': {
-        result = await fsClient.delete(`/identificadorfiscales/${args.tipoidfiscal}`, connection);
+        result = await fsClient.delete(`/identificadorfiscales/${encodeURIComponent(String(args.tipoidfiscal))}`, connection);
         break;
       }
 
@@ -831,12 +831,12 @@ export async function handleConfigurationTool(
 
       case 'update_secuenciadocumento': {
         const { connection: _conn, idsecuencia, ...data } = args;
-        result = await fsClient.put(`/secuenciadocumentos/${idsecuencia}`, data, connection);
+        result = await fsClient.put(`/secuenciadocumentos/${encodeURIComponent(String(idsecuencia))}`, data, connection);
         break;
       }
 
       case 'delete_secuenciadocumento': {
-        result = await fsClient.delete(`/secuenciadocumentos/${args.idsecuencia}`, connection);
+        result = await fsClient.delete(`/secuenciadocumentos/${encodeURIComponent(String(args.idsecuencia))}`, connection);
         break;
       }
 

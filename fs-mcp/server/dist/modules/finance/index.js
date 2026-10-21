@@ -465,12 +465,12 @@ export async function handleFinanceTool(name, args) {
         case 'update_formapago': {
             const params = input;
             const { connection, codpago, ...data } = params;
-            const result = await fsClient.put(`/formapagos/${codpago}`, data, connection);
+            const result = await fsClient.put(`/formapagos/${encodeURIComponent(String(codpago))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_formapago': {
             const params = input;
-            const result = await fsClient.delete(`/formapagos/${params.codpago}`, params.connection);
+            const result = await fsClient.delete(`/formapagos/${encodeURIComponent(String(params.codpago))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_divisa': {
@@ -482,12 +482,12 @@ export async function handleFinanceTool(name, args) {
         case 'update_divisa': {
             const params = input;
             const { connection, coddivisa, ...data } = params;
-            const result = await fsClient.put(`/divisas/${coddivisa}`, data, connection);
+            const result = await fsClient.put(`/divisas/${encodeURIComponent(String(coddivisa))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_divisa': {
             const params = input;
-            const result = await fsClient.delete(`/divisas/${params.coddivisa}`, params.connection);
+            const result = await fsClient.delete(`/divisas/${encodeURIComponent(String(params.coddivisa))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_impuesto': {
@@ -499,12 +499,12 @@ export async function handleFinanceTool(name, args) {
         case 'update_impuesto': {
             const params = input;
             const { connection, codimpuesto, ...data } = params;
-            const result = await fsClient.put(`/impuestos/${codimpuesto}`, data, connection);
+            const result = await fsClient.put(`/impuestos/${encodeURIComponent(String(codimpuesto))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_impuesto': {
             const params = input;
-            const result = await fsClient.delete(`/impuestos/${params.codimpuesto}`, params.connection);
+            const result = await fsClient.delete(`/impuestos/${encodeURIComponent(String(params.codimpuesto))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_retencion': {
@@ -516,12 +516,12 @@ export async function handleFinanceTool(name, args) {
         case 'update_retencion': {
             const params = input;
             const { connection, codretencion, ...data } = params;
-            const result = await fsClient.put(`/retenciones/${codretencion}`, data, connection);
+            const result = await fsClient.put(`/retenciones/${encodeURIComponent(String(codretencion))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_retencion': {
             const params = input;
-            const result = await fsClient.delete(`/retenciones/${params.codretencion}`, params.connection);
+            const result = await fsClient.delete(`/retenciones/${encodeURIComponent(String(params.codretencion))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:

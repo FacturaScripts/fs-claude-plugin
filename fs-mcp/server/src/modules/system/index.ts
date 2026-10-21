@@ -424,12 +424,12 @@ export async function handleSystemTool(
 
       case 'update_user': {
         const { connection: _conn, nick, ...data } = args;
-        result = await fsClient.put(`/users/${nick}`, data, connection);
+        result = await fsClient.put(`/users/${encodeURIComponent(String(nick))}`, data, connection);
         break;
       }
 
       case 'delete_user': {
-        result = await fsClient.delete(`/users/${args.nick}`, connection);
+        result = await fsClient.delete(`/users/${encodeURIComponent(String(args.nick))}`, connection);
         break;
       }
 
@@ -441,12 +441,12 @@ export async function handleSystemTool(
 
       case 'update_role': {
         const { connection: _conn, codrole, ...data } = args;
-        result = await fsClient.put(`/roles/${codrole}`, data, connection);
+        result = await fsClient.put(`/roles/${encodeURIComponent(String(codrole))}`, data, connection);
         break;
       }
 
       case 'delete_role': {
-        result = await fsClient.delete(`/roles/${args.codrole}`, connection);
+        result = await fsClient.delete(`/roles/${encodeURIComponent(String(args.codrole))}`, connection);
         break;
       }
 
@@ -458,12 +458,12 @@ export async function handleSystemTool(
 
       case 'update_roleaccess': {
         const { connection: _conn, id, ...data } = args;
-        result = await fsClient.put(`/roleaccess/${id}`, data, connection);
+        result = await fsClient.put(`/roleaccess/${encodeURIComponent(String(id))}`, data, connection);
         break;
       }
 
       case 'delete_roleaccess': {
-        result = await fsClient.delete(`/roleaccess/${args.id}`, connection);
+        result = await fsClient.delete(`/roleaccess/${encodeURIComponent(String(args.id))}`, connection);
         break;
       }
 
@@ -474,7 +474,7 @@ export async function handleSystemTool(
       }
 
       case 'delete_roleuser': {
-        result = await fsClient.delete(`/roleusers/${args.id}`, connection);
+        result = await fsClient.delete(`/roleusers/${encodeURIComponent(String(args.id))}`, connection);
         break;
       }
 

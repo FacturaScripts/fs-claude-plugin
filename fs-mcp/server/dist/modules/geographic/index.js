@@ -403,11 +403,11 @@ export async function handleGeographicTool(name, args) {
             }
             case 'update_pais': {
                 const { connection: _conn, codpais, ...data } = args;
-                result = await fsClient.put(`/pais/${codpais}`, data, connection);
+                result = await fsClient.put(`/pais/${encodeURIComponent(String(codpais))}`, data, connection);
                 break;
             }
             case 'delete_pais': {
-                result = await fsClient.delete(`/pais/${args.codpais}`, connection);
+                result = await fsClient.delete(`/pais/${encodeURIComponent(String(args.codpais))}`, connection);
                 break;
             }
             case 'create_provincia': {
@@ -417,11 +417,11 @@ export async function handleGeographicTool(name, args) {
             }
             case 'update_provincia': {
                 const { connection: _conn, idprovincia, ...data } = args;
-                result = await fsClient.put(`/provincias/${idprovincia}`, data, connection);
+                result = await fsClient.put(`/provincias/${encodeURIComponent(String(idprovincia))}`, data, connection);
                 break;
             }
             case 'delete_provincia': {
-                result = await fsClient.delete(`/provincias/${args.idprovincia}`, connection);
+                result = await fsClient.delete(`/provincias/${encodeURIComponent(String(args.idprovincia))}`, connection);
                 break;
             }
             case 'create_ciudad': {
@@ -431,11 +431,11 @@ export async function handleGeographicTool(name, args) {
             }
             case 'update_ciudad': {
                 const { connection: _conn, idciudad, ...data } = args;
-                result = await fsClient.put(`/ciudades/${idciudad}`, data, connection);
+                result = await fsClient.put(`/ciudades/${encodeURIComponent(String(idciudad))}`, data, connection);
                 break;
             }
             case 'delete_ciudad': {
-                result = await fsClient.delete(`/ciudades/${args.idciudad}`, connection);
+                result = await fsClient.delete(`/ciudades/${encodeURIComponent(String(args.idciudad))}`, connection);
                 break;
             }
             case 'create_codigopostal': {
@@ -445,11 +445,11 @@ export async function handleGeographicTool(name, args) {
             }
             case 'update_codigopostal': {
                 const { connection: _conn, id, ...data } = args;
-                result = await fsClient.put(`/codigopostales/${id}`, data, connection);
+                result = await fsClient.put(`/codigopostales/${encodeURIComponent(String(id))}`, data, connection);
                 break;
             }
             case 'delete_codigopostal': {
-                result = await fsClient.delete(`/codigopostales/${args.id}`, connection);
+                result = await fsClient.delete(`/codigopostales/${encodeURIComponent(String(args.id))}`, connection);
                 break;
             }
             default:

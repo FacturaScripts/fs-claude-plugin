@@ -886,7 +886,7 @@ export async function handlePurchasingTool(name, args) {
         }
         case 'delete_factura_proveedor': {
             const params = input;
-            const result = await fsClient.delete(`/facturaproveedores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/facturaproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_albaran_proveedor': {
@@ -898,7 +898,7 @@ export async function handlePurchasingTool(name, args) {
         }
         case 'delete_albaran_proveedor': {
             const params = input;
-            const result = await fsClient.delete(`/albaranproveedores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/albaranproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_pedido_proveedor': {
@@ -910,7 +910,7 @@ export async function handlePurchasingTool(name, args) {
         }
         case 'delete_pedido_proveedor': {
             const params = input;
-            const result = await fsClient.delete(`/pedidoproveedores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/pedidoproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_presupuesto_proveedor': {
@@ -922,31 +922,31 @@ export async function handlePurchasingTool(name, args) {
         }
         case 'delete_presupuesto_proveedor': {
             const params = input;
-            const result = await fsClient.delete(`/presupuestoproveedores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/presupuestoproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_factura_proveedor': {
             const params = input;
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturasprov/${idfactura}`, data, connection);
+            const result = await fsClient.put(`/facturasprov/${encodeURIComponent(String(idfactura))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_albaran_proveedor': {
             const params = input;
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranesprov/${idalbaran}`, data, connection);
+            const result = await fsClient.put(`/albaranesprov/${encodeURIComponent(String(idalbaran))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_pedido_proveedor': {
             const params = input;
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidosprov/${idpedido}`, data, connection);
+            const result = await fsClient.put(`/pedidosprov/${encodeURIComponent(String(idpedido))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_presupuesto_proveedor': {
             const params = input;
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestosprov/${idpresupuesto}`, data, connection);
+            const result = await fsClient.put(`/presupuestosprov/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_cuentabancoproveedor': {
@@ -958,12 +958,12 @@ export async function handlePurchasingTool(name, args) {
         case 'update_cuentabancoproveedor': {
             const params = input;
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoproveedores/${codcuenta}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoproveedores/${encodeURIComponent(String(codcuenta))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cuentabancoproveedor': {
             const params = input;
-            const result = await fsClient.delete(`/cuentabancoproveedores/${params.codcuenta}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoproveedores/${encodeURIComponent(String(params.codcuenta))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:

@@ -224,12 +224,12 @@ export async function handleCommunicationTool(
 
       case 'update_emailnotification': {
         const { connection: _conn, name, ...data } = args;
-        result = await fsClient.put(`/emailnotifications/${name}`, data, connection);
+        result = await fsClient.put(`/emailnotifications/${encodeURIComponent(String(name))}`, data, connection);
         break;
       }
 
       case 'delete_emailnotification': {
-        result = await fsClient.delete(`/emailnotifications/${args.name}`, connection);
+        result = await fsClient.delete(`/emailnotifications/${encodeURIComponent(String(args.name))}`, connection);
         break;
       }
 
