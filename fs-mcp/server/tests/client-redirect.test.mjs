@@ -36,3 +36,10 @@ test('una redirección no lleva el token a otro host', async () => {
   await fsClient.get('/clientes').catch(() => {});
   assert.deepEqual(ajeno.peticiones.map((p) => p.headers.token), []);
 });
+
+test('el error de una redirección dice adónde redirige la API', async () => {
+  await assert.rejects(
+    fsClient.get('/clientes'),
+    (error) => error.message.includes('HTTP 302') && error.message.includes(`${ajeno.url}/robado`)
+  );
+});
