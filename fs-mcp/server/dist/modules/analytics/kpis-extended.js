@@ -7,7 +7,7 @@
  *
  * Las definiciones de negocio que aplican van comentadas en cada handler.
  */
-import { parseFsDate } from '../../utils/fsDate.js';
+import { parseFsDate, toIsoDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 // ============================================================================
 // Helpers comunes
@@ -1073,7 +1073,7 @@ export async function handleExtendedAnalyticsTool(name, args) {
                     const lunes = new Date(fecha);
                     const offset = (lunes.getDay() + 6) % 7;
                     lunes.setDate(lunes.getDate() - offset);
-                    return lunes.toISOString().slice(0, 10);
+                    return toIsoDate(lunes);
                 };
                 for (const r of cobrosPendientes) {
                     if (!r.vencimiento)

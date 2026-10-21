@@ -9,7 +9,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { parseFsDate } from '../../utils/fsDate.js';
+import { parseFsDate, toIsoDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 
 // ============================================================================
@@ -1199,7 +1199,7 @@ export async function handleExtendedAnalyticsTool(
                     const lunes = new Date(fecha);
                     const offset = (lunes.getDay() + 6) % 7;
                     lunes.setDate(lunes.getDate() - offset);
-                    return lunes.toISOString().slice(0, 10);
+                    return toIsoDate(lunes);
                 };
 
                 for (const r of cobrosPendientes) {
