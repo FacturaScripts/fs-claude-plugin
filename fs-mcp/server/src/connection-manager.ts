@@ -126,7 +126,10 @@ class ConnectionManager {
   }
 
   /**
-   * Persiste la configuración actual al archivo JSON
+   * Persiste la configuración actual al archivo JSON.
+   *
+   * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
+   * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
    */
   private saveConnections(): void {
     const dir = path.dirname(this.connectionsPath);
@@ -134,32 +137,47 @@ class ConnectionManager {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    if (this.useFsClaudeFormat) {
-      // Leer el archivo completo para preservar "settings" y otras claves
-      let existingConfig: FsClaudeConfig = {
-        version: "1.0",
-        connections: { default: "", connections: {} },
-        settings: { sortClassMembers: true, updateCopyright: true },
-      };
-      if (fs.existsSync(this.connectionsPath)) {
-        try {
-          existingConfig = JSON.parse(fs.readFileSync(this.connectionsPath, "utf-8")) as FsClaudeConfig;
-        } catch {
-          // Mantener estructura vacía si hay error de lectura
-        }
+    let existingConfig: unknown = undefined;
+    if (fs.existsSync(this.connectionsPath)) {
+      try {
+        existingConfig = JSON.parse(fs.readFileSync(this.connectionsPath, "utf-8"));
+      } catch (error) {
+        throw new Error(
+          `No se guarda la conexión: ${this.connectionsPath} no es un JSON válido y se perdería su contenido. ` +
+            `Corrígelo a mano y vuelve a intentarlo (${error instanceof Error ? error.message : String(error)})`
+        );
       }
-      existingConfig.connections = this.config;
-      fs.writeFileSync(
-        this.connectionsPath,
-        JSON.stringify(existingConfig, null, 2),
-        "utf-8"
-      );
+    }
+
+    if (this.useFsClaudeFormat) {
+      // Conservar "settings" y otras claves del archivo completo
+      const fsClaudeConfig: FsClaudeConfig =
+        existingConfig && typeof existingConfig === "object"
+          ? (existingConfig as FsClaudeConfig)
+          : {
+              version: "1.0",
+              connections: { default: "", connections: {} },
+              settings: { sortClassMembers: true, updateCopyright: true },
+            };
+      fsClaudeConfig.connections = this.config;
+      this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
     } else {
-      fs.writeFileSync(
-        this.connectionsPath,
-        JSON.stringify(this.config, null, 2),
-        "utf-8"
-      );
+      this.writeFileAtomic(JSON.stringify(this.config, null, 2));
+    }
+  }
+
+  /**
+   * Escribe el archivo de conexiones a través de un temporal en el mismo
+   * directorio y un rename, para que una escritura interrumpida no lo deje a medias.
+   */
+  private writeFileAtomic(content: string): void {
+    const tmpPath = `${this.connectionsPath}.${process.pid}.tmp`;
+    try {
+      fs.writeFileSync(tmpPath, content, "utf-8");
+      fs.renameSync(tmpPath, this.connectionsPath);
+    } catch (error) {
+      fs.rmSync(tmpPath, { force: true });
+      throw error;
     }
   }
 

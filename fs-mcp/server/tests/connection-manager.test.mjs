@@ -1,0 +1,75 @@
+/**
+ * Pruebas de la persistencia del archivo de conexiones.
+ *
+ * Cada caso carga una instancia nueva del gestor (el módulo exporta un singleton
+ * que lee FS_CONNECTIONS_FILE al importarse) apuntando a un archivo temporal.
+ */
+
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { pathToFileURL } from 'node:url';
+
+const managerUrl = pathToFileURL(
+  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'dist', 'connection-manager.js')
+).href;
+
+let instancia = 0;
+const temporales = [];
+
+test.after(() => {
+  for (const dir of temporales) fs.rmSync(dir, { recursive: true, force: true });
+});
+
+/**
+ * Crea un archivo de conexiones temporal con el contenido indicado y devuelve
+ * un gestor recién construido que lo usa.
+ *
+ * @param {string|null} contenido Contenido inicial; null para no crear el archivo.
+ */
+async function nuevoGestor(contenido) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'connections.json');
+  if (contenido !== null) {
+    fs.writeFileSync(file, contenido, 'utf-8');
+  }
+  process.env.FS_CONNECTIONS_FILE = file;
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+  return { connectionManager, dir, file };
+}
+
+const conexion = { name: 'Pruebas', url: 'http://127.0.0.1:1', token: 'secreto' };
+
+test('un archivo de conexiones ilegible no se sobrescribe al añadir una conexión', async () => {
+  const corrupto = '{"default": "a", "connections": {"a": {"name": "A", ';
+  const { connectionManager, file } = await nuevoGestor(corrupto);
+
+  assert.throws(() => connectionManager.addConnection('nueva', conexion), /no es un JSON válido/);
+  assert.equal(fs.readFileSync(file, 'utf-8'), corrupto);
+});
+
+test('un archivo que se corrompe después de cargarlo tampoco se sobrescribe', async () => {
+  const { connectionManager, file } = await nuevoGestor(
+    JSON.stringify({ default: 'a', connections: { a: conexion } })
+  );
+  fs.writeFileSync(file, 'no es json', 'utf-8');
+
+  assert.throws(() => connectionManager.setDefault('a'), /no es un JSON válido/);
+  assert.equal(fs.readFileSync(file, 'utf-8'), 'no es json');
+});
+
+test('guardar sustituye el archivo por rename y no deja temporales', async () => {
+  const { connectionManager, dir, file } = await nuevoGestor(
+    JSON.stringify({ default: '', connections: {} })
+  );
+  const inodoAntes = fs.statSync(file).ino;
+
+  connectionManager.addConnection('a', conexion);
+
+  assert.notEqual(fs.statSync(file).ino, inodoAntes);
+  assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
+  assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
+});

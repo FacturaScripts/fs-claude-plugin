@@ -23,9 +23,17 @@ declare class ConnectionManager {
      */
     private createEmptyConnectionsFile;
     /**
-     * Persiste la configuración actual al archivo JSON
+     * Persiste la configuración actual al archivo JSON.
+     *
+     * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
+     * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
      */
     private saveConnections;
+    /**
+     * Escribe el archivo de conexiones a través de un temporal en el mismo
+     * directorio y un rename, para que una escritura interrumpida no lo deje a medias.
+     */
+    private writeFileAtomic;
     /**
      * Obtiene una conexión por clave o la conexión por defecto
      * @param key - Clave de la conexión (opcional, usa default si no se proporciona)
