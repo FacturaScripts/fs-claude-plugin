@@ -168,7 +168,7 @@ Clasifica cada hallazgo revisado como **justificado** (uso legítimo y proporcio
 - La auditoría de compatibilidad solo analiza PHP: no comprueba las funciones ni los bloques de plantilla que usan los Twig, ni los XMLView, ni el JavaScript. Las plantillas solo se leen para saber qué métodos invoca el plugin, así que un `min_version` más alto que el calculado puede estar justificado por un cambio del core que no ves.
 - El resultado depende de que el clon del core esté actualizado: si faltan etiquetas recientes, propón `git fetch --tags`.
 - Si no hay clon del core, indícalo y propón clonar `https://github.com/NeoRazorX/facturascripts.git`; no intentes auditar de memoria.
-- La auditoría de seguridad es estática: no sigue el flujo de datos, no ve URLs construidas por partes ni código descargado en tiempo de ejecución, y por defecto no revisa `vendor/` ni los plugins de `require`. Un informe sin hallazgos no garantiza que el plugin sea seguro.
+- La auditoría de seguridad es estática: no sigue el flujo de datos, no ve URLs construidas por partes ni código descargado en tiempo de ejecución, y por defecto no revisa `vendor/` ni los plugins de `require`. Lo que no analiza (`vendor/`, el JS de `node_modules/`, `.git` y los directorios enlazados) lo enumera en las limitaciones, y entonces el resultado dice «SIN HALLAZGOS EN LO ANALIZADO» en lugar de «SIN HALLAZGOS RELEVANTES». Un informe sin hallazgos no garantiza que el plugin sea seguro.
 
 ## Forma de trabajar
 

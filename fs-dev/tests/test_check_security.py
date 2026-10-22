@@ -416,6 +416,102 @@ class EvasionTest(unittest.TestCase):
         self.assertEqual(2, code)
         self.assertIn('fallo', stderr.getvalue())
 
+    def run_main(self, plugin: Path) -> tuple[int, str]:
+        """Ejecuta el script sobre un plugin y devuelve su código de salida y su salida."""
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = CHECKER.main([str(plugin)])
+        return code, output.getvalue()
+
+    def assert_ejecuta_comandos(self, report: dict) -> None:
+        """El informe señala la ejecución de comandos como alta y pide revisión."""
+        findings = [item for item in report['hallazgos'] if item['categoria'] == 'ejecucion-comandos']
+        self.assertTrue(findings)
+        self.assertEqual('alta', findings[0]['severidad'])
+        self.assertTrue(report['requiere_revision'])
+
+    def test_cierre_de_php_termina_el_comentario_de_linea(self) -> None:
+        """En PHP, ?> cierra un comentario // y lo que le sigue en la línea se ejecuta."""
+        init = ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n'
+                "// nota ?><?php system($_GET['c']);\n")
+        self.assert_ejecuta_comandos(self.audit({'Init.php': init}))
+
+    def test_apostrofos_del_html_no_abren_cadenas_de_php(self) -> None:
+        """El HTML entre islas de PHP no es PHP: un apóstrofo ahí no oculta el código siguiente."""
+        body = "        ?><p>It's</p><?php system($_GET['c']) ?><p>Don't</p><?php"
+        self.assert_ejecuta_comandos(self.audit({'Lib/Plantilla.php': php_class('Plantilla', body)}))
+
+    def test_html_antes_de_la_primera_isla_no_es_php(self) -> None:
+        """Un archivo puede empezar en HTML: su apóstrofo no se traga la isla de PHP que sigue."""
+        template = "<p>It's</p>\n<?php system($_GET['c']); ?>\n<p>Don't</p>\n"
+        self.assert_ejecuta_comandos(self.audit({'View/Plantilla.php': template}))
+
+    def test_el_html_conserva_sus_urls(self) -> None:
+        """El HTML de un archivo PHP no se analiza como código, pero sus URL siguen en el inventario."""
+        template = '<?php $titulo = 1; ?>\n<script src="https://cdn.terceros.test/lib.js"></script>\n'
+        report = self.audit({'View/Pagina.php': template})
+        self.assertIn('cdn.terceros.test', [item['dominio'] for item in report['dominios']])
+
+    def test_inc_incluido_desde_init_se_analiza(self) -> None:
+        """Un .inc incluido con __DIR__ se analiza como PHP."""
+        init = ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n\nclass Init\n{\n'
+                '    public function init(): void\n    {\n'
+                "        require_once __DIR__ . '/Lib/helper.inc';\n    }\n}\n")
+        report = self.audit({'Init.php': init, 'Lib/helper.inc': "<?php\nsystem($_GET['c']);\n"})
+        self.assert_ejecuta_comandos(report)
+
+    def test_php_en_node_modules_se_analiza(self) -> None:
+        """node_modules/ se sirve directamente: su PHP se analiza y el resto se declara sin analizar."""
+        report = self.audit({
+            'node_modules/x/i.php': "<?php\nsystem($_GET['c']);\n",
+            'node_modules/x/index.js': 'module.exports = 1;\n',
+        })
+        self.assert_ejecuta_comandos(report)
+        self.assertEqual(1, report['analizados']['sin_analizar'])
+        self.assertTrue(any('node_modules/ incluye 1 archivos' in item for item in report['limitaciones']))
+
+    def test_extension_desconocida_con_php_se_analiza(self) -> None:
+        """Un archivo con otra extensión que contiene PHP se analiza, porque un include lo ejecuta."""
+        report = self.audit({'Lib/datos.txt': "<?php\nsystem($_GET['c']);\n"})
+        self.assert_ejecuta_comandos(report)
+
+    def test_js_que_cita_php_se_analiza_como_js(self) -> None:
+        """Un .js que menciona <?php en un comentario sigue siendo JS: sus plantillas no son comandos."""
+        script = '// processing instruction, e.g. <?php ?>\nconst a = `uno ${1}`;\n'
+        report = self.audit({'node_modules/lib/rules.js': script, 'Assets/JS/propio.js': script})
+        self.assertEqual([], [item for item in report['hallazgos'] if item['categoria'] == 'ejecucion-comandos'])
+        self.assertEqual(1, report['analizados']['sin_analizar'], 'el JS de node_modules/ no se analiza')
+
+    def test_lo_no_analizado_se_declara_y_cambia_el_veredicto(self) -> None:
+        """Un directorio enlazado no se sigue, .git no se analiza, y el veredicto no afirma que el plugin esté limpio."""
+        outside = self.root / 'fuera'
+        outside.mkdir()
+        (outside / 'x.php').write_text("<?php\nsystem($_GET['c']);\n")
+        plugin = build_plugin(self.root, {'Lib/Limpio.php': php_class('Limpio', '        return 1;'),
+                                          '.git/config': '[core]\n'})
+        (plugin / 'Externo').symlink_to(outside, target_is_directory=True)
+
+        report = CHECKER.audit(plugin)
+        self.assertEqual(2, report['analizados']['sin_analizar'])
+        self.assertTrue(any(item.startswith('Externo/ es un enlace a un directorio') for item in report['limitaciones']))
+        self.assertTrue(any(item.startswith('.git/ es un repositorio git') for item in report['limitaciones']))
+
+        code, output = self.run_main(plugin)
+        self.assertEqual(0, code)
+        self.assertIn('SIN HALLAZGOS EN LO ANALIZADO: quedan 2 archivos o directorios sin analizar', output)
+        self.assertNotIn('SIN HALLAZGOS RELEVANTES', output)
+
+    def test_archivo_enlazado_se_analiza_y_se_declara(self) -> None:
+        """Un archivo enlazado se analiza, y el informe dice adónde apunta."""
+        outside = self.root / 'fuera.php'
+        outside.write_text("<?php\nsystem($_GET['c']);\n")
+        plugin = build_plugin(self.root, {})
+        (plugin / 'Enlace.php').symlink_to(outside)
+
+        report = CHECKER.audit(plugin)
+        self.assert_ejecuta_comandos(report)
+        self.assertTrue(any(item.startswith(f'Enlace.php -> {outside}') for item in report['limitaciones']))
+
 
 if __name__ == '__main__':
     unittest.main()

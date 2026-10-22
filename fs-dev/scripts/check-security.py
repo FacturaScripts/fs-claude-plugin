@@ -18,9 +18,13 @@ de modo que un ``exec`` dentro de un comentario o de un texto no cuenta, pero no
 resuelve tipos ni sigue el flujo de datos.
 
 Analiza como PHP también las extensiones que el servidor puede ejecutar como
-tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…). Los directorios de
-tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a cualquier
-profundidad salvo con ``--include-tests``.
+tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…) y los archivos de
+extensión desconocida que contengan ``<?php`` o ``<?=``, aunque estén en
+``node_modules/``. Los directorios de tests (``Test``, ``Tests``, ``test``,
+``tests``) se omiten a cualquier profundidad salvo con ``--include-tests``. Lo
+que no se analiza (``vendor/``, el resto de ``node_modules/``, ``.git`` y los
+directorios enlazados, que no se siguen) se enumera en las limitaciones, y
+entonces el resultado no afirma que el plugin esté limpio, solo lo analizado.
 
 Uso:
     check-security.py <ruta_plugin> [--json] [--min-severity alta|media|baja|info]
@@ -45,8 +49,10 @@ from pathlib import Path
 SEVERITY_ORDER = {'alta': 3, 'media': 2, 'baja': 1, 'info': 0}
 SEVERITY_LABELS = {'alta': 'ALTA', 'media': 'MEDIA', 'baja': 'BAJA', 'info': 'INFO'}
 
-# Directorios que no forman parte del código propio del plugin.
-EXCLUDED_DIRS = frozenset({'.git', 'node_modules'})
+# Directorios que no forman parte del código propio del plugin. De node_modules/
+# se analizan igualmente los archivos PHP: el servidor puede servirlos directamente.
+GIT_DIR = '.git'
+NODE_MODULES_DIR = 'node_modules'
 VENDOR_DIR = 'vendor'
 TEST_DIRS = frozenset({'Test', 'Tests', 'test', 'tests'})
 
@@ -56,7 +62,7 @@ PHP_EXTENSIONS = frozenset({'.php', '.phtml', '.inc', '.php3', '.php4', '.php5',
 # Extensiones de texto que se analizan y lenguaje con el que se interpretan.
 LANGUAGES = {
     **{suffix: 'php' for suffix in PHP_EXTENSIONS},
-    '.js': 'js', '.mjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml',
+    '.js': 'js', '.mjs': 'js', '.cjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml',
 }
 
 # Funciones que ejecutan comandos o código y que no deben usarse como callback.
@@ -245,6 +251,14 @@ class Rule:
     check: Callable[['Source', re.Match], tuple[bool, list[str], str | None]] | None = None
 
 
+# Etiqueta que abre una isla de PHP. El ``<?`` suelto también cuenta, porque
+# short_open_tag viene activado por defecto; ``<?xml`` no.
+PHP_OPEN_TAG = re.compile(r'<\?(?:php(?=\s)|=|(?!xml))', re.I)
+
+# Indicio de que un archivo contiene PHP aunque su extensión no lo diga.
+PHP_MARKER = re.compile(r'<\?(?:php\b|=)', re.I)
+
+
 def blank(segment: str) -> str:
     """Sustituye un fragmento por espacios conservando sus saltos de línea."""
     return ''.join('\n' if char == '\n' else ' ' for char in segment)
@@ -253,19 +267,43 @@ def blank(segment: str) -> str:
 def strip_php(content: str) -> tuple[str, str]:
     """Devuelve el PHP sin comentarios y el PHP sin comentarios ni cadenas.
 
-    Conserva los delimitadores de las cadenas para que ``'...'`` siga
-    reconociéndose como un literal, y trata los atributos ``#[...]`` como código.
-    Las comillas invertidas se conservan porque en PHP ejecutan un comando.
+    Sigue los modos de PHP: lo que queda fuera de las islas ``<?php`` … ``?>`` es
+    HTML, que se conserva en el texto (por sus URL) y se blanquea en el código,
+    y ``?>`` cierra también un comentario de línea. Conserva los delimitadores de
+    las cadenas para que ``'...'`` siga reconociéndose como un literal, y trata
+    los atributos ``#[...]`` como código. Las comillas invertidas se conservan
+    porque en PHP ejecutan un comando.
     """
     text: list[str] = []
     code: list[str] = []
     length = len(content)
     index = 0
+    in_php = False
     heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
 
     while index < length:
+        if not in_php:
+            tag = PHP_OPEN_TAG.search(content, index)
+            end = length if tag is None else tag.start()
+            text.append(content[index:end])
+            code.append(blank(content[index:end]))
+            if tag is not None:
+                text.append(tag.group(0))
+                code.append(tag.group(0))
+                in_php = True
+                end = tag.end()
+            index = end
+            continue
+
         char = content[index]
         pair = content[index:index + 2]
+
+        if pair == '?>':
+            text.append(pair)
+            code.append(pair)
+            in_php = False
+            index += 2
+            continue
 
         if pair == '/*':
             end = content.find('*/', index + 2)
@@ -279,6 +317,8 @@ def strip_php(content: str) -> tuple[str, str]:
         if pair == '//' or (char == '#' and content[index + 1:index + 2] != '['):
             end = content.find('\n', index)
             end = length if end == -1 else end
+            close = content.find('?>', index, end)
+            end = end if close == -1 else close
             chunk = blank(content[index:end])
             text.append(chunk)
             code.append(chunk)
@@ -415,15 +455,41 @@ def strip_xml(content: str) -> tuple[str, str]:
     return cleaned, cleaned
 
 
-def load_source(path: Path, plugin_dir: Path) -> Source | None:
-    """Lee un archivo y prepara sus versiones sin comentarios y sin cadenas."""
-    language = LANGUAGES.get(path.suffix.lower())
-    if language is None:
-        return None
+def read_text(path: Path) -> str | None:
+    """Lee un archivo como texto, o devuelve None si no se puede leer."""
     try:
-        raw = path.read_text(encoding='utf-8', errors='replace')
+        return path.read_text(encoding='utf-8', errors='replace')
     except OSError:
         return None
+
+
+def is_php_file(path: Path) -> bool:
+    """Indica si PHP puede ejecutar el archivo: por su extensión o, si no es de un
+    lenguaje conocido, porque contiene PHP. Un ``.js`` que cita ``<?php`` en un
+    comentario sigue siendo JS."""
+    suffix = path.suffix.lower()
+    if suffix in PHP_EXTENSIONS:
+        return True
+    if suffix in LANGUAGES:
+        return False
+    raw = read_text(path)
+    return raw is not None and PHP_MARKER.search(raw) is not None
+
+
+def load_source(path: Path, plugin_dir: Path) -> Source | None:
+    """Lee un archivo y prepara sus versiones sin comentarios y sin cadenas.
+
+    Un archivo de extensión desconocida se analiza como PHP si contiene PHP,
+    porque un ``include`` lo ejecuta igual.
+    """
+    language = LANGUAGES.get(path.suffix.lower())
+    raw = read_text(path)
+    if raw is None:
+        return None
+    if language is None:
+        if PHP_MARKER.search(raw) is None:
+            return None
+        language = 'php'
 
     strippers = {'php': strip_php, 'js': strip_js, 'twig': strip_markup, 'xml': strip_xml}
     text, code = strippers[language](raw)
@@ -917,30 +983,55 @@ RULES: list[Rule] = [
 ]
 
 
-def iter_files(plugin_dir: Path, include_vendor: bool,
-               include_tests: bool = False) -> tuple[list[Path], list[Path]]:
-    """Devuelve los archivos del plugin y, aparte, los de ``vendor/`` que no se analizan.
+@dataclass
+class FileSet:
+    """Archivos del plugin: los que se analizan y, aparte, los que no."""
+
+    files: list[Path] = field(default_factory=list)
+    vendor: list[Path] = field(default_factory=list)
+    node_modules: list[Path] = field(default_factory=list)
+    skipped_dirs: list[str] = field(default_factory=list)
+    links: list[str] = field(default_factory=list)
+
+
+def iter_files(plugin_dir: Path, include_vendor: bool, include_tests: bool = False) -> FileSet:
+    """Reparte los archivos del plugin entre los que se analizan y los que no.
 
     Los directorios de tests se omiten a cualquier profundidad salvo que se
     pidan, igual que en ``check-min-version.py``: FacturaScripts no los carga y
-    sus datos de prueba (claves, contraseñas) solo generan ruido.
+    sus datos de prueba (claves, contraseñas) solo generan ruido. ``.git`` y los
+    directorios enlazados no se recorren, y se anotan. De ``node_modules/`` solo
+    se analizan los archivos PHP. Los archivos enlazados se analizan, y se anotan
+    porque pueden apuntar fuera del plugin.
     """
-    files: list[Path] = []
-    vendor: list[Path] = []
+    found = FileSet()
     for root, dirs, names in os.walk(plugin_dir):
-        relative_parts = Path(root).relative_to(plugin_dir).parts
-        dirs[:] = sorted(
-            name for name in dirs
-            if name not in EXCLUDED_DIRS and (include_tests or name not in TEST_DIRS)
-        )
-        in_vendor = VENDOR_DIR in relative_parts
+        relative_root = Path(root).relative_to(plugin_dir)
+        kept: list[str] = []
+        for name in sorted(dirs):
+            relative = (relative_root / name).as_posix()
+            if not include_tests and name in TEST_DIRS:
+                continue
+            if (Path(root) / name).is_symlink():
+                found.skipped_dirs.append(f'{relative}/ es un enlace a un directorio y no se ha seguido')
+            elif name == GIT_DIR:
+                found.skipped_dirs.append(f'{relative}/ es un repositorio git y no se ha analizado')
+            else:
+                kept.append(name)
+        dirs[:] = kept
+        in_vendor = VENDOR_DIR in relative_root.parts
+        in_node_modules = NODE_MODULES_DIR in relative_root.parts
         for name in sorted(names):
             path = Path(root) / name
+            if path.is_symlink():
+                found.links.append(f'{(relative_root / name).as_posix()} -> {os.readlink(path)}')
             if in_vendor and not include_vendor:
-                vendor.append(path)
+                found.vendor.append(path)
+            elif in_node_modules and not is_php_file(path):
+                found.node_modules.append(path)
             else:
-                files.append(path)
-    return files, vendor
+                found.files.append(path)
+    return found
 
 
 def is_public_controller(source: Source) -> bool:
@@ -1175,7 +1266,8 @@ def read_plugin_meta(plugin_dir: Path) -> dict:
 
 def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = False) -> dict:
     """Analiza el plugin y construye el informe completo."""
-    files, vendor = iter_files(plugin_dir, include_vendor, include_tests)
+    found = iter_files(plugin_dir, include_vendor, include_tests)
+    files, vendor = found.files, found.vendor
     sources = [source for source in (load_source(path, plugin_dir) for path in files) if source is not None]
 
     findings: list[Finding] = []
@@ -1203,12 +1295,22 @@ def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = 
             f'vendor/ incluye {len(vendor)} archivos ({len(vendor_php)} PHP) de terceros que no se han analizado; '
             'usa --include-vendor para revisarlos.'
         )
+    if found.node_modules:
+        limitations.append(
+            f'node_modules/ incluye {len(found.node_modules)} archivos que no son PHP y no se han analizado; '
+            'los PHP sí, porque el servidor puede servirlos directamente.'
+        )
+    limitations.extend(f'{entry}.' for entry in found.skipped_dirs)
+    limitations.extend(f'{entry} es un enlace simbólico: se ha analizado su destino, que puede estar fuera del '
+                       'plugin.' for entry in found.links)
     if not meta['ini']:
         limitations.append('No hay facturascripts.ini: la ruta puede no ser un plugin de FacturaScripts.')
+    not_analyzed = len(vendor) + len(found.node_modules) + len(found.skipped_dirs)
 
     return {
         'plugin': {'name': meta['name'], 'version': meta['version'], 'path': str(plugin_dir)},
-        'analizados': {'archivos': len(files), 'por_lenguaje': languages, 'vendor_sin_analizar': len(vendor)},
+        'analizados': {'archivos': len(files), 'por_lenguaje': languages, 'vendor_sin_analizar': len(vendor),
+                       'sin_analizar': not_analyzed},
         'resumen': counts,
         'requiere_revision': counts['alta'] + counts['media'] > 0,
         'hallazgos': [
@@ -1253,6 +1355,9 @@ def print_report(report: dict) -> None:
     print()
     if report['requiere_revision']:
         print('RESULTADO: REVISAR. El plugin tiene comportamientos que conviene comprobar antes de instalarlo.')
+    elif report['analizados']['sin_analizar']:
+        print(f"RESULTADO: SIN HALLAZGOS EN LO ANALIZADO: quedan {report['analizados']['sin_analizar']} archivos o "
+              'directorios sin analizar (ver Limitaciones).')
     else:
         print('RESULTADO: SIN HALLAZGOS RELEVANTES. No se han detectado comportamientos de severidad media o alta.')
     print()
