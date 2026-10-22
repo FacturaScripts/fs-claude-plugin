@@ -131,3 +131,16 @@ test('el formato ~/.fs-claude.json también se niega con un array y conserva el 
     if (ficheroOriginal !== undefined) process.env.FS_CONNECTIONS_FILE = ficheroOriginal;
   }
 });
+
+test('un enlace plantado en el nombre de temporal de antes no recibe el token', async () => {
+  const { connectionManager, dir, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
+  const victima = path.join(dir, 'victima');
+  fs.writeFileSync(victima, 'intacto', 'utf-8');
+  fs.symlinkSync(victima, `${file}.${process.pid}.tmp`);
+
+  connectionManager.addConnection('a', conexion);
+
+  assert.equal(fs.readFileSync(victima, 'utf-8'), 'intacto');
+  assert.equal(fs.lstatSync(file).isSymbolicLink(), false);
+  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+});

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -178,12 +179,13 @@ class ConnectionManager {
    * Escribe el archivo de conexiones a través de un temporal en el mismo
    * directorio y un rename, para que una escritura interrumpida no lo deje a medias.
    * El rename sustituye el archivo por el temporal, con sus permisos: se crea
-   * 0600 porque contiene los tokens de la API.
+   * 0600 porque contiene los tokens de la API. El nombre es aleatorio y se abre
+   * en exclusiva ("wx") para no escribir a través de un enlace ya plantado ahí.
    */
   private writeFileAtomic(content: string): void {
-    const tmpPath = `${this.connectionsPath}.${process.pid}.tmp`;
+    const tmpPath = `${this.connectionsPath}.${randomUUID()}.tmp`;
     try {
-      fs.writeFileSync(tmpPath, content, { encoding: "utf-8", mode: 0o600 });
+      fs.writeFileSync(tmpPath, content, { encoding: "utf-8", mode: 0o600, flag: "wx" });
       fs.renameSync(tmpPath, this.connectionsPath);
     } catch (error) {
       fs.rmSync(tmpPath, { force: true });
