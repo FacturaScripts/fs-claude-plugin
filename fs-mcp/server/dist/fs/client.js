@@ -44,6 +44,9 @@ class FacturaScriptsClient {
             // host follow-redirects sólo quita Authorization y Cookie: la cabecera
             // Token se reenviaría al destino.
             maxRedirects: 0,
+            // Toda ruta va bajo baseURL: una ruta absoluta («http://…» o «//host/…»)
+            // construida con datos del modelo no puede llevar el token a otro host.
+            allowAbsoluteUrls: false,
         });
         instance.interceptors.response.use((response) => response, (error) => {
             const connectionName = connection.name || resolvedKey;
