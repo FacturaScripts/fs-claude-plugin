@@ -156,6 +156,11 @@ class ConnectionManager {
         if (!key || key.trim() === "") {
             throw new Error("La clave de conexión no puede estar vacía");
         }
+        // Asignar a "__proto__" cambiaría el prototipo del mapa de conexiones en vez
+        // de añadir una: la sesión heredaría una conexión que no está en el archivo
+        if (key === "__proto__") {
+            throw new Error('La clave de conexión no puede ser "__proto__"');
+        }
         if (!config.name || !config.url || !config.token) {
             throw new Error("La configuración debe incluir: name, url y token");
         }
