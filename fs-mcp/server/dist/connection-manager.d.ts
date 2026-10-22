@@ -25,8 +25,9 @@ declare class ConnectionManager {
     /**
      * Persiste en el archivo JSON la configuración indicada.
      *
-     * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
-     * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
+     * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
+     * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
+     * se pudieron interpretar.
      */
     private saveConnections;
     /**

@@ -101,3 +101,33 @@ test('si no se puede guardar, el cambio no queda aplicado en memoria', async () 
   assert.throws(() => connectionManager.addConnection('c', otra), /no es un JSON válido/);
   assert.throws(() => connectionManager.getConnection('c'), /no encontrada/);
 });
+
+for (const contenido of ['[]', 'null', '5', '"texto"']) {
+  test(`un archivo con JSON válido que no es un objeto (${contenido}) no se sobrescribe`, async () => {
+    const { connectionManager, file } = await nuevoGestor(contenido);
+
+    assert.throws(() => connectionManager.addConnection('nueva', conexion), /no es un objeto/);
+    assert.equal(fs.readFileSync(file, 'utf-8'), contenido);
+    assert.throws(() => connectionManager.getConnection('nueva'), /no encontrada/);
+  });
+}
+
+test('el formato ~/.fs-claude.json también se niega con un array y conserva el archivo', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, '.fs-claude.json');
+  fs.writeFileSync(file, '[]', 'utf-8');
+  const homeOriginal = process.env.HOME;
+  const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;
+  process.env.HOME = dir;
+  delete process.env.FS_CONNECTIONS_FILE;
+  try {
+    const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+    assert.throws(() => connectionManager.addConnection('nueva', conexion), /no es un objeto/);
+    assert.equal(fs.readFileSync(file, 'utf-8'), '[]');
+    assert.throws(() => connectionManager.getConnection('nueva'), /no encontrada/);
+  } finally {
+    process.env.HOME = homeOriginal;
+    if (ficheroOriginal !== undefined) process.env.FS_CONNECTIONS_FILE = ficheroOriginal;
+  }
+});

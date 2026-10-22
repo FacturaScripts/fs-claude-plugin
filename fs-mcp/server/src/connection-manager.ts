@@ -128,8 +128,9 @@ class ConnectionManager {
   /**
    * Persiste en el archivo JSON la configuración indicada.
    *
-   * Si el archivo existe pero no es JSON válido, no se escribe: sobrescribirlo
-   * borraría las conexiones (y los ajustes) que contiene y que no se pudieron leer.
+   * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
+   * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
+   * se pudieron interpretar.
    */
   private saveConnections(config: ConnectionsConfig): void {
     const dir = path.dirname(this.connectionsPath);
@@ -147,12 +148,19 @@ class ConnectionManager {
             `Corrígelo a mano y vuelve a intentarlo (${error instanceof Error ? error.message : String(error)})`
         );
       }
+
+      if (existingConfig === null || typeof existingConfig !== "object" || Array.isArray(existingConfig)) {
+        throw new Error(
+          `No se guarda la conexión: ${this.connectionsPath} no es un objeto JSON y se perdería su contenido. ` +
+            "Corrígelo a mano y vuelve a intentarlo"
+        );
+      }
     }
 
     if (this.useFsClaudeFormat) {
       // Conservar "settings" y otras claves del archivo completo
       const fsClaudeConfig: FsClaudeConfig =
-        existingConfig && typeof existingConfig === "object"
+        existingConfig !== undefined
           ? (existingConfig as FsClaudeConfig)
           : {
               version: "1.0",
