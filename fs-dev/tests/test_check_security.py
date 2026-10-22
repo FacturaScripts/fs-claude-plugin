@@ -480,7 +480,23 @@ class EvasionTest(unittest.TestCase):
         script = '// processing instruction, e.g. <?php ?>\nconst a = `uno ${1}`;\n'
         report = self.audit({'node_modules/lib/rules.js': script, 'Assets/JS/propio.js': script})
         self.assertEqual([], [item for item in report['hallazgos'] if item['categoria'] == 'ejecucion-comandos'])
-        self.assertEqual(1, report['analizados']['sin_analizar'], 'el JS de node_modules/ no se analiza')
+        self.assertTrue(any('node_modules/ incluye 1 archivos' in item for item in report['limitaciones']),
+                        'el JS de node_modules/ no se analiza')
+        self.assertIn('Assets/JS/propio.js contiene <?php y no se ha analizado como PHP.', report['limitaciones'])
+
+    def test_js_con_php_incluido_se_declara_no_analizado(self) -> None:
+        """Un .js con PHP que se incluye con require se ejecuta como PHP: si no se analiza así, se dice."""
+        init = ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n\nclass Init\n{\n'
+                '    public function init(): void\n    {\n'
+                "        require_once __DIR__ . '/Lib/a.js';\n    }\n}\n")
+        plugin = build_plugin(self.root, {'Init.php': init, 'Lib/a.js': "<?php system($_GET['c']);\n"})
+
+        report = CHECKER.audit(plugin)
+        self.assertIn('Lib/a.js contiene <?php y no se ha analizado como PHP.', report['limitaciones'])
+        self.assertEqual(1, report['analizados']['sin_analizar'])
+        code, output = self.run_main(plugin)
+        self.assertEqual(0, code)
+        self.assertIn('SIN HALLAZGOS EN LO ANALIZADO', output)
 
     def test_lo_no_analizado_se_declara_y_cambia_el_veredicto(self) -> None:
         """Un directorio enlazado no se sigue, .git no se analiza, y el veredicto no afirma que el plugin esté limpio."""

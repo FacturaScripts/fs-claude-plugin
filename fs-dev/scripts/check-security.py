@@ -20,7 +20,8 @@ resuelve tipos ni sigue el flujo de datos.
 Analiza como PHP también las extensiones que el servidor puede ejecutar como
 tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…) y los archivos de
 extensión desconocida que contengan ``<?php`` o ``<?=``, aunque estén en
-``node_modules/``. Los directorios de tests (``Test``, ``Tests``, ``test``,
+``node_modules/``. Un ``.js``, ``.html``, ``.twig`` o ``.xml`` con PHP dentro se
+analiza con su lenguaje y se anota como no analizado como PHP. Los directorios de tests (``Test``, ``Tests``, ``test``,
 ``tests``) se omiten a cualquier profundidad salvo con ``--include-tests``. Lo
 que no se analiza (``vendor/``, el resto de ``node_modules/``, ``.git`` y los
 directorios enlazados, que no se siguen) se enumera en las limitaciones, y
@@ -1301,11 +1302,16 @@ def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = 
             'los PHP sí, porque el servidor puede servirlos directamente.'
         )
     limitations.extend(f'{entry}.' for entry in found.skipped_dirs)
+    # Se analizan con su lenguaje para no inventar hallazgos (las librerías de JS
+    # citan <?php en sus comentarios), pero un require los ejecutaría como PHP.
+    embedded_php = [source.relative for source in sources
+                    if source.language != 'php' and PHP_MARKER.search(source.raw)]
+    limitations.extend(f'{relative} contiene <?php y no se ha analizado como PHP.' for relative in embedded_php)
     limitations.extend(f'{entry} es un enlace simbólico: se ha analizado su destino, que puede estar fuera del '
                        'plugin.' for entry in found.links)
     if not meta['ini']:
         limitations.append('No hay facturascripts.ini: la ruta puede no ser un plugin de FacturaScripts.')
-    not_analyzed = len(vendor) + len(found.node_modules) + len(found.skipped_dirs)
+    not_analyzed = len(vendor) + len(found.node_modules) + len(found.skipped_dirs) + len(embedded_php)
 
     return {
         'plugin': {'name': meta['name'], 'version': meta['version'], 'path': str(plugin_dir)},
