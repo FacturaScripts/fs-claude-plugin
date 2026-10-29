@@ -40,8 +40,7 @@ class ConnectionManager {
     loadConnections() {
         const emptyConfig = { default: "", connections: {} };
         try {
-            if (!fs.existsSync(this.connectionsPath)) {
-                this.createEmptyConnectionsFile();
+            if (!fs.existsSync(this.connectionsPath) && this.createEmptyConnectionsFile()) {
                 console.error(`[fs-mcp] Archivo de conexiones no encontrado: ${this.connectionsPath}\n` +
                     "[fs-mcp] Usa fs-mcp:add-connection para configurar una conexión.");
                 return emptyConfig;
@@ -69,12 +68,27 @@ class ConnectionManager {
     /**
      * Crea el archivo de conexiones vacío con la estructura adecuada al formato.
      * Contiene los tokens de la API, así que se crea legible sólo por su dueño (0600).
+     *
+     * Se crea en exclusiva ("wx"): si otro proceso lo ha creado entre la
+     * comprobación y la escritura (la skill add-connection mientras arranca el
+     * servidor), no se trunca y devuelve false para que se lea el suyo.
      */
     createEmptyConnectionsFile() {
         const dir = path.dirname(this.connectionsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
+        const crear = (contenido) => {
+            try {
+                fs.writeFileSync(this.connectionsPath, contenido, { encoding: "utf-8", mode: 0o600, flag: "wx" });
+                return true;
+            }
+            catch (error) {
+                if (error.code === "EEXIST")
+                    return false;
+                throw error;
+            }
+        };
         if (this.useFsClaudeFormat) {
             // Crear ~/.fs-claude.json con estructura completa
             const fsClaudeConfig = {
@@ -82,12 +96,12 @@ class ConnectionManager {
                 connections: { default: "", connections: {} },
                 settings: { sortClassMembers: true, updateCopyright: true },
             };
-            fs.writeFileSync(this.connectionsPath, JSON.stringify(fsClaudeConfig, null, 2), { encoding: "utf-8", mode: 0o600 });
+            return crear(JSON.stringify(fsClaudeConfig, null, 2));
         }
         else {
             // Formato plano legacy
             const emptyConfig = { default: "", connections: {} };
-            fs.writeFileSync(this.connectionsPath, JSON.stringify(emptyConfig, null, 2), { encoding: "utf-8", mode: 0o600 });
+            return crear(JSON.stringify(emptyConfig, null, 2));
         }
     }
     /**

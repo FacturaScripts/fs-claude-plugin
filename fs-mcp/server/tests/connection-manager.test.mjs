@@ -144,3 +144,23 @@ test('un enlace plantado en el nombre de temporal de antes no recibe el token', 
   assert.equal(fs.lstatSync(file).isSymbolicLink(), false);
   assert.equal(fs.statSync(file).mode & 0o777, 0o600);
 });
+
+test('al arrancar no se trunca un archivo que otro proceso acaba de crear', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'connections.json');
+  const contenido = JSON.stringify({ default: 'a', connections: { a: conexion } });
+  fs.writeFileSync(file, contenido, 'utf-8');
+  process.env.FS_CONNECTIONS_FILE = file;
+
+  // El archivo aparece entre la comprobación de existencia y la escritura
+  const existsSync = fs.existsSync;
+  fs.existsSync = (p) => (p === file ? false : existsSync(p));
+  try {
+    const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+    assert.equal(connectionManager.getConnection().name, 'Pruebas');
+  } finally {
+    fs.existsSync = existsSync;
+  }
+  assert.equal(fs.readFileSync(file, 'utf-8'), contenido);
+});
