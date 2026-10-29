@@ -94,6 +94,8 @@ if not config["connections"].get("default"):
 
 # El archivo guarda los tokens: si no existe, se crea legible sólo por el usuario (0600)
 fs_claude.touch(mode=0o600, exist_ok=True)
+# Guarda los tokens de las conexiones: legible sólo por el usuario, también si ya existía; antes de escribir
+fs_claude.chmod(0o600)
 fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
 print(f"Conexión guardada en: {fs_claude}")
 ```

@@ -66,6 +66,10 @@ config = json.loads(fs_claude.read_text(encoding='utf-8')) if fs_claude.exists()
     "settings": {"sortClassMembers": True, "updateCopyright": True}
 }
 config.setdefault('settings', {})['localModulesPath'] = str(modules_dir)
+# Si no existe, se crea ya legible sólo por el usuario (0600)
+fs_claude.touch(mode=0o600, exist_ok=True)
+# Guarda los tokens de las conexiones: legible sólo por el usuario, también si ya existía; antes de escribir
+fs_claude.chmod(0o600)
 fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
 print(f"Ruta guardada en: {fs_claude}")
 ```
