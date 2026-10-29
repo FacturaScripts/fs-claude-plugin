@@ -29,8 +29,9 @@ Es la de los plugins fiscales (FiscalES, Facturae, InformeSII, Ticketbai y Verif
 
 - `Doc/Context/` se puede dividir en tantos archivos y subcarpetas como haga falta (por ejemplo `NN-tema.md` y
   `Decisiones/NNNN-titulo.md`); su `README.md` hace de índice y se actualiza en el mismo trabajo que cambia el código.
-- `Doc/forja.json` lo lee la forja de facturascripts.com al subir el plugin o el core para dar de alta la
-  documentación. Su formato está en la sección [`Doc/forja.json`](#docforjajson).
+- `Doc/forja.json` lo lee la forja de facturascripts.com al subir una versión del plugin o del core, que importa
+  automáticamente `Doc/User` y `Doc/Dev`. Su formato está en la sección [`Doc/forja.json`](#docforjajson) y la
+  publicación, en [Publicación en la forja](#publicación-en-la-forja).
 - Las carpetas vacías llevan un `.gitkeep` para que git las suba. No lo añadas a carpetas que ya tienen archivos.
 - `AGENTS.md` es el archivo de instrucciones para los agentes (Codex lo lee directamente) y es corto: qué es el plugin
   en una o dos frases, el enlace a `Doc/Context/README.md` y la tabla de `Doc/`. `CLAUDE.md` solo lo importa con
@@ -86,7 +87,7 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 |---|---|---|
 | `title` | texto | Título de la página; si falta, se usa el nombre del archivo `.md` formateado |
 | `title_short` | texto | Título corto para SEO; si falta, se usa el nombre del archivo `.md` formateado |
-| `permalink` | texto, máx. 200 | Enlace de la página en la web. Si ya existe, la forja le añade algo para hacerlo único al crear la página; después no se puede cambiar |
+| `permalink` | texto, máx. 200 | Enlace de la página en la web. Si ya existe, la forja le añade algo para hacerlo único al crear la página; después no se puede cambiar, y la forja lo usa para reconocer la página si cambia su ruta |
 | `parent` | texto | Página padre, por su nombre de archivo en la misma sección |
 | `ordernum` | número entero | Orden de la página |
 | `youtubeid` | texto | Vídeo de YouTube de la página |
@@ -96,6 +97,20 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 | `keywords` | texto, máx. 300 | Palabras clave para buscar la página, separadas por comas |
 | `controllers` | texto, máx. 300 | Controladores donde se muestra la página, separados por comas |
 | `visibility` | `true` o `false` | Si la página es visible |
+
+## Publicación en la forja
+
+- Al subir una **versión** del plugin o del core, la forja quita del zip `CLAUDE.md`, `AGENTS.md`, `.claude/`,
+  `.agents/` y `Doc/Context/`, e **importa automáticamente** las páginas de `Doc/User` y `Doc/Dev` con sus datos de
+  `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan.
+- Cada archivo se asocia a su página de la web por la **ruta** (`User/x.md`) y, si no, por el **`permalink`** de
+  `forja.json`; por eso no se cambia el `permalink` para renombrar una página. Las páginas de la web que no vienen en
+  el paquete no se tocan.
+- Para bajar la documentación publicada o subir páginas sin publicar una versión, usa la skill
+  `fs-dev:sincronizar-forja` y su script `forja-doc-bundle.py` (`unpack` y `pack`), con las herramientas `forja_*` de
+  fs-mcp.
+- La web rechaza las páginas con menos de 300 caracteres de cuerpo: `forja-doc-bundle.py pack` lo comprueba antes de
+  subirlas.
 
 ## Script
 
@@ -141,8 +156,8 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
 6. Repite el script con `--check` para confirmar que la estructura queda completa y resume los cambios.
 
 No escribas páginas de `Doc/User`, `Doc/Dev` o `Doc/Context` ni rellenes `forja.json` salvo que el usuario lo pida.
-Para escribir una página de `Doc/User` o `Doc/Dev` con sus capturas, usa la skill `fs-dev:docs-writer`. No hagas
-commits.
+Para escribir una página de `Doc/User` o `Doc/Dev` con sus capturas, usa la skill `fs-dev:docs-writer`, y para
+bajarla o subirla a la forja, `fs-dev:sincronizar-forja`. No hagas commits.
 
 ## Alternativa con fsmaker
 

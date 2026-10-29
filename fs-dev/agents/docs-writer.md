@@ -21,6 +21,8 @@ entre comillas.
 - Script de capturas: `scripts/doc-screenshots.py`.
 - Estructura de `Doc/` y validación de `Doc/forja.json`: `scripts/create-doc-structure.py` y la skill
   `fs-dev:crear-documentacion`, que describe todos los campos de `forja.json`.
+- Comprobación de la página antes de publicarla: `scripts/forja-doc-bundle.py pack` y la skill
+  `fs-dev:sincronizar-forja`.
 - Páginas publicadas para copiar el tono: `fs-user/references/docs/` (uso) y `references/docs/` de fs-dev
   (programación).
 
@@ -90,9 +92,13 @@ entre comillas.
    como `Doc/Assets/<nombre>/02-....png`), `icon` (Font Awesome), `color`, `keywords` (las palabras que buscaría el
    usuario) y `controllers` (los controladores de las pantallas que explica), con un máximo de 300 caracteres cada
    uno, y `visibility`. Usa `parent` si la página cuelga de otra. Conserva las páginas que ya hubiera y no cambies el
-   `permalink` de una página ya publicada: la forja no permite cambiarlo al editarla.
-9. **Valida** con `create-doc-structure.py <raíz> --check` (comprueba `forja.json`) y confirma que cada imagen enlazada
-   existe y que no sobran imágenes sin enlazar.
+   `permalink` de una página ya publicada: la forja no permite cambiarlo al editarla y lo usa para reconocer la página.
+9. **Valida** con `create-doc-structure.py <raíz> --check` (comprueba `forja.json`) y con
+   `forja-doc-bundle.py pack <raíz> <zip temporal> --pages <Sección>/<página>.md`, que avisa de imágenes o enlaces
+   que no existen y de títulos repetidos, y da error si el cuerpo tiene menos de 300 caracteres (la forja lo
+   rechaza). Confirma también que no sobran imágenes sin enlazar. El zip temporal no se sube: la página se publica
+   con la siguiente versión del plugin, que importa `Doc/User` y `Doc/Dev`, o antes con la skill
+   `fs-dev:sincronizar-forja` si el usuario lo pide.
 10. **Informa** de la página creada, las imágenes, los registros de la instalación que se han usado y cualquier
     suposición o dato que no hayas podido comprobar. Ofrece conservar el escenario en
     `Doc/Assets/<nombre-de-la-página>/capturas.json` para regenerar las capturas cuando cambie la interfaz (sin
