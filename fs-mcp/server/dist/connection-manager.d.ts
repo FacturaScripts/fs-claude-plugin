@@ -19,7 +19,8 @@ declare class ConnectionManager {
      */
     private loadConnections;
     /**
-     * Crea el archivo de conexiones vacío con la estructura adecuada al formato
+     * Crea el archivo de conexiones vacío con la estructura adecuada al formato.
+     * Contiene los tokens de la API, así que se crea legible sólo por su dueño (0600).
      */
     private createEmptyConnectionsFile;
     /**

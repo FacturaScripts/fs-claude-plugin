@@ -95,7 +95,8 @@ class ConnectionManager {
   }
 
   /**
-   * Crea el archivo de conexiones vacío con la estructura adecuada al formato
+   * Crea el archivo de conexiones vacío con la estructura adecuada al formato.
+   * Contiene los tokens de la API, así que se crea legible sólo por su dueño (0600).
    */
   private createEmptyConnectionsFile(): void {
     const dir = path.dirname(this.connectionsPath);
@@ -113,7 +114,7 @@ class ConnectionManager {
       fs.writeFileSync(
         this.connectionsPath,
         JSON.stringify(fsClaudeConfig, null, 2),
-        "utf-8"
+        { encoding: "utf-8", mode: 0o600 }
       );
     } else {
       // Formato plano legacy
@@ -121,7 +122,7 @@ class ConnectionManager {
       fs.writeFileSync(
         this.connectionsPath,
         JSON.stringify(emptyConfig, null, 2),
-        "utf-8"
+        { encoding: "utf-8", mode: 0o600 }
       );
     }
   }

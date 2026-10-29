@@ -92,6 +92,8 @@ config["connections"]["connections"][clave] = {
 if not config["connections"].get("default"):
     config["connections"]["default"] = clave
 
+# El archivo guarda los tokens: si no existe, se crea legible sólo por el usuario (0600)
+fs_claude.touch(mode=0o600, exist_ok=True)
 fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
 print(f"Conexión guardada en: {fs_claude}")
 ```
