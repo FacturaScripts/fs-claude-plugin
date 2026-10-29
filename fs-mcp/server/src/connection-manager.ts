@@ -67,6 +67,7 @@ class ConnectionManager {
         return emptyConfig;
       }
 
+      this.restrictPermissions();
       const rawData = fs.readFileSync(this.connectionsPath, "utf-8");
       const parsed = JSON.parse(rawData);
 
@@ -90,6 +91,23 @@ class ConnectionManager {
     } catch (error) {
       console.error(`[fs-mcp] Error al cargar conexiones: ${error instanceof Error ? error.message : String(error)}`);
       return emptyConfig;
+    }
+  }
+
+  /**
+   * Deja en 0600 un archivo de conexiones que otras cuentas pueden leer: uno
+   * creado antes de que se crearan así seguiría legible hasta el primer guardado.
+   * Si no se puede (el archivo es de otra cuenta), se avisa y se sigue cargando.
+   */
+  private restrictPermissions(): void {
+    try {
+      if (fs.statSync(this.connectionsPath).mode & 0o077) {
+        fs.chmodSync(this.connectionsPath, 0o600);
+      }
+    } catch (error) {
+      console.error(
+        `[fs-mcp] No se pudo dejar en 0600 ${this.connectionsPath}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

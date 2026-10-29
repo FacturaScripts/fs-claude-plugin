@@ -19,6 +19,12 @@ declare class ConnectionManager {
      */
     private loadConnections;
     /**
+     * Deja en 0600 un archivo de conexiones que otras cuentas pueden leer: uno
+     * creado antes de que se crearan así seguiría legible hasta el primer guardado.
+     * Si no se puede (el archivo es de otra cuenta), se avisa y se sigue cargando.
+     */
+    private restrictPermissions;
+    /**
      * Crea el archivo de conexiones vacío con la estructura adecuada al formato.
      * Contiene los tokens de la API, así que se crea legible sólo por su dueño (0600).
      *

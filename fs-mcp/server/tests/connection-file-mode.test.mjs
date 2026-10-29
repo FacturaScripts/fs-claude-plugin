@@ -86,3 +86,26 @@ for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
     assert.equal(modo(file), 0o600);
   });
 }
+
+for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
+  test(`al cargar queda en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
+    temporales.push(dir);
+    let file;
+    if (formato === 'fs-claude') {
+      process.env.HOME = dir;
+      delete process.env.FS_CONNECTIONS_FILE;
+      file = path.join(dir, '.fs-claude.json');
+      fs.writeFileSync(file, JSON.stringify({ connections: { default: '', connections: {} } }));
+    } else {
+      file = path.join(dir, 'connections.json');
+      process.env.FS_CONNECTIONS_FILE = file;
+      fs.writeFileSync(file, JSON.stringify({ default: '', connections: {} }));
+    }
+    fs.chmodSync(file, 0o644);
+
+    await import(`${managerUrl}?caso=${++instancia}`);
+
+    assert.equal(modo(file), 0o600);
+  });
+}
