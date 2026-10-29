@@ -101,14 +101,15 @@ Para publicar la documentación junto con una versión no hace falta este flujo:
 Las demás herramientas solo admiten plugins que ya existen en la web. Para uno nuevo:
 
 1. `forja_get_plugin_options` devuelve el cupo (`quota.plugins` de `quota.limit`, que crece con las instalaciones
-   activas de todos tus plugins), si puedes crear uno (`can_create`) y los tipos, licencias, colecciones y equipos
-   privados admitidos. Si `can_create` es `false`, explica al usuario el motivo (email sin verificar o cupo agotado)
-   y no sigas.
+   activas de todos tus plugins), si puedes crear uno (`can_create`), los campos obligatorios y opcionales, los tipos,
+   las licencias y el precio mínimo (`min_price`). Si `can_create` es `false`, explica al usuario el motivo (email sin
+   verificar o cupo agotado) y no sigas.
 2. Toma el `name` del `facturascripts.ini` del plugin: debe coincidir con el de la web para poder subir sus
    versiones. Empieza por una letra y solo admite letras, números, `-` y `_` (de 3 a 50).
-3. Con la confirmación del usuario, `forja_create_plugin` con `name` y, si los indica, `type` (`free` por defecto,
-   `for-sale`, `sponsor` o `private`), `license` (`LGPL` por defecto), `description`, `idcoleccion`, `idteam` (el
-   primer equipo privado del autor por defecto; se crea uno si no tiene) e `idteam_doc`.
+3. Pregunta la descripción y el tipo si no los conoces: con `name` son obligatorios. Con la confirmación del usuario,
+   `forja_create_plugin` con `name`, `description`, `type` (`free`, `for-sale`, `sponsor` o `private`) y, si los
+   indica, `license` (`LGPL` por defecto) y `price` (solo para `for-sale`). El plugin se asigna al primer equipo
+   privado del autor, que se crea si no tiene ninguno.
 
 El servidor aplica los mismos límites que la web: email verificado, cupo de plugins, nombre libre (sin distinguir
 mayúsculas) y equipos privados del autor. El plugin queda **privado** hasta que el personal lo aprueba; mientras
