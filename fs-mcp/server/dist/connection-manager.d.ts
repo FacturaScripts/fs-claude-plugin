@@ -1,4 +1,12 @@
-import type { ConnectionConfig } from "./types/facturascripts.js";
+import type { ConnectionConfig, ConnectionType } from "./types/facturascripts.js";
+/**
+ * Normaliza la URL base de una instalación: quita las barras finales y, si se ha pegado la URL de la API,
+ * su ruta final (`/api/3` o `/api/3/forja`), porque los clientes ya la añaden por su cuenta.
+ *
+ * @param url - URL indicada por el usuario o guardada en el archivo de conexiones
+ * @returns URL base sin barra final, por ejemplo `https://facturascripts.com`
+ */
+export declare function normalizeBaseUrl(url: string): string;
 /**
  * Gestor centralizado de conexiones multi-instancia a FacturaScripts
  * Lee y persiste configuración desde/hacia archivo JSON
@@ -41,14 +49,25 @@ declare class ConnectionManager {
         key: string;
         name: string;
         url: string;
+        type: ConnectionType;
         isDefault: boolean;
     }>;
     /**
-     * Añade o actualiza una conexión
+     * Devuelve la clave de la primera conexión configurada de un tipo concreto.
+     * Las conexiones sin `type` se consideran de tipo `api`.
+     * @param type - Tipo de conexión buscado
+     * @returns Clave de la conexión o undefined si no hay ninguna de ese tipo
+     */
+    findFirstKeyByType(type: ConnectionType): string | undefined;
+    /**
+     * Añade una conexión o, si se indica `overwrite`, sustituye la que tenga la misma clave.
+     * La URL se guarda normalizada con `normalizeBaseUrl`.
      * @param key - Identificador único de la conexión
      * @param config - Configuración de la conexión
+     * @param overwrite - Permite sustituir una conexión existente con la misma clave (por defecto, false)
+     * @throws Error si la clave ya existe y no se permite sobrescribir, o si faltan datos
      */
-    addConnection(key: string, config: ConnectionConfig): void;
+    addConnection(key: string, config: ConnectionConfig, overwrite?: boolean): void;
     /**
      * Establece la conexión por defecto
      * @param key - Clave de la conexión a establecer como predeterminada

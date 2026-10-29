@@ -31,6 +31,9 @@ FacturaScripts. Por eso el texto es agnóstico:
 ## Comunes a las dos
 
 - **Sin título `#`**: el título de la página es el `title` de `Doc/forja.json`. La página empieza con el texto.
+- **Al menos 300 caracteres de cuerpo**: la web rechaza las páginas más cortas. Si una página se queda en una o dos
+  frases, únela a otra relacionada.
+- **Títulos únicos**: dos páginas del mismo plugin (o del core) no comparten `title`, tampoco entre `User` y `Dev`.
 - **Introducción** de uno o dos párrafos cortos: qué se consigue y, si hace falta, cómo funciona por dentro en una
   frase. Nada de «En esta página veremos...».
 - **Secciones `##`** con frases cortas y concretas. En las páginas de uso, con un emoji delante que ayude a ojear
@@ -82,3 +85,15 @@ FacturaScripts. Por eso el texto es agnóstico:
 - Una imagen por idea: recorta a la zona que importa y no repitas la misma pantalla sin un cambio que aporte.
 - Ningún dato real ni sensible: las capturas se hacen con el script `doc-screenshots.py`, que anonimiza y lo
   comprueba, y además se revisan a ojo una a una.
+
+## Publicación
+
+- Las páginas de `Doc/User` y `Doc/Dev` se publican solas al subir una versión del plugin o del core: la web importa
+  esas carpetas con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan. `Doc/Context/`,
+  `AGENTS.md` y `CLAUDE.md` no se publican nunca: no enlaces a ellos desde una página.
+- La web reconoce cada página por su ruta (`User/x.md`) y, si no la encuentra, por su `permalink`. Para renombrar una
+  página publicada cambia su `title`, no su `permalink`. Las páginas de la web que no vienen en el paquete no se
+  tocan.
+- Para corregir lo publicado sin esperar a una versión, o para traer a `Doc/` lo que se editó en la web, usa la skill
+  `fs-dev:sincronizar-forja`. Antes de subir, `forja-doc-bundle.py pack` comprueba la longitud, los enlaces, las
+  imágenes y los títulos repetidos.

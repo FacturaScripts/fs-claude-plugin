@@ -1,6 +1,6 @@
 import axios from "axios";
 import https from "https";
-import { connectionManager } from "../connection-manager.js";
+import { connectionManager, normalizeBaseUrl } from "../connection-manager.js";
 import { toApiQueryParams } from "../utils/filterParser.js";
 /**
  * Cliente HTTP para la API REST de FacturaScripts
@@ -26,6 +26,12 @@ class FacturaScriptsClient {
         catch (error) {
             throw new Error(`Error al obtener configuración de conexión: ${error instanceof Error ? error.message : String(error)}`);
         }
+        // Las conexiones de tipo forja usan otra API (/api/3/forja) y otra autenticación.
+        if (connection.type === "forja") {
+            throw new Error(`La conexión "${resolvedKey}" es de tipo forja (API de autor de facturascripts.com) ` +
+                "y no sirve para la API REST /api/3. Usa las herramientas forja_* con ella " +
+                "o indica una conexión de tipo api en el parámetro connection.");
+        }
         const shouldRejectUnauthorized = connection.rejectUnauthorized !== undefined
             ? connection.rejectUnauthorized
             : process.env.NODE_TLS_REJECT_UNAUTHORIZED !== "0";
@@ -33,7 +39,7 @@ class FacturaScriptsClient {
             rejectUnauthorized: shouldRejectUnauthorized,
         });
         const instance = axios.create({
-            baseURL: `${connection.url}/api/3`,
+            baseURL: `${normalizeBaseUrl(connection.url)}/api/3`,
             headers: {
                 Token: connection.token,
                 "Content-Type": "application/json",

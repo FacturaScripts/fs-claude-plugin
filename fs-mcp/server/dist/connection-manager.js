@@ -2,6 +2,20 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 /**
+ * Normaliza la URL base de una instalación: quita las barras finales y, si se ha pegado la URL de la API,
+ * su ruta final (`/api/3` o `/api/3/forja`), porque los clientes ya la añaden por su cuenta.
+ *
+ * @param url - URL indicada por el usuario o guardada en el archivo de conexiones
+ * @returns URL base sin barra final, por ejemplo `https://facturascripts.com`
+ */
+export function normalizeBaseUrl(url) {
+    return url
+        .trim()
+        .replace(/\/+$/, "")
+        .replace(/\/api\/3(?:\/forja)?$/i, "")
+        .replace(/\/+$/, "");
+}
+/**
  * Gestor centralizado de conexiones multi-instancia a FacturaScripts
  * Lee y persiste configuración desde/hacia archivo JSON
  *
@@ -144,22 +158,44 @@ class ConnectionManager {
             key,
             name: config.name,
             url: config.url,
+            type: config.type ?? "api",
             isDefault: key === this.config.default,
         }));
     }
     /**
-     * Añade o actualiza una conexión
+     * Devuelve la clave de la primera conexión configurada de un tipo concreto.
+     * Las conexiones sin `type` se consideran de tipo `api`.
+     * @param type - Tipo de conexión buscado
+     * @returns Clave de la conexión o undefined si no hay ninguna de ese tipo
+     */
+    findFirstKeyByType(type) {
+        return Object.entries(this.config.connections).find(([, config]) => (config.type ?? "api") === type)?.[0];
+    }
+    /**
+     * Añade una conexión o, si se indica `overwrite`, sustituye la que tenga la misma clave.
+     * La URL se guarda normalizada con `normalizeBaseUrl`.
      * @param key - Identificador único de la conexión
      * @param config - Configuración de la conexión
+     * @param overwrite - Permite sustituir una conexión existente con la misma clave (por defecto, false)
+     * @throws Error si la clave ya existe y no se permite sobrescribir, o si faltan datos
      */
-    addConnection(key, config) {
+    addConnection(key, config, overwrite = false) {
         if (!key || key.trim() === "") {
             throw new Error("La clave de conexión no puede estar vacía");
+        }
+        // Sustituir una conexión borraría su token sin posibilidad de recuperarlo, así que hay que pedirlo expresamente.
+        const existing = this.config.connections[key];
+        if (existing && !overwrite) {
+            throw new Error(`Ya existe una conexión con la clave "${key}" (${existing.name}, tipo ${existing.type ?? "api"}, ${existing.url}). ` +
+                "Usa otra clave o indica overwrite: true para sustituirla.");
         }
         if (!config.name || !config.url || !config.token) {
             throw new Error("La configuración debe incluir: name, url y token");
         }
-        this.config.connections[key] = config;
+        if (config.type !== undefined && config.type !== "api" && config.type !== "forja") {
+            throw new Error(`Tipo de conexión no válido: "${String(config.type)}". Usa "api" o "forja".`);
+        }
+        this.config.connections[key] = { ...config, url: normalizeBaseUrl(config.url) };
         // Si es la primera conexión, establécela como predeterminada
         if (!this.config.default || this.config.default === "") {
             this.config.default = key;

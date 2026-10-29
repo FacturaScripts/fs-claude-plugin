@@ -66,6 +66,7 @@ Las skills se activan solas cuando la petición encaja con su descripción. Para
 |---|---|
 | `fs-dev:docs-expert` | Responde preguntas de programación consultando la documentación oficial de FacturaScripts |
 | `fs-dev:docs-writer` | Escribe una página de documentación de uso (`Doc/User`) o de programación (`Doc/Dev`) con capturas anotadas y anonimizadas, y la registra en `Doc/forja.json` |
+| `fs-dev:sincronizar-forja` | Sincroniza un plugin con su ficha de autor en facturascripts.com mediante las herramientas `forja_*` de fs-mcp: alta del plugin, documentación, traducciones, datos, imágenes, noticias y versiones |
 | `fs-dev:analizar-bug` | Analiza y corrige bugs en plugins: comportamiento incorrecto, errores inesperados, datos incorrectos |
 | `fs-dev:testing-expert` | Tests PHPUnit, PHPStan, CS-Check, depuración y control de calidad |
 | `fs-dev:depurar-y-testear` | Guía para depurar con modo debug (FS_DEBUG), logs con Tools::log() y PHPUnit |
@@ -232,6 +233,17 @@ python3 fs-dev/scripts/create-doc-structure.py [<ruta_plugin_o_core>] [--check] 
 ```
 
 Crea o completa, sin sobrescribir nada, `Doc/User`, `Doc/Dev`, `Doc/Context/README.md`, `Doc/Assets`, `Doc/forja.json`, `AGENTS.md`, `CLAUDE.md` (solo `@AGENTS.md`) y el `.gitignore`, con un `.gitkeep` en las carpetas vacías. Del `.gitignore` quita solo las reglas que impiden versionar la estructura (`CLAUDE.md`, `AGENTS.md`, `/.claude` entero o `.agents`) y añade las que faltan, incluidas `CLAUDE.local.md` y `AGENTS.override.md`. En `Doc/forja.json` añade las secciones `User` y `Dev` que falten y valida los datos de cada página (archivo, campos admitidos, tipos, longitudes máximas, color y página padre). Avisa como pendiente de lo que no resuelve solo: un `CLAUDE.md` con instrucciones propias, un `AGENTS.md` sin enlace a `Doc/`, un problema en `Doc/forja.json` o una regla que sigue ignorando la documentación según `git check-ignore`. `--check` solo informa. Devuelve `0` si la estructura queda completa, `1` si quedan pendientes (o falta algo con `--check`) y `2` si la ruta no es un plugin ni el core.
+
+### Paquete de documentación de la forja
+
+`scripts/forja-doc-bundle.py` no es un hook: lo usa la skill `fs-dev:sincronizar-forja` para colocar en el plugin la documentación descargada de la forja de facturascripts.com (`forja_download_docs` de fs-mcp) y para preparar la que se sube (`forja_upload_docs`). El zip tiene la estructura de `Doc/`: `User/*.md`, `Dev/*.md`, `Assets/**` y `forja.json`.
+
+```bash
+python3 fs-dev/scripts/forja-doc-bundle.py unpack <bundle.zip> <ruta_plugin_o_core> [--type user|dev|all] [--dry-run]
+python3 fs-dev/scripts/forja-doc-bundle.py pack <ruta_plugin_o_core> <salida.zip> [--pages User/a.md ...] [--type user|dev|all]
+```
+
+`unpack` escribe en `Doc/User`, `Doc/Dev` y `Doc/Assets` (acepta también el prefijo `Doc/`), combina `Doc/forja.json` (las páginas del zip reemplazan su entrada y las locales que no vienen se conservan), quita los `.gitkeep` de las carpetas con contenido, valida el resultado con la misma comprobación de `create-doc-structure.py` y resume lo creado, actualizado y sin cambios. Rechaza el zip entero, sin escribir nada, si trae rutas absolutas, con `..` o enlaces simbólicos. `pack` incluye las páginas elegidas (o todas), sus entradas de `forja.json` y las imágenes de `Doc/Assets` que enlazan (en el cuerpo o en `imageurl`); avisa de imágenes o enlaces `.md` que no existen y de títulos repetidos, y no crea el zip si algún cuerpo tiene menos de 300 caracteres o `forja.json` tiene un problema. Devuelve `0` si todo va bien (aunque haya avisos), `1` si hay errores y `2` si la ruta no es un plugin, el core o un zip existente.
 
 ### Capturas de la documentación
 

@@ -13,6 +13,7 @@ Obtiene un resumen de todas tus conexiones con los detalles principales:
 - **Clave**: Identificador único de la conexión
 - **Nombre**: Descripción legible
 - **URL**: Dirección del servidor FacturaScripts
+- **Tipo**: `api` (API REST de una instalación) o `forja` (API de autor de facturascripts.com)
 - **Estado**: Indica cuál es la conexión por defecto
 
 ## Información que Obtendrás
@@ -20,11 +21,14 @@ Obtiene un resumen de todas tus conexiones con los detalles principales:
 El skill mostrará una tabla con este formato:
 
 ```
-CLAVE              | NOMBRE                   | URL                              | POR DEFECTO
--------------------|--------------------------|----------------------------------|-----------
-empresa-principal  | FacturaScripts Principal | https://fs.empresa.com          | ✓
-empresa-secundaria | FacturaScripts Demo      | https://fs-demo.empresa.com     |
+CLAVE              | NOMBRE                   | URL                          | TIPO  | POR DEFECTO
+-------------------|--------------------------|------------------------------|-------|-----------
+empresa-principal  | FacturaScripts Principal | https://fs.empresa.com       | api   | ✓
+empresa-secundaria | FacturaScripts Demo      | https://fs-demo.empresa.com  | api   |
+forja-autor        | Forja (autor)            | https://facturascripts.com   | forja |
 ```
+
+Si se lee el archivo directamente, una conexión sin el campo `type` es de tipo `api`. No muestres nunca los tokens.
 
 ## Casos Posibles
 
@@ -51,6 +55,7 @@ Verás un listado completo de todas tus conexiones, marcando cuál es la predete
 - **CLAVE**: Usarla para especificar qué conexión usar en operaciones específicas
 - **NOMBRE**: La descripción que configuraste
 - **URL**: Valida que apunta al servidor correcto
+- **TIPO**: las conexiones `api` las usan las herramientas de datos del ERP (`get_*`, `create_*`...); las `forja` solo las usan las herramientas `forja_*`, que por defecto toman la primera conexión de tipo forja. Si la conexión por defecto es de tipo `forja`, recomienda cambiarla a una `api` con `set_default_connection`
 - **POR DEFECTO**: Si ves la marca aquí, es la conexión que se usará automáticamente
 
 ## Casos de Uso
