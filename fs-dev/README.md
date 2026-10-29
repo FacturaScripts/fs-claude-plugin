@@ -23,6 +23,7 @@ Las skills se activan solas cuando la petición encaja con su descripción. Para
 | Skill | Descripción |
 |---|---|
 | `fs-dev:crear-plugin` | Crea la estructura completa de un nuevo plugin con todos los archivos necesarios |
+| `fs-dev:crear-documentacion` | Crea o completa la estructura de documentación (`Doc/`, `AGENTS.md`, `CLAUDE.md` y `.gitignore`) de un plugin o del core |
 | `fs-dev:crear-modelo` | Crea un modelo PHP con su clase y archivo XML de tabla |
 | `fs-dev:crear-controlador` | Crea controladores (ListController, EditController, PanelController) con su vista asociada |
 | `fs-dev:crear-extension` | Crea extensiones para modificar modelos o controladores sin tocar el código fuente |
@@ -188,6 +189,16 @@ Analiza también las extensiones PHP no estándar (`.phtml`, `.inc`, `.pht`, `.p
 Ninguno de estos comportamientos está prohibido: el informe no decide si el plugin es malicioso. Devuelve `0` si no hay hallazgos de severidad media o alta, `1` si los hay y `2` si la ruta no es válida o se produce un error inesperado.
 
 ---
+
+### Estructura de documentación
+
+`scripts/create-doc-structure.py` no es un hook: se ejecuta a petición, desde la skill `fs-dev:crear-documentacion` o a mano.
+
+```bash
+python3 fs-dev/scripts/create-doc-structure.py [<ruta_plugin_o_core>] [--check] [--json]
+```
+
+Crea o completa, sin sobrescribir nada, `Doc/User`, `Doc/Dev`, `Doc/Context/README.md`, `Doc/Assets`, `Doc/forja.json`, `AGENTS.md`, `CLAUDE.md` (solo `@AGENTS.md`) y el `.gitignore`, con un `.gitkeep` en las carpetas vacías. Del `.gitignore` quita solo las reglas que impiden versionar la estructura (`CLAUDE.md`, `AGENTS.md`, `/.claude` entero o `.agents`) y añade las que faltan, incluidas `CLAUDE.local.md` y `AGENTS.override.md`. En `Doc/forja.json` añade las secciones `User` y `Dev` que falten y valida los datos de cada página (archivo, campos admitidos, tipos, color y página padre). Avisa como pendiente de lo que no resuelve solo: un `CLAUDE.md` con instrucciones propias, un `AGENTS.md` sin enlace a `Doc/`, un problema en `Doc/forja.json` o una regla que sigue ignorando la documentación según `git check-ignore`. `--check` solo informa. Devuelve `0` si la estructura queda completa, `1` si quedan pendientes (o falta algo con `--check`) y `2` si la ruta no es un plugin ni el core.
 
 ## Configuración personalizada (`~/.fs-claude.json`)
 
