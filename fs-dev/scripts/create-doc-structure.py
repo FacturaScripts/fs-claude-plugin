@@ -104,6 +104,7 @@ FORJA_SECTIONS = ('User', 'Dev')
 FORJA_FIELDS: dict[str, type] = {
     'title': str,
     'title_short': str,
+    'permalink': str,
     'parent': str,
     'ordernum': int,
     'youtubeid': str,
@@ -113,6 +114,13 @@ FORJA_FIELDS: dict[str, type] = {
     'keywords': str,
     'controllers': str,
     'visibility': bool,
+}
+
+# Longitud máxima, en caracteres, de los campos de texto que la forja limita.
+FORJA_MAX_LENGTH = {
+    'permalink': 200,
+    'keywords': 300,
+    'controllers': 300,
 }
 
 # Colores de Bootstrap admitidos en el campo color.
@@ -163,8 +171,9 @@ decisiones) y dice qué archivo abrir para cada tema; no hace falta leerlo todo.
 - La documentación se actualiza en el mismo trabajo que cambia el código; una decisión nueva se anota en
   `Doc/Context/` y en su índice.
 - `Doc/forja.json` agrupa en `User` y `Dev` las páginas de esas carpetas por su nombre de archivo, con campos
-  opcionales: `title`, `title_short`, `parent`, `ordernum`, `youtubeid`, `imageurl`, `icon`, `color`, `keywords`,
-  `controllers` y `visibility`.
+  opcionales: `title`, `title_short`, `permalink` (enlace en la web, máx. 200 caracteres; no se puede cambiar una vez
+  publicada la página), `parent`, `ordernum`, `youtubeid`, `imageurl`, `icon`, `color`, `keywords` y `controllers`
+  (máx. 300 caracteres cada uno) y `visibility`.
 - `CLAUDE.md` solo importa este archivo (`@AGENTS.md`). Las instrucciones locales que no se versionan van en
   `CLAUDE.local.md` (Claude Code) o `AGENTS.override.md` (Codex).
 """
@@ -356,6 +365,9 @@ def check_forja_page(section: str, page: str, fields: object, pages: dict, folde
         elif not isinstance(value, expected) or (expected is int and isinstance(value, bool)):
             tipo = {str: 'texto', int: 'número entero', bool: 'true o false'}[expected]
             problems.append(f'{where}: «{name}» debe ser {tipo}')
+        elif name in FORJA_MAX_LENGTH and len(value) > FORJA_MAX_LENGTH[name]:
+            problems.append(f'{where}: «{name}» tiene {len(value)} caracteres y el máximo es '
+                            f'{FORJA_MAX_LENGTH[name]}')
         elif name == 'color' and value not in FORJA_COLORS:
             problems.append(f'{where}: color «{value}» no admitido ({", ".join(FORJA_COLORS)})')
         elif name == 'parent' and value not in pages and not (folder / value).is_file():

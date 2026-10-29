@@ -85,10 +85,12 @@ entre comillas.
 7. **Escribe la página** en `Doc/User/` o `Doc/Dev/` siguiendo la guía de estilo, con cada imagen justo después del paso
    que ilustra y su texto alternativo descriptivo. Borra el `.gitkeep` de las carpetas que ya tengan archivos.
 8. **Registra la página en `Doc/forja.json`**, en su sección (`User` o `Dev`) y con su nombre de archivo: `title` (el
-   título completo, empezando por «Cómo...» si es una tarea), `title_short`, `ordernum`, `imageurl` (la captura más
-   representativa, como `Doc/Assets/<nombre>/02-....png`), `icon` (Font Awesome), `color`, `keywords` (las palabras
-   que buscaría el usuario), `controllers` (los controladores de las pantallas que explica) y `visibility`. Usa
-   `parent` si la página cuelga de otra. Conserva las páginas que ya hubiera.
+   título completo, empezando por «Cómo...» si es una tarea), `title_short`, `permalink` (el enlace en la web, como
+   el nombre del archivo sin `.md`; máximo 200 caracteres), `ordernum`, `imageurl` (la captura más representativa,
+   como `Doc/Assets/<nombre>/02-....png`), `icon` (Font Awesome), `color`, `keywords` (las palabras que buscaría el
+   usuario) y `controllers` (los controladores de las pantallas que explica), con un máximo de 300 caracteres cada
+   uno, y `visibility`. Usa `parent` si la página cuelga de otra. Conserva las páginas que ya hubiera y no cambies el
+   `permalink` de una página ya publicada: la forja no permite cambiarlo al editarla.
 9. **Valida** con `create-doc-structure.py <raíz> --check` (comprueba `forja.json`) y confirma que cada imagen enlazada
    existe y que no sobran imágenes sin enlazar.
 10. **Informa** de la página creada, las imágenes, los registros de la instalación que se han usado y cualquier

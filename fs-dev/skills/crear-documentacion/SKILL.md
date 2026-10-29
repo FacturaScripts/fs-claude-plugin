@@ -64,6 +64,7 @@ Ejemplo con una página:
         "mi-pagina-de-prueba.md": {
             "title": "Mi página de prueba",
             "title_short": "Página de prueba",
+            "permalink": "mi-pagina-de-prueba",
             "parent": "mi-segunda-pagina-de-prueba.md",
             "ordernum": 100,
             "youtubeid": "https://mi-video-de-youtube.com",
@@ -79,20 +80,21 @@ Ejemplo con una página:
 }
 ```
 
-Todos los campos son opcionales:
+Todos los campos son opcionales. Las longitudes máximas se cuentan en caracteres:
 
 | Campo | Tipo | Qué indica |
 |---|---|---|
 | `title` | texto | Título de la página; si falta, se usa el nombre del archivo `.md` formateado |
 | `title_short` | texto | Título corto para SEO; si falta, se usa el nombre del archivo `.md` formateado |
+| `permalink` | texto, máx. 200 | Enlace de la página en la web. Si ya existe, la forja le añade algo para hacerlo único al crear la página; después no se puede cambiar |
 | `parent` | texto | Página padre, por su nombre de archivo en la misma sección |
 | `ordernum` | número entero | Orden de la página |
 | `youtubeid` | texto | Vídeo de YouTube de la página |
 | `imageurl` | texto | Imagen principal: una URL o un archivo de `Doc/Assets/` |
 | `icon` | texto | Icono de Font Awesome |
 | `color` | texto | Color de Bootstrap: `primary`, `secondary`, `success`, `danger`, `warning`, `info` o `dark` |
-| `keywords` | texto | Palabras clave para buscar la página, separadas por comas |
-| `controllers` | texto | Controladores donde se muestra la página, separados por comas |
+| `keywords` | texto, máx. 300 | Palabras clave para buscar la página, separadas por comas |
+| `controllers` | texto, máx. 300 | Controladores donde se muestra la página, separados por comas |
 | `visibility` | `true` o `false` | Si la página es visible |
 
 ## Script
@@ -114,7 +116,7 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
   entero, `.agents`) y añade las que faltan dentro de su sección (o al final, con su comentario, si la sección no
   existe). El resto de reglas no se tocan; `X` y `/X` cuentan como la misma regla.
 - En `Doc/forja.json` añade las secciones `User` y `Dev` que falten y valida las páginas: que existan en su carpeta,
-  que los campos y tipos sean los de la tabla, el color y que exista la página padre.
+  que los campos y tipos sean los de la tabla, las longitudes máximas, el color y que exista la página padre.
 - Termina con código 1 si deja tareas **pendientes** que no resuelve solo.
 
 ## Pasos

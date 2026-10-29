@@ -121,7 +121,8 @@ class CreateDocStructureTest(unittest.TestCase):
         forja = {
             'User': {
                 'inicio.md': {
-                    'title': 'Inicio', 'title_short': 'Inicio', 'ordernum': 100, 'youtubeid': 'abc',
+                    'title': 'Inicio', 'title_short': 'Inicio', 'permalink': 'inicio', 'ordernum': 100,
+                    'youtubeid': 'abc',
                     'imageurl': 'Doc/Assets/inicio.png', 'icon': 'fa-solid fa-book', 'color': 'info',
                     'keywords': 'inicio,ventas', 'controllers': 'ListFacturaCliente', 'visibility': True,
                 },
@@ -136,7 +137,8 @@ class CreateDocStructureTest(unittest.TestCase):
         self.assertEqual(code, 0, output)
 
         forja['User']['ventas.md'] = {'parent': 'nada.md', 'ordernum': '1', 'visibility': 'si', 'color': 'light',
-                                      'autor': 'yo'}
+                                      'autor': 'yo', 'permalink': 'p' * 201, 'keywords': 'k' * 301}
+        forja['User']['inicio.md']['controllers'] = 'c' * 300
         forja['User']['falta.md'] = {}
         forja['Otra'] = {}
         (self.root / 'Doc/forja.json').write_text(json.dumps(forja), encoding='utf-8')
@@ -146,8 +148,11 @@ class CreateDocStructureTest(unittest.TestCase):
         self.assertEqual(code, 1)
         for text in ('la página padre «nada.md» no existe', '«ordernum» debe ser número entero',
                      '«visibility» debe ser true o false', 'color «light» no admitido', 'campo desconocido «autor»',
-                     'User › falta.md no existe', 'sección desconocida «Otra»'):
+                     'User › falta.md no existe', 'sección desconocida «Otra»',
+                     '«permalink» tiene 201 caracteres y el máximo es 200',
+                     '«keywords» tiene 301 caracteres y el máximo es 300'):
             self.assertIn(text, output)
+        self.assertNotIn('«controllers» tiene', output)
 
     def test_forja_no_valido_queda_pendiente(self) -> None:
         (self.root / 'Doc').mkdir()
