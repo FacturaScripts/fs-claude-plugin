@@ -7,6 +7,7 @@ Plugin para Claude Code y Codex orientado a desarrolladores que crean o mantiene
 - [Skills disponibles](#skills-disponibles)
 - [Agentes especializados](#agentes-especializados)
 - [Detección automática de contexto](#detección-automática-de-contexto)
+- [Idioma de las respuestas](#idioma-de-las-respuestas)
 - [Scripts automáticos](#scripts-automáticos)
 
 ---
@@ -111,6 +112,34 @@ Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto co
 
 ---
 
+## Idioma de las respuestas
+
+En cada mensaje del usuario (`UserPromptSubmit`), el plugin añade al contexto un recordatorio para que el modelo responda siempre en el idioma configurado, incluidos los mensajes de progreso entre herramientas, los resúmenes, las preguntas y las descripciones de comandos. El código, los identificadores, los comandos y los términos técnicos se mantienen en su forma original. Funciona igual en Claude Code y en Codex.
+
+El idioma se elige con `settings.language` en `~/.fs-claude.json`:
+
+| Valor | Resultado |
+|-------|-----------|
+| Sin la clave, `null` o `true` | Español (por defecto) |
+| `"en"`, `"ca"`, `"gl"`, `"pt"`, `"fr"`, `"it"`, `"de"` o `"es"` | Aviso redactado en ese idioma |
+| Variantes regionales (`"pt-BR"`, `"es_ES"`) o nombres (`"inglés"`, `"English"`, `"català"`) | Se reducen al idioma principal |
+| Cualquier otro idioma (`"eu"`, `"Nederlands"`...) | Aviso en inglés que pide responder en ese idioma |
+| `false`, `"off"` o `""` | Desactivado: el hook no añade nada |
+
+```json
+{
+  "settings": {
+    "language": "en"
+  }
+}
+```
+
+El cambio surte efecto en el siguiente mensaje, sin recargar el plugin. El hook nunca bloquea: si el archivo no existe o no es JSON válido, usa el español.
+
+Como todos los hooks del plugin, deja de ejecutarse en los proyectos que desactivan `fs-dev`. Si quieres una preferencia de idioma que se aplique siempre, configúrala también fuera del plugin: el ajuste `language` de `~/.claude/settings.json` en Claude Code, o `~/.claude/CLAUDE.md` y `~/.codex/AGENTS.md`. En ese caso puedes poner `"language": "off"` para no recibir el aviso duplicado.
+
+---
+
 ## Scripts automáticos
 
 El plugin ejecuta un hook `PostToolUse` secuencial tras cada escritura o edición: primero actualiza el copyright y después ordena la clase. Acepta `Write`/`Edit` de Claude Code y `apply_patch` de Codex (con `tool_input.command` como texto o como lista), incluso cuando un parche modifica varios archivos. Procesa archivos `.php`, `.xml` y `.twig`.
@@ -202,7 +231,7 @@ Crea o completa, sin sobrescribir nada, `Doc/User`, `Doc/Dev`, `Doc/Context/READ
 
 ## Configuración personalizada (`~/.fs-claude.json`)
 
-Puedes desactivar cualquiera de los dos scripts automáticos creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
+Puedes desactivar cualquiera de los dos scripts automáticos o cambiar el idioma de las respuestas creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
 
 - **macOS / Linux**: `/Users/tu-usuario/.fs-claude.json`
 - **Windows**: `C:\Users\tu-usuario\.fs-claude.json`
@@ -213,7 +242,8 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 {
   "settings": {
     "sortClassMembers": true,
-    "updateCopyright": true
+    "updateCopyright": true,
+    "language": "es"
   }
 }
 ```
@@ -222,6 +252,7 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 |----------|------|-------------|-------------|
 | `sortClassMembers` | boolean | `true` | Activa o desactiva la ordenación automática de miembros en clases PHP |
 | `updateCopyright` | boolean | `true` | Activa o desactiva la actualización automática del año de copyright |
+| `language` | string o boolean | `"es"` | Idioma en el que debe responder el modelo; `false` u `"off"` lo desactiva (ver [Idioma de las respuestas](#idioma-de-las-respuestas)) |
 
 ### Ejemplo: desactivar la ordenación de clases
 
@@ -234,4 +265,4 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 }
 ```
 
-Si el archivo no existe, ambas transformaciones se ejecutan con su comportamiento por defecto (activadas). Los cambios de estas opciones surten efecto en la siguiente edición. Si cambia la definición del hook, Claude Code debe recargar el plugin y Codex debe revisar de nuevo el hook desde `/hooks` y abrir un hilo nuevo.
+Si el archivo no existe, ambas transformaciones se ejecutan con su comportamiento por defecto (activadas) y las respuestas se piden en español. Los cambios de estas opciones surten efecto en la siguiente edición. Si cambia la definición del hook, Claude Code debe recargar el plugin y Codex debe revisar de nuevo el hook desde `/hooks` y abrir un hilo nuevo.

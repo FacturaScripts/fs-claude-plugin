@@ -10,6 +10,7 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 | Modelo de cada perfil | Campo `model` del agente | Solicitado por la skill al delegar; sin delegación, el modelo de la sesión | Tabla de equivalencias de este documento |
 | Inicio de sesión | `SessionStart` | `SessionStart` | `*/hooks/hooks.json` |
 | Cambio de directorio | Requiere sesión nueva; `CwdChanged` no añade su salida al contexto | Requiere hilo nuevo; el evento no existe | Solo `SessionStart` |
+| Idioma de las respuestas | `UserPromptSubmit` con `additionalContext` | `UserPromptSubmit` con `additionalContext` | `fs-dev/scripts/language-reminder.py` |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
 | Servidor MCP | Raíz mediante `CLAUDE_PLUGIN_ROOT` | Raíz mediante el directorio de trabajo del plugin | Lanzador portable definido en `fs-mcp/.claude-plugin/plugin.json` |
 | Módulos privados | `settings.localModulesPath` | `settings.localModulesPath` | `~/.fs-claude.json` |
@@ -21,6 +22,12 @@ El hook `PostToolUse` normaliza los formatos de entrada de ambos hosts. Procesa 
 El hook nunca bloquea: sale siempre con código 0 y deja los errores en stderr, porque Codex no documenta la salida 1 en `PostToolUse`. Cuando modifica un archivo, devuelve `hookSpecificOutput.additionalContext` en ambos hosts para que el modelo lo relea antes de volver a editarlo. Un archivo cuenta como nuevo cuando `Write` informa `tool_response.type: "create"` (Claude Code) o el parche usa `*** Add File:` (Codex).
 
 En Codex, los hooks instalados deben revisarse desde `/hooks`. Cualquier cambio en `hooks.json` invalida la confianza anterior. El modificador de clase solo actúa sobre archivos PHP con namespace `FacturaScripts\\`.
+
+## Idioma de las respuestas
+
+El hook `UserPromptSubmit` de `fs-dev` lee `settings.language` de `~/.fs-claude.json` (español por defecto) y devuelve el aviso en `hookSpecificOutput.additionalContext`, que ambos hosts añaden al contexto del modelo. No usa `matcher`, porque Codex lo ignora en este evento. Sale siempre con código 0: el código 2 bloquearía el mensaje del usuario en los dos hosts.
+
+Al ser un hook del plugin, no se ejecuta en los proyectos que desactivan `fs-dev`. Una preferencia que deba aplicarse siempre corresponde a la configuración del usuario: el ajuste `language` de Claude Code, `~/.claude/CLAUDE.md` o `~/.codex/AGENTS.md`.
 
 ## Referencias y perfiles
 

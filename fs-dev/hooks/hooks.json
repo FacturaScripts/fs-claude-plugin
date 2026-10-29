@@ -1,5 +1,5 @@
 {
-  "description": "Detecta proyectos FacturaScripts e inyecta contexto. Tras cada edición actualiza el copyright y ordena las clases PHP de forma secuencial en Claude Code y Codex.",
+  "description": "Detecta proyectos FacturaScripts e inyecta contexto, recuerda en cada mensaje el idioma de respuesta configurado y, tras cada edición, actualiza el copyright y ordena las clases PHP de forma secuencial en Claude Code y Codex.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,6 +7,17 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/language-reminder.py\"",
             "timeout": 10
           }
         ]
