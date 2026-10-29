@@ -812,6 +812,10 @@ export async function handleAnalyticsTool(
               // Definición: localiza el cliente por CIF/NIF y devuelve todas sus facturas.
               const connection = input.connection as string;
               const cifnif = input.cifnif as string;
+              // Sin filtro la API devolvería el primer cliente de la tabla
+              if (!cifnif) {
+                throw new Error('Falta el parámetro cifnif.');
+              }
 
               // Buscar cliente por CIF/NIF (un CIF identifica como mucho a un puñado de clientes; limit fijo es suficiente)
               const clientes = await fsClient.get<any[]>(
@@ -916,6 +920,10 @@ export async function handleAnalyticsTool(
               const connection = input.connection as string;
               const codcliente = input.codcliente as string;
               const codejercicio = input.codejercicio as string | undefined;
+              // Sin filtro se sumarían las facturas de todos los clientes
+              if (!codcliente) {
+                throw new Error('Falta el parámetro codcliente.');
+              }
 
               // Obtener facturas del cliente (paginación completa)
               const params: Record<string, unknown> = { codcliente };
@@ -1031,6 +1039,10 @@ export async function handleAnalyticsTool(
               // Definición: cabecera + todas las líneas de la factura indicada por idfactura.
               const connection = input.connection as string;
               const idfactura = input.idfactura as number;
+              // Sin filtro la API devolvería la primera factura de la tabla
+              if (!idfactura) {
+                throw new Error('Falta el parámetro idfactura.');
+              }
 
               // Obtener cabecera de factura (limit:1 está bien, idfactura es único)
               const facturas = await fsClient.get<any[]>(

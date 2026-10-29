@@ -18,6 +18,11 @@ async function resolveIdProducto(
   referencia: string,
   connection?: string,
 ): Promise<number> {
+  // Sin referencia la API no filtra y devolvería el primer producto de la tabla
+  if (!referencia) {
+    throw new Error('Indica idproducto o referencia del producto.');
+  }
+
   const productos = await fsClient.get<Array<{ idproducto: number }>>(
     '/productos',
     { referencia, limit: 1 },

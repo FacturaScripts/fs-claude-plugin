@@ -12,6 +12,10 @@ import { dateRangeFilters } from '../../metadata/dateRange.js';
  * referencia, primero consultamos el producto para obtener su idproducto.
  */
 async function resolveIdProducto(referencia, connection) {
+    // Sin referencia la API no filtra y devolvería el primer producto de la tabla
+    if (!referencia) {
+        throw new Error('Indica idproducto o referencia del producto.');
+    }
     const productos = await fsClient.get('/productos', { referencia, limit: 1 }, connection);
     const producto = Array.isArray(productos) ? productos[0] : undefined;
     if (!producto) {
