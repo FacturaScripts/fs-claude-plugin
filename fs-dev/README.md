@@ -112,6 +112,8 @@ La detección solo se hace al iniciar la sesión, en ambos hosts. Si cambias de 
 
 Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto completo del framework para dar respuestas más precisas.
 
+El contexto incluye también la regla de la documentación propia: el core y cada plugin pueden tener su `AGENTS.md` y su carpeta `Doc/` (`User`, `Dev`, `Context` con su índice `README.md`, `Assets` y `forja.json`), que hay que leer antes de cambiarlos y actualizar en el mismo trabajo. Si el plugin donde se abre la sesión o el core tienen `AGENTS.md` o `Doc/Context/README.md`, el contexto da sus rutas. Así la regla se aplica aunque el core no incluya todavía su propio `AGENTS.md`.
+
 ---
 
 ## Idioma de las respuestas

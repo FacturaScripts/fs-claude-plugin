@@ -130,6 +130,37 @@ class DetectFacturaScriptsTest(unittest.TestCase):
         self.assertIn('programación', salida_dev)
         self.assertIn('Translation/es_ES.json', salida_dev)
 
+    def test_fs_dev_explica_el_arbol_de_documentacion(self) -> None:
+        """fs-dev debe recordar que el core y cada plugin pueden tener AGENTS.md y Doc/."""
+        raiz = self.crear_por_composer()
+        salida = ejecutar(SCRIPTS['fs-dev'], raiz).stdout
+
+        self.assertIn('DOCUMENTACIÓN', salida)
+        self.assertIn('Doc/Context/README.md', salida)
+        self.assertIn('fs-dev:crear-documentacion', salida)
+        self.assertNotIn('Documentación existente', salida)
+
+    def test_fs_dev_lista_la_documentacion_del_plugin_y_del_core(self) -> None:
+        """Desde un plugin, fs-dev debe dar las rutas de su documentación y de la del core."""
+        raiz = self.crear_por_estructura()
+        (raiz / 'AGENTS.md').write_text('Core\n', encoding='utf-8')
+        plugin = raiz / 'Plugins' / 'MiPlugin'
+        (plugin / 'Doc' / 'Context').mkdir(parents=True)
+        (plugin / 'Model').mkdir()
+        (plugin / 'facturascripts.ini').write_text("name = 'MiPlugin'\n", encoding='utf-8')
+        (plugin / 'AGENTS.md').write_text('Plugin\n', encoding='utf-8')
+        (plugin / 'Doc' / 'Context' / 'README.md').write_text('# Índice\n', encoding='utf-8')
+        otro = raiz / 'Plugins' / 'OtroPlugin'
+        otro.mkdir()
+        (otro / 'AGENTS.md').write_text('Otro\n', encoding='utf-8')
+
+        salida = ejecutar(SCRIPTS['fs-dev'], plugin / 'Model').stdout
+
+        self.assertIn(f'Plugin MiPlugin: {plugin}/AGENTS.md', salida)
+        self.assertIn(f'Plugin MiPlugin: {plugin}/Doc/Context/README.md', salida)
+        self.assertIn(f'Core: {raiz}/AGENTS.md', salida)
+        self.assertNotIn('OtroPlugin', salida)
+
 
 if __name__ == '__main__':
     unittest.main()

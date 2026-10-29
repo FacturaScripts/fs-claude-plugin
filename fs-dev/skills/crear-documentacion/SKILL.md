@@ -40,6 +40,10 @@ Es la de los plugins fiscales (FiscalES, Facturae, InformeSII, Ticketbai y Verif
   `Doc/`; de `.claude/` y `.agents/` solo ignora lo local (`/.claude/*` y `/.agents/*`, con las excepciones
   `!/.claude/skills` y `!/.agents/skills`).
 
+Al iniciar una sesión en una instalación de FacturaScripts, el hook `SessionStart` de fs-dev recuerda que el core y
+cada plugin pueden tener este árbol y da las rutas del `AGENTS.md` y del índice de `Doc/Context/` que existan en el
+plugin actual y en el core.
+
 ## Doc/forja.json
 
 Agrupa en `User` y `Dev` las páginas de `Doc/User/` y `Doc/Dev/`, cada una por su nombre de archivo, con sus datos para
