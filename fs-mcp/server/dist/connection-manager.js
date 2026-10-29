@@ -129,7 +129,9 @@ class ConnectionManager {
         if (!connectionKey) {
             throw new Error("No hay conexión por defecto configurada y no se proporcionó ninguna clave");
         }
-        const connection = this.config.connections[connectionKey];
+        const connection = Object.hasOwn(this.config.connections, connectionKey)
+            ? this.config.connections[connectionKey]
+            : undefined;
         if (!connection) {
             throw new Error(`Conexión no encontrada: "${connectionKey}". Conexiones disponibles: ${Object.keys(this.config.connections).join(", ")}`);
         }
@@ -177,7 +179,7 @@ class ConnectionManager {
      * @throws Error si la conexión no existe
      */
     setDefault(key) {
-        if (!this.config.connections[key]) {
+        if (!Object.hasOwn(this.config.connections, key)) {
             throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
         }
         this.config.default = key;

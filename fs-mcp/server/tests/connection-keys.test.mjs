@@ -22,3 +22,8 @@ test('add_connection rechaza la clave __proto__ y no cambia el mapa de conexione
   assert.throws(() => connectionManager.getConnection('token'), /no encontrada/);
   assert.deepEqual(connectionManager.listConnections().map((c) => c.key), ['a']);
 });
+
+test('una clave heredada de Object.prototype no es una conexión', () => {
+  assert.throws(() => connectionManager.setDefault('toString'), /no existe/);
+  assert.throws(() => connectionManager.getConnection('constructor'), /no encontrada/);
+});
