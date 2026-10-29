@@ -928,25 +928,25 @@ export async function handlePurchasingTool(name, args) {
         case 'update_factura_proveedor': {
             const params = input;
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturasprov/${encodeURIComponent(String(idfactura))}`, data, connection);
+            const result = await fsClient.put(`/facturaproveedores/${encodeURIComponent(String(idfactura))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_albaran_proveedor': {
             const params = input;
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranesprov/${encodeURIComponent(String(idalbaran))}`, data, connection);
+            const result = await fsClient.put(`/albaranproveedores/${encodeURIComponent(String(idalbaran))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_pedido_proveedor': {
             const params = input;
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidosprov/${encodeURIComponent(String(idpedido))}`, data, connection);
+            const result = await fsClient.put(`/pedidoproveedores/${encodeURIComponent(String(idpedido))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_presupuesto_proveedor': {
             const params = input;
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestosprov/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
+            const result = await fsClient.put(`/presupuestoproveedores/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_cuentabancoproveedor': {

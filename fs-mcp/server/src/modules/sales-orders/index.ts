@@ -1167,28 +1167,28 @@ export async function handleSalesOrdersTool(
           case 'update_factura_cliente': {
             const params = input as any as { connection?: string; idfactura: number; [key: string]: unknown };
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturascli/${encodeURIComponent(String(idfactura))}`, data, connection);
+            const result = await fsClient.put(`/facturaclientes/${encodeURIComponent(String(idfactura))}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_albaran_cliente': {
             const params = input as any as { connection?: string; idalbaran: number; [key: string]: unknown };
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranescli/${encodeURIComponent(String(idalbaran))}`, data, connection);
+            const result = await fsClient.put(`/albaranclientes/${encodeURIComponent(String(idalbaran))}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_pedido_cliente': {
             const params = input as any as { connection?: string; idpedido: number; [key: string]: unknown };
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidoscli/${encodeURIComponent(String(idpedido))}`, data, connection);
+            const result = await fsClient.put(`/pedidoclientes/${encodeURIComponent(String(idpedido))}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_presupuesto_cliente': {
             const params = input as any as { connection?: string; idpresupuesto: number; [key: string]: unknown };
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestoscli/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
+            const result = await fsClient.put(`/presupuestoclientes/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 

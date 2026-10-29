@@ -934,25 +934,25 @@ export async function handleSalesOrdersTool(name, args) {
         case 'update_factura_cliente': {
             const params = input;
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturascli/${encodeURIComponent(String(idfactura))}`, data, connection);
+            const result = await fsClient.put(`/facturaclientes/${encodeURIComponent(String(idfactura))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_albaran_cliente': {
             const params = input;
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranescli/${encodeURIComponent(String(idalbaran))}`, data, connection);
+            const result = await fsClient.put(`/albaranclientes/${encodeURIComponent(String(idalbaran))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_pedido_cliente': {
             const params = input;
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidoscli/${encodeURIComponent(String(idpedido))}`, data, connection);
+            const result = await fsClient.put(`/pedidoclientes/${encodeURIComponent(String(idpedido))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_presupuesto_cliente': {
             const params = input;
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestoscli/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
+            const result = await fsClient.put(`/presupuestoclientes/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:

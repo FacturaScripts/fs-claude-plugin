@@ -1870,18 +1870,18 @@ export async function handleCoreBusinessTool(name, args) {
         case 'create_cuentabancocliente': {
             const params = input;
             const { connection, ...data } = params;
-            const result = await fsClient.post('/cuentabancoasociados', data, connection);
+            const result = await fsClient.post('/cuentabancoclientes', data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_cuentabancocliente': {
             const params = input;
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoasociados/${encodeURIComponent(String(codcuenta))}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoclientes/${encodeURIComponent(String(codcuenta))}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cuentabancocliente': {
             const params = input;
-            const result = await fsClient.delete(`/cuentabancoasociados/${encodeURIComponent(String(params.codcuenta))}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoclientes/${encodeURIComponent(String(params.codcuenta))}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:
