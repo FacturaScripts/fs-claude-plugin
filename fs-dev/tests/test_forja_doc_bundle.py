@@ -224,6 +224,21 @@ class PackTest(ForjaDocBundleTestCase):
                 self.assertIn(message, output)
         self.assertFalse(out.exists())
 
+    def test_rechaza_paginas_que_enlazan_fuera_de_doc(self) -> None:
+        secret = self.base / 'secreto.md'
+        secret.write_text(page('Datos privados que no deben publicarse.'), encoding='utf-8')
+        (self.doc / 'User').mkdir(parents=True, exist_ok=True)
+        (self.doc / 'User/enlace.md').symlink_to(secret)
+        self.write('User/buena.md', page('Contenido normal.'))
+        out = self.base / 'docs.zip'
+
+        for args in ((), ('--pages', 'User/enlace.md')):
+            with self.subTest(args=args):
+                code, output = run_main('pack', str(self.root), str(out), *args)
+                self.assertEqual(code, 1)
+                self.assertIn('User/enlace.md', output)
+                self.assertFalse(out.exists())
+
     def test_sin_paginas_es_un_error(self) -> None:
         code, output = run_main('pack', str(self.root), str(self.base / 'docs.zip'))
 

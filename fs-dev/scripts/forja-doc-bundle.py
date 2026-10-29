@@ -486,8 +486,15 @@ def unpack(bundle_path: Path, root: Path, doc_type: str = 'all', dry_run: bool =
 def select_pages(doc: Path, pages: list[str] | None, sections: tuple[str, ...], result: Result) -> list[str]:
     """Devuelve las páginas que se empaquetan (``User/a.md``): las indicadas o todas las de las secciones."""
     if not pages:
-        return [f'{section}/{path.name}' for section in sections
-                for path in sorted((doc / section).glob('*.md')) if path.is_file()]
+        selected = []
+        for section in sections:
+            for path in sorted((doc / section).glob('*.md')):
+                # un enlace simbólico a un archivo de fuera de Doc/ lo publicaría en la web
+                if path.is_file() and not is_inside(path, doc):
+                    result.errors.append(f'Doc/{section}/{path.name} enlaza a un archivo fuera de Doc/')
+                elif path.is_file():
+                    selected.append(f'{section}/{path.name}')
+        return selected
 
     selected = []
     for page in pages:
@@ -572,7 +579,7 @@ def pack(root: Path, out: Path, pages: list[str] | None = None, doc_type: str = 
 
     files: list[tuple[str, bytes]] = [('forja.json', (json.dumps(entries, indent=4, ensure_ascii=False) + '\n')
                                        .encode('utf-8'))]
-    files += [(path, (doc / path).read_bytes()) for path in selected]
+    files += [(path, (doc / path).read_bytes()) for path in selected if is_inside(doc / path, doc)]
     files += [(path, (doc / path).read_bytes()) for path in sorted(assets) if is_inside(doc / path, doc)]
 
     out.parent.mkdir(parents=True, exist_ok=True)
