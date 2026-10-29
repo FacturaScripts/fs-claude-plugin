@@ -135,7 +135,8 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
 6. Repite el script con `--check` para confirmar que la estructura queda completa y resume los cambios.
 
 No escribas páginas de `Doc/User`, `Doc/Dev` o `Doc/Context` ni rellenes `forja.json` salvo que el usuario lo pida.
-No hagas commits.
+Para escribir una página de `Doc/User` o `Doc/Dev` con sus capturas, usa la skill `fs-dev:docs-writer`. No hagas
+commits.
 
 ## Alternativa con fsmaker
 
