@@ -354,6 +354,14 @@ export class ForjaClient {
     );
     const target = path.resolve(outputFile);
     const bytes = Buffer.from(response.data);
+    // Solo se escriben zips, y solo encima de otro zip: así una ruta equivocada no destruye otro archivo.
+    if (bytes.subarray(0, 2).toString("latin1") !== "PK") {
+      throw new ForjaApiError(`GET ${endpoint}: la respuesta no es un archivo zip`);
+    }
+    const existing = await readFile(target).catch(() => null);
+    if (existing && existing.subarray(0, 2).toString("latin1") !== "PK") {
+      throw new ForjaApiError(`No se sobrescribe ${target}: ya existe y no es un archivo zip`);
+    }
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, bytes);
 

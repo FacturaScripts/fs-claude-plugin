@@ -9,7 +9,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { readdir, readFile, stat, mkdir, writeFile } from 'fs/promises';
+import { open, readdir, readFile, realpath, stat, mkdir, writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { forjaClient } from '../../fs/forja-client.js';
@@ -39,6 +39,14 @@ const PLUGIN_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{2,49}$/;
 /** Código de idioma válido para un archivo de traducción (por ejemplo es_ES o pt_BR). */
 const LANG_PATTERN = /^[A-Za-z]{2,3}_[A-Za-z]{2,3}$/;
 
+/** Extensiones de los archivos locales que se pueden subir, según su uso. */
+const IMAGE_EXTENSIONS = ['.gif', '.jpeg', '.jpg', '.png', '.webp'];
+const MARKDOWN_EXTENSIONS = ['.markdown', '.md', '.txt'];
+const ZIP_EXTENSIONS = ['.zip'];
+
+/** Tamaño máximo de un cuerpo leído de body_file: 1 MB. */
+const MAX_BODY_FILE_SIZE = 1024 * 1024;
+
 /** Resultado que devuelve cada herramienta al servidor MCP. */
 type ToolResult = { content: [{ type: 'text'; text: string }]; isError?: boolean };
 
@@ -55,8 +63,8 @@ export const forjaTools: Tool[] = [
   {
     name: 'forja_get_plugin_options',
     description:
-      'Forja: devuelve tu cupo de plugins (creados y máximo según tus instalaciones activas), si puedes crear uno nuevo ' +
-      'y los tipos, licencias, colecciones y equipos privados admitidos al crearlo',
+      'Forja: devuelve tu cupo de plugins (creados y máximo según tus instalaciones activas), si puedes crear uno nuevo, ' +
+      'los campos obligatorios y opcionales del alta, los tipos, las licencias y el precio mínimo',
     inputSchema: {
       type: 'object' as const,
       properties: { connection: CONNECTION_PROPERTY },
@@ -67,7 +75,8 @@ export const forjaTools: Tool[] = [
     name: 'forja_create_plugin',
     description:
       'Forja: crea un plugin nuevo en facturascripts.com con los mismos límites que la web (email verificado, cupo de plugins ' +
-      'y nombre libre). Queda privado hasta que el personal lo apruebe. Consulta antes forja_get_plugin_options',
+      'y nombre libre). Son obligatorios name, description y type. Queda privado hasta que el personal lo apruebe. ' +
+      'Consulta antes forja_get_plugin_options',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -76,14 +85,20 @@ export const forjaTools: Tool[] = [
           type: 'string',
           description: 'Nombre del plugin: el mismo que el name de su facturascripts.ini. Empieza por una letra; solo letras, números, - y _ (3-50)',
         },
-        type: { type: 'string', enum: PLUGIN_TYPES, description: 'Tipo de plugin (por defecto: free)' },
-        license: { type: 'string', description: 'Licencia, una de las de forja_get_plugin_options (por defecto: LGPL)' },
-        description: { type: 'string', description: 'Descripción del plugin (opcional)' },
-        idcoleccion: { type: 'integer', description: 'Colección del plugin (opcional)' },
-        idteam: { type: 'integer', description: 'Equipo privado del plugin (opcional; por defecto, el primero de los tuyos)' },
-        idteam_doc: { type: 'integer', description: 'Equipo privado adicional para la documentación (opcional)' },
+        description: { type: 'string', description: 'Descripción del plugin' },
+        type: {
+          type: 'string',
+          enum: PLUGIN_TYPES,
+          description: 'Tipo de plugin: free (gratuito), for-sale (de pago), sponsor (para patrocinadores) o private (privado)',
+        },
+        license: { type: 'string', description: 'Licencia, una de las de forja_get_plugin_options (opcional; por defecto: LGPL)' },
+        price: {
+          type: 'number',
+          minimum: 0,
+          description: 'Precio, solo para plugins de tipo for-sale (opcional; no inferior al min_price de forja_get_plugin_options)',
+        },
       },
-      required: ['name'],
+      required: ['name', 'description', 'type'],
     },
   },
   {
@@ -120,7 +135,7 @@ export const forjaTools: Tool[] = [
       properties: {
         connection: CONNECTION_PROPERTY,
         plugin: PLUGIN_PROPERTY,
-        image_path: { type: 'string', description: 'Ruta absoluta de la imagen local' },
+        image_path: { type: 'string', description: 'Ruta absoluta de la imagen local (gif, jpeg, jpg, png o webp)' },
         position: { type: 'integer', minimum: 1, maximum: 3, description: 'Posición de la imagen (1-3, opcional)' },
       },
       required: ['plugin', 'image_path'],
@@ -182,7 +197,7 @@ export const forjaTools: Tool[] = [
         connection: CONNECTION_PROPERTY,
         plugin: PLUGIN_PROPERTY,
         type: { type: 'string', enum: ['all', 'user', 'dev'], description: 'Documentación a descargar (por defecto: all)' },
-        output_zip: { type: 'string', description: 'Ruta absoluta del zip de salida' },
+        output_zip: { type: 'string', description: 'Ruta absoluta del zip de salida (.zip; solo sustituye otro zip)' },
       },
       required: ['plugin', 'output_zip'],
     },
@@ -196,7 +211,7 @@ export const forjaTools: Tool[] = [
       properties: {
         connection: CONNECTION_PROPERTY,
         plugin: PLUGIN_PROPERTY,
-        zip_path: { type: 'string', description: 'Ruta absoluta del zip de documentación' },
+        zip_path: { type: 'string', description: 'Ruta absoluta del zip de documentación (.zip)' },
       },
       required: ['plugin', 'zip_path'],
     },
@@ -219,7 +234,7 @@ export const forjaTools: Tool[] = [
       properties: {
         connection: CONNECTION_PROPERTY,
         plugin: PLUGIN_PROPERTY,
-        zip_path: { type: 'string', description: 'Ruta absoluta del zip del plugin' },
+        zip_path: { type: 'string', description: 'Ruta absoluta del zip del plugin (.zip)' },
         version: { type: 'string', description: 'Número de versión (opcional; por defecto, el del facturascripts.ini del zip)' },
       },
       required: ['plugin', 'zip_path'],
@@ -263,14 +278,14 @@ export const forjaTools: Tool[] = [
         type: { type: 'string', enum: PUBLICATION_TYPES, description: 'Tipo de publicación: news, user o dev' },
         title: { type: 'string', description: 'Título' },
         body: { type: 'string', description: 'Cuerpo en Markdown (alternativa a body_file)' },
-        body_file: { type: 'string', description: 'Ruta absoluta de un archivo Markdown con el cuerpo (alternativa a body)' },
+        body_file: { type: 'string', description: 'Ruta absoluta de un archivo .md, .markdown o .txt con el cuerpo (alternativa a body)' },
         ordernum: { type: 'integer', description: 'Orden dentro de la documentación (opcional)' },
         idparent: { type: 'integer', description: 'Publicación padre (opcional)' },
         youtubeid: { type: 'string', description: 'Identificador de un vídeo de YouTube (opcional)' },
         images: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Rutas absolutas de imágenes a adjuntar (opcional)',
+          description: 'Rutas absolutas de imágenes a adjuntar: gif, jpeg, jpg, png o webp (opcional)',
         },
       },
       required: ['plugin', 'type', 'title'],
@@ -289,7 +304,7 @@ export const forjaTools: Tool[] = [
         type: { type: 'string', enum: PUBLICATION_TYPES, description: 'Tipo de publicación: news, user o dev' },
         title: { type: 'string', description: 'Título' },
         body: { type: 'string', description: 'Cuerpo en Markdown (alternativa a body_file)' },
-        body_file: { type: 'string', description: 'Ruta absoluta de un archivo Markdown con el cuerpo (alternativa a body)' },
+        body_file: { type: 'string', description: 'Ruta absoluta de un archivo .md, .markdown o .txt con el cuerpo (alternativa a body)' },
         ordernum: { type: 'integer', description: 'Orden dentro de la documentación' },
         idparent: { type: 'integer', description: 'Publicación padre' },
         youtubeid: { type: 'string', description: 'Identificador de un vídeo de YouTube' },
@@ -340,15 +355,27 @@ export async function handleForjaTool(
       }
 
       case 'forja_create_plugin': {
-        const data = pickDefined(args, ['name', 'type', 'license', 'description', 'idcoleccion', 'idteam', 'idteam_doc']);
+        const data = pickDefined(args, ['name', 'description', 'type', 'license', 'price']);
         const pluginName = requiredString(args, 'name');
         if (!PLUGIN_NAME_PATTERN.test(pluginName)) {
           throw new Error(`"${pluginName}" no es un nombre válido: debe empezar por una letra y tener de 3 a 50 letras, números, - o _`);
         }
-        if (data.type !== undefined && !PLUGIN_TYPES.includes(String(data.type))) {
+        data.name = pluginName;
+        data.description = requiredString(args, 'description');
+        data.type = requiredString(args, 'type');
+        if (!PLUGIN_TYPES.includes(String(data.type))) {
           throw new Error(`El parámetro type debe ser ${PLUGIN_TYPES.join(', ')}`);
         }
-        data.name = pluginName;
+        if (data.price !== undefined) {
+          const price = Number(data.price);
+          if (!Number.isFinite(price) || price < 0) {
+            throw new Error('El parámetro price debe ser un número mayor o igual que 0');
+          }
+          if (price > 0 && data.type !== 'for-sale') {
+            throw new Error('Solo los plugins de tipo for-sale pueden tener precio');
+          }
+          data.price = price;
+        }
         result = await forjaClient.sendJson('POST', '/plugins', data, connection);
         break;
       }
@@ -373,7 +400,7 @@ export async function handleForjaTool(
           'POST',
           `${pluginEndpoint(args)}/images`,
           { position },
-          [{ field: 'image', path: absolutePath(args, 'image_path') }],
+          [{ field: 'image', path: await localFile(args, 'image_path', IMAGE_EXTENSIONS) }],
           connection
         );
         break;
@@ -406,7 +433,7 @@ export async function handleForjaTool(
         const download = await forjaClient.download(
           `${pluginEndpoint(args)}/docs`,
           { type },
-          absolutePath(args, 'output_zip'),
+          zipOutputPath(args, 'output_zip'),
           connection
         );
         result = { plugin: requiredString(args, 'plugin'), type, ...download };
@@ -418,7 +445,7 @@ export async function handleForjaTool(
           'POST',
           `${pluginEndpoint(args)}/docs`,
           {},
-          [{ field: 'docs', path: absolutePath(args, 'zip_path') }],
+          [{ field: 'docs', path: await localZip(args, 'zip_path') }],
           connection
         );
         break;
@@ -434,7 +461,7 @@ export async function handleForjaTool(
           'POST',
           `${pluginEndpoint(args)}/builds`,
           { version: optionalString(args, 'version') },
-          [{ field: 'zip', path: absolutePath(args, 'zip_path') }],
+          [{ field: 'zip', path: await localZip(args, 'zip_path') }],
           connection
         );
         break;
@@ -459,7 +486,7 @@ export async function handleForjaTool(
         if (data.body === undefined) {
           throw new Error('Indica el cuerpo de la publicación con body o body_file');
         }
-        const images = imagePaths(args);
+        const images = await imagePaths(args);
         const endpoint = `${pluginEndpoint(args)}/publications`;
         result = images.length > 0
           ? await forjaClient.sendMultipart('POST', endpoint, data, images.map((image) => ({ field: 'images[]', path: image })), connection)
@@ -591,7 +618,11 @@ async function publicationData(args: Record<string, unknown>): Promise<Record<st
     if (args.body !== undefined) {
       throw new Error('Indica el cuerpo con body o con body_file, no con los dos');
     }
-    data.body = await readFile(absolutePath(args, 'body_file'), 'utf-8');
+    const bodyFile = await localFile(args, 'body_file', MARKDOWN_EXTENSIONS);
+    if ((await stat(bodyFile)).size > MAX_BODY_FILE_SIZE) {
+      throw new Error(`El archivo ${bodyFile} supera 1 MB: no parece el cuerpo de una publicación`);
+    }
+    data.body = await readFile(bodyFile, 'utf-8');
   }
   return data;
 }
@@ -741,19 +772,103 @@ function toAbsolutePath(value: string, key: string): string {
 }
 
 /**
- * Rutas absolutas de las imágenes del parámetro images.
+ * Rutas reales de las imágenes del parámetro images, comprobadas con `checkLocalFile`.
  *
  * @param args - Argumentos de la herramienta
  * @returns Lista de rutas (vacía si no se indican)
  */
-function imagePaths(args: Record<string, unknown>): string[] {
+async function imagePaths(args: Record<string, unknown>): Promise<string[]> {
   if (args.images === undefined || args.images === null) {
     return [];
   }
   if (!Array.isArray(args.images)) {
     throw new Error('El parámetro images debe ser una lista de rutas');
   }
-  return args.images.map((image) => toAbsolutePath(String(image), 'images'));
+  return await Promise.all(
+    args.images.map((image) => checkLocalFile(toAbsolutePath(String(image), 'images'), 'images', IMAGE_EXTENSIONS))
+  );
+}
+
+/**
+ * Archivo local que se va a subir o publicar, comprobado con `checkLocalFile`.
+ *
+ * @param args - Argumentos de la herramienta
+ * @param key - Nombre del parámetro con la ruta
+ * @param extensions - Extensiones admitidas, en minúsculas y con punto
+ * @returns Ruta real del archivo
+ */
+async function localFile(args: Record<string, unknown>, key: string, extensions: string[]): Promise<string> {
+  return await checkLocalFile(absolutePath(args, key), key, extensions);
+}
+
+/**
+ * Comprueba un archivo local antes de enviarlo a la web, donde puede quedar publicado: debe existir, se resuelven
+ * sus enlaces simbólicos y la extensión del archivo real debe ser de las admitidas. Así una ruta manipulada no
+ * puede publicar, por ejemplo, el archivo de conexiones con los tokens o una clave privada.
+ *
+ * @param file - Ruta absoluta indicada
+ * @param key - Nombre del parámetro, para el mensaje de error
+ * @param extensions - Extensiones admitidas, en minúsculas y con punto
+ * @returns Ruta real del archivo
+ */
+async function checkLocalFile(file: string, key: string, extensions: string[]): Promise<string> {
+  const real = await realpath(file).catch(() => null);
+  const info = real ? await stat(real).catch(() => null) : null;
+  if (!real || !info || !info.isFile()) {
+    throw new Error(`No existe el archivo: ${file}`);
+  }
+  if (!extensions.includes(path.extname(real).toLowerCase())) {
+    throw new Error(`El parámetro ${key} debe ser un archivo ${extensions.join(', ')}: ${file}`);
+  }
+  return real;
+}
+
+/**
+ * Zip local que se va a subir: además de la extensión, comprueba que empieza por la firma de un zip.
+ *
+ * @param args - Argumentos de la herramienta
+ * @param key - Nombre del parámetro con la ruta
+ * @returns Ruta real del zip
+ */
+async function localZip(args: Record<string, unknown>, key: string): Promise<string> {
+  const file = await localFile(args, key, ZIP_EXTENSIONS);
+  if (!(await hasZipSignature(file))) {
+    throw new Error(`${file} no es un archivo zip`);
+  }
+  return file;
+}
+
+/**
+ * Ruta de un zip que se va a descargar: debe acabar en .zip y, si ya existe, ser un zip, para no sobrescribir
+ * otro tipo de archivo.
+ *
+ * @param args - Argumentos de la herramienta
+ * @param key - Nombre del parámetro con la ruta
+ * @returns Ruta absoluta del zip de salida
+ */
+function zipOutputPath(args: Record<string, unknown>, key: string): string {
+  const file = absolutePath(args, key);
+  if (path.extname(file).toLowerCase() !== '.zip') {
+    throw new Error(`El parámetro ${key} debe acabar en .zip: ${file}`);
+  }
+  return file;
+}
+
+/**
+ * Indica si un archivo empieza por la firma de un zip (PK).
+ *
+ * @param file - Ruta del archivo
+ * @returns true si es un zip
+ */
+async function hasZipSignature(file: string): Promise<boolean> {
+  const handle = await open(file, 'r');
+  try {
+    const buffer = Buffer.alloc(2);
+    const { bytesRead } = await handle.read(buffer, 0, 2, 0);
+    return bytesRead === 2 && buffer.toString('latin1') === 'PK';
+  } finally {
+    await handle.close();
+  }
 }
 
 /**

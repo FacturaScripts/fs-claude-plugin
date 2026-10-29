@@ -246,6 +246,7 @@ Usa la skill `/fs-mcp:add-connection` e indica el tipo `forja`, o la herramienta
 - No la marques como conexión por defecto: la conexión por defecto la usan las herramientas `get_*`, `create_*`, etc. de la API estándar, que rechazan las conexiones de tipo `forja` con un error claro.
 - Las herramientas `forja_*` usan por defecto la **primera conexión de tipo forja** configurada, no la conexión por defecto global. Si tienes varias, indica cuál con el parámetro `connection`.
 - Las conexiones existentes sin `type` siguen siendo de tipo `api`; no hace falta cambiarlas.
+- Las herramientas solo suben archivos con la extensión de su uso (imágenes gif, jpeg, jpg, png o webp; zips que lo son de verdad; cuerpos `.md`, `.markdown` o `.txt`), comprobada tras resolver los enlaces simbólicos, y la descarga de documentación solo escribe un `.zip` y nunca encima de otro tipo de archivo. Así una ruta manipulada no puede publicar en la web, por ejemplo, el archivo de conexiones.
 - Usa una clave que no tengas ya, por ejemplo `forja-autor`: `add_connection` no sustituye una conexión existente salvo con `overwrite: true`, así que una conexión `api` a facturascripts.com llamada `forja` queda a salvo.
 - La URL es la base de la web (`https://facturascripts.com`). Si pegas la de la API (`.../api/3/forja`), se quita esa ruta al guardar.
 
@@ -254,8 +255,8 @@ Usa la skill `/fs-mcp:add-connection` e indica el tipo `forja`, o la herramienta
 | Herramienta | Qué hace |
 |---|---|
 | `forja_list_plugins` / `forja_get_plugin` | Lista tus plugins u obtiene los datos de uno |
-| `forja_get_plugin_options` | Devuelve tu cupo de plugins, si puedes crear uno y los tipos, licencias, colecciones y equipos admitidos |
-| `forja_create_plugin` | Crea un plugin nuevo (`name`; opcionales `type`, `license`, `description`, `idcoleccion`, `idteam` e `idteam_doc`) con los mismos límites que la web: email verificado, cupo de plugins y nombre libre. Queda privado hasta que el personal lo apruebe |
+| `forja_get_plugin_options` | Devuelve tu cupo de plugins, si puedes crear uno, los campos obligatorios y opcionales, los tipos, las licencias y el precio mínimo |
+| `forja_create_plugin` | Crea un plugin nuevo con los mismos límites que la web (email verificado, cupo de plugins y nombre libre). Obligatorios `name`, `description` y `type` (`free`, `for-sale`, `sponsor` o `private`); opcionales `license` (`LGPL` por defecto) y `price` (solo `for-sale`). Queda privado hasta que el personal lo apruebe |
 | `forja_update_plugin` | Cambia `description`, `description_short`, `publicrepo` o `youtube` |
 | `forja_upload_plugin_image` / `forja_delete_plugin_image` | Sube una imagen (posición 1-3 opcional) o borra la de una posición |
 | `forja_download_translations` | Escribe `<plugin_path>/Translation/<idioma>.json` (todos los idiomas o solo `lang`), sustituyendo los archivos locales |
@@ -264,7 +265,7 @@ Usa la skill `/fs-mcp:add-connection` e indica el tipo `forja`, o la herramienta
 | `forja_upload_docs` | Sube un zip de documentación con la misma estructura (`User/*.md`, `Dev/*.md`, `Assets/`, `forja.json`) |
 | `forja_list_builds` / `forja_upload_build` | Lista las versiones o sube el zip de una nueva (`version` opcional) |
 | `forja_list_publications` / `forja_get_publication` | Lista las publicaciones (`type`: `news`, `user` o `dev`) u obtiene una |
-| `forja_create_publication` / `forja_update_publication` | Crea o modifica una publicación; el cuerpo Markdown va en `body` o en `body_file`, y al crear se pueden adjuntar `images` |
+| `forja_create_publication` / `forja_update_publication` | Crea o modifica una publicación; el cuerpo Markdown va en `body` o en `body_file` (`.md`, `.markdown` o `.txt`), y al crear se pueden adjuntar `images` |
 
 Las rutas locales (`plugin_path`, `zip_path`, `output_zip`, `image_path`, `body_file`, `images`) deben ser absolutas (se admite `~`), porque el servidor MCP no se ejecuta en la carpeta de tu proyecto. fs-mcp solo transporta los zips: no los descomprime ni interpreta su contenido; preparar el zip de documentación desde `Doc/` corresponde a las herramientas de fs-dev.
 

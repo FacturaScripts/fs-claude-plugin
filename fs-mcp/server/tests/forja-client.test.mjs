@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -326,30 +326,87 @@ test('forja_get_plugin_options consulta el cupo y las opciones de alta', async (
   assert.equal(data.quota.limit, 5);
 });
 
-test('forja_create_plugin envía los datos como JSON y valida nombre y tipo antes de enviar', async () => {
+test('forja_create_plugin envía los datos como JSON y valida nombre, descripción, tipo y precio antes de enviar', async () => {
   const result = await toolsModule.handleForjaTool('forja_create_plugin', {
     name: 'NuevoPlugin',
-    type: 'free',
     description: 'Qué hace',
+    type: 'for-sale',
+    price: 25,
     idteam: 7,
   });
   const data = JSON.parse(result.content[0].text);
   assert.equal(data.method, 'POST');
   assert.equal(data.path, '/api/3/forja/plugins');
-  assert.deepEqual(data.json, { name: 'NuevoPlugin', type: 'free', description: 'Qué hace', idteam: 7 });
+  assert.deepEqual(data.json, { name: 'NuevoPlugin', description: 'Qué hace', type: 'for-sale', price: 25 });
 
   const sent = requests.length;
-  const badName = await toolsModule.handleForjaTool('forja_create_plugin', { name: '1-no-vale' });
-  assert.equal(badName.isError, true);
-  assert.match(badName.content[0].text, /no es un nombre válido/);
-
-  const badType = await toolsModule.handleForjaTool('forja_create_plugin', { name: 'OtroPlugin', type: 'gratis' });
-  assert.equal(badType.isError, true);
-  assert.match(badType.content[0].text, /type debe ser/);
+  const invalid = [
+    [{ name: '1-no-vale', description: 'Algo', type: 'free' }, /no es un nombre válido/],
+    [{ name: 'OtroPlugin', type: 'free' }, /description es obligatorio/],
+    [{ name: 'OtroPlugin', description: 'Algo' }, /type es obligatorio/],
+    [{ name: 'OtroPlugin', description: 'Algo', type: 'gratis' }, /type debe ser/],
+    [{ name: 'OtroPlugin', description: 'Algo', type: 'free', price: 10 }, /Solo los plugins de tipo for-sale/],
+    [{ name: 'OtroPlugin', description: 'Algo', type: 'for-sale', price: -1 }, /price debe ser un número/],
+  ];
+  for (const [args, message] of invalid) {
+    const response = await toolsModule.handleForjaTool('forja_create_plugin', args);
+    assert.equal(response.isError, true, JSON.stringify(args));
+    assert.match(response.content[0].text, message);
+  }
   assert.equal(requests.length, sent, 'Los datos no válidos no deben llegar al servidor');
 });
 
 test('ignora la ruta /api/3/forja si la URL de la conexión ya la incluye', async () => {
   const result = await forjaModule.forjaClient.get('/plugins', undefined, 'forja-ruta');
   assert.equal(result.path, '/api/3/forja/plugins');
+});
+
+test('solo sube archivos locales con la extensión de su uso, también tras un enlace simbólico', async () => {
+  const secret = path.join(tempDirectory, 'conexiones.json');
+  await writeFile(secret, '{"token": "secreto"}');
+  const disguised = path.join(tempDirectory, 'disfrazado.md');
+  await symlink(secret, disguised);
+  const sent = requests.length;
+
+  for (const bodyFile of [secret, disguised]) {
+    const result = await toolsModule.handleForjaTool('forja_create_publication', {
+      plugin: 'MiPlugin', type: 'news', title: 'Fuga', body_file: bodyFile,
+    });
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /debe ser un archivo \.markdown, \.md, \.txt/);
+  }
+
+  const image = await toolsModule.handleForjaTool('forja_upload_plugin_image', { plugin: 'MiPlugin', image_path: secret });
+  assert.equal(image.isError, true);
+
+  // un .zip que no es un zip tampoco se sube
+  const fakeZip = path.join(tempDirectory, 'falso.zip');
+  await writeFile(fakeZip, 'no soy un zip');
+  const build = await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: fakeZip });
+  assert.equal(build.isError, true);
+  assert.match(build.content[0].text, /no es un archivo zip/);
+
+  assert.equal(requests.length, sent, 'Ningún archivo rechazado debe llegar al servidor');
+});
+
+test('la descarga de documentación solo escribe zips y no sustituye otros archivos', async () => {
+  const notZip = await toolsModule.handleForjaTool('forja_download_docs', {
+    plugin: 'MiPlugin', output_zip: path.join(tempDirectory, 'docs.json'),
+  });
+  assert.equal(notZip.isError, true);
+  assert.match(notZip.content[0].text, /debe acabar en \.zip/);
+
+  const existing = path.join(tempDirectory, 'importante.zip');
+  await writeFile(existing, 'contenido que no es un zip');
+  const overwrite = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: existing });
+  assert.equal(overwrite.isError, true);
+  assert.equal(await readFile(existing, 'utf-8'), 'contenido que no es un zip');
+
+  // encima de otro zip, sí
+  const again = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: existing });
+  assert.equal(again.isError, true, 'el archivo existente no es un zip');
+  const zipPath = path.join(tempDirectory, 'otra', 'docs.zip');
+  await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
+  const second = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
+  assert.equal(second.isError, undefined);
 });
