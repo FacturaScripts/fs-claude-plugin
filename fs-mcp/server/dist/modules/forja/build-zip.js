@@ -16,7 +16,7 @@
  * El zip se escribe sin dependencias externas (deflate de zlib y CRC-32 propio) en una carpeta temporal propia,
  * que es la única de la que forja_upload_build borra zips tras subirlos.
  */
-import { lstat, mkdir, mkdtemp, open, readdir, readFile, realpath, rm } from 'fs/promises';
+import { chmod, lstat, mkdir, mkdtemp, open, readdir, readFile, realpath, rm } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { deflateRawSync } from 'zlib';
@@ -59,13 +59,58 @@ export function buildZipBaseDir() {
     return path.join(os.tmpdir(), 'fs-mcp-forja-builds');
 }
 /**
+ * Ruta real de la carpeta temporal de zips si es segura: una carpeta de verdad (no un enlace simbólico), del usuario
+ * que ejecuta el servidor y sin permisos para el grupo ni para otros. Donde la carpeta temporal es compartida
+ * (/tmp en Linux), otro usuario podría crearla antes para cambiar los zips o para que se borren archivos ajenos.
+ *
+ * @returns Ruta real o null si no existe o no es segura
+ */
+async function safeBaseDir() {
+    const base = buildZipBaseDir();
+    const info = await lstat(base).catch(() => null);
+    if (!info || info.isSymbolicLink() || !info.isDirectory()) {
+        return null;
+    }
+    if (typeof process.getuid === 'function' && info.uid !== process.getuid()) {
+        return null;
+    }
+    if (process.platform !== 'win32' && (info.mode & 0o077) !== 0) {
+        return null;
+    }
+    return await realpath(base);
+}
+/**
+ * Crea, si no existe, la carpeta temporal de zips solo para el usuario y comprueba que es segura.
+ *
+ * @returns Ruta real de la carpeta
+ * @throws Error si la carpeta es un enlace simbólico o de otro usuario
+ */
+async function ensureBaseDir() {
+    const base = buildZipBaseDir();
+    await mkdir(base, { recursive: true, mode: 0o700 });
+    const info = await lstat(base);
+    const ownedByUser = typeof process.getuid !== 'function' || info.uid === process.getuid();
+    if (info.isSymbolicLink() || !info.isDirectory() || !ownedByUser) {
+        throw new Error(`La carpeta temporal ${base} no es segura (es un enlace simbólico o de otro usuario): bórrala y vuelve a intentarlo`);
+    }
+    if (process.platform !== 'win32' && (info.mode & 0o077) !== 0) {
+        await chmod(base, 0o700);
+    }
+    const safe = await safeBaseDir();
+    if (!safe) {
+        throw new Error(`La carpeta temporal ${base} no es segura`);
+    }
+    return safe;
+}
+/**
  * Indica si un archivo está dentro de la carpeta temporal de zips de la herramienta, comparando rutas reales.
+ * Si esa carpeta no es segura, ningún archivo cuenta como suyo.
  *
  * @param file - Ruta del archivo
  * @returns true si está dentro de esa carpeta
  */
 export async function isToolBuildZip(file) {
-    const base = await realpath(buildZipBaseDir()).catch(() => null);
+    const base = await safeBaseDir();
     const real = await realpath(file).catch(() => null);
     if (!base || !real) {
         return false;
@@ -86,8 +131,8 @@ export async function removeToolBuildZip(file) {
     const real = await realpath(file);
     await rm(real, { force: true });
     const folder = path.dirname(real);
-    const base = await realpath(buildZipBaseDir());
-    if (folder !== base && (await readdir(folder)).length === 0) {
+    const base = await safeBaseDir();
+    if (base && folder !== base && (await readdir(folder)).length === 0) {
         await rm(folder, { recursive: true, force: true });
     }
     return true;
@@ -425,8 +470,7 @@ export async function buildProjectZip(source, includeDocs = false) {
     if (info.type === 'plugin' && fileCount > FORJA_MAX_FILES) {
         throw new Error(`El plugin tiene ${fileCount} archivos y Forja admite como máximo ${FORJA_MAX_FILES} por zip`);
     }
-    const base = buildZipBaseDir();
-    await mkdir(base, { recursive: true });
+    const base = await ensureBaseDir();
     const folder = await mkdtemp(path.join(base, `${info.name}-`));
     const target = path.join(folder, `${info.name}-${info.version}.zip`);
     let written;

@@ -76,6 +76,7 @@ export interface BuildZipResult extends ProjectInfo {
 export declare function buildZipBaseDir(): string;
 /**
  * Indica si un archivo está dentro de la carpeta temporal de zips de la herramienta, comparando rutas reales.
+ * Si esa carpeta no es segura, ningún archivo cuenta como suyo.
  *
  * @param file - Ruta del archivo
  * @returns true si está dentro de esa carpeta

@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { access, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdtemp, mkdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -659,8 +659,20 @@ test('forja_upload_build borra el zip de forja_build_zip tras subirlo, salvo kee
   assert.equal(user.local_zip.deleted, false);
   assert.equal(await exists(userZip), true);
 
-  // si la subida falla, el zip de la herramienta se conserva
+  // si la carpeta temporal de la herramienta deja de ser solo del usuario, sus zips no se borran
+  const exposed = await build();
+  const base = path.dirname(path.dirname(exposed));
+  await chmod(base, 0o777);
+  const unsafe = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: exposed })).content[0].text);
+  assert.equal(unsafe.local_zip.deleted, false);
+  assert.equal(await exists(exposed), true);
+  await rm(path.dirname(exposed), { recursive: true, force: true });
+
+  // al crear el siguiente zip, la carpeta vuelve a quedar solo para el usuario
   const third = await build();
+  assert.equal((await stat(base)).mode & 0o777, 0o700);
+
+  // si la subida falla, el zip de la herramienta se conserva
   const failed = await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'Ajeno', zip_path: third });
   assert.equal(failed.isError, true);
   assert.equal(await exists(third), true);
