@@ -21,7 +21,8 @@ descripción del plugin»).
   (en la carpeta temporal de la sesión), para no versionarlos por error.
 
 Todo lo que se sube se publica en la web. Antes de cada subida (`forja_create_plugin`, `forja_upload_*`,
-`forja_update_*`, `forja_create_publication`), resume al usuario qué se va a enviar y espera su confirmación.
+`forja_update_*`, `forja_create_publication`) y de cada borrado (`forja_delete_translations`,
+`forja_delete_plugin_image`), resume al usuario qué se va a enviar o borrar y espera su confirmación.
 
 ## El script del paquete de documentación
 
@@ -94,7 +95,28 @@ Para publicar la documentación junto con una versión no hace falta este flujo:
   de `Translation/`: revisa antes que no haya cambios locales sin subir y, después, el `git diff`.
 - `forja_upload_translations` sube los `Translation/*.json` del plugin (todos o solo `lang`) o una sola clave con
   `lang`, `key` y `value`. En local solo se mantiene `es_ES.json` (los demás idiomas se traducen en la web), así que
-  normalmente se sube con `lang: "es_ES"`.
+  normalmente se sube con `lang: "es_ES"`. Subir no borra nada: las claves de la web que ya no están en local se
+  quedan.
+- `forja_delete_translations` borra en la web una clave en todos los idiomas (`key`), un idioma completo (`lang`),
+  una clave en un idioma (`key` y `lang`) o todas las traducciones del plugin en todos los idiomas (`all: true`, sin
+  `key` ni `lang`). Sin parámetros no borra nada y nunca toca claves de otros plugins. Devuelve las filas borradas
+  (`deleted`), las claves (`keys`) y el recuento por idioma (`languages`). **No se puede deshacer**: también se pierden
+  las traducciones a otros idiomas que hizo la comunidad en la web.
+
+#### Borrar todo y subir de nuevo
+
+Cuando el plugin cambia por completo y las claves de la web ya no sirven, para no dejar claves huérfanas:
+
+1. Descarga antes una copia de lo que hay en la web con `forja_download_translations`, con una carpeta temporal fuera
+   del plugin como `plugin_path` (no la del plugin, para no sustituir sus archivos de `Translation/`).
+2. Explica al usuario que se borrarán **todas** las traducciones del plugin en **todos** los idiomas, incluidas las
+   de la comunidad, con cuántas claves e idiomas hay en la copia, y pide su **confirmación expresa**. Sin ella, no
+   sigas.
+3. `forja_delete_translations` con `all: true`. Comprueba el informe.
+4. `forja_upload_translations` con `plugin_path` y `lang: "es_ES"`. Las claves nuevas se crean en todos los idiomas
+   con el texto en español, pendientes de traducir.
+
+Si solo sobran algunas claves, bórralas una a una con `key` en lugar de borrarlo todo.
 
 ### Dar de alta un plugin nuevo
 
@@ -138,19 +160,34 @@ tanto ya se le pueden subir versiones, traducciones y documentación.
 ### Publicar una versión
 
 1. Comprueba la versión del `facturascripts.ini` y, si procede, audita el plugin con `fs-dev:verificar-min-version`.
-2. Desde la carpeta del plugin, `fsmaker zip` (skill `fs-dev:fsmaker`) genera el zip del plugin.
-3. Con la confirmación del usuario, `forja_upload_build` con `plugin` y `zip_path` (y `version` solo si no debe
-   tomarse del `facturascripts.ini` del zip).
-4. Comunica la versión creada, los archivos que el servidor quitó del zip y el informe de documentación.
+2. `forja_build_zip` con `source_path` (ruta absoluta de la carpeta del plugin o del core) crea el zip en una carpeta
+   temporal: carpeta raíz con el `name` del `facturascripts.ini` (`facturascripts` en el core), permisos 0755/0644 y
+   sin archivos ocultos (`.git`, `.claude`...), `Test`, `Doc`, archivos de IA, metadatos del sistema ni enlaces
+   simbólicos; en el core, tampoco `Plugins`, `Dinamic`, `MyFiles` ni `config*.php`. Sirve para «créame el zip del
+   plugin X» o «créame el zip del core». Para publicar a la vez la documentación de `Doc/User` y `Doc/Dev`, añade
+   `include_docs: true`.
+3. Enseña al usuario el resumen: nombre, versión, archivos, lo excluido por grupo y los avisos. Si falla (por
+   ejemplo, `composer.json` sin `vendor`), explica cómo arreglarlo; no lo empaquetes de otra forma para saltarte el
+   error.
+4. Con la confirmación del usuario, `forja_upload_build` con `plugin` y `zip_path` (y `version` solo si no debe
+   tomarse del `facturascripts.ini` del zip). Tras subirlo con éxito, borra el zip temporal de `forja_build_zip`;
+   pasa `keep_zip: true` si el usuario quiere conservarlo. Un zip que no creó `forja_build_zip` (por ejemplo, de
+   `fsmaker zip`) nunca se borra.
+5. Comunica la versión creada, los archivos que el servidor quitó del zip, el informe de documentación y qué pasó con
+   el zip local (`local_zip`).
 
-El servidor **quita del zip de versión** `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/` y `Doc/Context/`, que son
-para el equipo y los agentes, e **importa automáticamente `Doc/User` y `Doc/Dev`** con su `Doc/forja.json`: cada
-página se asocia igual que en `forja_upload_docs` y las de la web que no vienen no se tocan. Antes de generar el zip,
-comprueba las páginas con `forja-doc-bundle.py pack` hacia un zip temporal que no se sube: un cuerpo de menos de 300
-caracteres, por ejemplo, también lo rechaza el servidor al importar la versión.
+El servidor **importa `Doc/User` y `Doc/Dev`** con su `Doc/forja.json` si el zip los trae (cada página se asocia igual
+que en `forja_upload_docs` y las de la web que no vienen no se tocan) y después **quita del zip guardado** la carpeta
+`Doc/` entera, `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/` y los metadatos del sistema (`.DS_Store`,
+`__MACOSX/`...), de modo que quien descarga la versión no los recibe. Antes de subir una versión con
+`include_docs: true`, comprueba las páginas con `forja-doc-bundle.py pack` hacia un zip temporal que no se sube: un
+cuerpo de menos de 300 caracteres, por ejemplo, también lo rechaza el servidor al importar la versión.
 
 ## Reglas
 
 - No hagas commits de lo descargado salvo que el usuario lo pida.
-- No subas nada sin confirmación expresa, y nunca un zip de documentación que `pack` no haya creado sin errores.
+- No subas ni borres nada sin confirmación expresa, y nunca un zip de documentación que `pack` no haya creado sin
+  errores.
+- Nunca uses `forja_delete_translations` con `all: true` sin que el usuario haya confirmado expresamente que quiere
+  borrar todas las traducciones del plugin en todos los idiomas.
 - No muestres el token de la conexión ni el contenido de `~/.fs-claude.json`.

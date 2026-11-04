@@ -5,12 +5,15 @@
  * mediante la API de autor (`/api/3/forja`): alta de plugins nuevos, datos e imágenes, traducciones, documentación,
  * versiones y publicaciones. Solo usan conexiones de tipo forja; por defecto, la primera configurada.
  *
- * El módulo solo transporta archivos: no descomprime ni interpreta el zip de documentación ni el de versiones.
+ * El módulo no descomprime ni interpreta el zip de documentación ni el de versiones que recibe. Además,
+ * forja_build_zip crea en local el zip de una versión de un plugin o del core (ver build-zip.ts), y
+ * forja_upload_build borra tras subirlo los zips que creó esa herramienta, salvo que se pida conservarlos.
  */
 import { open, readdir, readFile, realpath, stat, mkdir, writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { forjaClient } from '../../fs/forja-client.js';
+import { buildProjectZip, isToolBuildZip, removeToolBuildZip } from './build-zip.js';
 /** Descripción común del parámetro `connection`. */
 const CONNECTION_PROPERTY = {
     type: 'string',
@@ -168,6 +171,27 @@ export const forjaTools = [
         },
     },
     {
+        name: 'forja_delete_translations',
+        description: 'Forja: borra traducciones de uno de tus plugins: una clave en todos los idiomas (key), un idioma completo (lang), ' +
+            'una clave en un idioma (key y lang) o todas las traducciones del plugin en todos los idiomas (all: true, sin key ni lang). ' +
+            'Las claves de otros plugins nunca se tocan. No se puede deshacer: pide confirmación al usuario antes de borrar, sobre todo con all. ' +
+            'Devuelve las filas borradas, las claves y el recuento por idioma',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                plugin: PLUGIN_PROPERTY,
+                key: { type: 'string', description: 'Clave a borrar; sin lang se borra en todos los idiomas' },
+                lang: { type: 'string', description: 'Código de idioma, por ejemplo es_ES; sin key se borran todas las claves de ese idioma' },
+                all: {
+                    type: 'boolean',
+                    description: 'true para borrar todas las traducciones del plugin en todos los idiomas. No se combina con key ni lang',
+                },
+            },
+            required: ['plugin'],
+        },
+    },
+    {
         name: 'forja_download_docs',
         description: 'Forja: descarga la documentación de uno de tus plugins como zip (User/*.md, Dev/*.md, Assets/ y forja.json) y lo guarda en output_zip. Devuelve solo un resumen',
         inputSchema: {
@@ -204,8 +228,33 @@ export const forjaTools = [
         },
     },
     {
+        name: 'forja_build_zip',
+        description: 'Forja: crea en una carpeta temporal el zip de una versión de un plugin o del core de FacturaScripts a partir de su carpeta local, ' +
+            'listo para forja_upload_build. Lee name y version del facturascripts.ini (o, en el core, de Kernel::version()), mete todo en una ' +
+            'carpeta raíz con ese nombre (facturascripts en el core) y quita lo que no se reparte: archivos ocultos (.git, .claude...), Test, ' +
+            'Doc, archivos de asistentes de IA, metadatos del sistema y enlaces simbólicos; en el core, también Plugins, Dinamic, MyFiles y ' +
+            'config*.php. No necesita conexión. Devuelve la ruta del zip y un resumen de lo excluido',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                source_path: {
+                    type: 'string',
+                    description: 'Ruta absoluta de la carpeta del plugin (con su facturascripts.ini) o del core de FacturaScripts',
+                },
+                include_docs: {
+                    type: 'boolean',
+                    description: 'true para conservar Doc/User, Doc/Dev, Doc/Assets y Doc/forja.json, que Forja importa como documentación al publicar ' +
+                        'la versión y luego quita del zip guardado (por defecto se quita la carpeta Doc entera; Doc/Context nunca se incluye)',
+                },
+            },
+            required: ['source_path'],
+        },
+    },
+    {
         name: 'forja_upload_build',
-        description: 'Forja: sube el zip de una nueva versión de uno de tus plugins. Devuelve la versión creada, los archivos quitados del zip y el informe de documentación',
+        description: 'Forja: sube el zip de una nueva versión de uno de tus plugins. Devuelve la versión creada, los archivos quitados del zip y el informe ' +
+            'de documentación. Si el zip lo creó forja_build_zip, lo borra tras subirlo con éxito salvo que se indique keep_zip; ' +
+            'los demás zips nunca se borran',
         inputSchema: {
             type: 'object',
             properties: {
@@ -213,6 +262,10 @@ export const forjaTools = [
                 plugin: PLUGIN_PROPERTY,
                 zip_path: { type: 'string', description: 'Ruta absoluta del zip del plugin (.zip)' },
                 version: { type: 'string', description: 'Número de versión (opcional; por defecto, el del facturascripts.ini del zip)' },
+                keep_zip: {
+                    type: 'boolean',
+                    description: 'true para conservar el zip creado por forja_build_zip después de subirlo (por defecto se borra)',
+                },
             },
             required: ['plugin', 'zip_path'],
         },
@@ -377,6 +430,10 @@ export async function handleForjaTool(name, args) {
                 result = await uploadTranslations(args, connection);
                 break;
             }
+            case 'forja_delete_translations': {
+                result = await deleteTranslations(args, connection);
+                break;
+            }
             case 'forja_download_docs': {
                 const type = optionalString(args, 'type') ?? 'all';
                 if (!['all', 'user', 'dev'].includes(type)) {
@@ -394,8 +451,13 @@ export async function handleForjaTool(name, args) {
                 result = await forjaClient.get(`${pluginEndpoint(args)}/builds`, undefined, connection);
                 break;
             }
+            case 'forja_build_zip': {
+                const includeDocs = args.include_docs === true || args.include_docs === 'true';
+                result = await buildProjectZip(await existingDirectory(absolutePath(args, 'source_path')), includeDocs);
+                break;
+            }
             case 'forja_upload_build': {
-                result = await forjaClient.sendMultipart('POST', `${pluginEndpoint(args)}/builds`, { version: optionalString(args, 'version') }, [{ field: 'zip', path: await localZip(args, 'zip_path') }], connection);
+                result = await uploadBuild(args, connection);
                 break;
             }
             case 'forja_list_publications': {
@@ -454,7 +516,11 @@ export async function handleForjaTool(name, args) {
 async function downloadTranslations(args, connection) {
     const pluginDir = await existingDirectory(absolutePath(args, 'plugin_path'));
     const lang = optionalLang(args);
-    const data = await forjaClient.get(`${pluginEndpoint(args)}/translations`, { lang }, connection);
+    let data = await forjaClient.get(`${pluginEndpoint(args)}/translations`, { lang }, connection);
+    // sin traducciones, PHP serializa el array vacío como [] en lugar de {}
+    if (Array.isArray(data) && data.length === 0) {
+        data = {};
+    }
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
         throw new Error('Respuesta inesperada del servidor: se esperaba un objeto {idioma: {clave: valor}}');
     }
@@ -519,6 +585,62 @@ async function uploadTranslations(args, connection) {
         payload[file.slice(0, -5)] = parsed;
     }
     return await forjaClient.sendJson('POST', endpoint, payload, connection);
+}
+/**
+ * Borra traducciones del plugin. Exige key, lang o ambos; para borrarlas todas hay que indicar all: true sin key
+ * ni lang, de modo que una llamada sin parámetros no borra nada. Los parámetros van en la query del DELETE.
+ *
+ * @param args - Argumentos de la herramienta
+ * @param connection - Clave de la conexión (opcional)
+ * @returns Informe del servidor
+ */
+async function deleteTranslations(args, connection) {
+    const key = optionalString(args, 'key');
+    const lang = optionalLang(args);
+    const all = args.all === true || args.all === 'true';
+    if (all && (key !== undefined || lang !== undefined)) {
+        throw new Error('all no se combina con key ni lang: indica all: true solo para borrar todas las traducciones del plugin');
+    }
+    if (!all && key === undefined && lang === undefined) {
+        throw new Error('Indica key, lang o ambos; para borrar todas las traducciones del plugin indica all: true');
+    }
+    const query = new URLSearchParams();
+    if (all) {
+        query.set('all', 'true');
+    }
+    if (key !== undefined) {
+        query.set('key', key);
+    }
+    if (lang !== undefined) {
+        query.set('lang', lang);
+    }
+    return await forjaClient.sendJson('DELETE', `${pluginEndpoint(args)}/translations?${query.toString()}`, undefined, connection);
+}
+/**
+ * Sube el zip de una versión y, si lo creó forja_build_zip y la subida va bien, lo borra salvo que se pida
+ * conservarlo con keep_zip. Un zip del usuario, fuera de la carpeta temporal de la herramienta, nunca se borra.
+ *
+ * @param args - Argumentos de la herramienta
+ * @param connection - Clave de la conexión (opcional)
+ * @returns Respuesta del servidor y qué se ha hecho con el zip local
+ */
+async function uploadBuild(args, connection) {
+    const zipPath = await localZip(args, 'zip_path');
+    const keepZip = args.keep_zip === true || args.keep_zip === 'true';
+    const response = await forjaClient.sendMultipart('POST', `${pluginEndpoint(args)}/builds`, { version: optionalString(args, 'version') }, [{ field: 'zip', path: zipPath }], connection);
+    let localZipResult;
+    if (!(await isToolBuildZip(zipPath))) {
+        localZipResult = { path: zipPath, deleted: false, reason: 'no lo creó forja_build_zip: los zips del usuario no se borran' };
+    }
+    else if (keepZip) {
+        localZipResult = { path: zipPath, deleted: false, reason: 'se ha pedido conservarlo (keep_zip)' };
+    }
+    else {
+        const deleted = await removeToolBuildZip(zipPath);
+        localZipResult = { path: zipPath, deleted, reason: deleted ? 'zip temporal de forja_build_zip borrado tras subirlo' : 'no se ha podido borrar' };
+    }
+    const body = response && typeof response === 'object' && !Array.isArray(response) ? response : { response };
+    return { ...body, local_zip: localZipResult };
 }
 /**
  * Reúne los campos de una publicación presentes en los argumentos, leyendo el cuerpo de body_file si se indica.

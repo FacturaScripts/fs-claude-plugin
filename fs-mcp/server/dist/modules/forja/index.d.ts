@@ -5,7 +5,9 @@
  * mediante la API de autor (`/api/3/forja`): alta de plugins nuevos, datos e imágenes, traducciones, documentación,
  * versiones y publicaciones. Solo usan conexiones de tipo forja; por defecto, la primera configurada.
  *
- * El módulo solo transporta archivos: no descomprime ni interpreta el zip de documentación ni el de versiones.
+ * El módulo no descomprime ni interpreta el zip de documentación ni el de versiones que recibe. Además,
+ * forja_build_zip crea en local el zip de una versión de un plugin o del core (ver build-zip.ts), y
+ * forja_upload_build borra tras subirlo los zips que creó esa herramienta, salvo que se pida conservarlos.
  */
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 /** Resultado que devuelve cada herramienta al servidor MCP. */

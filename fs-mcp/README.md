@@ -218,7 +218,7 @@ El MCP permite crear, actualizar y eliminar registros en las entidades principal
 
 ### Forja (autores de plugins)
 
-`forja_list_plugins`, `forja_get_plugin_options`, `forja_create_plugin`, `forja_get_plugin`, `forja_update_plugin`, `forja_upload_plugin_image`, `forja_delete_plugin_image`, `forja_download_translations`, `forja_upload_translations`, `forja_download_docs`, `forja_upload_docs`, `forja_list_builds`, `forja_upload_build`, `forja_list_publications`, `forja_get_publication`, `forja_create_publication`, `forja_update_publication`. Necesitan una conexión de tipo `forja`; ver [Conexión Forja](#conexión-forja).
+`forja_list_plugins`, `forja_get_plugin_options`, `forja_create_plugin`, `forja_get_plugin`, `forja_update_plugin`, `forja_upload_plugin_image`, `forja_delete_plugin_image`, `forja_download_translations`, `forja_upload_translations`, `forja_delete_translations`, `forja_download_docs`, `forja_upload_docs`, `forja_list_builds`, `forja_build_zip`, `forja_upload_build`, `forja_list_publications`, `forja_get_publication`, `forja_create_publication`, `forja_update_publication`. Necesitan una conexión de tipo `forja`, salvo `forja_build_zip`, que trabaja en local; ver [Conexión Forja](#conexión-forja).
 
 ---
 
@@ -261,13 +261,30 @@ Usa la skill `/fs-mcp:add-connection` e indica el tipo `forja`, o la herramienta
 | `forja_upload_plugin_image` / `forja_delete_plugin_image` | Sube una imagen (posición 1-3 opcional) o borra la de una posición |
 | `forja_download_translations` | Escribe `<plugin_path>/Translation/<idioma>.json` (todos los idiomas o solo `lang`), sustituyendo los archivos locales |
 | `forja_upload_translations` | Sube los archivos de `<plugin_path>/Translation/` (todos o solo `lang`) o una sola clave con `lang`, `key` y `value`, y devuelve el informe del servidor |
+| `forja_delete_translations` | Borra traducciones del plugin: una clave en todos los idiomas (`key`), un idioma completo (`lang`), una clave en un idioma (`key` y `lang`) o todas, en todos los idiomas (`all: true`, sin `key` ni `lang`). Sin parámetros no borra nada y las claves de otros plugins nunca se tocan. Devuelve las filas borradas, las claves y el recuento por idioma. No se puede deshacer: confirma con el usuario antes de usarla |
 | `forja_download_docs` | Guarda en `output_zip` el zip de documentación (`type`: `all`, `user` o `dev`) y devuelve solo un resumen |
 | `forja_upload_docs` | Sube un zip de documentación con la misma estructura (`User/*.md`, `Dev/*.md`, `Assets/`, `forja.json`) |
-| `forja_list_builds` / `forja_upload_build` | Lista las versiones o sube el zip de una nueva (`version` opcional) |
+| `forja_build_zip` | Crea en una carpeta temporal el zip de una versión a partir de la carpeta local (`source_path`) de un plugin o del core. Ver [Zip de una versión](#zip-de-una-versión) |
+| `forja_list_builds` / `forja_upload_build` | Lista las versiones o sube el zip de una nueva (`version` opcional). Si el zip lo creó `forja_build_zip`, lo borra tras subirlo con éxito salvo `keep_zip: true`; los demás zips nunca se borran |
 | `forja_list_publications` / `forja_get_publication` | Lista las publicaciones (`type`: `news`, `user` o `dev`) u obtiene una |
 | `forja_create_publication` / `forja_update_publication` | Crea o modifica una publicación; el cuerpo Markdown va en `body` o en `body_file` (`.md`, `.markdown` o `.txt`), y al crear se pueden adjuntar `images` |
 
-Las rutas locales (`plugin_path`, `zip_path`, `output_zip`, `image_path`, `body_file`, `images`) deben ser absolutas (se admite `~`), porque el servidor MCP no se ejecuta en la carpeta de tu proyecto. fs-mcp solo transporta los zips: no los descomprime ni interpreta su contenido; preparar el zip de documentación desde `Doc/` corresponde a las herramientas de fs-dev.
+Las rutas locales (`plugin_path`, `source_path`, `zip_path`, `output_zip`, `image_path`, `body_file`, `images`) deben ser absolutas (se admite `~`), porque el servidor MCP no se ejecuta en la carpeta de tu proyecto. fs-mcp no descomprime ni interpreta los zips que sube o descarga; preparar el zip de documentación desde `Doc/` corresponde a las herramientas de fs-dev.
+
+### Zip de una versión
+
+`forja_build_zip` prepara el zip que se sube con `forja_upload_build`, para que llegue a Forja tal y como lo recibirá quien descargue la versión. Basta con pedir «créame el zip del plugin X» o «créame el zip del core»:
+
+- **Plugin**: carpeta con un `facturascripts.ini`. Lee su `name` y su `version` (numérica, por ejemplo `1.5`) y mete todo en una carpeta raíz con ese `name`, aunque la carpeta local se llame de otra forma.
+- **Core**: carpeta con `Core/Kernel.php` y sin `facturascripts.ini`. La versión es la de `Kernel::version()` y la carpeta raíz, `facturascripts`, la que espera el actualizador. Exige `Core`, `vendor` y `node_modules`, y avisa si `vendor` trae dependencias de desarrollo.
+- **Se quita**: los archivos y carpetas ocultos (`.git`, `.github`, `.claude`, `.agents`, `.DS_Store`, `.gitignore`...), la carpeta `Test` y la carpeta `Doc` de la raíz, los archivos de asistentes de IA (`CLAUDE.md`, `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.local.md`), los metadatos del sistema (`__MACOSX`, `Thumbs.db`, `desktop.ini`) y los enlaces simbólicos. En el core, también `Plugins`, `Dinamic`, `MyFiles` y los `config*.php` de la raíz, que tienen las claves de la base de datos.
+- Las carpetas van con permisos 0755 y los archivos con 0644, como al empaquetar a mano.
+- Falla, sin crear el zip, si un plugin tiene `composer.json` o `package.json` en la raíz sin `vendor` o `node_modules`, porque Forja lo rechazaría.
+- El zip queda en `<carpeta temporal del sistema>/fs-mcp-forja-builds/<nombre>-XXXX/<nombre>-<versión>.zip`. La herramienta devuelve su ruta, el tipo, el nombre, la versión, los archivos incluidos, el tamaño y un resumen de lo excluido por grupo, con las primeras rutas de cada uno.
+
+- Con `include_docs: true` conserva `Doc/User`, `Doc/Dev`, `Doc/Assets` y `Doc/forja.json` (nunca `Doc/Context`), para que Forja importe la documentación al publicar la versión.
+
+Forja quita del zip al publicarlo los archivos de IA, los metadatos del sistema y la carpeta `Doc` entera, después de importar `Doc/User` y `Doc/Dev` como documentación del plugin, así que quien descarga la versión no los recibe. Sin `include_docs`, la documentación se sube aparte con `forja_upload_docs`.
 
 Errores habituales: **401** token no válido, **403** acuerdo de proveedor no vigente y **404** plugin inexistente o del que no eres autor. Los mensajes del servidor se devuelven tal cual, con el estado HTTP y su código.
 

@@ -100,9 +100,11 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 
 ## Publicación en la forja
 
-- Al subir una **versión** del plugin o del core, la forja quita del zip `CLAUDE.md`, `AGENTS.md`, `.claude/`,
-  `.agents/` y `Doc/Context/`, e **importa automáticamente** las páginas de `Doc/User` y `Doc/Dev` con sus datos de
-  `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan.
+- Al subir una **versión** del plugin o del core con su `Doc/`, la forja **importa automáticamente** las páginas de
+  `Doc/User` y `Doc/Dev` con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan, y después quita
+  del zip guardado la carpeta `Doc/` entera, `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/` y los metadatos del
+  sistema: quien descarga la versión no los recibe. `forja_build_zip` de fs-mcp crea el zip de la versión ya sin
+  ellos; con `include_docs: true` conserva `Doc/User`, `Doc/Dev`, `Doc/Assets` y `Doc/forja.json` para esa importación.
 - Cada archivo se asocia a su página de la web por la **ruta** (`User/x.md`) y, si no, por el **`permalink`** de
   `forja.json`; por eso no se cambia el `permalink` para renombrar una página. Las páginas de la web que no vienen en
   el paquete no se tocan.

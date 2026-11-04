@@ -6,12 +6,13 @@
  */
 
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { inflateRawSync } from 'node:zlib';
 
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const distDirectory = path.join(serverDirectory, 'dist');
@@ -41,6 +42,61 @@ let apiModule;
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(body));
+}
+
+/**
+ * Lee un zip desde su directorio central y devuelve cada entrada con su contenido y sus permisos Unix.
+ *
+ * @param {string} file Ruta del zip.
+ * @returns {Promise<Map<string, {content: Buffer, mode: number}>>} Entradas por nombre.
+ */
+async function readZip(file) {
+  const data = await readFile(file);
+  const end = data.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  assert.ok(end >= 0, 'falta el final del directorio central');
+  const total = data.readUInt16LE(end + 10);
+  let offset = data.readUInt32LE(end + 16);
+  const entries = new Map();
+  for (let i = 0; i < total; i++) {
+    assert.equal(data.readUInt32LE(offset), 0x02014b50);
+    const method = data.readUInt16LE(offset + 10);
+    const compressed = data.readUInt32LE(offset + 20);
+    const nameLength = data.readUInt16LE(offset + 28);
+    const extraLength = data.readUInt16LE(offset + 30);
+    const commentLength = data.readUInt16LE(offset + 32);
+    const mode = data.readUInt32LE(offset + 38) >>> 16;
+    const local = data.readUInt32LE(offset + 42);
+    const name = data.subarray(offset + 46, offset + 46 + nameLength).toString('utf-8');
+    const start = local + 30 + data.readUInt16LE(local + 26) + data.readUInt16LE(local + 28);
+    const raw = data.subarray(start, start + compressed);
+    entries.set(name, { content: method === 8 ? inflateRawSync(raw) : Buffer.from(raw), mode });
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+  return entries;
+}
+
+/**
+ * Crea archivos de prueba a partir de un mapa ruta relativa → contenido.
+ *
+ * @param {string} base Carpeta base.
+ * @param {Record<string, string>} files Archivos a crear.
+ */
+async function createFiles(base, files) {
+  for (const [relative, content] of Object.entries(files)) {
+    const target = path.join(base, relative);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, content);
+  }
+}
+
+/**
+ * Indica si existe una ruta.
+ *
+ * @param {string} file Ruta.
+ * @returns {Promise<boolean>} true si existe.
+ */
+async function exists(file) {
+  return access(file).then(() => true, () => false);
 }
 
 /**
@@ -94,6 +150,11 @@ async function route(req, res, body) {
   if (rest === 'translations' && req.method === 'GET') {
     const all = { es_ES: { hola: 'Hola', adios: 'Adiós' }, en_EN: { hola: 'Hello' } };
     const lang = url.searchParams.get('lang');
+    // un idioma sin traducciones: PHP devuelve el array vacío como []
+    if (lang === 'zz_ZZ') {
+      sendJson(res, 200, []);
+      return;
+    }
     sendJson(res, 200, lang ? { [lang]: all[lang] } : all);
     return;
   }
@@ -254,6 +315,19 @@ test('forja_download_translations escribe un JSON formateado por idioma', async 
   );
 });
 
+test('forja_download_translations acepta la respuesta [] de un plugin sin traducciones', async () => {
+  const pluginPath = path.join(tempDirectory, 'SinTraducciones');
+  await mkdir(pluginPath, { recursive: true });
+
+  const result = await toolsModule.handleForjaTool('forja_download_translations', {
+    plugin: 'MiPlugin',
+    plugin_path: pluginPath,
+    lang: 'zz_ZZ',
+  });
+  assert.equal(result.isError, undefined, result.content[0].text);
+  assert.deepEqual(JSON.parse(result.content[0].text).files, []);
+});
+
 test('forja_upload_translations envía los archivos locales como JSON {idioma: {clave: valor}}', async () => {
   const pluginPath = path.join(tempDirectory, 'MiPlugin');
   await mkdir(path.join(pluginPath, 'Translation'), { recursive: true });
@@ -409,4 +483,186 @@ test('la descarga de documentación solo escribe zips y no sustituye otros archi
   await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
   const second = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
   assert.equal(second.isError, undefined);
+});
+
+test('forja_delete_translations envía key y lang en la query del DELETE', async () => {
+  const single = await toolsModule.handleForjaTool('forja_delete_translations', { plugin: 'MiPlugin', key: 'hola', lang: 'es_ES' });
+  const body = JSON.parse(single.content[0].text);
+  assert.equal(body.method, 'DELETE');
+  assert.equal(body.path, '/api/3/forja/plugins/MiPlugin/translations');
+  assert.deepEqual(body.query, { key: 'hola', lang: 'es_ES' });
+  assert.equal(body.json, null);
+
+  const all = await toolsModule.handleForjaTool('forja_delete_translations', { plugin: 'MiPlugin', all: true });
+  assert.deepEqual(JSON.parse(all.content[0].text).query, { all: 'true' });
+});
+
+test('forja_delete_translations no borra nada sin parámetros ni mezcla all con key o lang', async () => {
+  const sent = requests.length;
+  const invalid = [
+    [{ plugin: 'MiPlugin' }, /Indica key, lang o ambos/],
+    [{ plugin: 'MiPlugin', all: false }, /Indica key, lang o ambos/],
+    [{ plugin: 'MiPlugin', all: true, lang: 'es_ES' }, /all no se combina/],
+    [{ plugin: 'MiPlugin', lang: 'español' }, /Código de idioma no válido/],
+  ];
+  for (const [args, message] of invalid) {
+    const response = await toolsModule.handleForjaTool('forja_delete_translations', args);
+    assert.equal(response.isError, true, JSON.stringify(args));
+    assert.match(response.content[0].text, message);
+  }
+  assert.equal(requests.length, sent, 'Las llamadas no válidas no deben llegar al servidor');
+});
+
+test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no se reparte', async () => {
+  const pluginPath = path.join(tempDirectory, 'carpeta-local');
+  await createFiles(pluginPath, {
+    'facturascripts.ini': "name = 'MiPlugin'\ndescription = 'Prueba'\nversion = 2.5 ; comentario\nmin_version = 2025\n",
+    'Init.php': '<?php',
+    'Controller/MiControlador.php': '<?php // controlador',
+    'Lib/Doc/Ayuda.php': '<?php',
+    'Lib/Agents.php': '<?php',
+    'Test/main/MiTest.php': '<?php',
+    'Doc/User/guia.md': '# Guía',
+    'Doc/forja.json': '{}',
+    'CLAUDE.md': '@AGENTS.md',
+    'Lib/AGENTS.md': '# Agentes',
+    '.git/config': '[core]',
+    '.claude/settings.json': '{}',
+    '.DS_Store': '',
+    'Assets/._foto.png': '',
+    '__MACOSX/x': '',
+    'Assets/Thumbs.db': '',
+  });
+  await symlink(path.join(pluginPath, 'Init.php'), path.join(pluginPath, 'Enlace.php'));
+
+  const result = await toolsModule.handleForjaTool('forja_build_zip', { source_path: pluginPath });
+  assert.equal(result.isError, undefined, result.content[0].text);
+  const summary = JSON.parse(result.content[0].text);
+  assert.equal(summary.type, 'plugin');
+  assert.equal(summary.name, 'MiPlugin');
+  assert.equal(summary.version, '2.5');
+  assert.equal(summary.root, 'MiPlugin');
+  assert.equal(path.basename(summary.path), 'MiPlugin-2.5.zip');
+  assert.equal(summary.files, 5);
+  assert.deepEqual(Object.keys(summary.excluded).sort(), ['ai', 'doc', 'hidden', 'symlink', 'system', 'test']);
+  assert.deepEqual(summary.excluded.ai.sample, ['CLAUDE.md', 'Lib/AGENTS.md']);
+  assert.deepEqual(summary.excluded.doc.sample, ['Doc/']);
+
+  const entries = await readZip(summary.path);
+  assert.deepEqual([...entries.keys()].filter((name) => !name.endsWith('/')).sort(), [
+    'MiPlugin/Controller/MiControlador.php',
+    'MiPlugin/Init.php',
+    'MiPlugin/Lib/Agents.php',
+    'MiPlugin/Lib/Doc/Ayuda.php',
+    'MiPlugin/facturascripts.ini',
+  ]);
+  assert.equal(entries.get('MiPlugin/Controller/MiControlador.php').content.toString(), '<?php // controlador');
+  assert.equal(entries.get('MiPlugin/Init.php').mode, 0o100644);
+  assert.equal(entries.get('MiPlugin/Controller/').mode, 0o040755);
+  await rm(path.dirname(summary.path), { recursive: true, force: true });
+
+  // con include_docs entra la documentación que Forja importa, pero no Doc/Context
+  await createFiles(pluginPath, { 'Doc/Context/README.md': 'contexto', 'Doc/Assets/captura.png': 'png', 'Doc/notas.txt': 'notas' });
+  const withDocs = JSON.parse((await toolsModule.handleForjaTool('forja_build_zip', { source_path: pluginPath, include_docs: true })).content[0].text);
+  const docNames = [...(await readZip(withDocs.path)).keys()].filter((name) => name.startsWith('MiPlugin/Doc/') && !name.endsWith('/')).sort();
+  assert.deepEqual(docNames, ['MiPlugin/Doc/Assets/captura.png', 'MiPlugin/Doc/User/guia.md', 'MiPlugin/Doc/forja.json']);
+  assert.deepEqual(withDocs.excluded.doc.sample, ['Doc/Context/', 'Doc/notas.txt']);
+  await rm(path.dirname(withDocs.path), { recursive: true, force: true });
+});
+
+test('forja_build_zip empaqueta el core en la carpeta facturascripts sin los datos de la instalación', async () => {
+  const corePath = path.join(tempDirectory, 'core');
+  await createFiles(corePath, {
+    'Core/Kernel.php': '<?php class Kernel { public static function version(): float\n    {\n        return 2026.8;\n    } }',
+    'index.php': '<?php',
+    'replace_index_to_restore.php': '<?php',
+    'vendor/autoload.php': '<?php',
+    'node_modules/jquery/jquery.js': '',
+    'config.php': '<?php // claves de la base de datos',
+    'config-mysql.php': '<?php',
+    'Plugins/MiPlugin/Init.php': '<?php',
+    'Dinamic/Model/Cliente.php': '<?php',
+    'MyFiles/factura.pdf': 'pdf',
+    'Test/main/KernelTest.php': '<?php',
+    'AGENTS.md': '# Agentes',
+  });
+
+  const result = await toolsModule.handleForjaTool('forja_build_zip', { source_path: corePath });
+  assert.equal(result.isError, undefined, result.content[0].text);
+  const summary = JSON.parse(result.content[0].text);
+  assert.equal(summary.type, 'core');
+  assert.equal(summary.version, '2026.8');
+  assert.equal(path.basename(summary.path), 'facturascripts-2026.8.zip');
+  assert.deepEqual(summary.excluded.core.sample, ['Dinamic/', 'MyFiles/', 'Plugins/', 'config-mysql.php', 'config.php']);
+
+  const names = [...(await readZip(summary.path)).keys()].filter((name) => !name.endsWith('/')).sort();
+  assert.deepEqual(names, [
+    'facturascripts/Core/Kernel.php',
+    'facturascripts/index.php',
+    'facturascripts/node_modules/jquery/jquery.js',
+    'facturascripts/replace_index_to_restore.php',
+    'facturascripts/vendor/autoload.php',
+  ]);
+  await rm(path.dirname(summary.path), { recursive: true, force: true });
+
+  // sin vendor, el actualizador del core no podría instalarlo
+  await rm(path.join(corePath, 'vendor'), { recursive: true });
+  const missing = await toolsModule.handleForjaTool('forja_build_zip', { source_path: corePath });
+  assert.equal(missing.isError, true);
+  assert.match(missing.content[0].text, /Falta la carpeta vendor/);
+});
+
+test('forja_build_zip rechaza carpetas que Forja no aceptaría', async () => {
+  const notProject = await toolsModule.handleForjaTool('forja_build_zip', { source_path: tempDirectory });
+  assert.equal(notProject.isError, true);
+  assert.match(notProject.content[0].text, /no es un plugin ni el core/);
+
+  const badVersion = path.join(tempDirectory, 'sin-version');
+  await createFiles(badVersion, { 'facturascripts.ini': 'name = OtroPlugin\nversion = 1.0-beta\n' });
+  const version = await toolsModule.handleForjaTool('forja_build_zip', { source_path: badVersion });
+  assert.match(version.content[0].text, /version válida/);
+
+  const composer = path.join(tempDirectory, 'con-composer');
+  await createFiles(composer, { 'facturascripts.ini': 'name = OtroPlugin\nversion = 1\n', 'composer.json': '{}' });
+  const noVendor = await toolsModule.handleForjaTool('forja_build_zip', { source_path: composer });
+  assert.equal(noVendor.isError, true);
+  assert.match(noVendor.content[0].text, /composer\.json en la raíz pero no la carpeta vendor/);
+
+  const relative = await toolsModule.handleForjaTool('forja_build_zip', { source_path: 'Plugins/MiPlugin' });
+  assert.match(relative.content[0].text, /ruta absoluta/);
+});
+
+test('forja_upload_build borra el zip de forja_build_zip tras subirlo, salvo keep_zip, y nunca uno del usuario', async () => {
+  const pluginPath = path.join(tempDirectory, 'para-subir');
+  await createFiles(pluginPath, { 'facturascripts.ini': 'name = MiPlugin\nversion = 3\n', 'Init.php': '<?php' });
+  const build = async () => JSON.parse((await toolsModule.handleForjaTool('forja_build_zip', { source_path: pluginPath })).content[0].text).path;
+
+  // por defecto, se borra el zip y su carpeta temporal
+  const first = await build();
+  const uploaded = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: first })).content[0].text);
+  assert.equal(uploaded.multipart.zip.filename, 'MiPlugin-3.zip');
+  assert.equal(uploaded.local_zip.deleted, true);
+  assert.equal(await exists(first), false);
+  assert.equal(await exists(path.dirname(first)), false);
+
+  // con keep_zip, se conserva
+  const second = await build();
+  const kept = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: second, keep_zip: true })).content[0].text);
+  assert.equal(kept.local_zip.deleted, false);
+  assert.equal(await exists(second), true);
+  await rm(path.dirname(second), { recursive: true, force: true });
+
+  // un zip del usuario no se borra, aunque esté en la carpeta temporal del sistema
+  const userZip = path.join(tempDirectory, 'MiPlugin-usuario.zip');
+  await writeFile(userZip, ZIP_BYTES);
+  const user = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: userZip })).content[0].text);
+  assert.equal(user.local_zip.deleted, false);
+  assert.equal(await exists(userZip), true);
+
+  // si la subida falla, el zip de la herramienta se conserva
+  const third = await build();
+  const failed = await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'Ajeno', zip_path: third });
+  assert.equal(failed.isError, true);
+  assert.equal(await exists(third), true);
+  await rm(path.dirname(third), { recursive: true, force: true });
 });

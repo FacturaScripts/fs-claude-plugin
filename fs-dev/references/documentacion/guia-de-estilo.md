@@ -88,9 +88,10 @@ FacturaScripts. Por eso el texto es agnóstico:
 
 ## Publicación
 
-- Las páginas de `Doc/User` y `Doc/Dev` se publican solas al subir una versión del plugin o del core: la web importa
-  esas carpetas con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan. `Doc/Context/`,
-  `AGENTS.md` y `CLAUDE.md` no se publican nunca: no enlaces a ellos desde una página.
+- Las páginas de `Doc/User` y `Doc/Dev` se publican solas al subir una versión del plugin o del core que traiga su
+  `Doc/`: la web importa esas carpetas con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan, y
+  después quita la carpeta `Doc/` entera del zip que se descarga. `Doc/Context/`, `AGENTS.md` y `CLAUDE.md` no se
+  publican nunca: no enlaces a ellos desde una página.
 - La web reconoce cada página por su ruta (`User/x.md`) y, si no la encuentra, por su `permalink`. Para renombrar una
   página publicada cambia su `title`, no su `permalink`. Las páginas de la web que no vienen en el paquete no se
   tocan.
