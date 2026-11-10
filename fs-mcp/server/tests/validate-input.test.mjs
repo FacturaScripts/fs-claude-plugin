@@ -159,6 +159,22 @@ test('en una propiedad string se acepta un número finito, pero no NaN, Infinity
   }
 });
 
+test('integer acepta un entero, también escrito como texto, y rechaza los decimales', () => {
+  const esquema = { properties: { position: { type: 'integer' } } };
+  for (const position of [5, -3, '5', '-3']) {
+    assert.equal(validateToolInput(esquema, { position }), null, JSON.stringify(position));
+  }
+  for (const position of [5.5, '5.5', 'abc', '', Infinity, true]) {
+    assert.equal(validateToolInput(esquema, { position }), 'el argumento "position" debe ser de tipo integer', JSON.stringify(position));
+  }
+});
+
+test('number sigue aceptando decimales', () => {
+  const esquema = { properties: { precio: { type: 'number' } } };
+  assert.equal(validateToolInput(esquema, { precio: 5.5 }), null);
+  assert.equal(validateToolInput(esquema, { precio: '5.5' }), null);
+});
+
 for (const personafisica of [true, '1']) {
   test(`personafisica ${JSON.stringify(personafisica)} se acepta: boolean o un valor de su enum ["1", "0"]`, async () => {
     const { result } = await llamar('update_cliente', { connection: 'pega', codcliente: 'C1', personafisica });
