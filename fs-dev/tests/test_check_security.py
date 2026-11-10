@@ -407,6 +407,10 @@ class EvasionTest(unittest.TestCase):
             'dolar-llave': '        include "${x}.php";',
             'heredoc': '        include <<<RUTA\n{$x}.php\nRUTA;',
             'heredoc-comillas': '        include <<<"RUTA"\n$x.php\nRUTA;',
+            # PHP admite nombres de variable que empiezan por un byte 0x80-0xff
+            'no-ascii': '        include "$ñ.php";',
+            'no-ascii-llaves': '        include "{$ñ}.php";',
+            'no-ascii-simbolo': '        include "$€.php";',
         }
         for name, body in cases.items():
             with self.subTest(name):
@@ -426,6 +430,22 @@ class EvasionTest(unittest.TestCase):
         for name, body in cases.items():
             with self.subTest(name):
                 report = self.audit({'Lib/Seis.php': php_class('Seis', body)})
+                self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
+
+    def test_include_fijo_no_mira_cadenas_que_no_son_su_ruta(self) -> None:
+        """Una cadena interpolada después del include, fuera de su expresión, no lo marca."""
+        cases = {
+            'cierre-y-echo': "<?php include __DIR__ . '/a.php' ?>\n<p>texto</p>\n<?php echo \"Hola $x\"; ?>\n",
+            'cierre-y-atributo': "<?php require __DIR__ . '/a.php' ?>\n<a href=\"<?= $x ?>\">enlace</a>\n",
+            'cierre-y-variable': "<?php include __DIR__ . '/a.php' ?>\n<?php $y = 1; ?>\n",
+            'parentesis': php_class('Siete', "        $cfg = (include __DIR__ . '/cfg.php') + ['k' => \"$x\"];"),
+            'coma': php_class('Siete', "        $r = [include __DIR__ . '/a.php', \"$x\"];"),
+            # Sin «;» ni «?>» hasta el final del archivo: no debe salirse de él
+            'sin-fin': "<?php include __DIR__ . '/a.php'",
+        }
+        for name, content in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Siete.php': content})
                 self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
 
     def test_tests_anidados_se_excluyen(self) -> None:

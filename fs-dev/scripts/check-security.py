@@ -609,10 +609,33 @@ def interpolates(source: Source, start: int, end: int) -> bool:
         text = source.text[start + literal.start():start + literal.end()]
         if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_])', text)):
             continue
-        # Un «$» precedido de un número impar de barras está escapado
-        if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{]', text):
+        # Un «$» precedido de un número impar de barras está escapado. Un nombre
+        # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
+        # texto ya decodificado, cualquier carácter no ASCII)
+        if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{\x80-\U0010ffff]', text):
             return True
     return False
+
+
+def include_expression_end(source: Source, start: int, end: int) -> int:
+    """Devuelve dónde acaba la expresión de un ``include`` que empieza en ``start``.
+
+    Acaba al final de la sentencia (``end``) o en una coma o un cierre de
+    paréntesis, corchete o llave que no abrió ella: ``(include $a) + [...]``.
+    """
+    depth = 0
+    end = min(end, len(source.code))
+    for index in range(start, end):
+        char = source.code[index]
+        if char in '([{':
+            depth += 1
+        elif char in ')]}':
+            if depth == 0:
+                return index
+            depth -= 1
+        elif char == ',' and depth == 0:
+            return index
+    return end
 
 
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
@@ -624,13 +647,16 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     """
     end = source.code.find(';', match.end())
     end = end if end != -1 else match.end() + 200
+    # Un «?>» también acaba la sentencia: lo que sigue es HTML u otra isla de PHP
+    close = source.code.find('?>', match.end(), end)
+    end = end if close == -1 else close
     statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
     if re.search(r'\$\w', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
-    if interpolates(source, match.end(), end):
+    if interpolates(source, match.end(), include_expression_end(source, match.end(), end)):
         return True, ['la ruta interpola una variable en la cadena'], None
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
