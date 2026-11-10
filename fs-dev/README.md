@@ -7,6 +7,7 @@ Plugin para Claude Code y Codex orientado a desarrolladores que crean o mantiene
 - [Skills disponibles](#skills-disponibles)
 - [Agentes especializados](#agentes-especializados)
 - [Detección automática de contexto](#detección-automática-de-contexto)
+- [Idioma de las respuestas](#idioma-de-las-respuestas)
 - [Scripts automáticos](#scripts-automáticos)
 
 ---
@@ -23,6 +24,7 @@ Las skills se activan solas cuando la petición encaja con su descripción. Para
 | Skill | Descripción |
 |---|---|
 | `fs-dev:crear-plugin` | Crea la estructura completa de un nuevo plugin con todos los archivos necesarios |
+| `fs-dev:crear-documentacion` | Crea o completa la estructura de documentación (`Doc/`, `AGENTS.md`, `CLAUDE.md` y `.gitignore`) de un plugin o del core |
 | `fs-dev:crear-modelo` | Crea un modelo PHP con su clase y archivo XML de tabla |
 | `fs-dev:crear-controlador` | Crea controladores (ListController, EditController, PanelController) con su vista asociada |
 | `fs-dev:crear-extension` | Crea extensiones para modificar modelos o controladores sin tocar el código fuente |
@@ -63,6 +65,7 @@ Las skills se activan solas cuando la petición encaja con su descripción. Para
 | Skill | Descripción |
 |---|---|
 | `fs-dev:docs-expert` | Responde preguntas de programación consultando la documentación oficial de FacturaScripts |
+| `fs-dev:docs-writer` | Escribe una página de documentación de uso (`Doc/User`) o de programación (`Doc/Dev`) con capturas anotadas y anonimizadas, y la registra en `Doc/forja.json` |
 | `fs-dev:analizar-bug` | Analiza y corrige bugs en plugins: comportamiento incorrecto, errores inesperados, datos incorrectos |
 | `fs-dev:testing-expert` | Tests PHPUnit, PHPStan, CS-Check, depuración y control de calidad |
 | `fs-dev:depurar-y-testear` | Guía para depurar con modo debug (FS_DEBUG), logs con Tools::log() y PHPUnit |
@@ -89,6 +92,7 @@ En Claude Code, estos archivos se cargan como agentes nativos y las skills de pe
 | `fs-dev:backend-developer` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Desarrollo backend: modelos, BD, Workers, Cron |
 | `fs-dev:compatibility-auditor` | Sonnet | `gpt-6.1-sol` | Compatibilidad de un plugin con las versiones del core (`min_version`) y auditoría de seguridad |
 | `fs-dev:docs-expert` | Haiku | No aplica: la skill se usa directamente | Documentación oficial y preguntas de programación |
+| `fs-dev:docs-writer` | Sonnet | `gpt-6.1-sol` | Páginas de documentación paso a paso con capturas anotadas y anonimizadas |
 | `fs-dev:document-expert` | Opus | `gpt-6.1-sol` (esfuerzo `high`) | Documentos de compra y venta (presupuestos, facturas, albaranes, pedidos) |
 | `fs-dev:extension-developer` | Sonnet | `gpt-6.1-sol` | Creación de extensiones para el Core o plugins externos |
 | `fs-dev:frontend-developer` | Sonnet | `gpt-6.1-sol` | Capa frontend, plantillas Twig, JavaScript y CSS |
@@ -107,6 +111,36 @@ Al iniciar la sesión (`SessionStart`), el plugin comprueba si el directorio de 
 La detección solo se hace al iniciar la sesión, en ambos hosts. Si cambias de directorio durante la sesión, abre una sesión nueva en Claude Code o un hilo nuevo en Codex para volver a detectarlo. El evento `CwdChanged` de Claude Code no se usa porque su salida no se añade al contexto del modelo.
 
 Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto completo del framework para dar respuestas más precisas.
+
+El contexto incluye también la regla de la documentación propia: el core y cada plugin pueden tener su `AGENTS.md` y su carpeta `Doc/` (`User`, `Dev`, `Context` con su índice `README.md`, `Assets` y `forja.json`), que hay que leer antes de cambiarlos y actualizar en el mismo trabajo. Si el plugin donde se abre la sesión o el core tienen `AGENTS.md` o `Doc/Context/README.md`, el contexto da sus rutas. Así la regla se aplica aunque el core no incluya todavía su propio `AGENTS.md`.
+
+---
+
+## Idioma de las respuestas
+
+En cada mensaje del usuario (`UserPromptSubmit`), el plugin añade al contexto un recordatorio para que el modelo responda siempre en el idioma configurado, incluidos los mensajes de progreso entre herramientas, los resúmenes, las preguntas y las descripciones de comandos. El código, los identificadores, los comandos y los términos técnicos se mantienen en su forma original. Funciona igual en Claude Code y en Codex.
+
+El idioma se elige con `settings.language` en `~/.fs-claude.json`:
+
+| Valor | Resultado |
+|-------|-----------|
+| Sin la clave, `null` o `true` | Español (por defecto) |
+| `"en"`, `"ca"`, `"gl"`, `"pt"`, `"fr"`, `"it"`, `"de"` o `"es"` | Aviso redactado en ese idioma |
+| Variantes regionales (`"pt-BR"`, `"es_ES"`) o nombres (`"inglés"`, `"English"`, `"català"`) | Se reducen al idioma principal |
+| Cualquier otro idioma (`"eu"`, `"Nederlands"`...) | Aviso en inglés que pide responder en ese idioma |
+| `false`, `"off"` o `""` | Desactivado: el hook no añade nada |
+
+```json
+{
+  "settings": {
+    "language": "en"
+  }
+}
+```
+
+El cambio surte efecto en el siguiente mensaje, sin recargar el plugin. El hook nunca bloquea: si el archivo no existe o no es JSON válido, usa el español.
+
+Como todos los hooks del plugin, deja de ejecutarse en los proyectos que desactivan `fs-dev`. Si quieres una preferencia de idioma que se aplique siempre, configúrala también fuera del plugin: el ajuste `language` de `~/.claude/settings.json` en Claude Code, o `~/.claude/CLAUDE.md` y `~/.codex/AGENTS.md`. En ese caso puedes poner `"language": "off"` para no recibir el aviso duplicado.
 
 ---
 
@@ -189,9 +223,29 @@ Ninguno de estos comportamientos está prohibido: el informe no decide si el plu
 
 ---
 
+### Estructura de documentación
+
+`scripts/create-doc-structure.py` no es un hook: se ejecuta a petición, desde la skill `fs-dev:crear-documentacion` o a mano.
+
+```bash
+python3 fs-dev/scripts/create-doc-structure.py [<ruta_plugin_o_core>] [--check] [--json]
+```
+
+Crea o completa, sin sobrescribir nada, `Doc/User`, `Doc/Dev`, `Doc/Context/README.md`, `Doc/Assets`, `Doc/forja.json`, `AGENTS.md`, `CLAUDE.md` (solo `@AGENTS.md`) y el `.gitignore`, con un `.gitkeep` en las carpetas vacías. Del `.gitignore` quita solo las reglas que impiden versionar la estructura (`CLAUDE.md`, `AGENTS.md`, `/.claude` entero o `.agents`) y añade las que faltan, incluidas `CLAUDE.local.md` y `AGENTS.override.md`. En `Doc/forja.json` añade las secciones `User` y `Dev` que falten y valida los datos de cada página (archivo, campos admitidos, tipos, longitudes máximas, color y página padre). Avisa como pendiente de lo que no resuelve solo: un `CLAUDE.md` con instrucciones propias, un `AGENTS.md` sin enlace a `Doc/`, un problema en `Doc/forja.json` o una regla que sigue ignorando la documentación según `git check-ignore`. `--check` solo informa. Devuelve `0` si la estructura queda completa, `1` si quedan pendientes (o falta algo con `--check`) y `2` si la ruta no es un plugin ni el core.
+
+### Capturas de la documentación
+
+`scripts/doc-screenshots.py` no es un hook: lo usa la skill `fs-dev:docs-writer` para hacer las capturas de una página de documentación a partir de un escenario JSON (formato en [`references/documentacion/escenario-de-capturas.md`](references/documentacion/escenario-de-capturas.md)).
+
+```bash
+FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' python3 fs-dev/scripts/doc-screenshots.py <escenario.json> [--scan] [--only <nombre> ...] [--check]
+```
+
+Abre Google Chrome o Chromium sin interfaz con un perfil temporal (sin dependencias de Python), inicia sesión en la instalación de pruebas con las credenciales de las variables de entorno, ejecuta los pasos de cada pantalla y guarda un PNG por captura. Antes de capturar oculta la barra de depuración, sustituye por valores ficticios los nombres, NIF, emails, teléfonos, direcciones e IBAN (por campo, por columna y por patrón, siempre con el mismo valor ficticio para el mismo valor real), desenfoca los QR, dibuja las marcas (recuadro, número, flecha y nota) y recorta. Si queda algún dato personal visible, no guarda la imagen. Bloquea los clics que pueden cambiar datos salvo que el paso lo permita expresamente. `--scan` lista los controles de cada pantalla con su selector. Devuelve `0` si todo va bien, `1` si falla alguna captura y `2` si el escenario no es válido o Chrome no arranca.
+
 ## Configuración personalizada (`~/.fs-claude.json`)
 
-Puedes desactivar cualquiera de los dos scripts automáticos creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
+Puedes desactivar cualquiera de los dos scripts automáticos o cambiar el idioma de las respuestas creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
 
 - **macOS / Linux**: `/Users/tu-usuario/.fs-claude.json`
 - **Windows**: `C:\Users\tu-usuario\.fs-claude.json`
@@ -202,7 +256,8 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 {
   "settings": {
     "sortClassMembers": true,
-    "updateCopyright": true
+    "updateCopyright": true,
+    "language": "es"
   }
 }
 ```
@@ -211,6 +266,7 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 |----------|------|-------------|-------------|
 | `sortClassMembers` | boolean | `true` | Activa o desactiva la ordenación automática de miembros en clases PHP |
 | `updateCopyright` | boolean | `true` | Activa o desactiva la actualización automática del año de copyright |
+| `language` | string o boolean | `"es"` | Idioma en el que debe responder el modelo; `false` u `"off"` lo desactiva (ver [Idioma de las respuestas](#idioma-de-las-respuestas)) |
 
 ### Ejemplo: desactivar la ordenación de clases
 
@@ -223,4 +279,4 @@ Puedes desactivar cualquiera de los dos scripts automáticos creando o editando 
 }
 ```
 
-Si el archivo no existe, ambas transformaciones se ejecutan con su comportamiento por defecto (activadas). Los cambios de estas opciones surten efecto en la siguiente edición. Si cambia la definición del hook, Claude Code debe recargar el plugin y Codex debe revisar de nuevo el hook desde `/hooks` y abrir un hilo nuevo.
+Si el archivo no existe, ambas transformaciones se ejecutan con su comportamiento por defecto (activadas) y las respuestas se piden en español. Los cambios de estas opciones surten efecto en la siguiente edición. Si cambia la definición del hook, Claude Code debe recargar el plugin y Codex debe revisar de nuevo el hook desde `/hooks` y abrir un hilo nuevo.

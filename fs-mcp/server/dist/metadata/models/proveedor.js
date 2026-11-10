@@ -23,6 +23,13 @@ export const proveedorMetadata = {
             "enumValues": [
                 "1",
                 "0"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -36,7 +43,14 @@ export const proveedorMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF/NIE del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -48,7 +62,14 @@ export const proveedorMetadata = {
             "isRequired": false,
             "label": "codcliente",
             "maxLength": 10,
-            "description": "Código del cliente asociado, si la misma entidad actúa también como cliente."
+            "description": "Código del cliente asociado, si la misma entidad actúa también como cliente.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -67,7 +88,14 @@ export const proveedorMetadata = {
                 "column": "codpago",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -80,7 +108,14 @@ export const proveedorMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único del proveedor. Se usa como referencia en documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codretencion",
@@ -99,7 +134,14 @@ export const proveedorMetadata = {
                 "column": "codretencion",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -118,7 +160,14 @@ export const proveedorMetadata = {
                 "column": "codserie",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -131,7 +180,14 @@ export const proveedorMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Indique una subcuenta a usar o deje el campo en blanco para asignar una automáticamente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "debaja",
@@ -144,7 +200,14 @@ export const proveedorMetadata = {
             "label": "debaja",
             "default": false,
             "description": "True si el proveedor está dado de baja; false si sigue activo.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -157,7 +220,13 @@ export const proveedorMetadata = {
             "label": "Excepción de IVA",
             "maxLength": 20,
             "description": "Excepción de IVA aplicable a este proveedor.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "email",
@@ -170,7 +239,14 @@ export const proveedorMetadata = {
             "label": "Email",
             "maxLength": 100,
             "description": "Email principal del proveedor.",
-            "widget": "email"
+            "widget": "email",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fax",
@@ -183,7 +259,14 @@ export const proveedorMetadata = {
             "label": "Fax",
             "maxLength": 30,
             "description": "Número de fax del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -195,7 +278,14 @@ export const proveedorMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de alta del proveedor en el sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechabaja",
@@ -207,7 +297,14 @@ export const proveedorMetadata = {
             "isRequired": false,
             "label": "Fecha de baja",
             "description": "Fecha de baja. Si está vacía, sigue activo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontacto",
@@ -219,7 +316,14 @@ export const proveedorMetadata = {
             "isRequired": false,
             "label": "Contacto",
             "description": "Identificador del contacto principal asociado al proveedor.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "langcode",
@@ -232,7 +336,13 @@ export const proveedorMetadata = {
             "label": "Idioma",
             "maxLength": 10,
             "description": "Código de idioma del proveedor (es_ES, en_US, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -245,7 +355,14 @@ export const proveedorMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre por el que es conocido el proveedor. Para uso interno.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -257,7 +374,14 @@ export const proveedorMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el proveedor.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -270,7 +394,13 @@ export const proveedorMetadata = {
             "label": "Operación",
             "maxLength": 30,
             "description": "Tipo de operación fiscal por defecto en sus facturas.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "personafisica",
@@ -287,6 +417,13 @@ export const proveedorMetadata = {
             "enumValues": [
                 "1",
                 "0"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -300,7 +437,14 @@ export const proveedorMetadata = {
             "label": "Razón Social",
             "maxLength": 100,
             "description": "Razón social oficial del proveedor, para las facturas y otros documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "regimeniva",
@@ -313,7 +457,14 @@ export const proveedorMetadata = {
             "label": "Régimen impuestos",
             "maxLength": 50,
             "description": "Régimen de IVA del proveedor.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono1",
@@ -326,7 +477,14 @@ export const proveedorMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono principal del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono2",
@@ -339,7 +497,14 @@ export const proveedorMetadata = {
             "label": "Teléfono 2",
             "maxLength": 30,
             "description": "Teléfono secundario o móvil.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -352,7 +517,14 @@ export const proveedorMetadata = {
             "label": "Id. Fiscal",
             "maxLength": 25,
             "description": "Tipo de identificador fiscal (NIF, CIF, NIE, VAT, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "web",
@@ -365,7 +537,14 @@ export const proveedorMetadata = {
             "label": "Web",
             "maxLength": 100,
             "description": "URL de la página web del proveedor.",
-            "widget": "link"
+            "widget": "link",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -447,10 +626,63 @@ export const proveedorMetadata = {
             "remoteColumn": "codproveedor"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codimpuestoportes",
+            "sqlType": "character varying(10)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codimpuestoportes",
+            "maxLength": 10,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2025.81"
+                }
+            ]
+        },
+        {
+            "name": "irpf",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "IRPF",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 export default proveedorMetadata;
 //# sourceMappingURL=proveedor.js.map

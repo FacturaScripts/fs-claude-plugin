@@ -295,7 +295,7 @@ export async function handleAnalyticsTool(name, args) {
                 for (const cli of clientes)
                     clientesPorCodigo.set(cli.codcliente, cli);
                 const now = new Date();
-                const recibosPorCliente = {};
+                const recibosPorCliente = Object.create(null);
                 for (const recibo of recibos) {
                     const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
                     const estaVencido = recibo.vencido === true || (vence !== null && vence < now);
@@ -414,7 +414,7 @@ export async function handleAnalyticsTool(name, args) {
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
                 // Agrupar por cliente y sumar totales (incluyendo coste y beneficio para calcular margen)
-                const clientesMap = {};
+                const clientesMap = Object.create(null);
                 for (const factura of facturas) {
                     const codcliente = factura.codcliente;
                     let agregado = clientesMap[codcliente];
@@ -458,7 +458,7 @@ export async function handleAnalyticsTool(name, args) {
                     params.codejercicio = codejercicio;
                 const facturas = await fetchAllPaginated('/facturaclientes', params, connection);
                 // Agrupar por cliente
-                const clientesMap = {};
+                const clientesMap = Object.create(null);
                 for (const factura of facturas) {
                     const codcliente = factura.codcliente;
                     if (!clientesMap[codcliente]) {
@@ -504,7 +504,7 @@ export async function handleAnalyticsTool(name, args) {
                     ? lineasTodas.filter((l) => idsEjercicio.has(l.idfactura))
                     : lineasTodas;
                 // Agrupar por referencia de producto, calculando coste y beneficio por línea (coste*cantidad)
-                const productosMap = {};
+                const productosMap = Object.create(null);
                 for (const linea of lineas) {
                     const referencia = linea.referencia;
                     let agregado = productosMap[referencia];
@@ -811,10 +811,9 @@ export async function handleAnalyticsTool(name, args) {
                     cifnif: factura.cifnif,
                     email: emailCliente,
                     neto: factura.neto,
-                    iva: factura.iva,
+                    iva: factura.totaliva,
                     total: factura.total,
-                    pagado: factura.pagado,
-                    anulada: factura.anulada,
+                    pagado: factura.pagada,
                     lineas: lineas.map((linea) => ({
                         idlinea: linea.idlinea,
                         referencia: linea.referencia,

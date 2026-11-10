@@ -22,7 +22,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "actualizastock",
             "default": 0,
             "description": "Cómo afecta esta línea al stock al confirmar el pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cantidad",
@@ -34,7 +41,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "cantidad",
             "description": "Cantidad pedida al proveedor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codimpuesto",
@@ -52,7 +66,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -64,7 +85,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "descripcion",
             "description": "Descripción del producto en la línea del pedido.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor",
@@ -77,7 +105,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "dtopor",
             "default": 0,
             "description": "Primer descuento porcentual aplicado a la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -90,7 +125,13 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "dtopor2",
             "default": 0,
             "description": "Segundo descuento porcentual aplicado tras dtopor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -102,7 +143,13 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "excepcioniva",
             "maxLength": 20,
-            "description": "Excepción de IVA aplicada a esta línea."
+            "description": "Excepción de IVA aplicada a esta línea.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "idlinea",
@@ -114,7 +161,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idlinea",
             "description": "Identificador interno autoincremental de la línea.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idpedido",
@@ -132,7 +186,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
                 "column": "idpedido",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -150,7 +211,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
                 "column": "idproducto",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -162,7 +230,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iva",
@@ -174,7 +249,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "iva",
             "description": "Porcentaje de IVA aplicado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "orden",
@@ -187,7 +269,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "orden",
             "default": 0,
             "description": "Posición de la línea en el pedido.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpsindto",
@@ -199,7 +288,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvpsindto",
             "description": "Subtotal antes de descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvptotal",
@@ -211,7 +307,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvptotal",
             "description": "Subtotal después de descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "pvpunitario",
@@ -223,7 +326,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "pvpunitario",
             "description": "Precio unitario sin IVA antes de descuentos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "recargo",
@@ -235,7 +345,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "recargo",
             "description": "Porcentaje de recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -247,7 +364,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "referencia",
             "maxLength": 30,
-            "description": "Referencia de la variante pedida."
+            "description": "Referencia de la variante pedida.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "servido",
@@ -260,7 +384,14 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "servido",
             "default": 0,
             "description": "Cantidad ya recibida del proveedor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "suplido",
@@ -273,7 +404,13 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "label": "suplido",
             "default": false,
             "description": "True si la línea es un suplido.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -299,9 +436,22 @@ export const lineaPedidoProveedorMetadata: ModelMetadata = {
             "remoteColumn": "idproducto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
