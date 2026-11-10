@@ -411,6 +411,9 @@ class EvasionTest(unittest.TestCase):
             'no-ascii': '        include "$ñ.php";',
             'no-ascii-llaves': '        include "{$ñ}.php";',
             'no-ascii-simbolo': '        include "$€.php";',
+            # Etiqueta de heredoc no ASCII, que PHP también admite
+            'heredoc-no-ascii': '        include <<<ÑR\n$x.php\nÑR;',
+            'heredoc-no-ascii-simbolo': '        include <<<€R\n$x.php\n€R;',
         }
         for name, body in cases.items():
             with self.subTest(name):
@@ -431,6 +434,14 @@ class EvasionTest(unittest.TestCase):
             with self.subTest(name):
                 report = self.audit({'Lib/Seis.php': php_class('Seis', body)})
                 self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
+
+    def test_heredoc_con_etiqueta_no_ascii_es_una_cadena(self) -> None:
+        """Un «?>» dentro de un heredoc <<<ÑR no corta la sentencia: la variable de detrás se ve."""
+        body = "        include __DIR__ . '/' . str_repeat(<<<ÑR\n?>\nÑR, 0) . $x . '.php';"
+        report = self.audit({'Lib/Ocho.php': php_class('Ocho', body)})
+        findings = self.by_title(report).get('Incluye un archivo PHP calculado en tiempo de ejecución', [])
+        self.assertEqual([8], [item['linea'] for item in findings])
+        self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
 
     def test_include_fijo_no_mira_cadenas_que_no_son_su_ruta(self) -> None:
         """Una cadena interpolada después del include, fuera de su expresión, no lo marca."""

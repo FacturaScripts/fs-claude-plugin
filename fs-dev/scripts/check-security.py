@@ -261,7 +261,8 @@ def strip_php(content: str) -> tuple[str, str]:
     code: list[str] = []
     length = len(content)
     index = 0
-    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
+    # La etiqueta puede llevar bytes 0x80-0xff, como un nombre de variable
+    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*)\1\r?\n')
 
     while index < length:
         char = content[index]
@@ -607,7 +608,7 @@ def interpolates(source: Source, start: int, end: int) -> bool:
     """
     for literal in re.finditer(r'''(["'])\s*\1''', source.code[start:end]):
         text = source.text[start + literal.start():start + literal.end()]
-        if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_])', text)):
+        if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
             continue
         # Un «$» precedido de un número impar de barras está escapado. Un nombre
         # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
