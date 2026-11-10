@@ -97,5 +97,34 @@ class PlantillaGrandeTest(AuditTestCase):
                 self.assertTrue(CHECKER.is_standalone_script(source))
 
 
+class RetornoDeCarroTest(AuditTestCase):
+    """Un archivo de extensión desconocida con PHP trata «\\r» como salto, igual que PHP."""
+
+    HEREDOC = b'<?php\n$v = <<<A\r" \nA;\ninclude $y;\nsystem($z);\n$w = "x";\n'
+
+    def test_heredoc_cerrado_tras_retorno_de_carro(self) -> None:
+        """Con «\\r» tras la etiqueta del heredoc, lo que sigue al cierre se analiza."""
+        titles = self.titles(self.audit({'X.txt2': self.HEREDOC}))
+        self.assertIn('Ejecuta un comando del sistema', titles)
+
+    def test_igual_que_con_extension_php(self) -> None:
+        """Control: el mismo contenido en un .php ya daba esos hallazgos."""
+        txt = self.audit({'X.txt2': self.HEREDOC})['hallazgos']
+        self.tmp.cleanup()
+        self.setUp()
+        php = self.audit({'X.php': self.HEREDOC})['hallazgos']
+        self.assertEqual([(item['titulo'], item['linea']) for item in txt],
+                         [(item['titulo'], item['linea']) for item in php])
+
+    def test_lineas_con_retorno_de_carro(self) -> None:
+        """Las líneas se cuentan como en un .php, con «\\r\\n» o con «\\r» solo."""
+        for newline in (b'\r\n', b'\r'):
+            with self.subTest(newline):
+                content = newline.join([b'<?php', b'$a = 1;', b'system($z);', b''])
+                lines = [item['linea'] for item in self.audit({'X.txt2': content})['hallazgos']
+                         if item['titulo'] == 'Ejecuta un comando del sistema']
+                self.assertEqual(lines, [3])
+
+
 if __name__ == '__main__':
     unittest.main()

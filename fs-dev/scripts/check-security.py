@@ -621,7 +621,8 @@ def load_source(path: Path, plugin_dir: Path) -> Source | None:
         if data is None or not unknown_has_php(path, data):
             return None
         language = 'php'
-        raw = data.decode('utf-8', errors='replace')
+        # Como read_text, que lee con saltos universales: PHP también toma «\r» como salto
+        raw = data.decode('utf-8', errors='replace').replace('\r\n', '\n').replace('\r', '\n')
     else:
         raw = read_text(path)
         if raw is None:
