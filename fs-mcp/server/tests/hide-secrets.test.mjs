@@ -22,6 +22,7 @@ const fs = await arrancarFsDePega((req) => {
   if (req.method !== 'GET') return { ok: 'hecho', data: usuario };
   if (ruta === '/api/3/users' || ruta === '/api/3/users/' || ruta === '/api/users') return [usuario];
   if (ruta === '/api/3/users/admin') return usuario;
+  if (ruta === '/api/3/users/ad%20min') return usuario;
   if (ruta === '/api/3/apikeyes') return [apikey];
   if (ruta === '/api/3/settings') return [ajuste];
   // properties ya decodificado como objeto, en vez de como texto
@@ -110,7 +111,8 @@ for (const ruta of ['./users', 'x/../users', 'users/./', '%2e%2e/users']) {
 }
 
 // Las barras iniciales se quitan, como hacía axios antes de validar el recurso
-for (const [recurso, ruta] of [['/users', '/api/3/users'], ['//users', '/api/3/users'], ['/users/admin', '/api/3/users/admin']]) {
+// Un espacio en medio sí llega a la API, codificado
+for (const [recurso, ruta] of [['/users', '/api/3/users'], ['//users', '/api/3/users'], ['/users/admin', '/api/3/users/admin'], ['users/ad min', '/api/3/users/ad%20min']]) {
   test(`get_mi_recurso acepta ${JSON.stringify(recurso)}, pide ${ruta} y no devuelve secretos`, async () => {
     const desde = fs.peticiones.length;
     const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
@@ -124,7 +126,10 @@ for (const [recurso, ruta] of [['/users', '/api/3/users'], ['//users', '/api/3/u
 for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', 'x\\..\\..\\..\\index.php', '..\\users', '\\..\\..\\deploy', '\\users',
   '/../users', '//../users', '/./users', '/%2e%2e/users', '/\\users', '/\\..\\deploy', '/x\\..\\..\\..\\index.php',
   // La URL quita \t, \r y \n en cualquier posición: «.\t.» llegaría como «..»
-  '.\t./.\t./deploy', '/.\r./.\n./index.php', 'users\x00', 'users\x1f']) {
+  '.\t./.\t./deploy', '/.\r./.\n./index.php', 'users\x00', 'users\x1f',
+  // y recorta los espacios del final de la URL entera: «.. » llegaría como «..».
+  // « ..» no sale de la API, pero un espacio en los extremos tampoco se admite
+  '.. ', '. ', '%2e%2e ', ' ..']) {
   test(`get_mi_recurso rechaza el recurso ${JSON.stringify(recurso)} sin llamar a la API`, async () => {
     const desde = fs.peticiones.length;
     const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
