@@ -315,7 +315,9 @@ class ConnectionManager {
         if (!connectionKey) {
             throw new Error("No hay conexión por defecto configurada y no se proporcionó ninguna clave");
         }
-        const connection = this.config.connections[connectionKey];
+        const connection = Object.hasOwn(this.config.connections, connectionKey)
+            ? this.config.connections[connectionKey]
+            : undefined;
         if (!connection) {
             throw new Error(`Conexión no encontrada: "${connectionKey}". Conexiones disponibles: ${Object.keys(this.config.connections).join(", ")}`);
         }
@@ -342,6 +344,12 @@ class ConnectionManager {
         if (!key || key.trim() === "") {
             throw new Error("La clave de conexión no puede estar vacía");
         }
+        // "__proto__" se guardaría en el archivo como una clave más, y quien lo lea
+        // y copie las conexiones asignando clave a clave (Object.assign, obj[k] = v)
+        // cambiaría el prototipo del objeto en vez de añadir una conexión
+        if (key === "__proto__") {
+            throw new Error('La clave de conexión no puede ser "__proto__"');
+        }
         if (!config.name || !config.url || !config.token) {
             throw new Error("La configuración debe incluir: name, url y token");
         }
@@ -366,7 +374,7 @@ class ConnectionManager {
      */
     setDefault(key) {
         this.config = this.saveConnections((current) => {
-            if (!current.connections[key]) {
+            if (!Object.hasOwn(current.connections, key)) {
                 throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
             }
             return { ...current, default: key };
