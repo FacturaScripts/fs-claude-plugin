@@ -159,6 +159,8 @@ class Source:
     code: str
     minified: bool = False
     line_starts: list[int] = field(default_factory=list)
+    # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
+    standalone: bool | None = None
 
     def line_of(self, offset: int) -> int:
         """Devuelve el número de línea (desde 1) de una posición del archivo."""
@@ -637,9 +639,11 @@ def variable_value(source: Source, variable: str, before: int) -> str:
 
 def is_standalone_script(source: Source) -> bool:
     """Indica si un PHP ejecuta código propio fuera de cualquier clase."""
-    return (source.language == 'php' and source.relative != 'Init.php'
-            and not PHP_CLASS_PATTERN.search(source.code)
-            and re.search(r'\S', re.sub(r'<\?php|\?>', '', source.code)) is not None)
+    if source.standalone is None:
+        source.standalone = (source.language == 'php' and source.relative != 'Init.php'
+                             and not PHP_CLASS_PATTERN.search(source.code)
+                             and re.search(r'\S', re.sub(r'<\?php|\?>', '', source.code)) is not None)
+    return source.standalone
 
 
 def is_cli_only(source: Source) -> bool:
