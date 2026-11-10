@@ -19,6 +19,13 @@ declare class ConnectionManager {
      */
     private loadConnections;
     /**
+     * Borra los temporales de guardados que no terminaron (el proceso murió entre
+     * la escritura y el rename), que contienen los tokens. Sólo los que tienen
+     * más de unos minutos, para no llevarse el de un guardado en curso de otro
+     * proceso. Si no se puede, se avisa y se sigue cargando.
+     */
+    private removeStaleTemporaries;
+    /**
      * Deja en 0600 un archivo de conexiones que otras cuentas pueden leer: uno
      * creado antes de que se crearan así seguiría legible hasta el primer guardado.
      * Si no se puede (el archivo es de otra cuenta), se avisa y se sigue cargando.

@@ -288,3 +288,25 @@ test('el temporal se lleva a disco antes de renombrarlo sobre el archivo', async
   assert.deepEqual(pasos, ['fsync', 'rename']);
   assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
 });
+
+test('al cargar se borran los temporales abandonados y no los de un guardado en curso', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'connections.json');
+  fs.writeFileSync(file, JSON.stringify({ default: 'a', connections: { a: conexion } }), { mode: 0o600 });
+  const hace = (minutos) => new Date(Date.now() - minutos * 60 * 1000);
+  const abandonado = `connections.json.${'1'.repeat(8)}-1111-1111-1111-${'1'.repeat(12)}.tmp`;
+  const enCurso = `connections.json.${'2'.repeat(8)}-2222-2222-2222-${'2'.repeat(12)}.tmp`;
+  const ajenos = ['connections.json.bak', 'connections.json.123.tmp', `otro.json.${'3'.repeat(8)}-3333-3333-3333-${'3'.repeat(12)}.tmp`];
+  for (const nombre of [abandonado, enCurso, ...ajenos]) {
+    fs.writeFileSync(path.join(dir, nombre), 'token', { mode: 0o600 });
+    if (nombre !== enCurso) fs.utimesSync(path.join(dir, nombre), hace(60), hace(60));
+  }
+  fs.utimesSync(path.join(dir, enCurso), hace(1), hace(1));
+  process.env.FS_CONNECTIONS_FILE = file;
+
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  assert.equal(connectionManager.getConnection().name, 'Pruebas');
+  assert.deepEqual(fs.readdirSync(dir).sort(), ['connections.json', enCurso, ...ajenos].sort());
+});

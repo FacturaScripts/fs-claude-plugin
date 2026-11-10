@@ -14,6 +14,12 @@ interface FsClaudeConfig {
   [key: string]: unknown;
 }
 
+/** Antigüedad a partir de la cual un temporal del archivo de conexiones se da por abandonado. */
+const STALE_TMP_MS = 10 * 60 * 1000;
+
+/** Sufijo de los temporales que crea writeFileAtomic: `<archivo>.<uuid>.tmp`. */
+const TMP_SUFFIX = /^\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
+
 /**
  * Describe un error sin citar el contenido del archivo de conexiones: el
  * mensaje de JSON.parse incluye un fragmento del texto, que puede ser un token.
@@ -70,6 +76,8 @@ class ConnectionManager {
   private loadConnections(): ConnectionsConfig {
     const emptyConfig: ConnectionsConfig = { default: "", connections: {} };
 
+    this.removeStaleTemporaries();
+
     try {
       if (!fs.existsSync(this.connectionsPath) && this.createEmptyConnectionsFile()) {
         console.error(
@@ -103,6 +111,31 @@ class ConnectionManager {
     } catch (error) {
       console.error(`[fs-mcp] Error al cargar conexiones: ${describeError(error)}`);
       return emptyConfig;
+    }
+  }
+
+  /**
+   * Borra los temporales de guardados que no terminaron (el proceso murió entre
+   * la escritura y el rename), que contienen los tokens. Sólo los que tienen
+   * más de unos minutos, para no llevarse el de un guardado en curso de otro
+   * proceso. Si no se puede, se avisa y se sigue cargando.
+   */
+  private removeStaleTemporaries(): void {
+    try {
+      const target = this.realConnectionsPath();
+      const dir = path.dirname(target);
+      const base = path.basename(target);
+      const limit = Date.now() - STALE_TMP_MS;
+      for (const name of fs.readdirSync(dir)) {
+        if (!name.startsWith(base) || !TMP_SUFFIX.test(name.slice(base.length))) continue;
+        const tmpPath = path.join(dir, name);
+        if (fs.lstatSync(tmpPath).mtimeMs < limit) {
+          fs.rmSync(tmpPath, { force: true });
+        }
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+      console.error(`[fs-mcp] No se pudieron borrar los temporales de ${this.connectionsPath}: ${describeError(error)}`);
     }
   }
 
