@@ -122,7 +122,9 @@ for (const [recurso, ruta] of [['/users', '/api/3/users'], ['//users', '/api/3/u
 }
 
 for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', 'x\\..\\..\\..\\index.php', '..\\users', '\\..\\..\\deploy', '\\users',
-  '/../users', '//../users', '/./users', '/%2e%2e/users', '/\\users', '/\\..\\deploy', '/x\\..\\..\\..\\index.php']) {
+  '/../users', '//../users', '/./users', '/%2e%2e/users', '/\\users', '/\\..\\deploy', '/x\\..\\..\\..\\index.php',
+  // La URL quita \t, \r y \n en cualquier posición: «.\t.» llegaría como «..»
+  '.\t./.\t./deploy', '/.\r./.\n./index.php', 'users\x00', 'users\x1f']) {
   test(`get_mi_recurso rechaza el recurso ${JSON.stringify(recurso)} sin llamar a la API`, async () => {
     const desde = fs.peticiones.length;
     const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
