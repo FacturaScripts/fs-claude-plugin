@@ -526,6 +526,23 @@ class EvasionTest(unittest.TestCase):
                     'Incluye un archivo PHP calculado en tiempo de ejecución', [])])
                 self.assertEqual([last], [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
 
+    def test_cierre_de_php_dentro_de_una_interpolacion(self) -> None:
+        """Un ?> en el código de una interpolación cierra PHP, y el <?php siguiente vuelve a ella.
+
+        Pasa en un closure dentro de la interpolación, que es PHP válido (``php -l``). Un ?>
+        que es texto de la cadena no cierra nada.
+        """
+        cases = {
+            'comillas': ('<?php\n$r = "{$f(function () { ?>h<?php system($z); })}";\ninclude $y;\n', 2),
+            'heredoc': ('<?php\n$r = <<<A\n?> {$f(function () { ?>h<?= system($z) ?><?php })}\nA;\ninclude $y;\n', 3),
+        }
+        for name, (content, line) in cases.items():
+            with self.subTest(name):
+                report = self.by_title(self.audit({'Lib/Veinte.php': content}))
+                self.assertEqual([line], [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
+                self.assertEqual([line + 1 + (name == 'heredoc')], [item['linea'] for item in report.get(
+                    'Incluye un archivo PHP calculado en tiempo de ejecución', [])])
+
     def test_cadena_sin_interpolacion_de_codigo_no_da_hallazgos(self) -> None:
         """Sin {$…} ni ${…}, el contenido de la cadena sigue siendo texto: nada de lo que lleva se marca."""
         cases = {
