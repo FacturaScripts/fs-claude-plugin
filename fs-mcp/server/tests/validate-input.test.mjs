@@ -130,6 +130,19 @@ for (const [tool, esperado] of [['update_producto', 'PUT /api/3/productos/5'], [
   });
 }
 
+test('un booleano escrito como "1" llega a la API, como antes de validar', async () => {
+  const { result, peticiones } = await llamar('update_cliente', { connection: 'pega', codcliente: 'C1', debaja: '1' });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['PUT /api/3/clientes/C1']);
+});
+
+test('un booleano escrito como "true" se rechaza: la API lo guardaría como texto', async () => {
+  const { result, peticiones } = await llamar('update_cliente', { connection: 'pega', codcliente: 'C1', debaja: 'true' });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /"debaja" debe ser true, false, 1 o 0/);
+  assert.deepEqual(peticiones, []);
+});
+
 for (const personafisica of [true, '1']) {
   test(`personafisica ${JSON.stringify(personafisica)} se acepta: boolean o un valor de su enum ["1", "0"]`, async () => {
     const { result } = await llamar('update_cliente', { connection: 'pega', codcliente: 'C1', personafisica });

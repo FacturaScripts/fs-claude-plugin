@@ -45,7 +45,10 @@ function matchesType(value: unknown, type: string | undefined): boolean {
       // van a la ruta como texto), y se pasa sin convertir
       return (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && NUMERIC_STRING.test(value));
     case 'boolean':
-      return typeof value === 'boolean';
+      // "1" y "0" llegaban a la API y funcionan en MySQL y PostgreSQL. "true" y
+      // "false" no: la API guarda el texto tal cual, y en MySQL sin modo estricto
+      // "true" acabaría como falso sin avisar
+      return typeof value === 'boolean' || value === '1' || value === '0';
     case 'array':
       return Array.isArray(value);
     case 'object':
@@ -76,7 +79,9 @@ export function validateToolInput(schema: InputSchema, input: Record<string, unk
     if (property.enum?.includes(value)) continue;
 
     if (!matchesType(value, property.type)) {
-      return `el argumento "${name}" debe ser de tipo ${property.type}`;
+      return property.type === 'boolean'
+        ? `el argumento "${name}" debe ser true, false, 1 o 0`
+        : `el argumento "${name}" debe ser de tipo ${property.type}`;
     }
     if (property.type === 'string' && property.enum && !hasMetadataEnum(property) && !property.enum.includes(value)) {
       return `el argumento "${name}" debe ser uno de: ${property.enum.join(', ')}`;
