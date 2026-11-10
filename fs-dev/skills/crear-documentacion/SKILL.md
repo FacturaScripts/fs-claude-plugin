@@ -88,15 +88,15 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 | `title` | texto | Título de la página; si falta, se usa el nombre del archivo `.md` formateado |
 | `title_short` | texto | Título corto para SEO; si falta, se usa el nombre del archivo `.md` formateado |
 | `permalink` | texto, máx. 200 | Enlace de la página en la web. Si ya existe, la forja le añade algo para hacerlo único al crear la página; después no se puede cambiar, y la forja lo usa para reconocer la página si cambia su ruta |
-| `parent` | texto | Página padre, por su nombre de archivo en la misma sección |
+| `parent` | texto | Página padre, por su **nombre de archivo con `.md`** en la misma sección (`inicio.md`, no su permalink) |
 | `ordernum` | número entero | Orden de la página |
 | `youtubeid` | texto | Vídeo de YouTube de la página |
 | `imageurl` | texto | Imagen principal: una URL o un archivo de `Doc/Assets/` |
 | `icon` | texto | Icono de Font Awesome |
 | `color` | texto | Color de Bootstrap: `primary`, `secondary`, `success`, `danger`, `warning`, `info` o `dark` |
 | `keywords` | texto, máx. 300 | Palabras clave para buscar la página, separadas por comas |
-| `controllers` | texto, máx. 300 | Controladores donde se muestra la página, separados por comas |
-| `visibility` | `true` o `false` | Si la página es visible |
+| `controllers` | texto, máx. 300 | Controladores donde se muestra la página, separados por comas y sin espacios (`ListFacturaCliente,EditFacturaCliente`) |
+| `visibility` | `true` o `false` | Si la página es visible; es un booleano JSON sin comillas, nunca un texto como `"public"` |
 
 ## Publicación en la forja
 
