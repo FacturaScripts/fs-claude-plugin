@@ -220,14 +220,29 @@ class ConnectionManager {
    * El rename sustituye el archivo por el temporal, con sus permisos: se crea
    * 0600 porque contiene los tokens de la API. El nombre es aleatorio y se abre
    * en exclusiva ("wx") para no escribir a través de un enlace ya plantado ahí.
+   *
+   * Si el archivo es un enlace simbólico (gestionado desde un repositorio de
+   * dotfiles, por ejemplo), se escribe en su destino: el rename sustituiría el
+   * enlace por un archivo normal y el destino no recibiría el cambio.
    */
   private writeFileAtomic(content: string): void {
-    const tmpPath = `${this.connectionsPath}.${randomUUID()}.tmp`;
+    const target = this.realConnectionsPath();
+    const tmpPath = `${target}.${randomUUID()}.tmp`;
     try {
       fs.writeFileSync(tmpPath, content, { encoding: "utf-8", mode: 0o600, flag: "wx" });
-      fs.renameSync(tmpPath, this.connectionsPath);
+      fs.renameSync(tmpPath, target);
     } catch (error) {
       fs.rmSync(tmpPath, { force: true });
+      throw error;
+    }
+  }
+
+  /** Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la misma si aún no existe. */
+  private realConnectionsPath(): string {
+    try {
+      return fs.realpathSync(this.connectionsPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return this.connectionsPath;
       throw error;
     }
   }

@@ -55,8 +55,14 @@ declare class ConnectionManager {
      * El rename sustituye el archivo por el temporal, con sus permisos: se crea
      * 0600 porque contiene los tokens de la API. El nombre es aleatorio y se abre
      * en exclusiva ("wx") para no escribir a través de un enlace ya plantado ahí.
+     *
+     * Si el archivo es un enlace simbólico (gestionado desde un repositorio de
+     * dotfiles, por ejemplo), se escribe en su destino: el rename sustituiría el
+     * enlace por un archivo normal y el destino no recibiría el cambio.
      */
     private writeFileAtomic;
+    /** Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la misma si aún no existe. */
+    private realConnectionsPath;
     /**
      * Obtiene una conexión por clave o la conexión por defecto
      * @param key - Clave de la conexión (opcional, usa default si no se proporciona)

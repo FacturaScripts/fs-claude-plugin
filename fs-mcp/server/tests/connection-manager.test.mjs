@@ -214,3 +214,23 @@ test('dos gestores sobre el mismo archivo no se pisan lo que guarda cada uno', a
   assert.equal(guardado.default, 'b');
   assert.equal(uno.getConnection().name, 'B');
 });
+
+test('un archivo de conexiones que es un enlace simbólico se conserva y su destino recibe la conexión', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const dotfiles = path.join(dir, 'dotfiles');
+  fs.mkdirSync(dotfiles);
+  const destino = path.join(dotfiles, 'connections.json');
+  fs.writeFileSync(destino, JSON.stringify({ default: '', connections: {} }), { mode: 0o600 });
+  const enlace = path.join(dir, 'connections.json');
+  fs.symlinkSync(destino, enlace);
+  process.env.FS_CONNECTIONS_FILE = enlace;
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  connectionManager.addConnection('a', conexion);
+
+  assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
+  assert.equal(JSON.parse(fs.readFileSync(destino, 'utf-8')).connections.a.token, 'secreto');
+  assert.equal(fs.statSync(destino).mode & 0o777, 0o600);
+  assert.deepEqual(fs.readdirSync(dotfiles), ['connections.json']);
+});
