@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 /**
@@ -13,14 +14,25 @@ import { dateRangeFilters } from '../../metadata/dateRange.js';
  * La API REST de FacturaScripts direcciona el recurso `productos` por su clave
  * primaria `idproducto`, no por la `referencia`. Como el usuario trabaja con la
  * referencia, primero consultamos el producto para obtener su idproducto.
+ *
+ * Se usa antes de modificar o eliminar, así que nunca devuelve un producto que
+ * no sea el pedido: sin referencia la consulta iría sin filtro y la API
+ * devolvería el primer producto, y si la API no aplicara el filtro también.
+ *
+ * @param referencia - Referencia del producto
+ * @param connection - Clave de la conexión (opcional)
+ * @returns idproducto del producto con esa referencia
+ * @throws Error si falta la referencia, no hay ningún producto con ella o la
+ *   API devuelve otro producto
  */
 async function resolveIdProducto(
-  referencia: string,
+  referencia: unknown,
   connection?: string,
 ): Promise<number> {
-  // Sin referencia la API no filtra y devolvería el primer producto de la tabla
-  if (!referencia) {
-    throw new Error('Indica idproducto o una referencia no vacía.');
+  if (typeof referencia !== 'string' || referencia.trim() === '') {
+    throw new Error(
+      'Indica la referencia o el idproducto del producto: sin ninguno de los dos no se sabe qué producto modificar o eliminar.',
+    );
   }
 
   const productos = await fsClient.get<Array<{ idproducto: number; referencia?: string }>>(
@@ -30,8 +42,16 @@ async function resolveIdProducto(
   );
 
   const producto = Array.isArray(productos) ? productos[0] : undefined;
-  if (!producto || producto.referencia !== referencia) {
+  if (!producto) {
     throw new Error(`No se encontró ningún producto con la referencia "${referencia}".`);
+  }
+
+  // Sin distinguir mayúsculas, como compara MySQL en el filtro
+  if (typeof producto.referencia !== 'string' || producto.referencia.toLowerCase() !== referencia.toLowerCase()) {
+    throw new Error(
+      `Al buscar la referencia "${referencia}" la API ha devuelto otro producto ` +
+        `("${producto.referencia ?? 'sin referencia'}"); no se modifica ni se elimina nada.`,
+    );
   }
 
   return producto.idproducto;
@@ -2356,13 +2376,13 @@ export async function handleCoreBusinessTool(
           case 'update_cliente': {
             const params = input as any as UpdateClienteParams;
             const { connection, codcliente, ...data } = params;
-            const result = await fsClient.put(`/clientes/${codcliente}`, data, connection);
+            const result = await fsClient.put(`/clientes/${pathId(codcliente)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_cliente': {
             const params = input as any as DeleteClienteParams;
-            const result = await fsClient.delete(`/clientes/${params.codcliente}`, params.connection);
+            const result = await fsClient.delete(`/clientes/${pathId(params.codcliente)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2376,13 +2396,13 @@ export async function handleCoreBusinessTool(
           case 'update_proveedor': {
             const params = input as any as UpdateProveedorParams;
             const { connection, codproveedor, ...data } = params;
-            const result = await fsClient.put(`/proveedores/${codproveedor}`, data, connection);
+            const result = await fsClient.put(`/proveedores/${pathId(codproveedor)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_proveedor': {
             const params = input as any as DeleteProveedorParams;
-            const result = await fsClient.delete(`/proveedores/${params.codproveedor}`, params.connection);
+            const result = await fsClient.delete(`/proveedores/${pathId(params.codproveedor)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2397,14 +2417,14 @@ export async function handleCoreBusinessTool(
             const params = input as any as UpdateProductoParams;
             const { connection, referencia, idproducto, ...data } = params;
             const id = idproducto ?? await resolveIdProducto(referencia, connection);
-            const result = await fsClient.put(`/productos/${id}`, data, connection);
+            const result = await fsClient.put(`/productos/${pathId(id)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_producto': {
             const params = input as any as DeleteProductoParams;
             const id = params.idproducto ?? await resolveIdProducto(params.referencia, params.connection);
-            const result = await fsClient.delete(`/productos/${id}`, params.connection);
+            const result = await fsClient.delete(`/productos/${pathId(id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2418,13 +2438,13 @@ export async function handleCoreBusinessTool(
           case 'update_contacto': {
             const params = input as any as UpdateContactoParams;
             const { connection, codcontacto, ...data } = params;
-            const result = await fsClient.put(`/contactos/${codcontacto}`, data, connection);
+            const result = await fsClient.put(`/contactos/${pathId(codcontacto)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_contacto': {
             const params = input as any as DeleteContactoParams;
-            const result = await fsClient.delete(`/contactos/${params.codcontacto}`, params.connection);
+            const result = await fsClient.delete(`/contactos/${pathId(params.codcontacto)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2439,13 +2459,13 @@ export async function handleCoreBusinessTool(
           case 'update_variante': {
             const params = input as any as UpdateVarianteParams;
             const { connection, idvariante, ...data } = params;
-            const result = await fsClient.put(`/variantes/${idvariante}`, data, connection);
+            const result = await fsClient.put(`/variantes/${pathId(idvariante)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_variante': {
             const params = input as any as DeleteVarianteParams;
-            const result = await fsClient.delete(`/variantes/${params.idvariante}`, params.connection);
+            const result = await fsClient.delete(`/variantes/${pathId(params.idvariante)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2459,13 +2479,13 @@ export async function handleCoreBusinessTool(
           case 'update_familia': {
             const params = input as any as UpdateFamiliaParams;
             const { connection, codfamilia, ...data } = params;
-            const result = await fsClient.put(`/familias/${codfamilia}`, data, connection);
+            const result = await fsClient.put(`/familias/${pathId(codfamilia)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_familia': {
             const params = input as any as DeleteFamiliaParams;
-            const result = await fsClient.delete(`/familias/${params.codfamilia}`, params.connection);
+            const result = await fsClient.delete(`/familias/${pathId(params.codfamilia)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2479,13 +2499,13 @@ export async function handleCoreBusinessTool(
           case 'update_fabricante': {
             const params = input as any as UpdateFabricanteParams;
             const { connection, codfabricante, ...data } = params;
-            const result = await fsClient.put(`/fabricantes/${codfabricante}`, data, connection);
+            const result = await fsClient.put(`/fabricantes/${pathId(codfabricante)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_fabricante': {
             const params = input as any as DeleteFabricanteParams;
-            const result = await fsClient.delete(`/fabricantes/${params.codfabricante}`, params.connection);
+            const result = await fsClient.delete(`/fabricantes/${pathId(params.codfabricante)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2499,13 +2519,13 @@ export async function handleCoreBusinessTool(
           case 'update_almacen': {
             const params = input as any as UpdateAlmacenParams;
             const { connection, codalmacen, ...data } = params;
-            const result = await fsClient.put(`/almacenes/${codalmacen}`, data, connection);
+            const result = await fsClient.put(`/almacenes/${pathId(codalmacen)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_almacen': {
             const params = input as any as DeleteAlmacenParams;
-            const result = await fsClient.delete(`/almacenes/${params.codalmacen}`, params.connection);
+            const result = await fsClient.delete(`/almacenes/${pathId(params.codalmacen)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2519,13 +2539,13 @@ export async function handleCoreBusinessTool(
           case 'update_tarifa': {
             const params = input as any as UpdateTarifaParams;
             const { connection, codtarifa, ...data } = params;
-            const result = await fsClient.put(`/tarifas/${codtarifa}`, data, connection);
+            const result = await fsClient.put(`/tarifas/${pathId(codtarifa)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_tarifa': {
             const params = input as any as DeleteTarifaParams;
-            const result = await fsClient.delete(`/tarifas/${params.codtarifa}`, params.connection);
+            const result = await fsClient.delete(`/tarifas/${pathId(params.codtarifa)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2539,13 +2559,13 @@ export async function handleCoreBusinessTool(
           case 'update_atributo': {
             const params = input as any as UpdateAtributoParams;
             const { connection, codatributo, ...data } = params;
-            const result = await fsClient.put(`/atributos/${codatributo}`, data, connection);
+            const result = await fsClient.put(`/atributos/${pathId(codatributo)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_atributo': {
             const params = input as any as DeleteAtributoParams;
-            const result = await fsClient.delete(`/atributos/${params.codatributo}`, params.connection);
+            const result = await fsClient.delete(`/atributos/${pathId(params.codatributo)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2559,13 +2579,13 @@ export async function handleCoreBusinessTool(
           case 'update_atributovalor': {
             const params = input as any as UpdateAtributoValorParams;
             const { connection, id, ...data } = params;
-            const result = await fsClient.put(`/atributovalores/${id}`, data, connection);
+            const result = await fsClient.put(`/atributovalores/${pathId(id)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_atributovalor': {
             const params = input as any as DeleteAtributoValorParams;
-            const result = await fsClient.delete(`/atributovalores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/atributovalores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2579,13 +2599,13 @@ export async function handleCoreBusinessTool(
           case 'update_agente': {
             const params = input as any as UpdateAgenteParams;
             const { connection, codagente, ...data } = params;
-            const result = await fsClient.put(`/agentes/${codagente}`, data, connection);
+            const result = await fsClient.put(`/agentes/${pathId(codagente)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_agente': {
             const params = input as any as DeleteAgenteParams;
-            const result = await fsClient.delete(`/agentes/${params.codagente}`, params.connection);
+            const result = await fsClient.delete(`/agentes/${pathId(params.codagente)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2599,13 +2619,13 @@ export async function handleCoreBusinessTool(
           case 'update_grupoclientes': {
             const params = input as any as UpdateGrupoClientesParams;
             const { connection, codgrupo, ...data } = params;
-            const result = await fsClient.put(`/grupoclientes/${codgrupo}`, data, connection);
+            const result = await fsClient.put(`/grupoclientes/${pathId(codgrupo)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_grupoclientes': {
             const params = input as any as DeleteGrupoClientesParams;
-            const result = await fsClient.delete(`/grupoclientes/${params.codgrupo}`, params.connection);
+            const result = await fsClient.delete(`/grupoclientes/${pathId(params.codgrupo)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2619,13 +2639,13 @@ export async function handleCoreBusinessTool(
           case 'update_productoproveedor': {
             const params = input as any as UpdateProductoProveedorParams;
             const { connection, id, ...data } = params;
-            const result = await fsClient.put(`/productoproveedores/${id}`, data, connection);
+            const result = await fsClient.put(`/productoproveedores/${pathId(id)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_productoproveedor': {
             const params = input as any as DeleteProductoProveedorParams;
-            const result = await fsClient.delete(`/productoproveedores/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/productoproveedores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -2639,33 +2659,33 @@ export async function handleCoreBusinessTool(
           case 'update_stock': {
             const params = input as any as UpdateStockParams;
             const { connection, idstock, ...data } = params;
-            const result = await fsClient.put(`/stocks/${idstock}`, data, connection);
+            const result = await fsClient.put(`/stocks/${pathId(idstock)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_stock': {
             const params = input as any as DeleteStockParams;
-            const result = await fsClient.delete(`/stocks/${params.idstock}`, params.connection);
+            const result = await fsClient.delete(`/stocks/${pathId(params.idstock)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'create_cuentabancocliente': {
             const params = input as any as CreateCuentaBancoClienteParams;
             const { connection, ...data } = params;
-            const result = await fsClient.post('/cuentabancoasociados', data, connection);
+            const result = await fsClient.post('/cuentabancoclientes', data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_cuentabancocliente': {
             const params = input as any as UpdateCuentaBancoClienteParams;
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoasociados/${codcuenta}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoclientes/${pathId(codcuenta)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_cuentabancocliente': {
             const params = input as any as DeleteCuentaBancoClienteParams;
-            const result = await fsClient.delete(`/cuentabancoasociados/${params.codcuenta}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoclientes/${pathId(params.codcuenta)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 

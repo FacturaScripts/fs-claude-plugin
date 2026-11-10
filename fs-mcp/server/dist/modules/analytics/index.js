@@ -843,6 +843,14 @@ export async function handleAnalyticsTool(name, args) {
                 const connection = input.connection;
                 const recurso = input.recurso;
                 const paramsStr = input.params || '{}';
+                // El recurso va tal cual en la ruta: no se admiten rutas absolutas ni
+                // segmentos «.» o «..» (tampoco codificados), que la URL normaliza
+                // y llevarían la petición a otro recurso o fuera de la API. La URL
+                // trata «\» como «/», así que se parte por las dos
+                const segmentos = String(recurso).split(/[/\\]/).map((s) => s.replace(/%2e/gi, '.'));
+                if (/^[/\\]/.test(String(recurso)) || segmentos.some((s) => s === '.' || s === '..')) {
+                    throw new Error(`Recurso no válido: ${recurso}`);
+                }
                 // Parsear parámetros JSON
                 let parsedParams = {};
                 try {

@@ -1,4 +1,5 @@
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const accountingTools = [
     {
@@ -636,12 +637,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_asiento': {
             const params = input;
             const { connection, idasiento, ...data } = params;
-            const result = await fsClient.put(`/asientos/${idasiento}`, data, connection);
+            const result = await fsClient.put(`/asientos/${pathId(idasiento)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_asiento': {
             const params = input;
-            const result = await fsClient.delete(`/asientos/${params.idasiento}`, params.connection);
+            const result = await fsClient.delete(`/asientos/${pathId(params.idasiento)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_partida': {
@@ -653,12 +654,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_partida': {
             const params = input;
             const { connection, idpartida, ...data } = params;
-            const result = await fsClient.put(`/partidas/${idpartida}`, data, connection);
+            const result = await fsClient.put(`/partidas/${pathId(idpartida)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_partida': {
             const params = input;
-            const result = await fsClient.delete(`/partidas/${params.idpartida}`, params.connection);
+            const result = await fsClient.delete(`/partidas/${pathId(params.idpartida)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_diario': {
@@ -670,12 +671,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_diario': {
             const params = input;
             const { connection, iddiario, ...data } = params;
-            const result = await fsClient.put(`/diarios/${iddiario}`, data, connection);
+            const result = await fsClient.put(`/diarios/${pathId(iddiario)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_diario': {
             const params = input;
-            const result = await fsClient.delete(`/diarios/${params.iddiario}`, params.connection);
+            const result = await fsClient.delete(`/diarios/${pathId(params.iddiario)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_ejercicio': {
@@ -687,12 +688,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_ejercicio': {
             const params = input;
             const { connection, codejercicio, ...data } = params;
-            const result = await fsClient.put(`/ejercicios/${codejercicio}`, data, connection);
+            const result = await fsClient.put(`/ejercicios/${pathId(codejercicio)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_ejercicio': {
             const params = input;
-            const result = await fsClient.delete(`/ejercicios/${params.codejercicio}`, params.connection);
+            const result = await fsClient.delete(`/ejercicios/${pathId(params.codejercicio)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_cuenta': {
@@ -704,12 +705,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_cuenta': {
             const params = input;
             const { connection, idcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentas/${idcuenta}`, data, connection);
+            const result = await fsClient.put(`/cuentas/${pathId(idcuenta)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cuenta': {
             const params = input;
-            const result = await fsClient.delete(`/cuentas/${params.idcuenta}`, params.connection);
+            const result = await fsClient.delete(`/cuentas/${pathId(params.idcuenta)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_subcuenta': {
@@ -721,12 +722,12 @@ export async function handleAccountingTool(name, args) {
         case 'update_subcuenta': {
             const params = input;
             const { connection, idsubcuenta, ...data } = params;
-            const result = await fsClient.put(`/subcuentas/${idsubcuenta}`, data, connection);
+            const result = await fsClient.put(`/subcuentas/${pathId(idsubcuenta)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_subcuenta': {
             const params = input;
-            const result = await fsClient.delete(`/subcuentas/${params.idsubcuenta}`, params.connection);
+            const result = await fsClient.delete(`/subcuentas/${pathId(params.idsubcuenta)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:
