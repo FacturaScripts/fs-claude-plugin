@@ -335,7 +335,9 @@ def strip_php(content: str) -> tuple[str, str]:
     # Último cierre encontrado de cada etiqueta, o None si no lo tiene. Las aperturas se
     # recorren hacia delante, así que una posterior que no pase de ese cierre encontraría
     # el mismo, y sin cierre desde una posición tampoco lo hay desde otra posterior: ni un
-    # heredoc sin cierre ni uno anidado vuelven a recorrer el archivo
+    # heredoc sin cierre ni uno anidado vuelven a recorrer el archivo si repiten etiqueta.
+    # Cada etiqueta distinta sí se busca una vez, así que K etiquetas sin cierre cuestan K
+    # recorridos; eso sólo pasa en un archivo que PHP no compila
     searched: dict[str, re.Match | None] = {}
 
     while index < length:

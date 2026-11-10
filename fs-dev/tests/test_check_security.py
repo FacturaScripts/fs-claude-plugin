@@ -6,13 +6,14 @@ import importlib.util
 import io
 import json
 import os
+import signal
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
 import unittest.mock
-from contextlib import redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
 
 
@@ -34,6 +35,25 @@ def build_plugin(root: Path, files: dict[str, str]) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
     return plugin
+
+
+@contextmanager
+def time_limit(seconds: int):
+    """Falla, en vez de colgarse, si el bloque no acaba a tiempo. Sólo donde existe SIGALRM."""
+    if not hasattr(signal, 'SIGALRM'):
+        yield
+        return
+
+    def expire(signum, frame):
+        raise AssertionError(f'no acabó en {seconds} s')
+
+    previous = signal.signal(signal.SIGALRM, expire)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous)
 
 
 def php_class(name: str, body: str, namespace: str = 'FacturaScripts\\Plugins\\MiPlugin\\Lib') -> str:
@@ -567,7 +587,8 @@ class EvasionTest(unittest.TestCase):
         """
         plugin = build_plugin(self.root, {'Lib/Dieciseis.php': '<?php\n' + '<<<A\n' * 40000})
         started = time.monotonic()
-        CHECKER.audit(plugin)
+        with time_limit(60):
+            CHECKER.audit(plugin)
         self.assertLess(time.monotonic() - started, 5)
 
     def test_heredoc_seguidos_con_la_misma_etiqueta(self) -> None:
@@ -580,7 +601,9 @@ class EvasionTest(unittest.TestCase):
         }
         for name, content in cases.items():
             with self.subTest(name):
-                report = self.by_title(self.audit({'Lib/Dieciocho.php': content}))
+                # Un cierre recordado que no le corresponde puede dejar el análisis en un bucle
+                with time_limit(10):
+                    report = self.by_title(self.audit({'Lib/Dieciocho.php': content}))
                 self.assertEqual([8 if name == 'nowdoc' else 7],
                                  [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
 
@@ -594,7 +617,8 @@ class EvasionTest(unittest.TestCase):
         content = '<?php $a = ' + '<<<A\n{$a[' * n + '1' + ']}\nA\n' * n + ';\n'
         # Sólo strip_php: el resto del análisis tiene sus propios costes con este archivo
         started = time.monotonic()
-        CHECKER.strip_php(content)
+        with time_limit(60):
+            CHECKER.strip_php(content)
         self.assertLess(time.monotonic() - started, 5)
 
     def test_muchos_heredoc_con_etiquetas_distintas_no_tardan_de_mas(self) -> None:
@@ -606,7 +630,8 @@ class EvasionTest(unittest.TestCase):
         content = '<?php\n' + ''.join(f'$v = <<<E{i}\nx\nE{i};\n' for i in range(5000))
         plugin = build_plugin(self.root, {'Lib/Diecinueve.php': content})
         started = time.monotonic()
-        CHECKER.audit(plugin)
+        with time_limit(60):
+            CHECKER.audit(plugin)
         self.assertLess(time.monotonic() - started, 5)
 
     def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
