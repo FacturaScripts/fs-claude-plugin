@@ -21,7 +21,14 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Columnas",
             "description": "Configuración de columnas (visibilidad, anchos, orden) en formato JSON.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "id",
@@ -33,7 +40,14 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la configuración.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -45,7 +59,13 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "last_update",
             "description": "Fecha y hora de la última modificación de esta configuración.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.1"
+                }
+            ]
         },
         {
             "name": "modals",
@@ -57,7 +77,14 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "modals",
             "description": "Configuración de modales asociados a la página, en formato JSON.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "name",
@@ -69,7 +96,14 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Nombre",
             "maxLength": 40,
-            "description": "Nombre del controlador/página al que aplica."
+            "description": "Nombre del controlador/página al que aplica.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nick",
@@ -87,7 +121,14 @@ export const pageOptionMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "rows",
@@ -99,7 +140,14 @@ export const pageOptionMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "rows",
             "description": "Configuración de filas adicionales (status, statistics, footer) en formato JSON.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -111,9 +159,22 @@ export const pageOptionMetadata: ModelMetadata = {
             "remoteColumn": "nick"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

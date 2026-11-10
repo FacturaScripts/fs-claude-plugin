@@ -56,6 +56,13 @@ class FacturaScriptsClient {
       },
       timeout: 30000,
       httpsAgent,
+      // La API no redirige en uso normal, y al seguir una redirección a otro
+      // host follow-redirects sólo quita Authorization y Cookie: la cabecera
+      // Token se reenviaría al destino.
+      maxRedirects: 0,
+      // Toda ruta va bajo baseURL: una ruta absoluta («http://…» o «//host/…»)
+      // construida con datos del modelo no puede llevar el token a otro host.
+      allowAbsoluteUrls: false,
     });
 
     instance.interceptors.response.use(
@@ -63,7 +70,12 @@ class FacturaScriptsClient {
       (error) => {
         const connectionName = connection.name || resolvedKey;
         const statusCode = error.response?.status || "desconocido";
-        const errorMessage = error.response?.data?.message || error.message || "Error desconocido";
+        const location = error.response?.headers?.location;
+        // Las redirecciones no se siguen (maxRedirects: 0): se dice adónde iban
+        // para que se pueda corregir la URL de la conexión, p. ej. de http a https
+        const errorMessage = location
+          ? `la API ha redirigido a ${location} y no se sigue la redirección para no enviar el token a otra dirección; si es la dirección de la instalación, corrige la URL de la conexión`
+          : error.response?.data?.message || error.message || "Error desconocido";
 
         throw new Error(
           `Error en FacturaScripts (${connectionName}, HTTP ${statusCode}): ${errorMessage}`

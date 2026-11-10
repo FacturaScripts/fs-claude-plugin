@@ -19,7 +19,14 @@ export const atributoMetadata = {
             "label": "Código",
             "maxLength": 20,
             "description": "Código corto único del atributo (ej: TALLA, COLOR).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -32,7 +39,14 @@ export const atributoMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre legible del atributo (ej: Talla, Color).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "num_selector",
@@ -45,7 +59,13 @@ export const atributoMetadata = {
             "label": "Selector",
             "default": 0,
             "description": "Número del selector visual asociado al atributo (orden de aparición en filtros).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         }
     ],
     "relations": [
@@ -57,9 +77,22 @@ export const atributoMetadata = {
             "remoteColumn": "codatributo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default atributoMetadata;

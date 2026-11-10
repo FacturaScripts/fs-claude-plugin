@@ -19,7 +19,14 @@ export const agenciaTransporteMetadata = {
             "label": "Activo",
             "default": true,
             "description": "True si la agencia de transporte está activa y se puede asignar a documentos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtrans",
@@ -32,7 +39,14 @@ export const agenciaTransporteMetadata = {
             "label": "Código",
             "maxLength": 8,
             "description": "Código corto único de la agencia de transporte. Se usa como referencia en albaranes y facturas.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -45,7 +59,14 @@ export const agenciaTransporteMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre comercial de la agencia de transporte.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono",
@@ -58,7 +79,14 @@ export const agenciaTransporteMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono de contacto de la agencia.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "web",
@@ -71,7 +99,14 @@ export const agenciaTransporteMetadata = {
             "label": "Dirección web",
             "maxLength": 100,
             "description": "URL de la página web de la agencia.",
-            "widget": "link"
+            "widget": "link",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -104,9 +139,22 @@ export const agenciaTransporteMetadata = {
             "remoteColumn": "codtrans"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default agenciaTransporteMetadata;

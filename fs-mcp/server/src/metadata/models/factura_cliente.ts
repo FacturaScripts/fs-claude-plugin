@@ -21,7 +21,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "apartado",
             "maxLength": 10,
-            "description": "Apartado postal de la dirección de facturación."
+            "description": "Apartado postal de la dirección de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -33,7 +40,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "CIF/NIF",
             "maxLength": 30,
-            "description": "CIF/NIF del cliente, copiado al crear la factura."
+            "description": "CIF/NIF del cliente, copiado al crear la factura.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -45,7 +59,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "ciudad",
             "maxLength": 100,
-            "description": "Ciudad de la dirección de facturación."
+            "description": "Ciudad de la dirección de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -63,7 +84,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codagente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -81,7 +109,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codalmacen",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -99,7 +134,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codcliente",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -117,7 +159,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -135,7 +184,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codejercicio",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigo",
@@ -147,7 +203,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "codigo",
             "maxLength": 20,
-            "description": "Código identificativo único de la factura (ej: FAC2024-0001). Lo genera el sistema según la serie y el ejercicio."
+            "description": "Código identificativo único de la factura (ej: FAC2024-0001). Lo genera el sistema según la serie y el ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigoenv",
@@ -159,7 +222,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codigoenv",
             "maxLength": 200,
-            "description": "Código de seguimiento del envío de los productos."
+            "description": "Código de seguimiento del envío de los productos.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigorect",
@@ -171,7 +241,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codigorect",
             "maxLength": 20,
-            "description": "Código de la factura original que rectifica esta (en facturas rectificativas)."
+            "description": "Código de la factura original que rectifica esta (en facturas rectificativas).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -189,7 +266,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codpago",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -201,7 +285,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codpais",
             "maxLength": 20,
-            "description": "Código del país de la dirección de facturación."
+            "description": "Código del país de la dirección de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -213,7 +304,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codpostal",
             "maxLength": 10,
-            "description": "Código postal de la dirección de facturación."
+            "description": "Código postal de la dirección de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -231,7 +329,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codserie",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtrans",
@@ -249,7 +354,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "codtrans",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -261,7 +373,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "direccion",
             "maxLength": 200,
-            "description": "Dirección postal de facturación."
+            "description": "Dirección postal de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor1",
@@ -273,7 +392,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "dtopor1",
             "description": "Primer porcentaje de descuento aplicado sobre el neto de la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -285,7 +410,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "dtopor2",
             "description": "Segundo porcentaje de descuento aplicado tras dtopor1.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "editable",
@@ -297,7 +428,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Editable",
             "description": "True si la factura todavía se puede modificar; false si está bloqueada (contabilizada, pagada, etc.).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -309,7 +447,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha de emisión de la factura.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechadevengo",
@@ -321,7 +466,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "fechadevengo",
             "description": "Fecha de devengo fiscal del IVA. Por defecto coincide con `fecha`.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "femail",
@@ -333,7 +484,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "femail",
             "description": "Fecha en la que se envió la factura por email al cliente.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "hora",
@@ -344,7 +502,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora de emisión de la factura (HH:MM:SS)."
+            "description": "Hora de emisión de la factura (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -362,7 +527,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "idasiento",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactoenv",
@@ -374,7 +546,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idcontactoenv",
             "description": "ID del contacto usado como dirección de envío.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactofact",
@@ -386,7 +565,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idcontactofact",
             "description": "ID del contacto usado como dirección de facturación.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -404,7 +590,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado",
@@ -422,7 +615,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "idestado",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado_ant",
@@ -440,7 +640,13 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "idestado",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "idfactura",
@@ -452,7 +658,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idfactura",
             "description": "Identificador interno autoincremental de la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idfacturarect",
@@ -470,7 +683,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "idfactura",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -482,7 +702,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado a la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "neto",
@@ -494,7 +721,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "neto",
             "description": "Importe neto (subtotal sin impuestos, después de descuentos generales).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "netosindto",
@@ -507,7 +741,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "label": "netosindto",
             "default": 0,
             "description": "Importe neto antes de aplicar descuentos generales (dtopor1, dtopor2).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -525,7 +765,14 @@ export const facturaClienteMetadata: ModelMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombrecliente",
@@ -537,7 +784,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "nombrecliente",
             "maxLength": 100,
-            "description": "Nombre del cliente registrado en la factura (snapshot al crearla)."
+            "description": "Nombre del cliente registrado en la factura (snapshot al crearla).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numdocs",
@@ -550,7 +804,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "label": "numdocs",
             "default": 0,
             "description": "Número de archivos adjuntos vinculados a la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -562,7 +822,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "numero",
             "maxLength": 12,
-            "description": "Número correlativo de la factura dentro de su serie y ejercicio."
+            "description": "Número correlativo de la factura dentro de su serie y ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numero2",
@@ -574,7 +841,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "numero2",
             "maxLength": 50,
-            "description": "Número adicional o referencia externa."
+            "description": "Número adicional o referencia externa.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -586,7 +860,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "observaciones",
             "description": "Notas u observaciones internas de la factura.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -598,7 +879,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "operacion",
             "maxLength": 30,
-            "description": "Tipo de operación fiscal (interior, intracomunitaria, exportación)."
+            "description": "Tipo de operación fiscal (interior, intracomunitaria, exportación).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "pagada",
@@ -611,7 +898,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "label": "pagada",
             "default": false,
             "description": "True si la factura está totalmente cobrada.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -623,7 +917,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "provincia",
             "maxLength": 100,
-            "description": "Provincia de la dirección de facturación."
+            "description": "Provincia de la dirección de facturación.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -635,7 +936,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "tasaconv",
             "description": "Tasa de conversión aplicada si la factura está en otra divisa.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "total",
@@ -647,7 +955,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Total",
             "description": "Importe total de la factura (neto + IVA + recargo - retenciones).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalbeneficio",
@@ -659,7 +974,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totalbeneficio",
             "description": "Beneficio total de la factura (total menos coste).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "totalcoste",
@@ -671,7 +992,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totalcoste",
             "description": "Coste total de los productos facturados.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.2"
+                }
+            ]
         },
         {
             "name": "totaleuros",
@@ -683,7 +1010,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totaleuros",
             "description": "Total convertido a divisa principal (euros) usando tasaconv.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalirpf",
@@ -695,7 +1029,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totalirpf",
             "description": "Importe total retenido por IRPF.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totaliva",
@@ -707,7 +1048,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totaliva",
             "description": "Importe total de IVA de la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalrecargo",
@@ -719,7 +1067,14 @@ export const facturaClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "totalrecargo",
             "description": "Importe total del recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalsuplidos",
@@ -732,7 +1087,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "label": "totalsuplidos",
             "default": 0,
             "description": "Importe total de suplidos (gastos a cuenta del cliente, sin IVA).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         },
         {
             "name": "vencida",
@@ -745,7 +1106,13 @@ export const facturaClienteMetadata: ModelMetadata = {
             "label": "vencida",
             "default": false,
             "description": "True si la factura tiene recibos vencidos sin cobrar.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         }
     ],
     "relations": [
@@ -862,10 +1229,174 @@ export const facturaClienteMetadata: ModelMetadata = {
             "remoteColumn": "idfactura"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codoperaciondoc",
+            "sqlType": "character varying(20)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codoperaciondoc",
+            "maxLength": 20,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.15",
+                    "until": "2021.2"
+                }
+            ]
+        },
+        {
+            "name": "codsubtipodoc",
+            "sqlType": "character varying(20)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codsubtipodoc",
+            "maxLength": 20,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.15",
+                    "until": "2021.2"
+                }
+            ]
+        },
+        {
+            "name": "idasientop",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idasientop",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "idliquidacion",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idliquidacion",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04",
+                    "until": "2021.81"
+                }
+            ]
+        },
+        {
+            "name": "pagado",
+            "sqlType": "boolean",
+            "tsType": "boolean",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "pagado",
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "totalcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "totalcomision",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04",
+                    "until": "2021.81"
+                }
+            ]
+        },
+        {
+            "name": "vencimiento",
+            "sqlType": "date",
+            "tsType": "date",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "vencimiento",
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 
 export default facturaClienteMetadata;

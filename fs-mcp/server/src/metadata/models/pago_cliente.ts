@@ -21,7 +21,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codpago",
             "maxLength": 10,
-            "description": "Código de la forma de pago usada en este cobro."
+            "description": "Código de la forma de pago usada en este cobro.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "customid",
@@ -33,7 +39,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "customid",
             "maxLength": 30,
-            "description": "Identificador externo del pago si proviene de una pasarela de cobro."
+            "description": "Identificador externo del pago si proviene de una pasarela de cobro.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "customstatus",
@@ -45,7 +57,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "customstatus",
             "maxLength": 30,
-            "description": "Estado externo del pago según la pasarela."
+            "description": "Estado externo del pago según la pasarela.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -57,7 +75,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha del cobro.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "gastos",
@@ -70,7 +94,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "label": "gastos",
             "default": 0,
             "description": "Gastos asociados al cobro (comisiones bancarias, etc.).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "hora",
@@ -81,7 +111,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora del cobro (HH:MM:SS)."
+            "description": "Hora del cobro (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -99,7 +135,13 @@ export const pagoClienteMetadata: ModelMetadata = {
                 "column": "idasiento",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idpago",
@@ -111,7 +153,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idpago",
             "description": "Identificador interno autoincremental del cobro.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idrecibo",
@@ -129,7 +177,13 @@ export const pagoClienteMetadata: ModelMetadata = {
                 "column": "idrecibo",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "importe",
@@ -142,7 +196,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "label": "importe",
             "default": 0,
             "description": "Importe cobrado al cliente.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -154,7 +214,13 @@ export const pagoClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Usuario",
             "maxLength": 50,
-            "description": "Usuario que registró el cobro."
+            "description": "Usuario que registró el cobro.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         }
     ],
     "relations": [
@@ -173,9 +239,21 @@ export const pagoClienteMetadata: ModelMetadata = {
             "remoteColumn": "idrecibo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.04"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
