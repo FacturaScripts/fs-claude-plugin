@@ -155,6 +155,42 @@ class SecurityAuditTest(unittest.TestCase):
         self.assertIn('destino: api.proveedor.test', notes)
         self.assertIn('destino: otro.test (asignado a $url)', notes)
 
+    def test_http_con_metodo_dinamico_es_red(self) -> None:
+        """``Http::$metodo()`` y ``Http::{$metodo}()`` hacen una petición aunque no se vea el verbo."""
+        body = ("        $datos = ['limit' => 10];\n"
+                "        $http = Http::$metodo($this->url . '/api/3/' . $recurso, $datos)->setToken($key);\n"
+                "        $otra = \\FacturaScripts\\Core\\Http::{$verbo}('https://remota.test/api', []);\n")
+        report = self.audit({'Lib/Dinamica.php': php_class('Dinamica', body)})
+        findings = self.find(report, 'red-saliente')
+        self.assertEqual([item['linea'] for item in findings], [9, 10])
+        self.assertIn("destino: $this->url . '/api/3/' . $recurso", findings[0]['notas'])
+        self.assertTrue(any('($metodo)' in note for note in findings[0]['notas']))
+        self.assertIn('destino: remota.test', findings[1]['notas'])
+        self.assertTrue(any('({$verbo})' in note for note in findings[1]['notas']))
+        self.assertTrue(report['requiere_revision'])
+        # una variable cualquiera seguida de paréntesis no es la clase Http
+        self.assertEqual(self.find(report, 'codigo-dinamico'), [])
+
+    def test_http_con_constructor_es_red(self) -> None:
+        """``new Http($metodo, $url)`` lleva la URL en el segundo argumento."""
+        body = ("        $url = 'https://constructor.test/v1';\n"
+                "        $http = new Http('GET', $url);\n"
+                "        $otra = new \\FacturaScripts\\Core\\Http($metodo, $this->endpoint);\n")
+        report = self.audit({'Lib/Constructor.php': php_class('Constructor', body)})
+        findings = self.find(report, 'red-saliente')
+        self.assertEqual([item['linea'] for item in findings], [9, 10])
+        self.assertIn('destino: constructor.test', findings[0]['notas'])
+        self.assertIn('destino: $this->endpoint', findings[1]['notas'])
+        self.assertTrue(any('($metodo)' in note for note in findings[1]['notas']))
+
+    def test_metodos_que_no_hacen_peticion_no_son_red(self) -> None:
+        """Otros estáticos de Http y una clase que solo se llama parecido no son una petición."""
+        body = ("        $x = Http::class;\n"
+                "        $y = new HttpClienteFalso();\n"
+                "        $z = MiHttp::get('dato');\n")
+        report = self.audit({'Lib/NoRed.php': php_class('NoRed', body)})
+        self.assertEqual(self.find(report, 'red-saliente'), [])
+
     def test_lectura_de_archivo_local_no_es_red(self) -> None:
         """file_get_contents de una ruta local no es una conexión de red."""
         body = "        $json = file_get_contents(__DIR__ . '/data.json');\n        $x = file_get_contents($path);"
