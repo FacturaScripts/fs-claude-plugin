@@ -25,7 +25,9 @@ const NUMERIC_STRING = /^-?\d+(\.\d+)?$/;
 function matchesType(value, type) {
     switch (type) {
         case 'string':
-            return typeof value === 'string';
+            // Un número se acepta, como antes de validar (codejercicio: 2025), y se pasa
+            // sin convertir: el cliente lo manda como texto
+            return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
         case 'number':
             // Una cadena numérica se acepta, como antes de validar (los identificadores
             // van a la ruta como texto), y se pasa sin convertir

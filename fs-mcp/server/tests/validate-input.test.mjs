@@ -15,6 +15,8 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { arrancarFsDePega } from './fake-fs.mjs';
 
+const { validateToolInput } = await import('../dist/utils/validateInput.js');
+
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const api = await arrancarFsDePega((req) => (req.method === 'GET' ? [{ idproducto: 5, referencia: 'R1' }] : { ok: 'hecho' }));
 const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-validar-'));
@@ -141,6 +143,20 @@ test('un booleano escrito como "true" se rechaza: la API lo guardaría como text
   assert.equal(result.isError, true);
   assert.match(result.content[0].text, /"debaja" debe ser true, false, 1 o 0/);
   assert.deepEqual(peticiones, []);
+});
+
+test('un número en una propiedad string llega a la API, como antes de validar', async () => {
+  const { result, peticiones } = await llamar('update_secuenciadocumento', { connection: 'pega', idsecuencia: 1, codejercicio: 2025 });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['PUT /api/3/secuenciadocumentos/1']);
+});
+
+test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
+  const esquema = { properties: { codpostal: { type: 'string' } } };
+  assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);
+  for (const codpostal of [NaN, Infinity, true]) {
+    assert.equal(validateToolInput(esquema, { codpostal }), 'el argumento "codpostal" debe ser de tipo string');
+  }
 });
 
 for (const personafisica of [true, '1']) {
