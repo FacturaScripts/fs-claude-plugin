@@ -197,12 +197,22 @@ class ConnectionManager {
      * Si el archivo es un enlace simbólico (gestionado desde un repositorio de
      * dotfiles, por ejemplo), se escribe en su destino: el rename sustituiría el
      * enlace por un archivo normal y el destino no recibiría el cambio.
+     *
+     * El temporal se lleva a disco (fsync) antes del rename: sin eso, un corte de
+     * luz puede dejar el archivo renombrado con 0 bytes, y uno vacío se rehace.
      */
     writeFileAtomic(content) {
         const target = this.realConnectionsPath();
         const tmpPath = `${target}.${randomUUID()}.tmp`;
         try {
-            fs.writeFileSync(tmpPath, content, { encoding: "utf-8", mode: 0o600, flag: "wx" });
+            const fd = fs.openSync(tmpPath, "wx", 0o600);
+            try {
+                fs.writeFileSync(fd, content, "utf-8");
+                fs.fsyncSync(fd);
+            }
+            finally {
+                fs.closeSync(fd);
+            }
             fs.renameSync(tmpPath, target);
         }
         catch (error) {

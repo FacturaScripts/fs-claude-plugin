@@ -271,3 +271,20 @@ test('el error de un archivo roto conserva la posición cuando JSON.parse la da'
 
   assert.throws(() => connectionManager.addConnection('nueva', conexion), /JSON inválido en la posición \d+/);
 });
+
+test('el temporal se lleva a disco antes de renombrarlo sobre el archivo', async () => {
+  const { connectionManager, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
+  const pasos = [];
+  const { fsyncSync, renameSync } = fs;
+  fs.fsyncSync = (fd) => { pasos.push('fsync'); return fsyncSync(fd); };
+  fs.renameSync = (desde, hasta) => { pasos.push(hasta === file ? 'rename' : 'otro'); return renameSync(desde, hasta); };
+  try {
+    connectionManager.addConnection('a', conexion);
+  } finally {
+    fs.fsyncSync = fsyncSync;
+    fs.renameSync = renameSync;
+  }
+
+  assert.deepEqual(pasos, ['fsync', 'rename']);
+  assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
+});

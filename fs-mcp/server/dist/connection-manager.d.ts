@@ -60,6 +60,9 @@ declare class ConnectionManager {
      * Si el archivo es un enlace simbólico (gestionado desde un repositorio de
      * dotfiles, por ejemplo), se escribe en su destino: el rename sustituiría el
      * enlace por un archivo normal y el destino no recibiría el cambio.
+     *
+     * El temporal se lleva a disco (fsync) antes del rename: sin eso, un corte de
+     * luz puede dejar el archivo renombrado con 0 bytes, y uno vacío se rehace.
      */
     private writeFileAtomic;
     /** Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la misma si aún no existe. */
