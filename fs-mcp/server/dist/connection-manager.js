@@ -121,13 +121,19 @@ class ConnectionManager {
         }
     }
     /**
-     * Persiste en el archivo JSON la configuración indicada.
+     * Aplica un cambio sobre las conexiones recién leídas del archivo, lo guarda
+     * y devuelve la configuración resultante.
+     *
+     * El cambio se aplica sobre lo que hay en el archivo y no sobre la copia en
+     * memoria, que puede estar vacía (el archivo estaba roto al arrancar y se ha
+     * corregido después) o desfasada (otra sesión o la skill add-connection lo ha
+     * modificado). Guardar la copia en memoria borraría esas conexiones.
      *
      * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
      * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
      * se pudieron interpretar.
      */
-    saveConnections(config) {
+    saveConnections(change) {
         const dir = path.dirname(this.connectionsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -155,12 +161,18 @@ class ConnectionManager {
                     connections: { default: "", connections: {} },
                     settings: { sortClassMembers: true, updateCopyright: true },
                 };
-            fsClaudeConfig.connections = config;
+            const next = change(this.withDefaults(fsClaudeConfig.connections));
+            fsClaudeConfig.connections = next;
             this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
+            return next;
         }
-        else {
-            this.writeFileAtomic(JSON.stringify(config, null, 2));
-        }
+        const next = change(this.withDefaults(existingConfig));
+        this.writeFileAtomic(JSON.stringify(next, null, 2));
+        return next;
+    }
+    /** Completa con valores vacíos lo que falte de una configuración leída del archivo. */
+    withDefaults(config) {
+        return { ...config, default: config?.default ?? "", connections: config?.connections ?? {} };
     }
     /**
      * Escribe el archivo de conexiones a través de un temporal en el mismo
@@ -223,16 +235,17 @@ class ConnectionManager {
         }
         // Se guarda antes de aplicarlo: si no se puede guardar, la sesión sigue
         // con la configuración anterior en vez de usar una que no consta en el archivo
-        const next = {
-            ...this.config,
-            connections: { ...this.config.connections, [key]: config },
-        };
-        // Si es la primera conexión, establécela como predeterminada
-        if (!next.default || next.default === "") {
-            next.default = key;
-        }
-        this.saveConnections(next);
-        this.config = next;
+        this.config = this.saveConnections((current) => {
+            const next = {
+                ...current,
+                connections: { ...current.connections, [key]: config },
+            };
+            // Si es la primera conexión, establécela como predeterminada
+            if (!next.default || next.default === "") {
+                next.default = key;
+            }
+            return next;
+        });
     }
     /**
      * Establece la conexión por defecto
@@ -240,12 +253,12 @@ class ConnectionManager {
      * @throws Error si la conexión no existe
      */
     setDefault(key) {
-        if (!this.config.connections[key]) {
-            throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
-        }
-        const next = { ...this.config, default: key };
-        this.saveConnections(next);
-        this.config = next;
+        this.config = this.saveConnections((current) => {
+            if (!current.connections[key]) {
+                throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
+            }
+            return { ...current, default: key };
+        });
     }
 }
 /**

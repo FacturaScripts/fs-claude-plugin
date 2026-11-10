@@ -164,3 +164,53 @@ test('al arrancar no se trunca un archivo que otro proceso acaba de crear', asyn
   }
   assert.equal(fs.readFileSync(file, 'utf-8'), contenido);
 });
+
+test('tras corregir un archivo roto, añadir una conexión conserva las demás, el default y los ajustes', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, '.fs-claude.json');
+  fs.writeFileSync(file, '{"connections": {"default": "a", ', 'utf-8');
+  const homeOriginal = process.env.HOME;
+  const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;
+  process.env.HOME = dir;
+  delete process.env.FS_CONNECTIONS_FILE;
+  try {
+    const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+    assert.throws(() => connectionManager.addConnection('nueva', conexion), /no es un JSON válido/);
+
+    // El usuario corrige el archivo y reintenta sin reiniciar el servidor
+    fs.writeFileSync(file, JSON.stringify({
+      connections: { default: 'a', connections: { a: conexion, b: { ...conexion, name: 'B' } } },
+      settings: { sortClassMembers: false },
+    }), 'utf-8');
+    connectionManager.addConnection('nueva', { ...conexion, name: 'Nueva' });
+
+    const guardado = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    assert.deepEqual(Object.keys(guardado.connections.connections).sort(), ['a', 'b', 'nueva']);
+    assert.equal(guardado.connections.default, 'a');
+    assert.deepEqual(guardado.settings, { sortClassMembers: false });
+    assert.equal(connectionManager.getConnection().name, 'Pruebas');
+    assert.equal(connectionManager.getConnection('b').name, 'B');
+  } finally {
+    process.env.HOME = homeOriginal;
+    if (ficheroOriginal !== undefined) process.env.FS_CONNECTIONS_FILE = ficheroOriginal;
+  }
+});
+
+test('dos gestores sobre el mismo archivo no se pisan lo que guarda cada uno', async () => {
+  const { connectionManager: uno, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
+  const { connectionManager: otro } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  uno.addConnection('a', conexion);
+  otro.addConnection('b', { ...conexion, name: 'B' });
+  let guardado = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  assert.deepEqual(Object.keys(guardado.connections).sort(), ['a', 'b']);
+  assert.equal(guardado.default, 'a');
+
+  // "uno" no ha visto "b" en memoria, pero está en el archivo
+  uno.setDefault('b');
+  guardado = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  assert.deepEqual(Object.keys(guardado.connections).sort(), ['a', 'b']);
+  assert.equal(guardado.default, 'b');
+  assert.equal(uno.getConnection().name, 'B');
+});

@@ -34,13 +34,21 @@ declare class ConnectionManager {
      */
     private createEmptyConnectionsFile;
     /**
-     * Persiste en el archivo JSON la configuración indicada.
+     * Aplica un cambio sobre las conexiones recién leídas del archivo, lo guarda
+     * y devuelve la configuración resultante.
+     *
+     * El cambio se aplica sobre lo que hay en el archivo y no sobre la copia en
+     * memoria, que puede estar vacía (el archivo estaba roto al arrancar y se ha
+     * corregido después) o desfasada (otra sesión o la skill add-connection lo ha
+     * modificado). Guardar la copia en memoria borraría esas conexiones.
      *
      * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
      * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
      * se pudieron interpretar.
      */
     private saveConnections;
+    /** Completa con valores vacíos lo que falte de una configuración leída del archivo. */
+    private withDefaults;
     /**
      * Escribe el archivo de conexiones a través de un temporal en el mismo
      * directorio y un rename, para que una escritura interrumpida no lo deje a medias.
