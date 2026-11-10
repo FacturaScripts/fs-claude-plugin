@@ -59,8 +59,10 @@ test('delete_user lleva un nick con «@» tal cual a la ruta', async () => {
 // «.» van además de lo evidente porque la URL los normaliza: «..\users» acaba
 // en /api/3/users y «.» en /api/3/clientes/. «%» porque «%2e%2e» se normaliza
 // como «..». Tabuladores y saltos de línea, porque la URL los quita en silencio
-// y «C\t1» llegaría como «C1», otro registro.
-for (const id of ['../users/admin', 'a/b', '..\\users', 'a\\b', 'a?x=1', 'a#b', '%2e%2e', 'a%41', '.', '..', 'C\t1', 'C\n1']) {
+// y «C\t1» llegaría como «C1», otro registro. Los espacios del final, porque la
+// URL también los quita: «.. » llegaría como «..» y «a » como «a». El vacío,
+// porque acaba en /api/3/facturaclientes/.
+for (const id of ['../users/admin', 'a/b', '..\\users', 'a\\b', 'a?x=1', 'a#b', '%2e%2e', 'a%41', '.', '..', 'C\t1', 'C\n1', '.. ', '. ', ' ', 'a ', '']) {
   test(`delete_factura_cliente rechaza el id ${JSON.stringify(id)} sin llamar a la API`, async () => {
     const peticiones = await peticionesDe(() =>
       assert.rejects(
