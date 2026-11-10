@@ -276,7 +276,7 @@ class ConnectionManager {
         let current = this.connectionsPath;
         for (let hops = 0; hops <= MAX_SYMLINK_HOPS; hops++) {
             try {
-                return fs.realpathSync(current);
+                return fs.realpathSync.native(current);
             }
             catch (error) {
                 if (error.code !== "ENOENT")
@@ -294,10 +294,11 @@ class ConnectionManager {
             // El destino relativo se une al directorio real del enlace sin normalizar
             // sus "..": los resuelve el sistema sobre los directorios reales, como al
             // seguir el enlace. path.resolve los quitaría sobre el texto, y daría otra
-            // ruta (o la del propio enlace, sin terminar nunca).
+            // ruta (o la del propio enlace, sin terminar nunca). Por lo mismo se usa
+            // realpathSync.native: la versión en JavaScript también los quita antes.
             current = path.isAbsolute(target)
                 ? target
-                : `${fs.realpathSync(path.dirname(current))}${path.sep}${target}`;
+                : `${fs.realpathSync.native(path.dirname(current))}${path.sep}${target}`;
         }
         throw Object.assign(new Error(`Demasiados enlaces simbólicos encadenados en ${this.connectionsPath}`), {
             code: "ELOOP",

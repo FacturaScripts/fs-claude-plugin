@@ -446,13 +446,68 @@ test('una cadena de enlaces rotos que no se acaba se corta con ELOOP', async () 
   const prologo = `
 import fs from 'node:fs';
 import path from 'node:path';
-const { realpathSync } = fs;
+const { native } = fs.realpathSync;
 let salto = 0;
-fs.realpathSync = (p, ...resto) => {
+fs.realpathSync.native = (p, ...resto) => {
   if (path.basename(p).startsWith('enlace')) throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-  return realpathSync(p, ...resto);
+  return native(p, ...resto);
 };
 fs.readlinkSync = () => 'enlace' + ++salto;`;
 
   assert.equal(enOtroProceso(path.join(dir, 'enlace0'), intentarGuardar, prologo).trim(), 'ELOOP');
+});
+
+test('un enlace roto con ".." tras un directorio enlazado no escribe en el archivo al que lleva quitarlo sobre el texto', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  // v/y -> ../X/Y, así que para el sistema v/y/../q es X/q, que no existe; quitando el ".." sobre el texto es v/q
+  for (const sub of ['h', 'v/q', 'X/Y']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
+  fs.symlinkSync(path.join('..', 'X', 'Y'), path.join(dir, 'v', 'y'));
+  const ajeno = path.join(dir, 'v', 'q', 'conn.json');
+  fs.writeFileSync(ajeno, '{"otra_app":true}', { mode: 0o644 });
+  fs.chmodSync(ajeno, 0o644);
+  fs.symlinkSync('../v/y/../q/conn.json', path.join(dir, 'h', 'link'));
+  process.env.FS_CONNECTIONS_FILE = path.join(dir, 'h', 'link');
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  assert.throws(() => connectionManager.addConnection('k1', conexion), { code: 'ENOENT' });
+
+  assert.equal(fs.readFileSync(ajeno, 'utf-8'), '{"otra_app":true}');
+  assert.equal(fs.statSync(ajeno).mode & 0o777, 0o644);
+  assert.deepEqual(fs.readdirSync(path.join(dir, 'X')), ['Y']);
+});
+
+test('un enlace roto a un directorio que no existe seguido de ".." da ENOENT y no EISDIR', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const enlace = path.join(dir, 'connections.json');
+  fs.symlinkSync('falta/..', enlace);
+  process.env.FS_CONNECTIONS_FILE = enlace;
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  assert.throws(() => connectionManager.addConnection('a', conexion), { code: 'ENOENT' });
+
+  assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
+  assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
+});
+
+test('en una cadena de enlaces, el ".." tras un directorio enlazado se resuelve con el sistema también en el segundo salto', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  // h/link -> ../v/y/../q/l2, y para el sistema v/y/../q es X/q, donde l2 -> conn.json (aún no existe)
+  for (const sub of ['h', 'v/q', 'X/Y', 'X/q']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
+  fs.symlinkSync(path.join('..', 'X', 'Y'), path.join(dir, 'v', 'y'));
+  fs.symlinkSync('conn.json', path.join(dir, 'X', 'q', 'l2'));
+  const ajeno = path.join(dir, 'v', 'q', 'conn.json');
+  fs.writeFileSync(ajeno, '{"otra_app":true}', { mode: 0o644 });
+  fs.chmodSync(ajeno, 0o644);
+  fs.symlinkSync('../v/y/../q/l2', path.join(dir, 'h', 'link'));
+  process.env.FS_CONNECTIONS_FILE = path.join(dir, 'h', 'link');
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  connectionManager.addConnection('k1', conexion);
+
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'X', 'q', 'conn.json'), 'utf-8')).connections.k1.token, 'secreto');
+  assert.equal(fs.readFileSync(ajeno, 'utf-8'), '{"otra_app":true}');
+  assert.equal(fs.lstatSync(path.join(dir, 'X', 'q', 'l2')).isSymbolicLink(), true);
 });
