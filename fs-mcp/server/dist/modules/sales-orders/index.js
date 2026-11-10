@@ -3,6 +3,7 @@
  * Incluye: Presupuestos, Pedidos, Albaranes, Facturas y Recibos de clientes
  */
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const salesOrdersTools = [
     {
@@ -880,7 +881,7 @@ export async function handleSalesOrdersTool(name, args) {
         }
         case 'delete_factura_cliente': {
             const params = input;
-            const result = await fsClient.delete(`/facturaclientes/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/facturaclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_albaran_cliente': {
@@ -892,7 +893,7 @@ export async function handleSalesOrdersTool(name, args) {
         }
         case 'delete_albaran_cliente': {
             const params = input;
-            const result = await fsClient.delete(`/albaranclientes/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/albaranclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_pedido_cliente': {
@@ -904,7 +905,7 @@ export async function handleSalesOrdersTool(name, args) {
         }
         case 'delete_pedido_cliente': {
             const params = input;
-            const result = await fsClient.delete(`/pedidoclientes/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/pedidoclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_presupuesto_cliente': {
@@ -916,7 +917,7 @@ export async function handleSalesOrdersTool(name, args) {
         }
         case 'delete_presupuesto_cliente': {
             const params = input;
-            const result = await fsClient.delete(`/presupuestoclientes/${params.id}`, params.connection);
+            const result = await fsClient.delete(`/presupuestoclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'get_cuentabancoclientes': {
@@ -934,25 +935,25 @@ export async function handleSalesOrdersTool(name, args) {
         case 'update_factura_cliente': {
             const params = input;
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturascli/${idfactura}`, data, connection);
+            const result = await fsClient.put(`/facturaclientes/${pathId(idfactura)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_albaran_cliente': {
             const params = input;
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranescli/${idalbaran}`, data, connection);
+            const result = await fsClient.put(`/albaranclientes/${pathId(idalbaran)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_pedido_cliente': {
             const params = input;
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidoscli/${idpedido}`, data, connection);
+            const result = await fsClient.put(`/pedidoclientes/${pathId(idpedido)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'update_presupuesto_cliente': {
             const params = input;
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestoscli/${idpresupuesto}`, data, connection);
+            const result = await fsClient.put(`/presupuestoclientes/${pathId(idpresupuesto)}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:
