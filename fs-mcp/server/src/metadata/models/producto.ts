@@ -21,7 +21,14 @@ export const productoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación del producto.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "bloqueado",
@@ -34,7 +41,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Bloqueado",
             "default": false,
             "description": "True si el producto está bloqueado y no puede usarse en nuevas operaciones (obsoleto/descatalogado).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codfabricante",
@@ -53,7 +67,14 @@ export const productoMetadata: ModelMetadata = {
                 "column": "codfabricante",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codfamilia",
@@ -72,7 +93,14 @@ export const productoMetadata: ModelMetadata = {
                 "column": "codfamilia",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codimpuesto",
@@ -91,7 +119,14 @@ export const productoMetadata: ModelMetadata = {
                 "column": "codimpuesto",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentacom",
@@ -104,7 +139,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Cuenta para compras",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para compras de este producto (sobrescribe la de la familia).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentairpfcom",
@@ -117,7 +159,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Cuenta retenciones ventas",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para retenciones IRPF en compras.",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentaven",
@@ -130,7 +179,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Cuenta de ventas",
             "maxLength": 15,
             "description": "Subcuenta contable a usar para ventas (sobrescribe la de la familia).",
-            "widget": "subcuenta"
+            "widget": "subcuenta",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -142,7 +198,14 @@ export const productoMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Descripción",
             "description": "Descripción detallada del producto. Aparece en documentos.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -155,7 +218,13 @@ export const productoMetadata: ModelMetadata = {
             "label": "Excepción de IVA",
             "maxLength": 20,
             "description": "Excepción de IVA aplicable al producto.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -167,7 +236,13 @@ export const productoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de alta del producto en el catálogo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -179,7 +254,14 @@ export const productoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "idproducto",
             "description": "Identificador interno autoincremental del producto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nostock",
@@ -192,7 +274,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "No controlar stock",
             "default": false,
             "description": "True si el producto no lleva control de stock (servicios, intangibles).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -204,7 +293,14 @@ export const productoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el producto.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "precio",
@@ -217,7 +313,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Precio",
             "default": 0,
             "description": "Precio base de venta del producto (sin IVA). Las variantes pueden tener precios distintos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "publico",
@@ -230,7 +333,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Público",
             "default": false,
             "description": "True si el producto es visible al público (web, catálogo).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -243,7 +353,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Referencia",
             "maxLength": 30,
             "description": "Referencia única del producto. Identificador alfanumérico (SKU).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "secompra",
@@ -256,7 +373,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Se compra",
             "default": true,
             "description": "True si el producto se puede comprar a proveedores.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "sevende",
@@ -269,7 +393,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Se vende",
             "default": true,
             "description": "True si el producto se puede vender a clientes.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "stockfis",
@@ -282,7 +413,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Stock",
             "default": 0,
             "description": "Stock físico actual del producto, sumado entre todos los almacenes.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipo",
@@ -295,7 +433,13 @@ export const productoMetadata: ModelMetadata = {
             "label": "Tipo",
             "maxLength": 50,
             "description": "Tipo de producto (servicio, físico, suscripción, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "ventasinstock",
@@ -308,7 +452,14 @@ export const productoMetadata: ModelMetadata = {
             "label": "Permitir venta sin stock",
             "default": false,
             "description": "True si se permite vender el producto aunque no haya stock disponible.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -425,9 +576,22 @@ export const productoMetadata: ModelMetadata = {
             "remoteColumn": "idproducto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

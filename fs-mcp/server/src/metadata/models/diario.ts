@@ -22,7 +22,14 @@ export const diarioMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción del diario contable (ej: Ventas, Compras, Caja).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iddiario",
@@ -34,7 +41,14 @@ export const diarioMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Código",
             "description": "Identificador interno autoincremental del diario.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -53,9 +67,22 @@ export const diarioMetadata: ModelMetadata = {
             "remoteColumn": "iddiario"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 

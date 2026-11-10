@@ -28,7 +28,13 @@ export const reciboClienteMetadata: ModelMetadata = {
                 "column": "codcliente",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -47,7 +53,13 @@ export const reciboClienteMetadata: ModelMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "codigofactura",
@@ -59,7 +71,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "codigofactura",
             "maxLength": 20,
-            "description": "Código de la factura de la que se generó el recibo."
+            "description": "Código de la factura de la que se generó el recibo.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.71"
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -72,7 +90,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "Forma de pago",
             "maxLength": 10,
             "description": "Forma de pago aplicable al recibo.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -84,7 +108,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Fecha",
             "description": "Fecha de emisión del recibo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fechapago",
@@ -96,7 +126,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha de pago",
             "description": "Fecha en la que se cobró el recibo. Vacía si todavía no se ha cobrado.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "gastos",
@@ -109,7 +145,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "Gastos",
             "default": 0,
             "description": "Gastos asociados al recibo (comisiones, devoluciones).",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -121,7 +163,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Empresa",
             "description": "ID de la empresa emisora del recibo.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idfactura",
@@ -139,7 +187,13 @@ export const reciboClienteMetadata: ModelMetadata = {
                 "column": "idfactura",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idrecibo",
@@ -151,7 +205,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del recibo.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "importe",
@@ -164,7 +224,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "Importe",
             "default": 0,
             "description": "Importe a cobrar en el recibo.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "liquidado",
@@ -177,7 +243,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "liquidado",
             "default": 0,
             "description": "Importe ya liquidado/cobrado del recibo (puede ser parcial).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -190,7 +262,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "Usuario",
             "maxLength": 50,
             "description": "Usuario que generó o gestionó el recibo.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -202,7 +280,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Número",
             "description": "Número correlativo del recibo dentro de la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -214,7 +298,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el recibo.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "pagado",
@@ -227,7 +317,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "Pagado",
             "default": false,
             "description": "True si el recibo está totalmente cobrado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "vencido",
@@ -240,7 +336,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "label": "vencido",
             "default": false,
             "description": "True si la fecha de vencimiento ya ha pasado y sigue sin cobrarse.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "vencimiento",
@@ -252,7 +354,13 @@ export const reciboClienteMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Vencimiento",
             "description": "Fecha límite en la que el cliente debe pagar el recibo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         }
     ],
     "relations": [
@@ -285,9 +393,21 @@ export const reciboClienteMetadata: ModelMetadata = {
             "remoteColumn": "idrecibo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.04"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
