@@ -21,7 +21,9 @@ Analiza como PHP también las extensiones que el servidor puede ejecutar como
 tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…) y los archivos de
 extensión desconocida que contengan ``<?php`` o ``<?=``, aunque estén en
 ``node_modules/``. Los binarios no, y la documentación y los workflows
-(``.md``, ``.yml``) solo si empiezan por PHP. Un ``.js``,
+(``.md``, ``.yml``) solo si empiezan por PHP; como PHP ejecuta lo que incluye
+esté donde esté el bloque, se señala todo ``include`` de ruta fija a un archivo
+sin extensión PHP. Un ``.js``,
 ``.html``, ``.twig`` o ``.xml`` con PHP dentro se analiza con su lenguaje y se
 anota como no analizado como PHP, igual que un binario que contiene ``<?php``.
 Los directorios de tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a
@@ -741,6 +743,24 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
 
 
+def non_php_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Señala el ``include`` de ruta fija de un archivo sin extensión PHP.
+
+    PHP ejecuta entero lo que incluye, sea cual sea su extensión y esté donde esté
+    el bloque, y este script no analiza como PHP los binarios ni el PHP a mitad de
+    un ``.md`` o un ``.yml``. Las rutas con variables las señala ``dynamic_include``.
+    """
+    end = source.code.find(';', match.end())
+    end = end if end != -1 else match.end() + 200
+    if re.search(r'\$\w', source.code[match.end():end]):
+        return False, [], None
+    literals = literal_strings(source.text[match.end():end])
+    if not literals or Path(literals[-1]).suffix.lower() in PHP_EXTENSIONS:
+        return False, [], None
+    return True, [f'incluye {literals[-1]}: PHP ejecuta el archivo entero aunque su extensión no sea de PHP, '
+                  'y este script puede no haberlo analizado como PHP'], None
+
+
 def literal_strings(text: str) -> list[str]:
     """Devuelve el contenido de los literales de cadena de un fragmento de PHP.
 
@@ -921,6 +941,8 @@ RULES: list[Rule] = [
          php_call('eval', 'create_function'), PHP, check=eval_check),
     Rule('codigo-dinamico', 'media', 'Incluye un archivo PHP calculado en tiempo de ejecución',
          re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=dynamic_include),
+    Rule('codigo-dinamico', 'media', 'Incluye como PHP un archivo sin extensión PHP',
+         re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=non_php_include),
     Rule('codigo-dinamico', 'baja', 'Invoca una función cuyo nombre es una variable',
          php_call('call_user_func', 'call_user_func_array', 'forward_static_call'), PHP),
     Rule('codigo-dinamico', 'alta', 'Evalúa código JavaScript en tiempo de ejecución',

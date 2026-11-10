@@ -497,9 +497,9 @@ class EvasionTest(unittest.TestCase):
         for relative in ('Lib/a.js', 'View/b.html', 'View/c.twig'):
             self.assertIn(f'{relative} contiene <?php y no se ha analizado como PHP.', report['limitaciones'])
         self.assertEqual(3, report['analizados']['sin_analizar'])
-        code, output = self.run_main(plugin)
-        self.assertEqual(0, code)
-        self.assertIn('SIN HALLAZGOS EN LO ANALIZADO', output)
+        self.assertIn('Incluye como PHP un archivo sin extensión PHP', [item['titulo'] for item in report['hallazgos']])
+        code, _output = self.run_main(plugin)
+        self.assertEqual(1, code, 'el include del .js lo señala')
 
     def test_lo_no_analizado_se_declara_y_cambia_el_veredicto(self) -> None:
         """Un directorio enlazado no se sigue, y el veredicto no afirma que el plugin esté limpio."""
@@ -598,7 +598,7 @@ class EvasionTest(unittest.TestCase):
         self.assert_limpio(plugin)
 
     def test_git_no_se_recorre(self) -> None:
-        """Lo que hay dentro de .git no se analiza: ni cuenta ni da hallazgos."""
+        """Lo que hay dentro de .git no se analiza como código: no da hallazgos."""
         report = self.audit({'.git/hooks/post-checkout.php': "<?php\nsystem($_GET['c']);\n"})
         self.assertEqual(1, report['analizados']['archivos'], 'solo facturascripts.ini')
         self.assertEqual([], report['hallazgos'])
@@ -606,6 +606,97 @@ class EvasionTest(unittest.TestCase):
     def test_github_no_excluye_otras_extensiones(self) -> None:
         """La regla de la documentación va por extensión: un .txt de .github/ con PHP a mitad se analiza."""
         self.assert_ejecuta_comandos(self.audit({'.github/notas.txt': "texto\n<?php system($_GET['c']);\n"}))
+
+
+def init_que_incluye(relative: str) -> str:
+    """Un Init.php que incluye un archivo del plugin por ruta fija."""
+    return ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n\nclass Init\n{\n'
+            '    public function init(): void\n    {\n'
+            f"        require_once __DIR__ . '/{relative}';\n    }}\n}}\n")
+
+
+class IncludeNoPhpTest(unittest.TestCase):
+    """PHP ejecuta entero lo que incluye, sea cual sea su extensión y esté donde esté el bloque.
+
+    Cada fixture se ha comprobado con ``php -n``: el include ejecuta su PHP.
+    """
+
+    PAYLOAD = b"cabecera\n<?= system($_GET['c']) ?>\n"
+
+    def setUp(self) -> None:
+        """Prepara un directorio temporal para cada prueba."""
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+
+    def tearDown(self) -> None:
+        """Elimina el directorio temporal."""
+        self.tmp.cleanup()
+
+    def plugin(self, relative: str, content: bytes) -> Path:
+        """Crea un plugin con un archivo y un Init.php que lo incluye por ruta fija."""
+        plugin = build_plugin(self.root, {'Init.php': init_que_incluye(relative)})
+        path = plugin / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        return plugin
+
+    def run_main(self, plugin: Path) -> tuple[int, str]:
+        """Ejecuta el script sobre un plugin y devuelve su código de salida y su salida."""
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = CHECKER.main([str(plugin)])
+        return code, output.getvalue()
+
+    def assert_include_senalado(self, relative: str, content: bytes) -> None:
+        """El include del archivo da un hallazgo media y el script sale con 1."""
+        plugin = self.plugin(relative, content)
+        report = CHECKER.audit(plugin)
+        found = [item for item in report['hallazgos']
+                 if item['titulo'] == 'Incluye como PHP un archivo sin extensión PHP']
+        self.assertEqual(1, len(found), report['hallazgos'])
+        self.assertEqual(('media', 'Init.php'), (found[0]['severidad'], found[0]['archivo']))
+        self.assertIn(f'/{relative}', ' '.join(found[0]['notas']))
+        self.assertEqual(1, self.run_main(plugin)[0])
+
+    def test_png_que_es_texto(self) -> None:
+        """Un .png que en realidad es texto con <?= se ejecuta si se incluye."""
+        self.assert_include_senalado('Assets/Images/pngtext.png', self.PAYLOAD)
+
+    def test_png_en_mayusculas(self) -> None:
+        """La extensión se compara sin distinguir mayúsculas."""
+        self.assert_include_senalado('Assets/Images/LOGO.PNG', self.PAYLOAD)
+
+    def test_doble_extension(self) -> None:
+        """shell.php.png no es PHP para el servidor, pero un include lo ejecuta."""
+        self.assert_include_senalado('Assets/Images/shell.php.png', self.PAYLOAD)
+
+    def test_binario_por_nul(self) -> None:
+        """Un NUL hace binario el archivo, pero el <?= de después se ejecuta si se incluye."""
+        self.assert_include_senalado('Lib/datos.dat', b'\0' + self.PAYLOAD)
+
+    def test_binario_sin_extension(self) -> None:
+        """Lo mismo sin extensión."""
+        self.assert_include_senalado('Lib/datos', b'\0' + self.PAYLOAD)
+
+    def test_yml_con_php_a_mitad(self) -> None:
+        """El PHP a mitad de un .yml no se analiza, pero se ejecuta si se incluye."""
+        self.assert_include_senalado('config/ymlmid.yml', b'clave: valor\n' + self.PAYLOAD)
+
+    def test_md_con_php_a_mitad(self) -> None:
+        """El PHP a mitad de un .md no se analiza, pero se ejecuta si se incluye."""
+        self.assert_include_senalado('Doc/mdmid.md', b'# Titulo\n' + self.PAYLOAD)
+
+    def test_include_de_php_no_se_senala(self) -> None:
+        """Control: el include de un .php no es este hallazgo."""
+        plugin = self.plugin('Lib/helper.php', b'<?php\nreturn 1;\n')
+        titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
+        self.assertNotIn('Incluye como PHP un archivo sin extensión PHP', titles)
+
+    def test_extension_php_en_mayusculas_no_se_senala(self) -> None:
+        """Control: .INC es una extensión PHP aunque vaya en mayúsculas."""
+        plugin = self.plugin('Lib/helper.INC', b'<?php\nreturn 1;\n')
+        titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
+        self.assertNotIn('Incluye como PHP un archivo sin extensión PHP', titles)
 
 
 if __name__ == '__main__':
