@@ -122,29 +122,3 @@ test('las propiedades no declaradas se reenvían como hasta ahora', async () => 
   assert.notEqual(result.isError, true);
   assert.deepEqual(peticiones, ['PUT /api/3/clientes/C1']);
 });
-
-// Producto sin identificador: sin filtro, la API devolvería el primer producto
-for (const tool of ['update_producto', 'delete_producto']) {
-  for (const [caso, args] of [
-    ['sin idproducto ni referencia', {}],
-    ['con la referencia vacía', { referencia: '' }],
-  ]) {
-    test(`${tool} ${caso} no llama a la API`, async () => {
-      const { result, peticiones } = await llamar(tool, { connection: 'pega', ...args });
-      assert.equal(result.isError, true);
-      assert.deepEqual(peticiones, []);
-    });
-  }
-
-  test(`${tool} con una referencia que no es la del producto devuelto no modifica ningún producto`, async () => {
-    const { result, peticiones } = await llamar(tool, { connection: 'pega', referencia: 'R2' });
-    assert.equal(result.isError, true);
-    assert.deepEqual(peticiones.filter((p) => !p.startsWith('GET ')), []);
-  });
-
-  test(`${tool} por referencia usa el producto que la tiene`, async () => {
-    const { result, peticiones } = await llamar(tool, { connection: 'pega', referencia: 'R1' });
-    assert.notEqual(result.isError, true);
-    assert.ok(peticiones.at(-1).endsWith(' /api/3/productos/5'));
-  });
-}

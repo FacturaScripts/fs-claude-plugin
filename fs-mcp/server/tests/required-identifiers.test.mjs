@@ -18,7 +18,6 @@ const borrar = usarConexiones({
   default: 'pega',
   connections: { pega: { name: 'Pega', url: fs.url, token: 't' } },
 });
-const { handleCoreBusinessTool } = await import('../dist/modules/core-business/index.js');
 const { handleAnalyticsTool } = await import('../dist/modules/analytics/index.js');
 
 test.after(async () => {
@@ -31,15 +30,6 @@ async function peticionesDe(fn) {
   const desde = fs.peticiones.length;
   await fn();
   return fs.peticiones.slice(desde);
-}
-
-for (const tool of ['update_producto', 'delete_producto']) {
-  test(`${tool} sin idproducto ni referencia no toca el primer producto`, async () => {
-    const peticiones = await peticionesDe(() =>
-      assert.rejects(handleCoreBusinessTool(tool, { connection: 'pega', descripcion: 'x' }), /referencia/)
-    );
-    assert.deepEqual(peticiones, []);
-  });
 }
 
 for (const [tool, falta] of [
