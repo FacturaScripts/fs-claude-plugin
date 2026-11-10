@@ -598,6 +598,23 @@ def decode_check(source: Source, match: re.Match) -> tuple[bool, list[str], str 
     return True, [], None
 
 
+def interpolates(source: Source, start: int, end: int) -> bool:
+    """Indica si alguna cadena entre ``start`` y ``end`` interpola una variable.
+
+    Interpolan las comillas dobles y el heredoc; las comillas simples y el
+    nowdoc no. ``code`` conserva los delimitadores de cada cadena con el
+    contenido en blanco, así que sirve para localizarlas en ``text``.
+    """
+    for literal in re.finditer(r'''(["'])\s*\1''', source.code[start:end]):
+        text = source.text[start + literal.start():start + literal.end()]
+        if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_])', text)):
+            continue
+        # Un «$» precedido de un número impar de barras está escapado
+        if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{]', text):
+            return True
+    return False
+
+
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
     """Descarta los ``include`` de rutas fijas, como el autoload del propio plugin.
 
@@ -606,12 +623,15 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     permite incluir cualquier archivo.
     """
     end = source.code.find(';', match.end())
-    statement = source.code[match.end():end if end != -1 else match.end() + 200]
+    end = end if end != -1 else match.end() + 200
+    statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
     if re.search(r'\$\w', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
+    if interpolates(source, match.end(), end):
+        return True, ['la ruta interpola una variable en la cadena'], None
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None

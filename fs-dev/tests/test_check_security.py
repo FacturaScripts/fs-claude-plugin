@@ -398,6 +398,36 @@ class EvasionTest(unittest.TestCase):
         self.assertEqual([9], [item['linea'] for item in findings])
         self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
 
+    def test_include_con_interpolacion_en_la_cadena(self) -> None:
+        """Una variable interpolada en comillas dobles o en heredoc hace la ruta dinámica."""
+        cases = {
+            'llaves': '        include "{$_GET[\'p\']}.php";',
+            'simple': '        require "$x.php";',
+            'propiedad': '        include "a/{$this->d}/b.php";',
+            'dolar-llave': '        include "${x}.php";',
+            'heredoc': '        include <<<RUTA\n{$x}.php\nRUTA;',
+            'heredoc-comillas': '        include <<<"RUTA"\n$x.php\nRUTA;',
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Cinco.php': php_class('Cinco', body)})
+                findings = self.by_title(report).get('Incluye un archivo PHP calculado en tiempo de ejecución', [])
+                self.assertEqual([8], [item['linea'] for item in findings])
+                self.assertIn('la ruta interpola una variable en la cadena', findings[0]['notas'])
+
+    def test_include_sin_interpolacion_sigue_siendo_fijo(self) -> None:
+        """Comillas simples, nowdoc y un «$» escapado no interpolan: la ruta es fija."""
+        cases = {
+            'literal': '        include "a/b.php";',
+            'simples': "        include 'x{$y}.php';",
+            'escapado': '        include "a\\$x.php";',
+            'nowdoc': "        include <<<'RUTA'\n{$x}.php\nRUTA;",
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Seis.php': php_class('Seis', body)})
+                self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
+
     def test_tests_anidados_se_excluyen(self) -> None:
         """Un directorio tests/ dentro de Lib/ también se excluye salvo que se pida."""
         files = {'Lib/tests/UnoTest.php': php_class('UnoTest', "        exec('id');")}
