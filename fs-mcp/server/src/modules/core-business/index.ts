@@ -14,12 +14,28 @@ import { dateRangeFilters } from '../../metadata/dateRange.js';
  * La API REST de FacturaScripts direcciona el recurso `productos` por su clave
  * primaria `idproducto`, no por la `referencia`. Como el usuario trabaja con la
  * referencia, primero consultamos el producto para obtener su idproducto.
+ *
+ * Se usa antes de modificar o eliminar, así que nunca devuelve un producto que
+ * no sea el pedido: sin referencia la consulta iría sin filtro y la API
+ * devolvería el primer producto, y si la API no aplicara el filtro también.
+ *
+ * @param referencia - Referencia del producto
+ * @param connection - Clave de la conexión (opcional)
+ * @returns idproducto del producto con esa referencia
+ * @throws Error si falta la referencia, no hay ningún producto con ella o la
+ *   API devuelve otro producto
  */
 async function resolveIdProducto(
-  referencia: string,
+  referencia: unknown,
   connection?: string,
 ): Promise<number> {
-  const productos = await fsClient.get<Array<{ idproducto: number }>>(
+  if (typeof referencia !== 'string' || referencia.trim() === '') {
+    throw new Error(
+      'Indica la referencia o el idproducto del producto: sin ninguno de los dos no se sabe qué producto modificar o eliminar.',
+    );
+  }
+
+  const productos = await fsClient.get<Array<{ idproducto: number; referencia?: string }>>(
     '/productos',
     { referencia, limit: 1 },
     connection,
@@ -28,6 +44,14 @@ async function resolveIdProducto(
   const producto = Array.isArray(productos) ? productos[0] : undefined;
   if (!producto) {
     throw new Error(`No se encontró ningún producto con la referencia "${referencia}".`);
+  }
+
+  // Sin distinguir mayúsculas, como compara MySQL en el filtro
+  if (typeof producto.referencia !== 'string' || producto.referencia.toLowerCase() !== referencia.toLowerCase()) {
+    throw new Error(
+      `Al buscar la referencia "${referencia}" la API ha devuelto otro producto ` +
+        `("${producto.referencia ?? 'sin referencia'}"); no se modifica ni se elimina nada.`,
+    );
   }
 
   return producto.idproducto;
