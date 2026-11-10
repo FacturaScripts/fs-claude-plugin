@@ -263,15 +263,33 @@ class ConnectionManager {
             throw error;
         }
     }
-    /** Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la misma si aún no existe. */
+    /**
+     * Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la
+     * misma si aún no existe. Un enlace roto se sigue hasta su destino, como hacen
+     * las skills (Path.resolve()): el guardado crea allí el archivo en vez de
+     * sustituir el enlace, y si falta el directorio del destino, falla.
+     */
     realConnectionsPath() {
-        try {
-            return fs.realpathSync(this.connectionsPath);
-        }
-        catch (error) {
-            if (error.code === "ENOENT")
-                return this.connectionsPath;
-            throw error;
+        let current = this.connectionsPath;
+        // Termina: un ciclo de enlaces hace que realpathSync falle con ELOOP
+        for (;;) {
+            try {
+                return fs.realpathSync(current);
+            }
+            catch (error) {
+                if (error.code !== "ENOENT")
+                    throw error;
+            }
+            let target;
+            try {
+                target = fs.readlinkSync(current);
+            }
+            catch (error) {
+                if (error.code === "ENOENT")
+                    return current;
+                throw error;
+            }
+            current = path.resolve(path.dirname(current), target);
         }
     }
     /**

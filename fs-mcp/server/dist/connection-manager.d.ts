@@ -73,7 +73,12 @@ declare class ConnectionManager {
      * luz puede dejar el archivo renombrado con 0 bytes, y uno vacío se rehace.
      */
     private writeFileAtomic;
-    /** Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la misma si aún no existe. */
+    /**
+     * Ruta del archivo de conexiones con los enlaces simbólicos resueltos; la
+     * misma si aún no existe. Un enlace roto se sigue hasta su destino, como hacen
+     * las skills (Path.resolve()): el guardado crea allí el archivo en vez de
+     * sustituir el enlace, y si falta el directorio del destino, falla.
+     */
     private realConnectionsPath;
     /**
      * Obtiene una conexión por clave o la conexión por defecto

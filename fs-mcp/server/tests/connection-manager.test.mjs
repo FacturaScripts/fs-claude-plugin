@@ -348,3 +348,38 @@ test('un temporal que no se puede borrar no impide borrar los que vienen detrás
   assert.equal(avisos.filter((a) => a.includes('temporal')).length, 1);
   assert.match(avisos.join('\n'), new RegExp(directorio.replace(/\./g, '\\.')));
 });
+
+/** Gestor con el archivo de conexiones como enlace relativo roto a dotfiles/connections.json. */
+async function gestorConEnlaceRoto({ crearDirectorio }) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const dotfiles = path.join(dir, 'dotfiles');
+  if (crearDirectorio) fs.mkdirSync(dotfiles);
+  const enlace = path.join(dir, 'connections.json');
+  fs.symlinkSync(path.join('dotfiles', 'connections.json'), enlace);
+  process.env.FS_CONNECTIONS_FILE = enlace;
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+  return { connectionManager, dotfiles, enlace };
+}
+
+test('con un enlace simbólico roto, la conexión se guarda en su destino y el enlace se conserva', async () => {
+  const { connectionManager, dotfiles, enlace } = await gestorConEnlaceRoto({ crearDirectorio: true });
+
+  connectionManager.addConnection('a', conexion);
+
+  assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
+  const destino = path.join(dotfiles, 'connections.json');
+  assert.equal(JSON.parse(fs.readFileSync(destino, 'utf-8')).connections.a.token, 'secreto');
+  assert.equal(fs.statSync(destino).mode & 0o777, 0o600);
+  assert.deepEqual(fs.readdirSync(dotfiles), ['connections.json']);
+});
+
+test('con un enlace simbólico roto a un directorio que no existe, no se guarda ni se sustituye el enlace', async () => {
+  const { connectionManager, dotfiles, enlace } = await gestorConEnlaceRoto({ crearDirectorio: false });
+
+  assert.throws(() => connectionManager.addConnection('a', conexion), { code: 'ENOENT' });
+
+  assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
+  assert.equal(fs.existsSync(dotfiles), false);
+  assert.throws(() => connectionManager.getConnection('a'), /no encontrada|No hay conexión/);
+});
