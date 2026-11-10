@@ -18,7 +18,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "apartado",
             "maxLength": 10,
-            "description": "Apartado postal de la dirección de envío."
+            "description": "Apartado postal de la dirección de envío.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -30,7 +37,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "CIF/NIF",
             "maxLength": 30,
-            "description": "CIF/NIF del cliente, copiado al crear el presupuesto."
+            "description": "CIF/NIF del cliente, copiado al crear el presupuesto.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -42,7 +56,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "ciudad",
             "maxLength": 100,
-            "description": "Ciudad de la dirección."
+            "description": "Ciudad de la dirección.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -60,7 +81,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codagente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -78,7 +106,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codalmacen",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -96,7 +131,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codcliente",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -114,7 +156,14 @@ export const presupuestoClienteMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -132,7 +181,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codejercicio",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigo",
@@ -144,7 +200,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": true,
             "label": "codigo",
             "maxLength": 20,
-            "description": "Código identificativo único del presupuesto."
+            "description": "Código identificativo único del presupuesto.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigoenv",
@@ -156,7 +219,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "codigoenv",
             "maxLength": 200,
-            "description": "Código de seguimiento del envío."
+            "description": "Código de seguimiento del envío.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -174,7 +244,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codpago",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -186,7 +263,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "codpais",
             "maxLength": 20,
-            "description": "Código del país de la dirección."
+            "description": "Código del país de la dirección.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -198,7 +282,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "codpostal",
             "maxLength": 10,
-            "description": "Código postal de la dirección."
+            "description": "Código postal de la dirección.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -216,7 +307,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codserie",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtrans",
@@ -234,7 +332,14 @@ export const presupuestoClienteMetadata = {
                 "column": "codtrans",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -246,7 +351,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "direccion",
             "maxLength": 200,
-            "description": "Dirección postal del presupuesto."
+            "description": "Dirección postal del presupuesto.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor1",
@@ -258,7 +370,13 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "dtopor1",
             "description": "Primer porcentaje de descuento aplicado sobre el neto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -270,7 +388,13 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "dtopor2",
             "description": "Segundo porcentaje de descuento aplicado tras dtopor1.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "editable",
@@ -282,7 +406,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "Editable",
             "description": "True si el presupuesto puede modificarse; false si está bloqueado.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -294,7 +425,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha de emisión del presupuesto.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "femail",
@@ -306,7 +444,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "femail",
             "description": "Fecha en la que se envió el presupuesto por email al cliente.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "finoferta",
@@ -318,7 +463,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "finoferta",
             "description": "Fecha de caducidad de la oferta. Tras esta fecha el presupuesto deja de ser válido.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "hora",
@@ -329,7 +481,14 @@ export const presupuestoClienteMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora del presupuesto (HH:MM:SS)."
+            "description": "Hora del presupuesto (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactoenv",
@@ -341,7 +500,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "idcontactoenv",
             "description": "ID del contacto usado como dirección de envío.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactofact",
@@ -353,7 +519,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "idcontactofact",
             "description": "ID del contacto usado como dirección de facturación.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -371,7 +544,14 @@ export const presupuestoClienteMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado",
@@ -389,7 +569,14 @@ export const presupuestoClienteMetadata = {
                 "column": "idestado",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado_ant",
@@ -407,7 +594,13 @@ export const presupuestoClienteMetadata = {
                 "column": "idestado",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "idpresupuesto",
@@ -419,7 +612,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "idpresupuesto",
             "description": "Identificador interno autoincremental del presupuesto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -431,7 +631,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "neto",
@@ -443,7 +650,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "neto",
             "description": "Importe neto del presupuesto (subtotal sin impuestos, después de descuentos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "netosindto",
@@ -456,7 +670,13 @@ export const presupuestoClienteMetadata = {
             "label": "netosindto",
             "default": 0,
             "description": "Importe neto antes de aplicar descuentos generales.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -474,7 +694,14 @@ export const presupuestoClienteMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombrecliente",
@@ -486,7 +713,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "nombrecliente",
             "maxLength": 100,
-            "description": "Nombre del cliente registrado en el presupuesto (snapshot al crear)."
+            "description": "Nombre del cliente registrado en el presupuesto (snapshot al crear).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numdocs",
@@ -499,7 +733,13 @@ export const presupuestoClienteMetadata = {
             "label": "numdocs",
             "default": 0,
             "description": "Número de archivos adjuntos vinculados al presupuesto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -511,7 +751,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": true,
             "label": "numero",
             "maxLength": 12,
-            "description": "Número correlativo del presupuesto dentro de su serie y ejercicio."
+            "description": "Número correlativo del presupuesto dentro de su serie y ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numero2",
@@ -523,7 +770,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "numero2",
             "maxLength": 50,
-            "description": "Número adicional o referencia externa."
+            "description": "Número adicional o referencia externa.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -535,7 +789,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "observaciones",
             "description": "Notas u observaciones internas.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -547,7 +808,13 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "operacion",
             "maxLength": 30,
-            "description": "Tipo de operación fiscal."
+            "description": "Tipo de operación fiscal.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -559,7 +826,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "provincia",
             "maxLength": 100,
-            "description": "Provincia de la dirección."
+            "description": "Provincia de la dirección.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -571,7 +845,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "tasaconv",
             "description": "Tasa de conversión aplicada si el presupuesto está en otra divisa.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "total",
@@ -583,7 +864,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "Total",
             "description": "Importe total del presupuesto (neto + IVA + recargo - retenciones).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalbeneficio",
@@ -595,7 +883,13 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totalbeneficio",
             "description": "Beneficio total del presupuesto (total menos coste).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "totalcoste",
@@ -607,7 +901,13 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totalcoste",
             "description": "Coste total de los productos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.2"
+                }
+            ]
         },
         {
             "name": "totaleuros",
@@ -619,7 +919,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totaleuros",
             "description": "Total convertido a divisa principal usando tasaconv.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalirpf",
@@ -631,7 +938,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totalirpf",
             "description": "Importe total retenido por IRPF.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totaliva",
@@ -643,7 +957,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totaliva",
             "description": "Importe total de IVA del presupuesto.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalrecargo",
@@ -655,7 +976,14 @@ export const presupuestoClienteMetadata = {
             "isRequired": false,
             "label": "totalrecargo",
             "description": "Importe total del recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalsuplidos",
@@ -668,7 +996,13 @@ export const presupuestoClienteMetadata = {
             "label": "totalsuplidos",
             "default": 0,
             "description": "Importe total de suplidos.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -764,10 +1098,82 @@ export const presupuestoClienteMetadata = {
             "remoteColumn": "idpresupuesto"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "pagado",
+            "sqlType": "boolean",
+            "tsType": "boolean",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "pagado",
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "totalcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "totalcomision",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04",
+                    "until": "2021.81"
+                }
+            ]
+        }
+    ]
 };
 export default presupuestoClienteMetadata;
 //# sourceMappingURL=presupuesto_cliente.js.map

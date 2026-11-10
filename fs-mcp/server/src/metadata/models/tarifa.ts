@@ -26,6 +26,13 @@ export const tarifaMetadata: ModelMetadata = {
             "enumValues": [
                 "pvp",
                 "coste"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -39,7 +46,14 @@ export const tarifaMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 6,
             "description": "Código corto único de la tarifa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "maxpvp",
@@ -52,7 +66,14 @@ export const tarifaMetadata: ModelMetadata = {
             "label": "No vender por encima de PVP",
             "default": false,
             "description": "True si los precios calculados no pueden superar nunca el PVP base del producto.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mincoste",
@@ -65,7 +86,14 @@ export const tarifaMetadata: ModelMetadata = {
             "label": "No vender por debajo de coste",
             "default": false,
             "description": "True si los precios calculados no pueden caer nunca por debajo del coste.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -78,7 +106,14 @@ export const tarifaMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 50,
             "description": "Nombre legible de la tarifa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "valorx",
@@ -90,7 +125,13 @@ export const tarifaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Valor X",
             "description": "Valor X de la fórmula de cálculo de precio (típicamente porcentaje de margen o descuento).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "valory",
@@ -102,7 +143,13 @@ export const tarifaMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Valor Y",
             "description": "Valor Y de la fórmula de cálculo de precio (importe fijo a sumar/restar).",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         }
     ],
     "relations": [
@@ -121,10 +168,63 @@ export const tarifaMetadata: ModelMetadata = {
             "remoteColumn": "codtarifa"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "inclineal",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": false,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": true,
+            "label": "inclineal",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "incporcentual",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": false,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": true,
+            "label": "incporcentual",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        }
+    ]
 };
 
 export default tarifaMetadata;

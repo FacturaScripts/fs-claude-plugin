@@ -35,9 +35,11 @@
  */
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, realpathSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { columnAvailability, loadSourceHistory, modelAvailability, retiredColumns, versionsSummary, } from '../metadata/availability.js';
+import { parseTableXml } from '../metadata/table-xml.js';
 /**
  * Catálogo completo de los 83 modelos del core de FacturaScripts.
  * Cada entrada mapea un modelo a su tabla, endpoint REST y XMLView de edición.
@@ -635,72 +637,6 @@ function parseArgs() {
     }
     return result;
 }
-function parseTableXml(xml) {
-    const columns = [];
-    const columnBlocks = xml.matchAll(/<column>([\s\S]*?)<\/column>/g);
-    for (const block of columnBlocks) {
-        const body = block[1] ?? '';
-        const nameMatch = body.match(/<name>([^<]+)<\/name>/);
-        const typeMatch = body.match(/<type>([^<]+)<\/type>/);
-        if (!nameMatch || !typeMatch || !nameMatch[1] || !typeMatch[1])
-            continue;
-        const nullMatch = body.match(/<null>([^<]+)<\/null>/);
-        const defaultMatch = body.match(/<default>([^<]*)<\/default>/);
-        const col = {
-            name: nameMatch[1].trim(),
-            type: typeMatch[1].trim(),
-            nullable: !(nullMatch && nullMatch[1]?.trim().toUpperCase() === 'NO'),
-        };
-        if (defaultMatch && defaultMatch[1] !== undefined) {
-            col.default = defaultMatch[1].trim();
-        }
-        columns.push(col);
-    }
-    const primaryKey = [];
-    const foreignKeys = [];
-    const uniqueConstraints = [];
-    const constraintBlocks = xml.matchAll(/<constraint>([\s\S]*?)<\/constraint>/g);
-    for (const block of constraintBlocks) {
-        const body = block[1] ?? '';
-        const typeMatch = body.match(/<type>([^<]+)<\/type>/);
-        const typeDef = typeMatch?.[1]?.trim();
-        if (!typeDef)
-            continue;
-        const pkMatch = typeDef.match(/^PRIMARY\s+KEY\s*\(([^)]+)\)/i);
-        if (pkMatch && pkMatch[1]) {
-            primaryKey.push(...pkMatch[1].split(',').map((s) => s.trim()));
-            continue;
-        }
-        const fkMatch = typeDef.match(/^FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+(\w+)\s*\(([^)]+)\)(?:\s+ON\s+DELETE\s+([A-Z\s]+?))?(?:\s+ON\s+UPDATE\s+([A-Z\s]+?))?\s*$/i);
-        if (fkMatch && fkMatch[1] && fkMatch[2] && fkMatch[3]) {
-            const localColumn = fkMatch[1].trim();
-            const remoteTable = fkMatch[2].trim();
-            const remoteColumn = fkMatch[3].trim();
-            foreignKeys.push({
-                localColumn,
-                remoteTable,
-                remoteColumn,
-                onDelete: normalizeFkAction(fkMatch[4]),
-                onUpdate: normalizeFkAction(fkMatch[5]),
-            });
-            continue;
-        }
-        const uniqMatch = typeDef.match(/^UNIQUE\s*\(([^)]+)\)/i);
-        if (uniqMatch && uniqMatch[1]) {
-            uniqueConstraints.push(uniqMatch[1].split(',').map((s) => s.trim()));
-        }
-    }
-    return { columns, primaryKey, foreignKeys, uniqueConstraints };
-}
-function normalizeFkAction(raw) {
-    if (!raw)
-        return 'NO ACTION';
-    const up = raw.trim().toUpperCase().replace(/\s+/g, ' ');
-    if (up === 'SET NULL' || up === 'CASCADE' || up === 'RESTRICT' || up === 'NO ACTION') {
-        return up;
-    }
-    return 'NO ACTION';
-}
 function parseEditViewXml(xml) {
     const result = new Map();
     const columnBlocks = xml.matchAll(/<column\b([^>]*)>([\s\S]*?)<\/column>/g);
@@ -984,9 +920,9 @@ export type { ModelMetadata, ColumnMetadata, Relation, ForeignKey, TsType, Widge
 // Main
 // ───────────────────────────────────────────────────────────────────────────
 /**
- * Carga todas las tablas (XML) bajo un directorio dado.
+ * Carga todas las tablas (XML) bajo un directorio dado, anotando quién las aporta.
  */
-async function loadTablesFromDir(tablesDir) {
+async function loadTablesFromDir(tablesDir, source) {
     const result = new Map();
     if (!existsSync(tablesDir))
         return result;
@@ -996,7 +932,11 @@ async function loadTablesFromDir(tablesDir) {
             continue;
         const tableName = file.replace(/\.xml$/, '');
         const xml = await readFile(join(tablesDir, file), 'utf8');
-        result.set(tableName, parseTableXml(xml));
+        const def = parseTableXml(xml);
+        def.source = source;
+        for (const col of def.columns)
+            col.source = source;
+        result.set(tableName, def);
     }
     return result;
 }
@@ -1006,7 +946,7 @@ async function loadTablesFromDir(tablesDir) {
  * exista y únicamente a tablas ya conocidas (no crea tablas nuevas). Devuelve
  * el número de columnas fusionadas.
  */
-async function mergeExtensionTables(tables, pluginDir) {
+async function mergeExtensionTables(tables, pluginDir, source) {
     const extDir = join(pluginDir, 'Extension', 'Table');
     if (!existsSync(extDir))
         return 0;
@@ -1023,6 +963,7 @@ async function mergeExtensionTables(tables, pluginDir) {
         for (const col of ext.columns) {
             if (target.columns.some((c) => c.name === col.name))
                 continue;
+            col.source = source;
             target.columns.push(col);
             merged++;
         }
@@ -1041,19 +982,20 @@ async function mergeExtensionTables(tables, pluginDir) {
  * `<fsPath>/MyFiles/plugins.json`, aplicados por su `order`. Si esa lista no
  * existe (instalación limpia sin plugins) no hace nada. Sin esto, las columnas
  * que los plugins añaden por extensión nunca llegarían a la metadata del MCP.
- * Devuelve el total de columnas fusionadas.
+ * Devuelve los plugins que aportaron alguna columna, para leer su historial.
  */
-async function mergeEnabledPluginExtensions(tables, fsPath) {
+async function mergeEnabledPluginExtensions(tables, fsPath, sourceFor = (pluginDir) => `plugin:${basename(pluginDir)}`) {
+    const contributors = [];
     const pluginsFile = join(fsPath, 'MyFiles', 'plugins.json');
     if (!existsSync(pluginsFile))
-        return 0;
+        return contributors;
     let list;
     try {
         list = JSON.parse(await readFile(pluginsFile, 'utf8'));
     }
     catch {
         console.warn(`[generate-metadata] No se pudo parsear ${pluginsFile}; se omiten las extensiones.`);
-        return 0;
+        return contributors;
     }
     const enabled = list
         .filter((p) => p.enabled)
@@ -1063,8 +1005,11 @@ async function mergeEnabledPluginExtensions(tables, fsPath) {
         const dir = p.folder ?? p.name;
         if (!dir)
             continue;
-        const n = await mergeExtensionTables(tables, join(fsPath, 'Plugins', dir));
+        const pluginDir = join(fsPath, 'Plugins', dir);
+        const source = sourceFor(pluginDir);
+        const n = await mergeExtensionTables(tables, pluginDir, source);
         if (n > 0) {
+            contributors.push({ dir: pluginDir, source });
             console.log(`[generate-metadata] Extensiones de ${dir}: +${n} columna(s).`);
             total += n;
         }
@@ -1073,7 +1018,25 @@ async function mergeEnabledPluginExtensions(tables, fsPath) {
         console.log(`[generate-metadata] Total columnas de extensión fusionadas: ${total} ` +
             `(${enabled.length} plugin(s) habilitado(s)).`);
     }
-    return total;
+    return contributors;
+}
+/**
+ * Carga el historial de versiones de cada fuente, una sola vez por fuente.
+ */
+function loadHistories(sources) {
+    const histories = [];
+    for (const { dir, source, layout } of sources) {
+        if (histories.some((h) => h.source === source))
+            continue;
+        const started = Date.now();
+        const history = loadSourceHistory(dir, source, layout);
+        const latest = history.versions[history.versions.length - 1];
+        console.log(latest
+            ? `[generate-metadata] Historial de ${source}: ${history.versions.length} versiones hasta ${latest.version} (${Date.now() - started} ms).`
+            : `[generate-metadata] ${source} no tiene historial de versiones en ${dir}: su vigencia saldrá como desconocida.`);
+        histories.push(history);
+    }
+    return histories;
 }
 /**
  * Combina dos diccionarios de traducciones; el segundo gana en colisiones
@@ -1140,13 +1103,27 @@ function resolveGitCommit(cwd) {
  * Construye un ModelMetadata a partir de una entrada de catálogo y los datos
  * cargados (tablas + traducciones + XMLView). Reusable por core y plugin.
  */
-function buildModelMetadata(entry, allTables, translations, viewFields, catalog, source, generatedFrom, overridesForModel) {
+function buildModelMetadata(entry, allTables, translations, viewFields, catalog, source, generatedFrom, overridesForModel, histories) {
     const tableDef = allTables.get(entry.table);
     if (!tableDef)
         return undefined;
     const columns = tableDef.columns.map((col) => buildColumnMetadata(col, tableDef, viewFields.get(col.name), translations, overridesForModel?.[col.name]));
     const relations = buildRelations(entry.table, tableDef, allTables, catalog);
     const primaryKey = tableDef.primaryKey[0] ?? columns[0]?.name ?? 'id';
+    const owner = tableDef.source ?? source;
+    const availability = modelAvailability(entry.table, owner, histories);
+    const spans = [...availability];
+    tableDef.columns.forEach((col, i) => {
+        const column = columns[i];
+        column.availability = columnAvailability(entry.table, col.name, histories, col.source ?? owner);
+        spans.push(...column.availability);
+    });
+    const retired = retiredColumns(entry.table, new Set(tableDef.columns.map((c) => c.name)), histories).map(({ column, availability: columnSpans }) => {
+        const meta = buildColumnMetadata(column, tableDef, undefined, translations, overridesForModel?.[column.name]);
+        meta.availability = columnSpans;
+        spans.push(...columnSpans);
+        return meta;
+    });
     const meta = {
         name: entry.name,
         table: entry.table,
@@ -1156,8 +1133,11 @@ function buildModelMetadata(entry, allTables, translations, viewFields, catalog,
         source,
         columns,
         relations,
-        generatedFrom,
+        availability,
+        generatedFrom: { ...generatedFrom, versions: versionsSummary(spans, histories) },
     };
+    if (retired.length > 0)
+        meta.retiredColumns = retired;
     return meta;
 }
 // ───────────────────────────────────────────────────────────────────────────
@@ -1177,10 +1157,14 @@ async function runCoreMode(args) {
     await mkdir(modelsDir, { recursive: true });
     console.log(`[generate-metadata] Output dir: ${outDir}`);
     const translations = await loadCombinedTranslations(fsPath);
-    const allTables = await loadTablesFromDir(join(fsPath, 'Core', 'Table'));
+    const allTables = await loadTablesFromDir(join(fsPath, 'Core', 'Table'), 'core');
     console.log(`[generate-metadata] Cargadas ${allTables.size} tablas del core.`);
     // Fusionar columnas que los plugins habilitados añaden por extensión.
-    await mergeEnabledPluginExtensions(allTables, fsPath);
+    const contributors = await mergeEnabledPluginExtensions(allTables, fsPath);
+    const histories = loadHistories([
+        { dir: fsPath, source: 'core', layout: 'core' },
+        ...contributors.map((c) => ({ ...c, layout: 'plugin' })),
+    ]);
     const fsCommit = resolveGitCommit(fsPath);
     // Overrides del core: archivo en server/src/metadata/descriptions-overrides.json
     const overridesPath = join(outDir, 'descriptions-overrides.json');
@@ -1199,7 +1183,7 @@ async function runCoreMode(args) {
         const generatedFrom = { generatedAt };
         if (fsCommit)
             generatedFrom.facturascriptsCommit = fsCommit;
-        const meta = buildModelMetadata(entry, allTables, translations, viewFields, MODEL_CATALOG, 'core', generatedFrom, overrides[entry.name]);
+        const meta = buildModelMetadata(entry, allTables, translations, viewFields, MODEL_CATALOG, 'core', generatedFrom, overrides[entry.name], histories);
         if (!meta) {
             console.error(`[generate-metadata] Tabla "${entry.table}" no encontrada para "${entry.name}". Saltando.`);
             continue;
@@ -1238,13 +1222,21 @@ async function runPluginMode(args) {
         process.exit(1);
     }
     // Cargar tablas del core + plugin (para resolver FKs cruzadas).
-    const coreTables = await loadTablesFromDir(join(fsPath, 'Core', 'Table'));
-    const pluginTables = await loadTablesFromDir(join(pluginPath, 'Table'));
+    const pluginSource = `plugin:${moduleName}`;
+    const coreTables = await loadTablesFromDir(join(fsPath, 'Core', 'Table'), 'core');
+    const pluginTables = await loadTablesFromDir(join(pluginPath, 'Table'), pluginSource);
     const allTables = new Map([...coreTables, ...pluginTables]);
     console.log(`[generate-metadata] Tablas cargadas: ${coreTables.size} core + ${pluginTables.size} plugin = ${allTables.size}.`);
     // Fusionar columnas que los plugins habilitados añaden por extensión
-    // (a tablas del core o de otros plugins).
-    await mergeEnabledPluginExtensions(allTables, fsPath);
+    // (a tablas del core o de otros plugins). El propio plugin, si está
+    // habilitado, conserva la misma fuente que sus modelos.
+    const ownDir = realpathSync(pluginPath);
+    const contributors = await mergeEnabledPluginExtensions(allTables, fsPath, (dir) => existsSync(dir) && realpathSync(dir) === ownDir ? pluginSource : `plugin:${basename(dir)}`);
+    const histories = loadHistories([
+        { dir: fsPath, source: 'core', layout: 'core' },
+        { dir: pluginPath, source: pluginSource, layout: 'plugin' },
+        ...contributors.map((c) => ({ ...c, layout: 'plugin' })),
+    ]);
     // Combinar traducciones del core con las del plugin.
     const pluginTranslationPath = join(pluginPath, 'Translation', 'es_ES.json');
     const translations = await loadCombinedTranslations(fsPath, pluginTranslationPath);
@@ -1278,7 +1270,7 @@ async function runPluginMode(args) {
             ...(m.editView !== undefined ? { editView: m.editView } : {}),
             description: m.description,
         };
-        const meta = buildModelMetadata(entry, allTables, translations, viewFields, fullCatalog, `plugin:${moduleName}`, generatedFrom, overrides[m.name]);
+        const meta = buildModelMetadata(entry, allTables, translations, viewFields, fullCatalog, pluginSource, generatedFrom, overrides[m.name], histories);
         if (!meta) {
             console.error(`[generate-metadata] Tabla "${m.table}" no encontrada para "${m.name}" (busqué en core y en ${pluginPath}/Table). Saltando.`);
             continue;
