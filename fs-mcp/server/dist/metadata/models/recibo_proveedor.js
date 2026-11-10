@@ -25,7 +25,13 @@ export const reciboProveedorMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "codigofactura",
@@ -37,7 +43,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "codigofactura",
             "maxLength": 20,
-            "description": "Código de la factura recibida que generó el recibo."
+            "description": "Código de la factura recibida que generó el recibo.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.71"
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -50,7 +62,13 @@ export const reciboProveedorMetadata = {
             "label": "Forma de pago",
             "maxLength": 10,
             "description": "Forma de pago aplicable al recibo.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -69,7 +87,13 @@ export const reciboProveedorMetadata = {
                 "column": "codproveedor",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -81,7 +105,13 @@ export const reciboProveedorMetadata = {
             "isRequired": true,
             "label": "Fecha",
             "description": "Fecha de emisión del recibo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fechapago",
@@ -93,7 +123,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "Fecha de pago",
             "description": "Fecha en la que se pagó el recibo. Vacía si todavía no se ha pagado.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -105,7 +141,13 @@ export const reciboProveedorMetadata = {
             "isRequired": true,
             "label": "Empresa",
             "description": "ID de la empresa que paga.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idfactura",
@@ -123,7 +165,13 @@ export const reciboProveedorMetadata = {
                 "column": "idfactura",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idrecibo",
@@ -135,7 +183,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del recibo.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "importe",
@@ -148,7 +202,13 @@ export const reciboProveedorMetadata = {
             "label": "Importe",
             "default": 0,
             "description": "Importe a pagar al proveedor.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "liquidado",
@@ -161,7 +221,13 @@ export const reciboProveedorMetadata = {
             "label": "liquidado",
             "default": 0,
             "description": "Importe ya liquidado/pagado del recibo.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -174,7 +240,13 @@ export const reciboProveedorMetadata = {
             "label": "Usuario",
             "maxLength": 50,
             "description": "Usuario que gestionó el recibo.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -186,7 +258,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "Número",
             "description": "Número correlativo del recibo dentro de la factura.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -198,7 +276,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el recibo.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "pagado",
@@ -211,7 +295,13 @@ export const reciboProveedorMetadata = {
             "label": "Pagado",
             "default": false,
             "description": "True si el recibo está totalmente pagado al proveedor.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "vencido",
@@ -224,7 +314,13 @@ export const reciboProveedorMetadata = {
             "label": "vencido",
             "default": false,
             "description": "True si la fecha de vencimiento ya ha pasado y sigue sin pagarse.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "vencimiento",
@@ -236,7 +332,13 @@ export const reciboProveedorMetadata = {
             "isRequired": false,
             "label": "Vencimiento",
             "description": "Fecha límite en la que la empresa debe pagar al proveedor.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         }
     ],
     "relations": [
@@ -269,9 +371,21 @@ export const reciboProveedorMetadata = {
             "remoteColumn": "idrecibo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.04"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default reciboProveedorMetadata;

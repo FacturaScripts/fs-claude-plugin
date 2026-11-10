@@ -18,7 +18,13 @@ export const productoImagenMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "idfile",
@@ -36,7 +42,13 @@ export const productoImagenMetadata = {
                 "column": "idfile",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -54,7 +66,13 @@ export const productoImagenMetadata = {
                 "column": "idproducto",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -72,7 +90,13 @@ export const productoImagenMetadata = {
                 "column": "referencia",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4"
+                }
+            ]
         },
         {
             "name": "orden",
@@ -84,7 +108,13 @@ export const productoImagenMetadata = {
             "isRequired": false,
             "label": "orden",
             "description": "Posición de la imagen entre las imágenes del producto/variante.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.5"
+                }
+            ]
         }
     ],
     "relations": [
@@ -110,9 +140,21 @@ export const productoImagenMetadata = {
             "remoteColumn": "idfile"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2022.4"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default productoImagenMetadata;
