@@ -60,7 +60,7 @@ Código de salida: `0` sin hallazgos de severidad media o alta, `1` con hallazgo
 ## Qué busca la auditoría de seguridad
 
 - **Ejecución en el servidor**: comandos del sistema (`exec`, `shell_exec`, `system`, comillas invertidas…), `eval`, `include` de rutas calculadas y código ofuscado.
-- **Salida de datos**: conexiones de red (cURL, sockets, `Http::`, SOAP, `file_get_contents` de URLs, `fetch` o `sendBeacon` a dominios externos), scripts cargados desde CDN y el cruce entre lectura de datos sensibles y conexiones en el mismo archivo.
+- **Salida de datos**: conexiones de red (cURL, sockets, la clase `Http` del core aunque el método vaya en una variable, SOAP, `file_get_contents` de URLs, `fetch` o `sendBeacon` a dominios externos), scripts cargados desde CDN y el cruce entre lectura de datos sensibles y conexiones en el mismo archivo.
 - **Datos sensibles**: credenciales de la base de datos, `config.php`, contraseñas, `logkey`, claves 2FA y `ApiKey`.
 - **Persistencia y accesos**: escritura de `.php`, `.htaccess` o `config.php`, cambios de permisos, controladores sin autenticación, concesión de `admin`, credenciales escritas en el código y archivos PHP dentro de `Assets/`.
 

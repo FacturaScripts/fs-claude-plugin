@@ -134,7 +134,7 @@ El informe completa cada contexto con una explicación breve; la tabla muestra e
 | `codigo-dinamico` | `eval`, `create_function`, `include` de rutas calculadas, `new Function` en JS | Ejecuta código que no está a la vista en el plugin |
 | `ofuscacion` | `gzinflate`, `str_rot13`, cadenas codificadas largas, decodificación seguida de ejecución | Oculta lo que hace el código |
 | `posible-exfiltracion` | Un archivo que lee datos sensibles y abre una conexión de red | Patrón típico de envío de datos de la instalación a terceros |
-| `red-saliente` | cURL, sockets, FTP, `Http::` del core, SOAP, Guzzle, `file_get_contents` de URLs, `fetch`/`sendBeacon` a dominios externos | Comunica la instalación con terceros; indica el destino cuando lo resuelve |
+| `red-saliente` | cURL, sockets, FTP, la clase `Http` del core (también `new Http` y `Http::$metodo()`), SOAP, Guzzle, `file_get_contents` de URLs, `fetch`/`sendBeacon` a dominios externos | Comunica la instalación con terceros; indica el destino cuando lo resuelve |
 | `recurso-externo` | `<script src>` de CDN o de terceros, JS remoto en `AssetManager` | El tercero puede cambiar el código que corre en el navegador; indica si hay SRI |
 | `datos-sensibles` | `FS_DB_PASS/USER/HOST`, `config.php`, contraseñas, `logkey`, claves 2FA, `ApiKey`, información del servidor | Datos que no deberían salir de la instalación |
 | `modificacion-instalacion` | Escritura de `.php`, `.htaccess`, `config.php`, `Core/`, `Dinamic/`; cambios en `disable_functions` o `open_basedir` | Puede dejar una puerta trasera persistente |

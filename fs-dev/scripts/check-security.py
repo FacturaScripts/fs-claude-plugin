@@ -195,21 +195,40 @@ class Source:
         Recorre la versión sin cadenas para que las comas y los paréntesis de un
         literal no corten el argumento, y devuelve el texto con sus cadenas.
         """
+        return self.argument(offset, 0, limit)
+
+    def argument(self, offset: int, position: int, limit: int = 600) -> str:
+        """Devuelve el argumento ``position`` (desde 0) de la llamada cuyo paréntesis abre en ``offset``.
+
+        Args:
+            offset: Posición desde la que se busca el paréntesis de apertura.
+            position: Índice del argumento que se quiere, empezando por 0.
+            limit: Longitud máxima que se examina.
+
+        Returns:
+            El texto del argumento con sus cadenas, o cadena vacía si la llamada
+            tiene menos argumentos.
+        """
         start = self.code.find('(', offset)
         if start == -1:
             return ''
         depth = 0
+        current = 0
+        begin = start + 1
         for index in range(start + 1, min(len(self.code), start + limit)):
             char = self.code[index]
             if char in '([{':
                 depth += 1
             elif char in ')]}':
                 if depth == 0:
-                    return self.text[start + 1:index]
+                    return self.text[begin:index] if current == position else ''
                 depth -= 1
             elif char == ',' and depth == 0:
-                return self.text[start + 1:index]
-        return self.text[start + 1:start + limit]
+                if current == position:
+                    return self.text[begin:index]
+                current += 1
+                begin = index + 1
+        return self.text[begin:start + limit] if current == position else ''
 
     def arguments(self, offset: int, limit: int = 1200) -> str:
         """Devuelve todos los argumentos de la llamada cuyo paréntesis abre en ``offset``.
@@ -738,19 +757,56 @@ def dynamic_command(source: Source, match: re.Match) -> tuple[bool, list[str], s
     return True, notes, None
 
 
-def destination_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
-    """Anota el destino de una petición cuando es un literal o una variable con URL fija."""
-    argument = call_argument(source, match).strip()
+def destination_notes(source: Source, argument: str, before: int) -> list[str]:
+    """Describe el destino de una petición a partir del argumento que lleva la URL.
+
+    Args:
+        source: Archivo analizado.
+        argument: Texto del argumento con la URL.
+        before: Posición de la llamada, para resolver la última asignación de una variable.
+
+    Returns:
+        Una nota con el dominio si la URL es un literal, una constante o una variable
+        con URL fija; si no, una nota con la expresión tal cual; o ninguna si no hay argumento.
+    """
+    argument = argument.strip()
     host = SCHEME_URL_PATTERN.search(resolve_constant(source, argument))
     if host is None:
         variable = re.match(r'\$\w+', argument)
-        value = variable_value(source, variable.group(0), match.start()) if variable else ''
+        value = variable_value(source, variable.group(0), before) if variable else ''
         host = SCHEME_URL_PATTERN.search(value)
     if host and host.group(1).lower() not in IGNORED_HOSTS:
-        return True, [f'destino: {host.group(1).lower()}'], None
+        return [f'destino: {host.group(1).lower()}']
     if argument:
-        return True, ['destino: ' + re.sub(r'\s+', ' ', argument)[:120]], None
-    return True, [], None
+        return ['destino: ' + re.sub(r'\s+', ' ', argument)[:120]]
+    return []
+
+
+def destination_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de una petición cuando es un literal o una variable con URL fija."""
+    return True, destination_notes(source, call_argument(source, match), match.start()), None
+
+
+def http_static_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de ``Http::get()`` y avisa cuando el método HTTP está en una variable.
+
+    ``Http::$metodo(...)`` y ``Http::{$metodo}(...)`` hacen la misma petición que
+    ``Http::get()`` o ``Http::post()``, pero no se ve cuál: puede ser también ``delete``.
+    """
+    notes = destination_notes(source, call_argument(source, match), match.start())
+    method = match.group('metodo')
+    if method.startswith(('$', '{')):
+        notes.append(f'el método HTTP está en una variable ({method}): puede ser get, post, put, patch o delete')
+    return True, notes, None
+
+
+def http_constructor_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de ``new Http($metodo, $url)``, cuya URL es el segundo argumento."""
+    method = source.argument(match.end() - 1, 0).strip()
+    notes = destination_notes(source, source.argument(match.end() - 1, 1), match.start())
+    if method.startswith('$'):
+        notes.append(f'el método HTTP está en una variable ({method})')
+    return True, notes, None
 
 
 def backtick_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
@@ -1041,7 +1097,10 @@ RULES: list[Rule] = [
     Rule('red-saliente', 'media', 'Fija la URL de una petición cURL',
          re.compile(r'\bCURLOPT_URL\s*,'), PHP, check=curlopt_check),
     Rule('red-saliente', 'media', 'Hace una petición HTTP con la clase Http del core',
-         re.compile(r'\bHttp::(?:get|post|postJson|put|patch|delete)\s*\('), PHP, check=destination_check),
+         re.compile(r'\bHttp::(?P<metodo>get|post|postJson|put|patch|delete|\$\w+|\{[^}]*\})\s*\(', re.I),
+         PHP, check=http_static_check),
+    Rule('red-saliente', 'media', 'Hace una petición HTTP con la clase Http del core',
+         re.compile(r'(?<![\w$>:])new\s+\\?(?:FacturaScripts\\Core\\)?Http\s*\('), PHP, check=http_constructor_check),
     Rule('red-saliente', 'media', 'Usa un cliente HTTP o SOAP de terceros',
          re.compile(r'\bnew\s+\\?SoapClient\b|GuzzleHttp\\|Symfony\\Component\\HttpClient|\bnew\s+\\?Client\s*\(\s*\[\s*[\'"]base_uri'),
          PHP, target='text'),
@@ -1274,7 +1333,7 @@ def collect_domains(sources: list[Source]) -> list[dict]:
     ``script`` si carga código en el navegador o ``referencia`` en otro caso
     (enlaces, textos de ayuda, identificadores).
     """
-    call_hint = re.compile(r'curl_|Http::|file_get_contents|fopen|fsockopen|fetch\s*\(|\$\.(?:ajax|get|post)|'
+    call_hint = re.compile(r'curl_|Http::|new\s+\\?(?:FacturaScripts\\Core\\)?Http\s*\(|file_get_contents|fopen|fsockopen|fetch\s*\(|\$\.(?:ajax|get|post)|'
                            r'XMLHttpRequest|SoapClient|base_uri|sendBeacon|WebSocket|->(?:get|post|request)\s*\(',
                            re.I)
     domains: dict[str, dict] = {}
