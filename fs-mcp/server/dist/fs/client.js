@@ -88,17 +88,27 @@ function hideApiFields(fields, data) {
     }
     // Con texto delante del JSON (un aviso de PHP con display_errors activo),
     // axios entrega un string: se busca el JSON y se filtra, y si no lo hay se
-    // falla sin devolver el texto, que puede contener los campos
+    // falla sin devolver el texto, que puede contener los campos. El aviso puede
+    // llevar «{» o «[» («{closure}()», «Undefined array key [x]»), y PHP acaba cada
+    // uno con un salto de línea: el JSON se prueba desde el primer «{» o «[» del
+    // texto y desde cada uno que empieza una línea, por orden
     if (typeof data === "string") {
-        const start = data.search(/[[{]/);
-        let parsed;
-        try {
-            parsed = JSON.parse(start === -1 ? "" : data.slice(start));
+        const starts = new Set([data.search(/[[{]/)]);
+        for (const match of data.matchAll(/\n[[{]/g)) {
+            starts.add(match.index + 1);
         }
-        catch {
-            throw new Error("respuesta no JSON de un recurso con campos sensibles");
+        starts.delete(-1);
+        for (const start of starts) {
+            let parsed;
+            try {
+                parsed = JSON.parse(data.slice(start));
+            }
+            catch {
+                continue;
+            }
+            return hideApiFields(fields, parsed);
         }
-        return hideApiFields(fields, parsed);
+        throw new Error("respuesta no JSON de un recurso con campos sensibles");
     }
     if (Array.isArray(data)) {
         return data.map((record) => hideFieldsInRecord(record, fields));

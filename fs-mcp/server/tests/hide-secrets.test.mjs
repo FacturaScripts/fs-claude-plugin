@@ -37,6 +37,17 @@ const crudo = http.createServer((req, res) => {
   const ruta = new URL(req.url, 'http://x').pathname;
   res.setHeader('Content-Type', 'application/json');
   if (ruta === '/api/3/users') return res.end(`Deprecated: aviso de PHP on line 3\n${JSON.stringify([usuario])}`);
+  // Avisos con «{» o «[» en el texto, como los escribe PHP: cada uno acaba en un
+  // salto de línea, con html_errors y sin él, y con la pila que añade Xdebug
+  if (ruta === '/api/3/users/llaves') return res.end(`\nDeprecated: {closure}(): aviso in /app/x.php on line 4\n${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/users/corchetes') return res.end(`\nWarning: Undefined array key [x] in /app/x.php on line 3\n${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/users/html') return res.end(`<br />\n<b>Deprecated</b>:  {closure}(): aviso in <b>/app/x.php</b> on line <b>4</b><br />\n${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/users/pila') return res.end(`Deprecated: aviso in /app/x.php on line 4\n\nCall Stack:\n    0.0002     354160   1. {main}() /app/x.php:0\n\n${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/settings') return res.end(`\nWarning: Undefined array key [x] in /app/x.php on line 3\n${JSON.stringify([ajuste])}`);
+  // Aviso sin salto de línea antes del JSON, sin «{» ni «[»
+  if (ruta === '/api/3/users/sinsalto') return res.end(`Aviso sin salto de línea: ${JSON.stringify([usuario])}`);
+  // «{» o «[» a principio de línea sin JSON válido detrás
+  if (ruta === '/api/3/users/falso') return res.end(`[x] aviso con HASH\n{no es JSON`);
   if (ruta === '/api/3/apikeyes') return res.end('Warning: aviso de PHP sin JSON detrás, con CLAVE');
   return res.end('texto de un recurso sin campos sensibles');
 });
@@ -106,6 +117,26 @@ test('con texto antes del JSON, el registro se filtra igual', async () => {
   const respuesta = JSON.stringify(await fsClient.get('users', {}, 'cruda'));
   assert.deepEqual(secretos.filter((s) => respuesta.includes(s)), []);
   assert.ok(respuesta.includes('admin'));
+});
+
+for (const ruta of ['users/llaves', 'users/corchetes', 'users/html', 'users/pila', 'users/sinsalto']) {
+  test(`con un aviso antes del JSON (${ruta}), el registro se filtra igual`, async () => {
+    const respuesta = JSON.stringify(await fsClient.get(ruta, {}, 'cruda'));
+    assert.deepEqual(secretos.filter((s) => respuesta.includes(s)), []);
+    assert.ok(respuesta.includes('admin'));
+  });
+}
+
+test('con un aviso con «[» antes del JSON, settings se filtra igual', async () => {
+  const respuesta = JSON.stringify(await fsClient.get('settings', {}, 'cruda'));
+  assert.ok(!respuesta.includes('SMTP'));
+  assert.ok(respuesta.includes('smtp.example.test'));
+});
+
+test('con «{» o «[» a principio de línea y ningún JSON válido, da error sin devolver el texto', async () => {
+  await assert.rejects(fsClient.get('users/falso', {}, 'cruda'), (error) =>
+    /respuesta no JSON/.test(error.message) && !error.message.includes('HASH')
+  );
 });
 
 test('una respuesta sin JSON de un recurso sensible da error y no devuelve el texto', async () => {
