@@ -275,6 +275,16 @@ PHP_OPEN_TAG = re.compile(r'<\?(?:php(?=\s)|=|(?!xml))', re.I)
 # Indicio de que un archivo contiene PHP aunque su extensión no lo diga.
 PHP_MARKER = re.compile(r'<\?(?:php\b|=)', re.I)
 PHP_MARKER_BYTES = re.compile(rb'<\?(?:php\b|=)', re.I)
+# Forma de ruta de include que se sabe leer: un directorio fijo o un literal,
+# concatenado con separadores y literales sin interpolación, y nada más hasta
+# el final de la sentencia (';' o '?>'), con un paréntesis opcional alrededor.
+PATH_LITERAL = r"'(?:[^'\\]|\\.)*'" + '|' + r'"(?:[^"\\$]|\\.)*"'
+FIXED_INCLUDE_PATH = re.compile(
+    r'\s*(?P<open>\(\s*)?'
+    r'(?P<expr>(?:__DIR__|dirname\s*\(\s*__FILE__\s*\)|FS_FOLDER|' + PATH_LITERAL + r')'
+    r'(?:\s*\.\s*(?:DIRECTORY_SEPARATOR|' + PATH_LITERAL + r'))*)'
+    r'\s*(?(open)\)\s*)(?:;|\?>)'
+)
 # En un binario, <?= sale por azar; <?php, no.
 BINARY_PHP_TAG = re.compile(rb'<\?php\b', re.I)
 
@@ -501,7 +511,8 @@ def unknown_has_php(path: Path, data: bytes) -> bool:
 
     Un ``include`` lo ejecutaría igual, pero un binario tiene ``<?=`` por azar, y
     la documentación y los workflows citan PHP de ejemplo o generan otro archivo:
-    se analizan solo si empiezan por PHP, que es como se escribe uno para incluirlo.
+    se analizan solo si empiezan por PHP. El PHP a mitad de uno de ellos se
+    ejecutaría igual si algo lo incluye; eso lo señala ``non_php_include``.
     """
     if is_binary(path, data):
         return False
@@ -770,21 +781,32 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
 
 
 def non_php_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
-    """Señala el ``include`` de ruta fija de un archivo sin extensión PHP.
+    """Señala el ``include`` de un archivo que puede no ser PHP.
 
     PHP ejecuta entero lo que incluye, sea cual sea su extensión y esté donde esté
     el bloque, y este script no analiza como PHP los binarios ni el PHP a mitad de
-    un ``.md`` o un ``.yml``. Las rutas con variables las señala ``dynamic_include``.
+    un ``.md`` o un ``.yml``. Es una heurística, y por eso falla hacia el lado
+    seguro: una ruta solo se da por PHP si la sentencia entera es una forma fija
+    que sabe leer (``FIXED_INCLUDE_PATH``) y sus literales, concatenados, acaban
+    en una extensión de PHP. Cualquier otra forma se señala. Las rutas con
+    variables ya las señala ``dynamic_include``.
     """
-    end = source.code.find(';', match.end())
-    end = end if end != -1 else match.end() + 200
-    if re.search(r'\$\w', source.code[match.end():end]):
+    if dynamic_include(source, match)[0]:
         return False, [], None
-    literals = literal_strings(source.text[match.end():end])
-    if not literals or Path(literals[-1]).suffix.lower() in PHP_EXTENSIONS:
+    fixed = FIXED_INCLUDE_PATH.match(source.text, match.end())
+    if fixed is None:
+        return True, ['la ruta no tiene una forma fija que este script sepa leer (__DIR__, dirname(__FILE__), '
+                      'FS_FOLDER, DIRECTORY_SEPARATOR y literales concatenados): no puede confirmar que sea PHP'], None
+    path = ''.join(unquote(literal) for literal in re.findall(PATH_LITERAL, fixed.group('expr')))
+    if Path(path).suffix.lower() in PHP_EXTENSIONS:
         return False, [], None
-    return True, [f'incluye {literals[-1]}: PHP ejecuta el archivo entero aunque su extensión no sea de PHP, '
+    return True, [f'incluye {path}: PHP ejecuta el archivo entero aunque su extensión no sea de PHP, '
                   'y este script puede no haberlo analizado como PHP'], None
+
+
+def unquote(literal: str) -> str:
+    """Devuelve el contenido de un literal de cadena de PHP sin interpolación."""
+    return re.sub(r'\\([\\\'"])', r'\1', literal[1:-1])
 
 
 def literal_strings(text: str) -> list[str]:
@@ -967,7 +989,7 @@ RULES: list[Rule] = [
          php_call('eval', 'create_function'), PHP, check=eval_check),
     Rule('codigo-dinamico', 'media', 'Incluye un archivo PHP calculado en tiempo de ejecución',
          re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=dynamic_include),
-    Rule('codigo-dinamico', 'media', 'Incluye como PHP un archivo sin extensión PHP',
+    Rule('codigo-dinamico', 'media', 'Incluye un archivo que puede no ser PHP',
          re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=non_php_include),
     Rule('codigo-dinamico', 'baja', 'Invoca una función cuyo nombre es una variable',
          php_call('call_user_func', 'call_user_func_array', 'forward_static_call'), PHP),

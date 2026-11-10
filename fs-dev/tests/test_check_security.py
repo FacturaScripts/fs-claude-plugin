@@ -497,7 +497,7 @@ class EvasionTest(unittest.TestCase):
         for relative in ('Lib/a.js', 'View/b.html', 'View/c.twig'):
             self.assertIn(f'{relative} contiene <?php y no se ha analizado como PHP.', report['limitaciones'])
         self.assertEqual(3, report['analizados']['sin_analizar'])
-        self.assertIn('Incluye como PHP un archivo sin extensión PHP', [item['titulo'] for item in report['hallazgos']])
+        self.assertIn(INCLUDE_TITLE, [item['titulo'] for item in report['hallazgos']])
         code, _output = self.run_main(plugin)
         self.assertEqual(1, code, 'el include del .js lo señala')
 
@@ -608,6 +608,16 @@ class EvasionTest(unittest.TestCase):
         self.assert_ejecuta_comandos(self.audit({'.github/notas.txt': "texto\n<?php system($_GET['c']);\n"}))
 
 
+INCLUDE_TITLE = 'Incluye un archivo que puede no ser PHP'
+
+
+def init_con(statement: str) -> str:
+    """Un Init.php cuyo init() ejecuta la sentencia indicada."""
+    return ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n\nclass Init\n{\n'
+            '    public function init(): void\n    {\n'
+            f'        {statement}\n    }}\n}}\n')
+
+
 def init_que_incluye(relative: str) -> str:
     """Un Init.php que incluye un archivo del plugin por ruta fija."""
     return ('<?php\nnamespace FacturaScripts\\Plugins\\MiPlugin;\n\nclass Init\n{\n'
@@ -652,7 +662,7 @@ class IncludeNoPhpTest(unittest.TestCase):
         plugin = self.plugin(relative, content)
         report = CHECKER.audit(plugin)
         found = [item for item in report['hallazgos']
-                 if item['titulo'] == 'Incluye como PHP un archivo sin extensión PHP']
+                 if item['titulo'] == INCLUDE_TITLE]
         self.assertEqual(1, len(found), report['hallazgos'])
         self.assertEqual(('media', 'Init.php'), (found[0]['severidad'], found[0]['archivo']))
         self.assertIn(f'/{relative}', ' '.join(found[0]['notas']))
@@ -690,13 +700,63 @@ class IncludeNoPhpTest(unittest.TestCase):
         """Control: el include de un .php no es este hallazgo."""
         plugin = self.plugin('Lib/helper.php', b'<?php\nreturn 1;\n')
         titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
-        self.assertNotIn('Incluye como PHP un archivo sin extensión PHP', titles)
+        self.assertNotIn(INCLUDE_TITLE, titles)
 
     def test_extension_php_en_mayusculas_no_se_senala(self) -> None:
         """Control: .INC es una extensión PHP aunque vaya en mayúsculas."""
         plugin = self.plugin('Lib/helper.INC', b'<?php\nreturn 1;\n')
         titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
-        self.assertNotIn('Incluye como PHP un archivo sin extensión PHP', titles)
+        self.assertNotIn(INCLUDE_TITLE, titles)
+
+    def assert_sentencia_senalada(self, statement: str) -> None:
+        """Un include cuya ruta no sabe leer da el hallazgo media y el script sale con 1."""
+        plugin = build_plugin(self.root, {'Init.php': init_con(statement)})
+        (plugin / 'x.png').write_bytes(self.PAYLOAD)
+        report = CHECKER.audit(plugin)
+        found = [item for item in report['hallazgos'] if item['titulo'] == INCLUDE_TITLE]
+        self.assertEqual(1, len(found), report['hallazgos'])
+        self.assertEqual('media', found[0]['severidad'])
+        self.assertEqual(1, self.run_main(plugin)[0])
+
+    def test_coalescencia_tras_el_literal(self) -> None:
+        """El último literal de la sentencia no es la ruta: ('' ?? 'a.php') vale ''."""
+        self.assert_sentencia_senalada("include __DIR__ . '/x.png' . ('' ?? 'a.php');")
+
+    def test_llamada_tras_el_literal(self) -> None:
+        """substr('a.php', 5) vale '': la ruta es x.png."""
+        self.assert_sentencia_senalada("include __DIR__ . '/x.png' . substr('a.php', 5);")
+
+    def test_cierre_de_php_termina_la_sentencia(self) -> None:
+        """?> termina el include: lo que sigue ya no forma parte de la ruta."""
+        self.assert_sentencia_senalada("include __DIR__ . '/x.png' ?><?php echo 'a.php';")
+
+    def test_cola_tras_un_php(self) -> None:
+        """La ruta es '/a.php' . '.png': lo que sigue al literal cambia la extensión."""
+        self.assert_sentencia_senalada("include __DIR__ . '/a.php' . strtolower('.PNG');")
+
+    def test_ruta_con_variable_no_se_duplica(self) -> None:
+        """Una ruta con variables ya la señala el include dinámico: no da también este hallazgo."""
+        plugin = build_plugin(self.root, {'Init.php': init_con("include __DIR__ . '/' . $pagina;")})
+        titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
+        self.assertIn('Incluye un archivo PHP calculado en tiempo de ejecución', titles)
+        self.assertNotIn(INCLUDE_TITLE, titles)
+
+    def test_heredoc(self) -> None:
+        """Una ruta en un heredoc no es una forma que sepa leer."""
+        self.assert_sentencia_senalada("include <<<EOT\nx.png\nEOT;")
+
+    def test_rutas_fijas_de_php_no_se_senalan(self) -> None:
+        """Control: las formas fijas habituales de incluir un .php no dan el hallazgo."""
+        for statement in ("require_once __DIR__ . '/vendor/autoload.php';",
+                          "require_once(__DIR__ . '/a.php');",
+                          "include FS_FOLDER . DIRECTORY_SEPARATOR . 'a.php';",
+                          'include dirname(__FILE__) . "/a.php";',
+                          "include __DIR__ . '/a' . '.php';",
+                          "include 'a.php' ?>"):
+            with self.subTest(statement=statement):
+                plugin = build_plugin(self.root, {'Init.php': init_con(statement)})
+                titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
+                self.assertNotIn(INCLUDE_TITLE, titles)
 
     def assert_git_declarado(self, relative: str, content: bytes) -> None:
         """Un .git con PHP se declara sin analizar, y el veredicto no da el plugin por limpio."""
