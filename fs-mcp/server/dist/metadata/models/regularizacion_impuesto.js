@@ -19,7 +19,13 @@ export const regularizacionImpuestoMetadata = {
             "label": "bloquear",
             "default": true,
             "description": "True si tras la regularización el ejercicio queda bloqueado para nuevos asientos en este periodo.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.51"
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -37,7 +43,14 @@ export const regularizacionImpuestoMetadata = {
                 "column": "codejercicio",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuentaacr",
@@ -49,7 +62,13 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": false,
             "label": "codsubcuentaacr",
             "maxLength": 15,
-            "description": "Subcuenta acreedora a usar para liquidar IVA repercutido."
+            "description": "Subcuenta acreedora a usar para liquidar IVA repercutido.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "codsubcuentadeu",
@@ -61,7 +80,13 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": false,
             "label": "codsubcuentadeu",
             "maxLength": 15,
-            "description": "Subcuenta deudora a usar para liquidar IVA soportado."
+            "description": "Subcuenta deudora a usar para liquidar IVA soportado.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "fechaasiento",
@@ -73,7 +98,14 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": false,
             "label": "fechaasiento",
             "description": "Fecha del asiento contable de regularización.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechafin",
@@ -85,7 +117,14 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": true,
             "label": "fechafin",
             "description": "Fecha de fin del periodo a regularizar (último día del trimestre/mes).",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechainicio",
@@ -97,7 +136,14 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": true,
             "label": "fechainicio",
             "description": "Fecha de inicio del periodo a regularizar (primer día del trimestre/mes).",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -115,7 +161,14 @@ export const regularizacionImpuestoMetadata = {
                 "column": "idasiento",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -133,7 +186,14 @@ export const regularizacionImpuestoMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idregiva",
@@ -145,7 +205,13 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": false,
             "label": "idregiva",
             "description": "Identificador interno autoincremental de la regularización.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "idsubcuentaacr",
@@ -163,7 +229,13 @@ export const regularizacionImpuestoMetadata = {
                 "column": "idsubcuenta",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "idsubcuentadeu",
@@ -181,7 +253,13 @@ export const regularizacionImpuestoMetadata = {
                 "column": "idsubcuenta",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "periodo",
@@ -193,7 +271,14 @@ export const regularizacionImpuestoMetadata = {
             "isRequired": true,
             "label": "periodo",
             "maxLength": 8,
-            "description": "Periodo regularizado (ej: T1, T2, T3, T4, ENE, FEB, etc.)."
+            "description": "Periodo regularizado (ej: T1, T2, T3, T4, ENE, FEB, etc.).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -233,10 +318,121 @@ export const regularizacionImpuestoMetadata = {
             "remoteColumn": "idempresa"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "codsubcuentaacreedora",
+            "sqlType": "character varying(15)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codsubcuentaacreedora",
+            "maxLength": 15,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "codsubcuentadeudora",
+            "sqlType": "character varying(15)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "codsubcuentadeudora",
+            "maxLength": 15,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "idregularizacion",
+            "sqlType": "serial",
+            "tsType": "number",
+            "nullable": false,
+            "isPrimaryKey": false,
+            "isReadonly": true,
+            "isRequired": false,
+            "label": "idregularizacion",
+            "default": "nextval('regularizacionimpuestos_idregularizacion_seq'::regclass)",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "idsubcuentaacreedora",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idsubcuentaacreedora",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        },
+        {
+            "name": "idsubcuentadeudora",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "idsubcuentadeudora",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.04"
+                }
+            ]
+        }
+    ]
 };
 export default regularizacionImpuestoMetadata;
 //# sourceMappingURL=regularizacion_impuesto.js.map

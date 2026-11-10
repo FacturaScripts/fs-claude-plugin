@@ -18,7 +18,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "apartado",
             "maxLength": 10,
-            "description": "Apartado postal de la dirección de envío del albarán."
+            "description": "Apartado postal de la dirección de envío del albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -30,7 +37,14 @@ export const albaranClienteMetadata = {
             "isRequired": true,
             "label": "CIF/NIF",
             "maxLength": 30,
-            "description": "CIF/NIF del cliente, copiado desde el cliente al crear el albarán."
+            "description": "CIF/NIF del cliente, copiado desde el cliente al crear el albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -42,7 +56,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "ciudad",
             "maxLength": 100,
-            "description": "Ciudad de la dirección de envío del albarán."
+            "description": "Ciudad de la dirección de envío del albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -60,7 +81,14 @@ export const albaranClienteMetadata = {
                 "column": "codagente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codalmacen",
@@ -78,7 +106,14 @@ export const albaranClienteMetadata = {
                 "column": "codalmacen",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -96,7 +131,14 @@ export const albaranClienteMetadata = {
                 "column": "codcliente",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coddivisa",
@@ -114,7 +156,14 @@ export const albaranClienteMetadata = {
                 "column": "coddivisa",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codejercicio",
@@ -132,7 +181,14 @@ export const albaranClienteMetadata = {
                 "column": "codejercicio",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigo",
@@ -144,7 +200,14 @@ export const albaranClienteMetadata = {
             "isRequired": true,
             "label": "codigo",
             "maxLength": 20,
-            "description": "Código identificativo único del albarán (ej: ALB2024-0001). Lo genera el sistema según la serie y el ejercicio."
+            "description": "Código identificativo único del albarán (ej: ALB2024-0001). Lo genera el sistema según la serie y el ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codigoenv",
@@ -156,7 +219,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "codigoenv",
             "maxLength": 200,
-            "description": "Código de seguimiento del envío proporcionado por la agencia de transporte."
+            "description": "Código de seguimiento del envío proporcionado por la agencia de transporte.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -174,7 +244,14 @@ export const albaranClienteMetadata = {
                 "column": "codpago",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -186,7 +263,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "codpais",
             "maxLength": 20,
-            "description": "Código del país de la dirección de envío."
+            "description": "Código del país de la dirección de envío.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -198,7 +282,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "codpostal",
             "maxLength": 10,
-            "description": "Código postal de la dirección de envío."
+            "description": "Código postal de la dirección de envío.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -216,7 +307,14 @@ export const albaranClienteMetadata = {
                 "column": "codserie",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtrans",
@@ -234,7 +332,14 @@ export const albaranClienteMetadata = {
                 "column": "codtrans",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -246,7 +351,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "direccion",
             "maxLength": 200,
-            "description": "Dirección de envío del albarán."
+            "description": "Dirección de envío del albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "dtopor1",
@@ -258,7 +370,13 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "dtopor1",
             "description": "Primer porcentaje de descuento aplicado sobre el neto del albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "dtopor2",
@@ -270,7 +388,13 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "dtopor2",
             "description": "Segundo porcentaje de descuento aplicado tras dtopor1.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.16"
+                }
+            ]
         },
         {
             "name": "editable",
@@ -282,7 +406,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "Editable",
             "description": "True si el albarán todavía puede modificarse; false si está bloqueado por el flujo (facturado, etc.).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -294,7 +425,14 @@ export const albaranClienteMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha del albarán.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "femail",
@@ -306,7 +444,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "femail",
             "description": "Fecha en la que se envió el albarán por email al cliente.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "hora",
@@ -317,7 +462,14 @@ export const albaranClienteMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora del albarán (HH:MM:SS)."
+            "description": "Hora del albarán (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idalbaran",
@@ -329,7 +481,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "idalbaran",
             "description": "Identificador interno autoincremental del albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactoenv",
@@ -341,7 +500,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "idcontactoenv",
             "description": "ID del contacto usado como dirección de envío en este albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactofact",
@@ -353,7 +519,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "idcontactofact",
             "description": "ID del contacto usado como dirección de facturación en este albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -371,7 +544,14 @@ export const albaranClienteMetadata = {
                 "column": "idempresa",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado",
@@ -389,7 +569,14 @@ export const albaranClienteMetadata = {
                 "column": "idestado",
                 "onDelete": "RESTRICT",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idestado_ant",
@@ -407,7 +594,13 @@ export const albaranClienteMetadata = {
                 "column": "idestado",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "irpf",
@@ -419,7 +612,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "IRPF",
             "description": "Porcentaje de IRPF aplicado al albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "neto",
@@ -431,7 +631,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "neto",
             "description": "Importe neto del albarán (subtotal antes de impuestos, después de descuentos).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "netosindto",
@@ -444,7 +651,13 @@ export const albaranClienteMetadata = {
             "label": "netosindto",
             "default": 0,
             "description": "Importe neto antes de aplicar los descuentos generales (dtopor1, dtopor2).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.01"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -462,7 +675,14 @@ export const albaranClienteMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombrecliente",
@@ -474,7 +694,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "nombrecliente",
             "maxLength": 100,
-            "description": "Nombre del cliente tal como queda registrado en el albarán (snapshot al crear)."
+            "description": "Nombre del cliente tal como queda registrado en el albarán (snapshot al crear).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numdocs",
@@ -487,7 +714,13 @@ export const albaranClienteMetadata = {
             "label": "numdocs",
             "default": 0,
             "description": "Número de archivos adjuntos vinculados al albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "numero",
@@ -499,7 +732,14 @@ export const albaranClienteMetadata = {
             "isRequired": true,
             "label": "numero",
             "maxLength": 12,
-            "description": "Número correlativo del albarán dentro de su serie y ejercicio."
+            "description": "Número correlativo del albarán dentro de su serie y ejercicio.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "numero2",
@@ -511,7 +751,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "numero2",
             "maxLength": 50,
-            "description": "Número adicional o referencia externa del albarán."
+            "description": "Número adicional o referencia externa del albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -523,7 +770,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "observaciones",
             "description": "Notas internas u observaciones del albarán.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -535,7 +789,13 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "operacion",
             "maxLength": 30,
-            "description": "Tipo de operación fiscal (interior, intracomunitaria, exportación, etc.)."
+            "description": "Tipo de operación fiscal (interior, intracomunitaria, exportación, etc.).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -547,7 +807,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "provincia",
             "maxLength": 100,
-            "description": "Provincia de la dirección de envío del albarán."
+            "description": "Provincia de la dirección de envío del albarán.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tasaconv",
@@ -559,7 +826,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "tasaconv",
             "description": "Tasa de conversión usada si el albarán está en una divisa distinta a la principal.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "total",
@@ -571,7 +845,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "Total",
             "description": "Importe total del albarán (neto + IVA + recargo - retenciones).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalbeneficio",
@@ -583,7 +864,13 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totalbeneficio",
             "description": "Beneficio total del albarán (total menos coste).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.08"
+                }
+            ]
         },
         {
             "name": "totalcoste",
@@ -595,7 +882,13 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totalcoste",
             "description": "Coste total de los productos incluidos en el albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.2"
+                }
+            ]
         },
         {
             "name": "totaleuros",
@@ -607,7 +900,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totaleuros",
             "description": "Total convertido a la divisa principal (euros) usando tasaconv.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalirpf",
@@ -619,7 +919,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totalirpf",
             "description": "Importe total retenido por IRPF.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totaliva",
@@ -631,7 +938,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totaliva",
             "description": "Importe total de IVA del albarán.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalrecargo",
@@ -643,7 +957,14 @@ export const albaranClienteMetadata = {
             "isRequired": false,
             "label": "totalrecargo",
             "description": "Importe total del recargo de equivalencia.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "totalsuplidos",
@@ -656,7 +977,13 @@ export const albaranClienteMetadata = {
             "label": "totalsuplidos",
             "default": 0,
             "description": "Importe total de suplidos (gastos a cuenta del cliente, sin IVA).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         }
     ],
     "relations": [
@@ -752,10 +1079,82 @@ export const albaranClienteMetadata = {
             "remoteColumn": "idalbaran"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "pagado",
+            "sqlType": "boolean",
+            "tsType": "boolean",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "pagado",
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "porcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "porcomision",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        },
+        {
+            "name": "totalcomision",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "totalcomision",
+            "default": 0,
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04",
+                    "until": "2021.81"
+                }
+            ]
+        }
+    ]
 };
 export default albaranClienteMetadata;
 //# sourceMappingURL=albaran_cliente.js.map

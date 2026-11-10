@@ -18,7 +18,13 @@ export const pagoProveedorMetadata = {
             "isRequired": false,
             "label": "codpago",
             "maxLength": 10,
-            "description": "Código de la forma de pago usada para este pago."
+            "description": "Código de la forma de pago usada para este pago.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "fecha",
@@ -30,7 +36,13 @@ export const pagoProveedorMetadata = {
             "isRequired": true,
             "label": "fecha",
             "description": "Fecha en la que se realizó el pago al proveedor.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "hora",
@@ -41,7 +53,13 @@ export const pagoProveedorMetadata = {
             "isReadonly": false,
             "isRequired": false,
             "label": "hora",
-            "description": "Hora del pago (HH:MM:SS)."
+            "description": "Hora del pago (HH:MM:SS).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idasiento",
@@ -59,7 +77,13 @@ export const pagoProveedorMetadata = {
                 "column": "idasiento",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idpago",
@@ -71,7 +95,13 @@ export const pagoProveedorMetadata = {
             "isRequired": false,
             "label": "idpago",
             "description": "Identificador interno autoincremental del pago.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "idrecibo",
@@ -89,7 +119,13 @@ export const pagoProveedorMetadata = {
                 "column": "idrecibo",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "importe",
@@ -102,7 +138,13 @@ export const pagoProveedorMetadata = {
             "label": "importe",
             "default": 0,
             "description": "Importe pagado al proveedor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -114,7 +156,13 @@ export const pagoProveedorMetadata = {
             "isRequired": false,
             "label": "Usuario",
             "maxLength": 50,
-            "description": "Usuario que registró el pago."
+            "description": "Usuario que registró el pago.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         }
     ],
     "relations": [
@@ -133,9 +181,21 @@ export const pagoProveedorMetadata = {
             "remoteColumn": "idrecibo"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.04"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default pagoProveedorMetadata;

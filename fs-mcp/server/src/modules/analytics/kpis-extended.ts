@@ -9,7 +9,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { parseFsDate } from '../../utils/fsDate.js';
+import { parseFsDate, toIsoDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 
 // ============================================================================
@@ -24,6 +24,19 @@ function diasEntre(desde: Date, hasta: Date): number {
 
 function mesISO(fecha: Date): string {
     return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Parsea una fecha recibida como argumento de la tool. Si no se puede leer
+ * lanza un error: compararla daría siempre false y el resultado saldría
+ * vacío o a cero como si fuera correcto.
+ */
+function fechaDeEntrada(nombre: string, valor: unknown): Date {
+    const fecha = parseFsDate(valor);
+    if (Number.isNaN(fecha.getTime())) {
+        throw new Error(`${nombre} no es una fecha válida (d-m-Y o Y-m-d): ${String(valor)}`);
+    }
+    return fecha;
 }
 
 function porcentaje(parte: number, total: number): number {
@@ -476,7 +489,7 @@ export async function handleExtendedAnalyticsTool(
                 if (codejercicio) params.codejercicio = codejercicio;
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', params, connection);
-                const map: Record<string, { codagente: string } & AgregadoMonetario> = {};
+                const map: Record<string, { codagente: string } & AgregadoMonetario> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codagente || '(sin agente)';
@@ -497,7 +510,7 @@ export async function handleExtendedAnalyticsTool(
                 if (codejercicio) params.codejercicio = codejercicio;
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', params, connection);
-                const map: Record<string, { codserie: string } & AgregadoMonetario> = {};
+                const map: Record<string, { codserie: string } & AgregadoMonetario> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codserie || '(sin serie)';
@@ -517,7 +530,7 @@ export async function handleExtendedAnalyticsTool(
                 if (codejercicio) params.codejercicio = codejercicio;
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', params, connection);
-                const map: Record<string, { codalmacen: string } & AgregadoMonetario> = {};
+                const map: Record<string, { codalmacen: string } & AgregadoMonetario> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codalmacen || '(sin almacén)';
@@ -537,7 +550,7 @@ export async function handleExtendedAnalyticsTool(
                 if (codejercicio) params.codejercicio = codejercicio;
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', params, connection);
-                const map: Record<string, { codpago: string } & AgregadoMonetario> = {};
+                const map: Record<string, { codpago: string } & AgregadoMonetario> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codpago || '(sin forma de pago)';
@@ -579,7 +592,7 @@ export async function handleExtendedAnalyticsTool(
                     coste: number;
                     beneficio: number;
                     margenPorcentaje: number;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const l of lineas) {
                     const codfamilia = familiaPorReferencia.get(l.referencia) ?? '(sin familia)';
@@ -635,7 +648,7 @@ export async function handleExtendedAnalyticsTool(
                     coste: number;
                     beneficio: number;
                     margenPorcentaje: number;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const l of lineas) {
                     const codfabricante = fabricantePorReferencia.get(l.referencia) ?? '(sin fabricante)';
@@ -666,10 +679,10 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_comparativa_ventas_periodos': {
                 // Definición: suma facturas en cada rango y calcula crecimiento % entre ambos.
-                const fia = parseFsDate(input.fecha_inicio_actual as string);
-                const ffa = parseFsDate(input.fecha_fin_actual as string);
-                const fian = parseFsDate(input.fecha_inicio_anterior as string);
-                const ffan = parseFsDate(input.fecha_fin_anterior as string);
+                const fia = fechaDeEntrada('fecha_inicio_actual', input.fecha_inicio_actual);
+                const ffa = fechaDeEntrada('fecha_fin_actual', input.fecha_fin_actual);
+                const fian = fechaDeEntrada('fecha_inicio_anterior', input.fecha_inicio_anterior);
+                const ffan = fechaDeEntrada('fecha_fin_anterior', input.fecha_fin_anterior);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 
@@ -712,7 +725,7 @@ export async function handleExtendedAnalyticsTool(
                 const map: Record<string, {
                     codcliente: string;
                     nombre: string;
-                } & AgregadoMonetario> = {};
+                } & AgregadoMonetario> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codcliente;
@@ -751,7 +764,7 @@ export async function handleExtendedAnalyticsTool(
                     coste: number;
                     beneficio: number;
                     margenPorcentaje: number;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const l of lineas) {
                     const ref = l.referencia;
@@ -794,8 +807,8 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_funnel_ventas': {
                 // Definición: cuenta presupuestos, pedidos, albaranes y facturas en un rango y suma sus totales.
-                const fechaInicio = input.fecha_inicio ? parseFsDate(input.fecha_inicio as string) : null;
-                const fechaFin = input.fecha_fin ? parseFsDate(input.fecha_fin as string) : null;
+                const fechaInicio = input.fecha_inicio ? fechaDeEntrada('fecha_inicio', input.fecha_inicio) : null;
+                const fechaFin = input.fecha_fin ? fechaDeEntrada('fecha_fin', input.fecha_fin) : null;
 
                 const enRango = (f: any) => {
                     const fecha = parseFsDate(f.fecha);
@@ -863,7 +876,7 @@ export async function handleExtendedAnalyticsTool(
                 });
 
                 // Agrupar por agente para tener visión por comercial
-                const porAgente: Record<string, { codagente: string; cantidad: number; importeTotal: number }> = {};
+                const porAgente: Record<string, { codagente: string; cantidad: number; importeTotal: number }> = Object.create(null);
                 for (const r of result) {
                     const cod = r.codagente || '(sin agente)';
                     if (!porAgente[cod]) porAgente[cod] = { codagente: cod, cantidad: 0, importeTotal: 0 };
@@ -951,7 +964,7 @@ export async function handleExtendedAnalyticsTool(
                     nombre: string;
                     totalGastado: number;
                     numeroFacturas: number;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codproveedor;
@@ -984,7 +997,7 @@ export async function handleExtendedAnalyticsTool(
                 const familiaPorReferencia = new Map<string, string>();
                 for (const p of productos) familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
 
-                const map: Record<string, { codfamilia: string; cantidad: number; gasto: number }> = {};
+                const map: Record<string, { codfamilia: string; cantidad: number; gasto: number }> = Object.create(null);
 
                 for (const l of lineas) {
                     const codfamilia = familiaPorReferencia.get(l.referencia) ?? '(sin familia)';
@@ -1015,7 +1028,7 @@ export async function handleExtendedAnalyticsTool(
                     email: string;
                     totalDeuda: number;
                     recibos: Array<{ idrecibo: number; fecha: string; vencimiento: string; importe: number }>;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const recibo of recibos) {
                     const vence = recibo.vencimiento ? parseFsDate(recibo.vencimiento) : null;
@@ -1149,7 +1162,7 @@ export async function handleExtendedAnalyticsTool(
 
                 let totalDias = 0;
                 let totalRecibos = 0;
-                const porCliente: Record<string, { codcliente: string; sumaDias: number; numero: number; dsoPromedio: number }> = {};
+                const porCliente: Record<string, { codcliente: string; sumaDias: number; numero: number; dsoPromedio: number }> = Object.create(null);
 
                 for (const r of recibos) {
                     if (!r.fecha || !r.fechapago) continue;
@@ -1199,7 +1212,7 @@ export async function handleExtendedAnalyticsTool(
                     const lunes = new Date(fecha);
                     const offset = (lunes.getDay() + 6) % 7;
                     lunes.setDate(lunes.getDate() - offset);
-                    return lunes.toISOString().slice(0, 10);
+                    return toIsoDate(lunes);
                 };
 
                 for (const r of cobrosPendientes) {
@@ -1262,8 +1275,8 @@ export async function handleExtendedAnalyticsTool(
                 const familiaPorReferencia = new Map<string, string>();
                 for (const p of productos) familiaPorReferencia.set(p.referencia, p.codfamilia ?? '(sin familia)');
 
-                const porAlmacen: Record<string, { codalmacen: string; cantidadTotal: number; valorCoste: number }> = {};
-                const porFamilia: Record<string, { codfamilia: string; cantidadTotal: number; valorCoste: number }> = {};
+                const porAlmacen: Record<string, { codalmacen: string; cantidadTotal: number; valorCoste: number }> = Object.create(null);
+                const porFamilia: Record<string, { codfamilia: string; cantidadTotal: number; valorCoste: number }> = Object.create(null);
                 let totalCantidad = 0;
                 let totalValor = 0;
 
@@ -1338,7 +1351,7 @@ export async function handleExtendedAnalyticsTool(
                     ventasPorReferencia.set(l.referencia, (ventasPorReferencia.get(l.referencia) || 0) + (l.cantidad || 0));
                 }
 
-                const stockPorReferencia: Record<string, number> = {};
+                const stockPorReferencia: Record<string, number> = Object.create(null);
                 for (const s of stocks) {
                     stockPorReferencia[s.referencia] = (stockPorReferencia[s.referencia] || 0) + (s.cantidad || 0);
                 }
@@ -1396,7 +1409,7 @@ export async function handleExtendedAnalyticsTool(
                 const productoPorReferencia = new Map<string, any>();
                 for (const p of productos) productoPorReferencia.set(p.referencia, p);
 
-                const stockPorReferencia: Record<string, number> = {};
+                const stockPorReferencia: Record<string, number> = Object.create(null);
                 for (const s of stocks) {
                     stockPorReferencia[s.referencia] = (stockPorReferencia[s.referencia] || 0) + (s.cantidad || 0);
                 }
@@ -1448,7 +1461,7 @@ export async function handleExtendedAnalyticsTool(
                     primeraCompra: string | null;
                     ultimaCompra: string | null;
                     diasActivo: number;
-                }> = {};
+                }> = Object.create(null);
 
                 for (const f of facturas) {
                     const cod = f.codcliente;
@@ -1527,8 +1540,8 @@ export async function handleExtendedAnalyticsTool(
             case 'get_clientes_nuevos_vs_recurrentes': {
                 // Definición: dado un periodo, separa facturación entre clientes cuya primera compra
                 // CAE en el periodo (nuevos) vs clientes con compras anteriores (recurrentes).
-                const fIni = parseFsDate(input.fecha_inicio as string);
-                const fFin = parseFsDate(input.fecha_fin as string);
+                const fIni = fechaDeEntrada('fecha_inicio', input.fecha_inicio);
+                const fFin = fechaDeEntrada('fecha_fin', input.fecha_fin);
 
                 const facturas = await fetchAllPaginated<any>('/facturaclientes', {}, connection);
 

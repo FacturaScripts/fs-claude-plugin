@@ -18,7 +18,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Alias",
             "description": "Alias o variantes de nombre de la ciudad, separados por comas.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -31,7 +37,13 @@ export const ciudadMetadata = {
             "label": "Ciudad",
             "maxLength": 100,
             "description": "Nombre oficial de la ciudad.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "creation_date",
@@ -43,7 +55,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha y hora en la que se registró la ciudad en el sistema.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "codeid",
@@ -56,7 +74,13 @@ export const ciudadMetadata = {
             "label": "Código",
             "maxLength": 5,
             "description": "Código corto interno de la ciudad (referencia abreviada).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "idciudad",
@@ -68,7 +92,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental de la ciudad.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "idprovincia",
@@ -86,7 +116,13 @@ export const ciudadMetadata = {
                 "column": "idprovincia",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "last_nick",
@@ -105,7 +141,13 @@ export const ciudadMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "last_update",
@@ -117,7 +159,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Última modificación",
             "description": "Fecha y hora de la última modificación del registro de ciudad.",
-            "widget": "datetime"
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "latitude",
@@ -129,7 +177,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Latitud",
             "description": "Latitud geográfica de la ciudad en grados decimales.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "longitude",
@@ -141,7 +195,13 @@ export const ciudadMetadata = {
             "isRequired": false,
             "label": "Longitud",
             "description": "Longitud geográfica de la ciudad en grados decimales.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         },
         {
             "name": "nick",
@@ -160,7 +220,13 @@ export const ciudadMetadata = {
                 "column": "nick",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.3"
+                }
+            ]
         }
     ],
     "relations": [
@@ -200,9 +266,21 @@ export const ciudadMetadata = {
             "remoteColumn": "idciudad"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.11"
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default ciudadMetadata;

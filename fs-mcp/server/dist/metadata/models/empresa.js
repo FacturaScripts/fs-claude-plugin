@@ -19,7 +19,14 @@ export const empresaMetadata = {
             "label": "Administrador",
             "maxLength": 100,
             "description": "Nombre del administrador o representante legal de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "apartado",
@@ -32,7 +39,14 @@ export const empresaMetadata = {
             "label": "Apartado",
             "maxLength": 10,
             "description": "Apartado postal de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -45,7 +59,14 @@ export const empresaMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -58,7 +79,14 @@ export const empresaMetadata = {
             "label": "Ciudad",
             "maxLength": 100,
             "description": "Ciudad de la sede social.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -71,7 +99,14 @@ export const empresaMetadata = {
             "label": "País",
             "maxLength": 20,
             "description": "Código del país de la sede social.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -84,7 +119,14 @@ export const empresaMetadata = {
             "label": "Código Postal",
             "maxLength": 10,
             "description": "Código postal de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -97,7 +139,14 @@ export const empresaMetadata = {
             "label": "Dirección",
             "maxLength": 200,
             "description": "Dirección postal de la sede social.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "email",
@@ -110,7 +159,14 @@ export const empresaMetadata = {
             "label": "Email",
             "maxLength": 100,
             "description": "Email principal de contacto de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fax",
@@ -123,7 +179,14 @@ export const empresaMetadata = {
             "label": "Fax",
             "maxLength": 30,
             "description": "Número de fax de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -135,7 +198,14 @@ export const empresaMetadata = {
             "isRequired": false,
             "label": "Fecha inicio",
             "description": "Fecha de alta de la empresa en el sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idempresa",
@@ -147,7 +217,14 @@ export const empresaMetadata = {
             "isRequired": false,
             "label": "idempresa",
             "description": "Identificador interno autoincremental de la empresa.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlogo",
@@ -165,7 +242,13 @@ export const empresaMetadata = {
                 "column": "idfile",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -178,7 +261,14 @@ export const empresaMetadata = {
             "label": "Nombre de empresa",
             "maxLength": 100,
             "description": "Razón social completa de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "nombrecorto",
@@ -191,7 +281,14 @@ export const empresaMetadata = {
             "label": "Nombre Corto",
             "maxLength": 32,
             "description": "Nombre comercial corto, usado en cabeceras de documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -203,7 +300,14 @@ export const empresaMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre la empresa.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "personafisica",
@@ -220,6 +324,13 @@ export const empresaMetadata = {
             "enumValues": [
                 "1",
                 "0"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -233,7 +344,14 @@ export const empresaMetadata = {
             "label": "Provincia",
             "maxLength": 100,
             "description": "Provincia de la sede social.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "regimeniva",
@@ -246,7 +364,14 @@ export const empresaMetadata = {
             "label": "Régimen impuestos",
             "maxLength": 50,
             "description": "Régimen de IVA aplicable a la empresa (general, simplificado, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono1",
@@ -259,7 +384,14 @@ export const empresaMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono principal de la empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono2",
@@ -272,7 +404,14 @@ export const empresaMetadata = {
             "label": "Teléfono 2",
             "maxLength": 30,
             "description": "Teléfono secundario.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -285,7 +424,13 @@ export const empresaMetadata = {
             "label": "Id. Fiscal",
             "maxLength": 25,
             "description": "Tipo de identificador fiscal (NIF, CIF, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "web",
@@ -298,7 +443,14 @@ export const empresaMetadata = {
             "label": "Web",
             "maxLength": 100,
             "description": "URL de la página web de la empresa.",
-            "widget": "link"
+            "widget": "link",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -429,10 +581,61 @@ export const empresaMetadata = {
             "remoteColumn": "idempresa"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "excepcioniva",
+            "sqlType": "character varying(20)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "excepcioniva",
+            "maxLength": 20,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03",
+                    "until": "2025.81"
+                }
+            ]
+        },
+        {
+            "name": "exceptioniva",
+            "sqlType": "character varying(20)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "exceptioniva",
+            "maxLength": 20,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2022.4",
+                    "until": "2022.51"
+                }
+            ]
+        }
+    ]
 };
 export default empresaMetadata;
 //# sourceMappingURL=empresa.js.map

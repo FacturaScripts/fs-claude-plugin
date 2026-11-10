@@ -21,7 +21,13 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "cantidad",
             "description": "Cantidad transferida desde la línea origen a la línea destino en la transformación.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.12"
+                }
+            ]
         },
         {
             "name": "id",
@@ -33,7 +39,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Id.",
             "description": "Identificador interno autoincremental del registro de transformación.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iddoc1",
@@ -45,7 +58,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "iddoc1",
             "description": "ID del documento origen (ej: idpresupuesto).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iddoc2",
@@ -57,7 +77,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "iddoc2",
             "description": "ID del documento destino (ej: idpedido).",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlinea1",
@@ -69,7 +96,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "idlinea1",
             "description": "ID de la línea del documento origen.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idlinea2",
@@ -81,7 +115,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "idlinea2",
             "description": "ID de la línea del documento destino.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "model1",
@@ -93,7 +134,14 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "model1",
             "maxLength": 30,
-            "description": "Nombre del modelo del documento origen (ej: PresupuestoCliente)."
+            "description": "Nombre del modelo del documento origen (ej: PresupuestoCliente).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "model2",
@@ -105,13 +153,33 @@ export const docTransformationMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "model2",
             "maxLength": 30,
-            "description": "Nombre del modelo del documento destino (ej: PedidoCliente)."
+            "description": "Nombre del modelo del documento destino (ej: PedidoCliente).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
