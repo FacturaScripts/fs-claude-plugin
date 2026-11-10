@@ -1101,13 +1101,14 @@ export async function handleAnalyticsTool(
 
             case 'get_mi_recurso': {
               const connection = input.connection as string;
-              const recurso = input.recurso as string;
+              // Las barras iniciales se quitan, como hace axios al unir la ruta con la base
+              const recurso = String(input.recurso).replace(/^\/+/, '');
               const paramsStr = (input.params as string) || '{}';
 
-              // El recurso va tal cual en la ruta: no se admiten rutas absolutas ni
-              // segmentos «.» o «..» (tampoco codificados), que la URL normaliza
-              // y llevarían la petición a otro recurso o fuera de la API. La URL
-              // trata «\» como «/», así que se parte por las dos
+              // El recurso va tal cual en la ruta: no se admiten rutas que empiecen
+              // por «\» ni segmentos «.» o «..» (tampoco codificados), que la URL
+              // normaliza y llevarían la petición a otro recurso o fuera de la API.
+              // La URL trata «\» como «/», así que se parte por las dos
               const segmentos = String(recurso).split(/[/\\]/).map((s) => s.replace(/%2e/gi, '.'));
               if (/^[/\\]/.test(String(recurso)) || segmentos.some((s) => s === '.' || s === '..')) {
                 throw new Error(`Recurso no válido: ${recurso}`);

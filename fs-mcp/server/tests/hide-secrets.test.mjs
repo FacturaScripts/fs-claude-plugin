@@ -104,7 +104,20 @@ for (const ruta of ['./users', 'x/../users', 'users/./', '%2e%2e/users']) {
   });
 }
 
-for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', '/users', 'x\\..\\..\\..\\index.php', '..\\users', '\\..\\..\\deploy', '\\users']) {
+// Las barras iniciales se quitan, como hacía axios antes de validar el recurso
+for (const [recurso, ruta] of [['/users', '/api/3/users'], ['//users', '/api/3/users'], ['/users/admin', '/api/3/users/admin']]) {
+  test(`get_mi_recurso acepta ${JSON.stringify(recurso)}, pide ${ruta} y no devuelve secretos`, async () => {
+    const desde = fs.peticiones.length;
+    const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
+    const texto = resultado.content[0].text;
+    assert.deepEqual(fs.peticiones.slice(desde).map((p) => p.path), [ruta]);
+    assert.deepEqual(secretos.filter((s) => texto.includes(s)), []);
+    assert.ok(texto.includes('admin'));
+  });
+}
+
+for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', 'x\\..\\..\\..\\index.php', '..\\users', '\\..\\..\\deploy', '\\users',
+  '/../users', '//../users', '/./users', '/%2e%2e/users', '/\\users', '/\\..\\deploy', '/x\\..\\..\\..\\index.php']) {
   test(`get_mi_recurso rechaza el recurso ${JSON.stringify(recurso)} sin llamar a la API`, async () => {
     const desde = fs.peticiones.length;
     const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
