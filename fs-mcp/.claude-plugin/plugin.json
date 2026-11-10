@@ -1,6 +1,6 @@
 {
   "name": "fs-mcp",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Servidor MCP de FacturaScripts para Claude Code y Codex, con múltiples instalaciones y módulos locales privados.",
   "author": {
     "name": "Daniel Fernández Giménez",
