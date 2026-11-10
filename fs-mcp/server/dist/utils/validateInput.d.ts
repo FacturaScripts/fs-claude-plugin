@@ -12,6 +12,8 @@
  * - `connection` como obligatoria: muchas tools la declaran en required, pero el
  *   cliente usa la conexión por defecto si falta.
  * - maxLength: lo añade la metadata y puede ir por detrás del core.
+ * - enum que añade la metadata: lista los valores del core y un plugin puede
+ *   usar otros, así que es orientativo. Sólo se exigen los escritos a mano.
  * - enum en propiedades que no son string: algunos esquemas declaran
  *   type boolean con enum ['1', '0'], y validarlo rechazaría todo booleano.
  *   Por lo mismo, un valor que está en el enum se acepta aunque su tipo no

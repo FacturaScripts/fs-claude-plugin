@@ -12,11 +12,14 @@
  * - `connection` como obligatoria: muchas tools la declaran en required, pero el
  *   cliente usa la conexión por defecto si falta.
  * - maxLength: lo añade la metadata y puede ir por detrás del core.
+ * - enum que añade la metadata: lista los valores del core y un plugin puede
+ *   usar otros, así que es orientativo. Sólo se exigen los escritos a mano.
  * - enum en propiedades que no son string: algunos esquemas declaran
  *   type boolean con enum ['1', '0'], y validarlo rechazaría todo booleano.
  *   Por lo mismo, un valor que está en el enum se acepta aunque su tipo no
  *   case con type: '1' es lo que anuncia ese mismo esquema.
  */
+import { hasMetadataEnum } from '../metadata/enrich.js';
 function matchesType(value, type) {
     switch (type) {
         case 'string':
@@ -56,7 +59,7 @@ export function validateToolInput(schema, input) {
         if (!matchesType(value, property.type)) {
             return `el argumento "${name}" debe ser de tipo ${property.type}`;
         }
-        if (property.type === 'string' && property.enum && !property.enum.includes(value)) {
+        if (property.type === 'string' && property.enum && !hasMetadataEnum(property) && !property.enum.includes(value)) {
             return `el argumento "${name}" debe ser uno de: ${property.enum.join(', ')}`;
         }
         if (property.type === 'array' && property.items?.type) {

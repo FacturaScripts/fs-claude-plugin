@@ -77,10 +77,17 @@ test('falta un argumento obligatorio: se rechaza sin llamar a la API', async () 
   assert.deepEqual(peticiones, []);
 });
 
-test('un valor fuera del enum de una cadena se rechaza', async () => {
-  const { result, peticiones } = await llamar('create_serie', { connection: 'pega', codserie: 'Z', descripcion: 'z', tipo: 'X' });
+test('un valor fuera de un enum escrito a mano se rechaza', async () => {
+  const { result } = await llamar('describe_model', { model: 'producto', format: 'xml' });
   assert.equal(result.isError, true);
-  assert.deepEqual(peticiones, []);
+  assert.match(result.content[0].text, /"format" debe ser uno de: json, markdown/);
+});
+
+test('un valor fuera de un enum de la metadata llega a la API: ese enum es orientativo', async () => {
+  const { result, peticiones } = await llamar('get_estadodocumentos', { connection: 'pega', tipodoc: 'TicketPlugin' });
+  assert.notEqual(result.isError, true);
+  assert.equal(peticiones.length, 1);
+  assert.match(peticiones[0], /^GET \/api\/3\/estadodocumentos/);
 });
 
 test('un elemento de un array con el tipo equivocado se rechaza', async () => {
