@@ -47,6 +47,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -493,8 +494,21 @@ def read_text(path: Path) -> str | None:
         return None
 
 
+def is_regular_file(path: Path, follow: bool = True) -> bool:
+    """Indica si la ruta es un archivo regular: un FIFO o un dispositivo colgaría la lectura."""
+    try:
+        return stat.S_ISREG((os.stat if follow else os.lstat)(path).st_mode)
+    except OSError:
+        return False
+
+
 def read_bytes(path: Path) -> bytes | None:
-    """Lee un archivo como bytes, o devuelve None si no se puede leer."""
+    """Lee un archivo regular como bytes, o devuelve None si no se puede leer o no es regular.
+
+    Sigue los enlaces, porque un archivo enlazado se analiza.
+    """
+    if not is_regular_file(path):
+        return None
     try:
         return path.read_bytes()
     except OSError:
@@ -541,7 +555,7 @@ def git_has_php(git_dir: Path) -> bool:
             path = Path(root) / name
             if path.suffix.lower() in PHP_EXTENSIONS:
                 return True
-            if path.is_symlink():
+            if not is_regular_file(path, follow=False):
                 continue
             try:
                 with path.open('rb') as handle:

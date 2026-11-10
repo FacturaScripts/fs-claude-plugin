@@ -5,6 +5,8 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -757,6 +759,29 @@ class IncludeNoPhpTest(unittest.TestCase):
                 plugin = build_plugin(self.root, {'Init.php': init_con(statement)})
                 titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
                 self.assertNotIn(INCLUDE_TITLE, titles)
+
+    def assert_no_se_cuelga(self, relative: str) -> None:
+        """El script termina aunque el plugin tenga un FIFO, que se abriría y no devolvería nada."""
+        plugin = build_plugin(self.root, {})
+        fifo = plugin / relative
+        fifo.parent.mkdir(parents=True, exist_ok=True)
+        os.mkfifo(fifo)
+        try:
+            result = subprocess.run([sys.executable, str(SCRIPT_PATH), str(plugin)],
+                                    capture_output=True, text=True, timeout=10)
+        except subprocess.TimeoutExpired:
+            self.fail(f'el script se cuelga con un FIFO en {relative}')
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+    @unittest.skipUnless(hasattr(os, 'mkfifo'), 'el sistema no tiene FIFO')
+    def test_fifo_en_git(self) -> None:
+        """Un FIFO dentro de .git no cuelga el examen de .git."""
+        self.assert_no_se_cuelga('.git/hooks/fifo')
+
+    @unittest.skipUnless(hasattr(os, 'mkfifo'), 'el sistema no tiene FIFO')
+    def test_fifo_de_extension_desconocida(self) -> None:
+        """Un FIFO de extensión desconocida no cuelga la lectura del plugin."""
+        self.assert_no_se_cuelga('Lib/fifo')
 
     def assert_git_declarado(self, relative: str, content: bytes) -> None:
         """Un .git con PHP se declara sin analizar, y el veredicto no da el plugin por limpio."""
