@@ -149,6 +149,13 @@ class VariablesTest(AuditTestCase):
         self.assertEqual(self.notes(content, 'Llama a una función cuyo nombre está en una variable'),
                          [['$f = "b" "c" "d"'], ['$f = "c" "d" "system"']])
 
+    def test_asignacion_que_acaba_donde_empieza_la_llamada(self) -> None:
+        """Sin espacio tras el «;», como en código minificado, la asignación ya cuenta para la llamada."""
+        content = "<?php\nclass A\n{\nfunction f() {\n$f='system';$f($_GET['x']);\n}\n}\n"
+        found = [(item['severidad'], item['notas']) for item in self.audit({'Lib/A.php': content.encode()})['hallazgos']
+                 if item['titulo'] == 'Llama a una función cuyo nombre está en una variable']
+        self.assertEqual(found, [('alta', ['$f contiene el nombre de la función system'])])
+
     def test_destino_de_la_ultima_url_anterior(self) -> None:
         """El destino es la última URL asignada antes de la llamada, saltando las ignoradas."""
         content = ('<?php\nclass A\n{\nfunction f() {\n'
