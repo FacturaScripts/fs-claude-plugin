@@ -542,6 +542,17 @@ class EvasionTest(unittest.TestCase):
                 self.assertNotIn('Ejecuta un comando del sistema', report)
                 self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', report)
 
+    def test_muchos_heredoc_sin_cierre_no_tardan_de_mas(self) -> None:
+        """Una etiqueta sin cierre desde una posición no se vuelve a buscar desde otra posterior.
+
+        Con 40.000 aperturas sin cierre, buscar el cierre desde cada una tarda decenas de
+        segundos. La cota deja margen de sobra.
+        """
+        plugin = build_plugin(self.root, {'Lib/Dieciseis.php': '<?php\n' + '<<<A\n' * 40000})
+        started = time.monotonic()
+        CHECKER.audit(plugin)
+        self.assertLess(time.monotonic() - started, 5)
+
     def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
         """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
 
