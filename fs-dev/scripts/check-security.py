@@ -44,6 +44,7 @@ solo informa: nunca modifica el plugin.
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import os
 import re
@@ -163,6 +164,10 @@ class Source:
     line_starts: list[int] = field(default_factory=list)
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
+    # Los calculan interpolates e include_expression_end una sola vez, por el
+    # mismo motivo: se consultan por cada include.
+    interpolations: list[tuple[int, int]] | None = None
+    expression_stops: tuple[list[int], list[int], dict[int, list[int]]] | None = None
 
     def line_of(self, offset: int) -> int:
         """Devuelve el número de línea (desde 1) de una posición del archivo."""
@@ -332,7 +337,8 @@ def strip_php(content: str) -> tuple[str, str]:
     length = len(content)
     index = 0
     in_php = False
-    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
+    # La etiqueta puede llevar bytes 0x80-0xff, como un nombre de variable
+    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*)\1\r?\n')
 
     while index < length:
         if not in_php:
@@ -390,10 +396,12 @@ def strip_php(content: str) -> tuple[str, str]:
             continue
 
         match = heredoc.match(content, index) if pair == '<<' else None
-        if match:
-            closing = re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'\b', re.M)
-            found = closing.search(content, match.end())
-            end = length if found is None else found.end()
+        # La etiqueta cierra si no la sigue otro carácter de nombre, como en PHP;
+        # sin cierre no es un heredoc y lo que sigue se lee como código
+        found = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
+                                     re.M).search(content, match.end())
+        if found:
+            end = found.end()
             literal = content[index:end]
             text.append(literal)
             code.append("'" + blank(literal[1:-1]) + "'" if len(literal) >= 2 else literal)
@@ -837,6 +845,63 @@ def decode_check(source: Source, match: re.Match) -> tuple[bool, list[str], str 
     return True, [], None
 
 
+def interpolates(source: Source, start: int, end: int) -> bool:
+    """Indica si alguna cadena entre ``start`` y ``end`` interpola una variable.
+
+    Interpolan las comillas dobles y el heredoc; las comillas simples y el
+    nowdoc no. ``code`` conserva los delimitadores de cada cadena con el
+    contenido en blanco, así que sirve para localizarlas en ``text``. Las
+    cadenas que interpolan se buscan una vez por archivo.
+    """
+    if source.interpolations is None:
+        source.interpolations = []
+        for literal in re.finditer(r'''(["'])\s*\1''', source.code):
+            text = source.text[literal.start():literal.end()]
+            if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
+                continue
+            # Un «$» precedido de un número impar de barras está escapado. Un nombre
+            # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
+            # texto ya decodificado, cualquier carácter no ASCII)
+            if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{\x80-\U0010ffff]', text):
+                source.interpolations.append(literal.span())
+    # Las cadenas no se solapan: si la primera desde «start» no acaba antes de
+    # «end», tampoco las siguientes
+    index = bisect.bisect_left(source.interpolations, (start,))
+    return index < len(source.interpolations) and source.interpolations[index][1] <= end
+
+
+def include_expression_end(source: Source, start: int, end: int) -> int:
+    """Devuelve dónde acaba la expresión de un ``include`` que empieza en ``start``.
+
+    Acaba al final de la sentencia (``end``) o en una coma o un cierre de
+    paréntesis, corchete o llave que no abrió ella: ``(include $a) + [...]``.
+    Las comas y los cierres se agrupan una vez por archivo según la profundidad
+    a la que están, y la expresión acaba en el primero de su misma profundidad.
+    """
+    if source.expression_stops is None:
+        brackets: list[int] = []
+        depths: list[int] = []
+        stops: dict[int, list[int]] = {}
+        depth = 0
+        for found in re.finditer(r'[()\[\]{},]', source.code):
+            char = found.group()
+            if char in '([{':
+                depth += 1
+            else:
+                stops.setdefault(depth, []).append(found.start())
+                if char != ',':
+                    depth -= 1
+            brackets.append(found.start())
+            depths.append(depth)
+        source.expression_stops = (brackets, depths, stops)
+    brackets, depths, stops = source.expression_stops
+    before = bisect.bisect_left(brackets, start)
+    positions = stops.get(depths[before - 1] if before else 0, [])
+    index = bisect.bisect_left(positions, start)
+    end = min(end, len(source.code))
+    return positions[index] if index < len(positions) and positions[index] < end else end
+
+
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
     """Descarta los ``include`` de rutas fijas, como el autoload del propio plugin.
 
@@ -845,12 +910,19 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     permite incluir cualquier archivo.
     """
     end = source.code.find(';', match.end())
-    statement = source.code[match.end():end if end != -1 else match.end() + 200]
+    end = end if end != -1 else match.end() + 200
+    # Un «?>» también acaba la sentencia: lo que sigue es HTML u otra isla de PHP
+    close = source.code.find('?>', match.end(), end)
+    end = end if close == -1 else close
+    statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
-    if re.search(r'\$\w', statement):
+    # El mismo nombre de variable que en interpolates, y ${...}
+    if re.search(r'\$[A-Za-z_{\x80-\U0010ffff]', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
+    if interpolates(source, match.end(), include_expression_end(source, match.end(), end)):
+        return True, ['la ruta interpola una variable en la cadena'], None
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
