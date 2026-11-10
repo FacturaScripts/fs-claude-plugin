@@ -809,6 +809,19 @@ class IncludeNoPhpTest(unittest.TestCase):
         """Un archivo de texto de .git con PHP dentro cuenta, aunque no tenga extensión PHP."""
         self.assert_git_declarado('.git/hooks/post-merge', b'#!/usr/bin/env php\n' + self.PAYLOAD)
 
+    def test_hook_con_php_tras_la_cabecera(self) -> None:
+        """El PHP de un hook cuenta aunque esté más allá de los primeros 8 KB."""
+        self.assert_git_declarado('.git/hooks/post-merge', b'#!/bin/sh\n' + b'# relleno\n' * 1000 + self.PAYLOAD)
+
+    def test_mensajes_y_logs_de_git_que_citan_php_salen_limpios(self) -> None:
+        """Un mensaje de commit o un log que citan <?php no se ejecutan: el plugin sale limpio."""
+        cita = 'fix: no dar por limpio <?php system() ?> ni <?= 1 ?>\n'
+        plugin = build_plugin(self.root, {'.git/COMMIT_EDITMSG': cita, '.git/logs/HEAD': f'0 1 a <a> 1 +0000\t{cita}',
+                                          '.git/worktrees/copia/COMMIT_EDITMSG': cita})
+        report = CHECKER.audit(plugin)
+        self.assertEqual(0, report['analizados']['sin_analizar'], report['limitaciones'])
+        self.assertIn('SIN HALLAZGOS RELEVANTES', self.run_main(plugin)[1])
+
     def test_clon_normal_sale_limpio(self) -> None:
         """Un .git de verdad, con objetos comprimidos que tienen <?= por azar, no se declara."""
         plugin = build_plugin(self.root, {'.git/config': '[core]\n', '.git/HEAD': 'ref: refs/heads/main\n',

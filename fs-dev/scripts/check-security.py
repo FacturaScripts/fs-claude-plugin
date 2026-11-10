@@ -546,16 +546,19 @@ def is_binary_with_php(path: Path) -> bool:
 def git_has_php(git_dir: Path) -> bool:
     """Indica si un ``.git`` contiene un archivo que un include ejecutaría como PHP.
 
-    Cuenta los de extensión PHP y los de texto con ``<?php`` o ``<?=``. Los binarios
-    no: los objetos comprimidos tienen ``<?=`` por azar, y un include de un archivo
-    sin extensión PHP ya lo señala ``non_php_include``.
+    Cuentan los de extensión PHP, estén donde estén, y los de texto con ``<?php`` o
+    ``<?=`` si están en ``hooks/``, que es lo que git ejecuta. Los mensajes, los logs
+    y las referencias no cuentan, porque citan lo que se haya escrito en un commit.
+    Tampoco los binarios, porque los objetos comprimidos tienen ``<?=`` por azar.
+    El include de un archivo sin extensión PHP ya lo señala ``non_php_include``.
     """
     for root, _dirs, names in os.walk(git_dir):
+        in_hooks = 'hooks' in Path(root).relative_to(git_dir).parts
         for name in names:
             path = Path(root) / name
             if path.suffix.lower() in PHP_EXTENSIONS:
                 return True
-            if not is_regular_file(path, follow=False):
+            if not in_hooks or not is_regular_file(path, follow=False):
                 continue
             try:
                 with path.open('rb') as handle:
