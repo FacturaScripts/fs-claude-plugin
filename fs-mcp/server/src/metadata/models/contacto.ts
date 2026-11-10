@@ -22,7 +22,13 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Acepta la política de privacidad",
             "default": false,
             "description": "True si el contacto ha aceptado la política de privacidad (RGPD).",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11"
+                }
+            ]
         },
         {
             "name": "admitemarketing",
@@ -35,7 +41,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Permite marketing",
             "default": false,
             "description": "True si el contacto ha autorizado recibir comunicaciones de marketing.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "apartado",
@@ -48,7 +61,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Apartado",
             "maxLength": 10,
             "description": "Apartado postal del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "apellidos",
@@ -61,7 +81,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Apellidos",
             "maxLength": 150,
             "description": "Apellidos del contacto si es persona física.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cargo",
@@ -74,7 +101,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Cargo",
             "maxLength": 100,
             "description": "Cargo o puesto del contacto en su empresa.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "cifnif",
@@ -87,7 +121,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF/NIE del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ciudad",
@@ -100,7 +141,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Ciudad",
             "maxLength": 100,
             "description": "Ciudad de la dirección del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -119,7 +167,14 @@ export const contactoMetadata: ModelMetadata = {
                 "column": "codagente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -138,7 +193,14 @@ export const contactoMetadata: ModelMetadata = {
                 "column": "codcliente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpais",
@@ -151,7 +213,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "País",
             "maxLength": 20,
             "description": "Código del país de la dirección del contacto.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpostal",
@@ -164,7 +233,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Código Postal",
             "maxLength": 10,
             "description": "Código postal de la dirección del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -183,7 +259,14 @@ export const contactoMetadata: ModelMetadata = {
                 "column": "codproveedor",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -196,7 +279,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción libre del contacto (ej: 'Almacén central', 'Oficinas Madrid').",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "direccion",
@@ -209,7 +299,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Dirección",
             "maxLength": 200,
             "description": "Dirección postal del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "email",
@@ -222,7 +319,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Email",
             "maxLength": 100,
             "description": "Email del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "empresa",
@@ -235,7 +339,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Empresa",
             "maxLength": 100,
             "description": "Nombre de la empresa a la que pertenece el contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -247,7 +358,14 @@ export const contactoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de alta del contacto en el sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontacto",
@@ -259,7 +377,14 @@ export const contactoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Código",
             "description": "Identificador interno autoincremental del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "langcode",
@@ -272,7 +397,13 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Idioma",
             "maxLength": 10,
             "description": "Código de idioma preferido del contacto (es_ES, en_US, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -285,7 +416,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre de pila del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -297,7 +435,14 @@ export const contactoMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el contacto.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "personafisica",
@@ -310,7 +455,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Persona física",
             "default": true,
             "description": "True si el contacto es persona física, false si representa a una empresa.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "provincia",
@@ -323,7 +475,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Provincia",
             "maxLength": 100,
             "description": "Provincia de la dirección del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono1",
@@ -336,7 +495,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono principal del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono2",
@@ -349,7 +515,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Teléfono 2",
             "maxLength": 30,
             "description": "Teléfono secundario o móvil del contacto.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -362,7 +535,13 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Id. Fiscal",
             "maxLength": 25,
             "description": "Tipo de identificador fiscal (NIF, CIF, NIE, VAT…).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.04"
+                }
+            ]
         },
         {
             "name": "verificado",
@@ -375,7 +554,14 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Verificado",
             "default": false,
             "description": "True si los datos del contacto han sido verificados manualmente.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "web",
@@ -388,7 +574,13 @@ export const contactoMetadata: ModelMetadata = {
             "label": "Web",
             "maxLength": 100,
             "description": "URL de la página web del contacto.",
-            "widget": "link"
+            "widget": "link",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024"
+                }
+            ]
         }
     ],
     "relations": [
@@ -414,10 +606,158 @@ export const contactoMetadata: ModelMetadata = {
             "remoteColumn": "codproveedor"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "habilitado",
+            "sqlType": "boolean",
+            "tsType": "boolean",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "habilitado",
+            "default": true,
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.11",
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "lastactivity",
+            "sqlType": "timestamp",
+            "tsType": "datetime",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "lastactivity",
+            "widget": "datetime",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "lastip",
+            "sqlType": "character varying(40)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "lastip",
+            "maxLength": 40,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "level",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "Nivel",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "logkey",
+            "sqlType": "character varying(100)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "logkey",
+            "maxLength": 100,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "password",
+            "sqlType": "character varying(255)",
+            "tsType": "string",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "Contraseña",
+            "maxLength": 255,
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        },
+        {
+            "name": "puntos",
+            "sqlType": "integer",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "puntos",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2024.2"
+                }
+            ]
+        }
+    ]
 };
 
 export default contactoMetadata;

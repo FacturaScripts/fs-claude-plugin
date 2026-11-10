@@ -15,7 +15,7 @@ Antes de crear los archivos a mano, considera usar la herramienta CLI:
 fsmaker plugin
 ```
 
-fsmaker solicita el nombre, descripción y versión mínima, y genera toda la estructura de carpetas y archivos automáticamente. Los pasos siguientes explican la estructura y el contenido en detalle para cuando necesites crearlos o modificarlos manualmente.
+fsmaker solicita el nombre, descripción y versión mínima, y genera toda la estructura de carpetas y archivos automáticamente. Las versiones con el comando `docs` incluyen también la estructura de documentación; si la instalada no lo tiene (`fsmaker list`), complétala después con el Paso 5. Los pasos siguientes explican la estructura y el contenido en detalle para cuando necesites crearlos o modificarlos manualmente.
 
 ## Paso 1: Obtener información del plugin
 
@@ -34,6 +34,13 @@ Plugins/NombrePlugin/
 │   ├── CSS/
 │   ├── Images/
 │   └── JS/
+├── Doc/
+│   ├── User/
+│   ├── Dev/
+│   ├── Context/
+│   │   └── README.md
+│   ├── Assets/
+│   └── forja.json
 ├── Controller/
 ├── Extension/
 │   ├── Controller/
@@ -44,9 +51,14 @@ Plugins/NombrePlugin/
 ├── Translation/
 ├── View/
 ├── XMLView/
+├── .gitignore
+├── AGENTS.md
+├── CLAUDE.md
 ├── facturascripts.ini
 └── Init.php
 ```
+
+Las carpetas vacías llevan un `.gitkeep` para que git las suba.
 
 ## Paso 3: Crear facturascripts.ini
 
@@ -97,6 +109,12 @@ class Init extends InitClass
 ```
 
 Los tres métodos son abstractos en `InitClass` y deben existir aunque estén vacíos (`el-archivo-init-php-307.md`).
+
+## Paso 5: Crear la estructura de documentación
+
+Crea `Doc/`, `AGENTS.md`, `CLAUDE.md` y el `.gitignore` siguiendo la skill `fs-dev:crear-documentacion`: su script los
+crea en un solo paso sin sobrescribir nada. Después escribe en la primera frase de `AGENTS.md` qué hace el plugin, a
+partir de la descripción del Paso 1.
 
 ## Reglas importantes
 

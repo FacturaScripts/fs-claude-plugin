@@ -22,7 +22,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único de la cuenta bancaria del proveedor.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -41,7 +48,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
                 "column": "codproveedor",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "descripcion",
@@ -54,7 +68,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "label": "Descripción",
             "maxLength": 100,
             "description": "Descripción/alias de la cuenta del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "iban",
@@ -67,7 +88,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "label": "IBAN",
             "maxLength": 34,
             "description": "Número IBAN de la cuenta del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "principal",
@@ -79,7 +107,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "isRequired": false,
             "label": "Principal",
             "description": "True si es la cuenta principal del proveedor para realizar pagos.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "swift",
@@ -92,7 +127,14 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "label": "Swift/BIC",
             "maxLength": 11,
             "description": "Código SWIFT/BIC de la entidad bancaria del proveedor.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -104,9 +146,22 @@ export const cuentaBancoProveedorMetadata: ModelMetadata = {
             "remoteColumn": "codproveedor"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 
