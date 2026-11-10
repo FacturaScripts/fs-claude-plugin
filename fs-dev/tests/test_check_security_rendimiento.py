@@ -165,6 +165,22 @@ class VariablesTest(AuditTestCase):
                  for note in found['notas'] if note.startswith('destino:')]
         self.assertEqual(notes, ['destino: uno.test (asignado a $u)', 'destino: dos.test (asignado a $u)'])
 
+    def test_asignacion_aparente_en_html_no_es_destino(self) -> None:
+        """Un «$h='https://…» del HTML que acaba dentro de la llamada no es una asignación de PHP."""
+        aparente = "texto $h='https://falso.test<?=file_get_contents($h)?>\n"
+        cases = {
+            'sin asignación real': (aparente, []),
+            'con una asignación real antes': ("<?php $h = 'https://bueno.test'; ?>\n" + aparente,
+                                              [['destino: bueno.test (asignado a $h)']]),
+        }
+        for name, (content, expected) in cases.items():
+            with self.subTest(name):
+                self.tmp.cleanup()
+                self.setUp()
+                found = [item['notas'] for item in self.audit({'View/A.php': content.encode()})['hallazgos']
+                         if item['titulo'] == 'Lee o copia un recurso remoto']
+                self.assertEqual(found, expected)
+
 
 class RetornoDeCarroTest(AuditTestCase):
     """Un archivo de extensión desconocida con PHP trata «\\r» como salto, igual que PHP."""

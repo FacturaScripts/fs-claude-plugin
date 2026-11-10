@@ -995,8 +995,10 @@ def assigned_host(source: Source, variable: str, before: int) -> str | None:
     pattern = re.compile(re.escape(variable) + r'''\s*=\s*['"](https?://[^'"\s]+)''')
     ends, found = assignments(source, pattern)
     # Como en variable_value, las que terminan antes de la posición. La URL no acaba en
-    # un delimitador, pero la posición es la de una llamada en el código, fuera de las
-    # cadenas, así que nunca cae dentro de ella y no hay ninguna que recortar
+    # un delimitador, así que la posición de la llamada puede caer dentro de ella cuando
+    # la «asignación» está en realidad en HTML o entre comillas invertidas
+    # («$h='https://x<?=file_get_contents($h)?>»). Un finditer recortado la daba por
+    # asignada y atribuía ese destino falso; aquí no cuenta, y gana la anterior
     count = bisect.bisect_right(ends, before)
     key = pattern.pattern + ' hosts'
     if key not in source.assignments:
