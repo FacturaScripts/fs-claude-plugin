@@ -16,6 +16,8 @@ const ajuste = { name: 'email', properties: JSON.stringify({ host: 'smtp.example
 const secretos = ['HASH', 'LOGKEY', 'SEMILLA', 'CLAVE', 'SMTP'];
 
 const fs = await arrancarFsDePega((req) => {
+  // Fuera de la base de la API, con «//» delante: se mira antes de pasarla por URL
+  if (req.url === '//x/api/3/clientes') return [usuario];
   const ruta = new URL(req.url, 'http://x').pathname;
   if (req.method !== 'GET') return { ok: 'hecho', data: usuario };
   if (ruta === '/api/3/users' || ruta === '/api/3/users/' || ruta === '/api/users') return [usuario];
@@ -120,6 +122,13 @@ test('properties como objeto tampoco devuelve la contraseña', async () => {
   const respuesta = JSON.stringify(await fsClient.get('settings/objeto', {}, 'pega'));
   assert.ok(!respuesta.includes('SMTP'));
   assert.ok(respuesta.includes('smtp.example.test'));
+});
+
+test('una ruta enviada que empieza por «//» oculta todos los campos', async () => {
+  const desde = fs.peticiones.length;
+  const respuesta = JSON.stringify(await fsClient.get('../..//x/api/3/clientes', {}, 'pega'));
+  assert.deepEqual(fs.peticiones.slice(desde).map((p) => p.path), ['//x/api/3/clientes']);
+  assert.deepEqual(secretos.filter((s) => respuesta.includes(s)), []);
 });
 
 for (const ruta of ['%75sers', 'x%2F..%2Fusers', 'users;x']) {

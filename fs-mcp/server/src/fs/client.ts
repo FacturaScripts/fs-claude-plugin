@@ -60,11 +60,18 @@ const ALL_API_FIELDS_TO_HIDE = [...new Set(Object.values(API_FIELDS_TO_HIDE).fla
  * «..» (también %2e%2e): «./users» o «x/../users» llegan a /users. Si no se
  * puede saber el recurso, o la ruta salió de la base de la API, se ocultan
  * todos los campos conocidos.
+ *
+ * Con un proxy del entorno (http_proxy), axios manda la URL absoluta como ruta, y
+ * de ella sólo cuenta la parte de ruta. Una ruta que no es absoluta no se pasa
+ * por URL: «//x/api/3/…» se leería como el host «x» y la ruta «/api/3/…».
  */
 function fieldsToHide(response: AxiosResponse): string[] | undefined {
   const sentPath = (response.request as { path?: unknown } | undefined)?.path;
   const basePath = new URL(response.config.baseURL ?? "", "http://localhost").pathname.replace(/\/+$/, "");
-  const path = typeof sentPath === "string" ? sentPath.split("?")[0] ?? "" : "";
+  let path = "";
+  if (typeof sentPath === "string") {
+    path = /^[a-z][a-z\d+.-]*:\/\//i.test(sentPath) ? new URL(sentPath).pathname : sentPath.split("?")[0] ?? "";
+  }
   if (!path.startsWith(`${basePath}/`)) {
     return ALL_API_FIELDS_TO_HIDE;
   }
