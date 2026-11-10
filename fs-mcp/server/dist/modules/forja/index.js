@@ -13,6 +13,7 @@ import { open, readdir, readFile, realpath, stat, mkdir, writeFile } from 'fs/pr
 import os from 'os';
 import path from 'path';
 import { forjaClient } from '../../fs/forja-client.js';
+import { pathId } from '../../utils/pathId.js';
 import { buildProjectZip, isToolBuildZip, removeToolBuildZip } from './build-zip.js';
 /** Descripción común del parámetro `connection`. */
 const CONNECTION_PROPERTY = {
@@ -666,13 +667,18 @@ async function publicationData(args) {
     return data;
 }
 /**
- * Ruta de la API de un plugin, con el nombre codificado.
+ * Ruta de la API de un plugin.
+ *
+ * El nombre va tal cual, validado con pathId: la forja es una instalación de
+ * FacturaScripts y tampoco decodifica la ruta, y encodeURIComponent dejaría
+ * pasar «..» y «.», que harían salir del recurso del plugin.
  *
  * @param args - Argumentos de la herramienta (debe incluir plugin)
  * @returns Ruta `/plugins/<name>`
+ * @throws Error si falta el nombre o no puede ir en la ruta
  */
 function pluginEndpoint(args) {
-    return `/plugins/${encodeURIComponent(requiredString(args, 'plugin'))}`;
+    return `/plugins/${pathId(requiredString(args, 'plugin'))}`;
 }
 /**
  * Ruta de la API de una publicación de un plugin.

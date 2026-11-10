@@ -298,6 +298,20 @@ test('handleForjaTool ignora las herramientas ajenas', async () => {
   assert.equal(await toolsModule.handleForjaTool('get_publications', {}), null);
 });
 
+test('el nombre del plugin va tal cual en la ruta y se rechaza el que saldría del recurso', async () => {
+  const desde = requests.length;
+  for (const plugin of ['..', '.', 'a/b', '..\\plugins', 'a?b', 'a#b', '%2e%2e']) {
+    const result = await toolsModule.handleForjaTool('forja_get_plugin', { plugin });
+    assert.equal(result.isError, true, plugin);
+    assert.match(result.content[0].text, /Identificador no válido/, plugin);
+  }
+  assert.equal(requests.length, desde);
+
+  const result = await toolsModule.handleForjaTool('forja_get_plugin', { plugin: 'MiPlugin' });
+  assert.equal(result.isError, undefined);
+  assert.equal(requests.at(-1).url, '/api/3/forja/plugins/MiPlugin');
+});
+
 test('forja_download_translations escribe un JSON formateado por idioma', async () => {
   const pluginPath = path.join(tempDirectory, 'MiPlugin');
   await mkdir(pluginPath, { recursive: true });
