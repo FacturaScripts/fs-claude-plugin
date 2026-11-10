@@ -151,6 +151,15 @@ test('un número en una propiedad string llega a la API, como antes de validar',
   assert.deepEqual(peticiones, ['PUT /api/3/secuenciadocumentos/1']);
 });
 
+for (const tool of ['update_producto', 'delete_producto']) {
+  test(`${tool} con la referencia como número pide escribirla entre comillas y no llama a la API`, async () => {
+    const { result, peticiones } = await llamar(tool, { connection: 'pega', referencia: 12345 });
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /referencia va como texto, entre comillas/);
+    assert.deepEqual(peticiones, []);
+  });
+}
+
 test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
   const esquema = { properties: { codpostal: { type: 'string' } } };
   assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);

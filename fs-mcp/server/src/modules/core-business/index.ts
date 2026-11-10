@@ -29,6 +29,13 @@ async function resolveIdProducto(
   referencia: unknown,
   connection?: string,
 ): Promise<number> {
+  // No se convierte: un número en JSON no lleva ceros a la izquierda, y la
+  // referencia 00123 llegaría como 123, que puede ser otro producto
+  if (typeof referencia === 'number') {
+    throw new Error(
+      `La referencia va como texto, entre comillas: "referencia": "${referencia}". Escrita como número pierde los ceros a la izquierda y podría ser la de otro producto.`,
+    );
+  }
   if (typeof referencia !== 'string' || referencia.trim() === '') {
     throw new Error(
       'Indica la referencia o el idproducto del producto: sin ninguno de los dos no se sabe qué producto modificar o eliminar.',
