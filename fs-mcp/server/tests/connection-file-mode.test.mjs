@@ -109,3 +109,30 @@ for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
     assert.equal(modo(file), 0o600);
   });
 }
+
+test('el directorio del archivo de conexiones se crea 0700 al arrancar', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'config', 'fs-mcp', 'connections.json');
+  process.env.FS_CONNECTIONS_FILE = file;
+
+  await import(`${managerUrl}?caso=${++instancia}`);
+
+  assert.equal(modo(path.join(dir, 'config')), 0o700);
+  assert.equal(modo(path.dirname(file)), 0o700);
+  assert.equal(modo(file), 0o600);
+});
+
+test('el directorio del archivo de conexiones se crea 0700 al guardar', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'config', 'connections.json');
+  process.env.FS_CONNECTIONS_FILE = file;
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+  fs.rmSync(path.dirname(file), { recursive: true });
+
+  connectionManager.addConnection('a', { name: 'A', url: 'http://127.0.0.1:1', token: 'secreto' });
+
+  assert.equal(modo(path.dirname(file)), 0o700);
+  assert.equal(modo(file), 0o600);
+});

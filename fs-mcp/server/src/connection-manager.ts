@@ -167,7 +167,7 @@ class ConnectionManager {
   private createEmptyConnectionsFile(): boolean {
     const dir = path.dirname(this.connectionsPath);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     }
 
     const crear = (contenido: string): boolean => {
@@ -212,7 +212,7 @@ class ConnectionManager {
   private saveConnections(change: (current: ConnectionsConfig) => ConnectionsConfig): ConnectionsConfig {
     const dir = path.dirname(this.connectionsPath);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     }
 
     let existingConfig: unknown = undefined;
