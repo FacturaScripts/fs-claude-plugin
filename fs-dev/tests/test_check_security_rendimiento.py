@@ -107,6 +107,13 @@ class PlantillaGrandeTest(AuditTestCase):
                                         raw=content, text=content, code=CHECKER.strip_php(content)[1])
                 self.assertTrue(CHECKER.is_standalone_script(source))
 
+    def test_hallazgo_justo_tras_la_cabecera(self) -> None:
+        """Un hallazgo que empieza justo tras el «(» de la cabecera ya está en esa función."""
+        content = b'<?php\nclass Init\n{\n    public function init() {}\n    public function update(exec("ls")) {}\n}\n'
+        contexts = [item['contexto'] for item in self.audit({'Init.php': content})['hallazgos']
+                    if item['titulo'] == 'Ejecuta un comando del sistema']
+        self.assertEqual(contexts, ['Init::update(), al instalar o actualizar el plugin'])
+
 
 class VariablesTest(AuditTestCase):
     """Un archivo con miles de usos de variables no busca sus asignaciones desde el principio cada vez."""
