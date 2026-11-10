@@ -445,6 +445,34 @@ class EvasionTest(unittest.TestCase):
         self.assertEqual([8], [item['linea'] for item in findings])
         self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
 
+    def test_heredoc_cierra_donde_lo_cierra_php(self) -> None:
+        """La etiqueta de cierre acaba donde PHP: sin otro carácter de nombre detrás, también no ASCII.
+
+        Cada caso pasa ``php -l``. El eval del cuerpo es texto, y el include y el system
+        de detrás tienen que verse.
+        """
+        tail = b"include $_GET['f'];\nsystem($_GET['c']);\n"
+        cases = {
+            'euro': '<?php\n$t = <<<A€\neval($_GET[1]);\nA€;\n'.encode(),
+            # Un byte 0x80-0xff suelto llega como U+FFFD al leer el archivo
+            'latin1': b'<?php\n$t = <<<A\xff\neval($_GET[1]);\nA\xff;\n',
+            # «A€» no cierra la etiqueta A: la comilla es parte del cuerpo
+            'cierre-temprano': '<?php\n$t = <<<A\nA€ "\nA;\n'.encode(),
+        }
+        for name, head in cases.items():
+            with self.subTest(name):
+                plugin = build_plugin(self.root / name, {})
+                (plugin / 'Lib').mkdir()
+                (plugin / 'Lib/Nueve.php').write_bytes(head + tail)
+                lines = {item['linea'] for item in CHECKER.audit(plugin)['hallazgos']}
+                self.assertLessEqual({5, 6}, lines)
+                self.assertNotIn(3, lines)
+
+    def test_heredoc_sin_cierre_se_lee_como_codigo(self) -> None:
+        """Sin etiqueta de cierre no hay heredoc: lo que sigue se analiza en vez de darse por cadena."""
+        report = self.audit({'Lib/Diez.php': "<?php\n$t = <<<A\nhola\nsystem($_GET['c']);\n"})
+        self.assertIn(4, [item['linea'] for item in report['hallazgos']])
+
     def test_include_fijo_no_mira_cadenas_que_no_son_su_ruta(self) -> None:
         """Una cadena interpolada después del include, fuera de su expresión, no lo marca."""
         cases = {

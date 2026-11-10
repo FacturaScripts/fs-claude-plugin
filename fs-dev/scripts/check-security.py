@@ -372,10 +372,12 @@ def strip_php(content: str) -> tuple[str, str]:
             continue
 
         match = heredoc.match(content, index) if pair == '<<' else None
-        if match:
-            closing = re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'\b', re.M)
-            found = closing.search(content, match.end())
-            end = length if found is None else found.end()
+        # La etiqueta cierra si no la sigue otro carácter de nombre, como en PHP;
+        # sin cierre no es un heredoc y lo que sigue se lee como código
+        found = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
+                                     re.M).search(content, match.end())
+        if found:
+            end = found.end()
             literal = content[index:end]
             text.append(literal)
             code.append("'" + blank(literal[1:-1]) + "'" if len(literal) >= 2 else literal)
