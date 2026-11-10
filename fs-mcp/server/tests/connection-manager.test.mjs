@@ -276,8 +276,10 @@ test('el temporal se lleva a disco antes de renombrarlo sobre el archivo', async
   const { connectionManager, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
   const pasos = [];
   const { fsyncSync, renameSync } = fs;
+  // Se renombra sobre la ruta real: os.tmpdir() puede pasar por un enlace (/var en macOS)
+  const destino = fs.realpathSync(file);
   fs.fsyncSync = (fd) => { pasos.push('fsync'); return fsyncSync(fd); };
-  fs.renameSync = (desde, hasta) => { pasos.push(hasta === file ? 'rename' : 'otro'); return renameSync(desde, hasta); };
+  fs.renameSync = (desde, hasta) => { pasos.push(hasta === destino ? 'rename' : 'otro'); return renameSync(desde, hasta); };
   try {
     connectionManager.addConnection('a', conexion);
   } finally {
