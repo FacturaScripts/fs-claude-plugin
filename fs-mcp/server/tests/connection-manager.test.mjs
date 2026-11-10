@@ -245,3 +245,29 @@ for (const contenido of ['', ' \n']) {
     assert.equal(connectionManager.getConnection().name, 'Pruebas');
   });
 }
+
+test('el error de un archivo roto no cita su contenido, que puede llevar un token', async () => {
+  const roto = "{\"default\": \"a\", \"connections\": {\"a\": {\"token\": 'SECRETO123'}}}";
+  const avisos = [];
+  const consoleError = console.error;
+  console.error = (...args) => avisos.push(args.join(' '));
+  let connectionManager;
+  try {
+    ({ connectionManager } = await nuevoGestor(roto));
+  } finally {
+    console.error = consoleError;
+  }
+
+  assert.match(avisos.join('\n'), /Error al cargar conexiones: JSON inválido/);
+  assert.doesNotMatch(avisos.join('\n'), /SECRETO/);
+  assert.throws(
+    () => connectionManager.addConnection('nueva', conexion),
+    (error) => /no es un JSON válido/.test(error.message) && !/SECRETO/.test(error.message)
+  );
+});
+
+test('el error de un archivo roto conserva la posición cuando JSON.parse la da', async () => {
+  const { connectionManager } = await nuevoGestor('{"a": 1,');
+
+  assert.throws(() => connectionManager.addConnection('nueva', conexion), /JSON inválido en la posición \d+/);
+});

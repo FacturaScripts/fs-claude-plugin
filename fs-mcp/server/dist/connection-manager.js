@@ -3,6 +3,17 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 /**
+ * Describe un error sin citar el contenido del archivo de conexiones: el
+ * mensaje de JSON.parse incluye un fragmento del texto, que puede ser un token.
+ */
+function describeError(error) {
+    if (error instanceof SyntaxError) {
+        const position = /at position (\d+)/.exec(error.message);
+        return position ? `JSON inválido en la posición ${position[1]}` : "JSON inválido";
+    }
+    return error instanceof Error ? error.message : String(error);
+}
+/**
  * Gestor centralizado de conexiones multi-instancia a FacturaScripts
  * Lee y persiste configuración desde/hacia archivo JSON
  *
@@ -62,7 +73,7 @@ class ConnectionManager {
             return connectionsData;
         }
         catch (error) {
-            console.error(`[fs-mcp] Error al cargar conexiones: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(`[fs-mcp] Error al cargar conexiones: ${describeError(error)}`);
             return emptyConfig;
         }
     }
@@ -147,7 +158,7 @@ class ConnectionManager {
             }
             catch (error) {
                 throw new Error(`No se guarda la conexión: ${this.connectionsPath} no es un JSON válido y se perdería su contenido. ` +
-                    `Corrígelo a mano y vuelve a intentarlo (${error instanceof Error ? error.message : String(error)})`);
+                    `Corrígelo a mano y vuelve a intentarlo (${describeError(error)})`);
             }
             if (existingConfig === null || typeof existingConfig !== "object" || Array.isArray(existingConfig)) {
                 throw new Error(`No se guarda la conexión: ${this.connectionsPath} no es un objeto JSON y se perdería su contenido. ` +
