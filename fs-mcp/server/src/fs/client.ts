@@ -117,7 +117,7 @@ function hideApiFields<T>(fields: string[] | undefined, data: T): T {
  */
 class FacturaScriptsClient {
   private defaultConnectionKey: string | undefined;
-  private axiosInstances: Map<string, AxiosInstance> = new Map();
+  private axiosInstances: Map<string, { connection: ConnectionConfig; instance: AxiosInstance }> = new Map();
 
   constructor(connectionKey?: string) {
     this.defaultConnectionKey = connectionKey;
@@ -125,10 +125,6 @@ class FacturaScriptsClient {
 
   private getAxiosInstance(connectionKey?: string): AxiosInstance {
     const key = connectionKey || this.defaultConnectionKey;
-
-    if (this.axiosInstances.has(key || "default")) {
-      return this.axiosInstances.get(key || "default")!;
-    }
 
     let connection: ConnectionConfig;
     let resolvedKey: string;
@@ -149,6 +145,14 @@ class FacturaScriptsClient {
           "y no sirve para la API REST /api/3. Usa las herramientas forja_* con ella " +
           "o indica una conexión de tipo api en el parámetro connection."
       );
+    }
+
+    // La caché se indexa por la conexión ya resuelta y se descarta si su
+    // configuración cambió: así un cambio de conexión por defecto o de token
+    // surte efecto sin reiniciar el servidor.
+    const cached = this.axiosInstances.get(resolvedKey);
+    if (cached && cached.connection === connection) {
+      return cached.instance;
     }
 
     const shouldRejectUnauthorized =
@@ -195,7 +199,7 @@ class FacturaScriptsClient {
       }
     );
 
-    this.axiosInstances.set(key || "default", instance);
+    this.axiosInstances.set(resolvedKey, { connection, instance });
 
     return instance;
   }

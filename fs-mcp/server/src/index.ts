@@ -33,6 +33,7 @@ import { addDateRangeParams } from './metadata/dateRange.js';
 import { enrichAllTools } from './metadata/enrich.js';
 import { bootstrapCoreMetadata, getAllModelMetadata } from './metadata/registry.js';
 import { loadLocalModules, type LocalModuleHandler } from './local-loader.js';
+import { validateToolInput } from './utils/validateInput.js';
 
 // Track registered tools
 const tools = new Map<string, Tool>();
@@ -248,6 +249,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name;
   const toolInput = request.params.arguments as Record<string, unknown>;
+
+  // Los handlers no validan sus argumentos: se rechaza lo que no case con el
+  // inputSchema antes de llamarlos
+  const tool = tools.get(toolName);
+  const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) : null;
+  if (invalid) {
+    return {
+      content: [{ type: 'text' as const, text: `Argumentos no válidos para ${toolName}: ${invalid}` }],
+      isError: true,
+    };
+  }
 
   try {
     switch (toolName) {

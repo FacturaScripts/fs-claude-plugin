@@ -46,6 +46,16 @@ export function resolveModelFromToolName(toolName) {
 function isTrivialDescription(desc) {
     return desc === undefined || desc === null || desc.trim() === '';
 }
+/**
+ * Propiedades cuyo enum ha añadido la metadata. Ese enum es orientativo: lista
+ * los valores del core, y un plugin puede usar otros (un tipodoc propio, por
+ * ejemplo), así que la validación de argumentos no lo exige.
+ */
+const metadataEnums = new WeakSet();
+/** Si el enum de esta propiedad lo ha añadido la metadata y es sólo orientativo. */
+export function hasMetadataEnum(prop) {
+    return metadataEnums.has(prop);
+}
 function enrichProperty(propName, prop, column, stats) {
     if (column.description && isTrivialDescription(prop.description)) {
         prop.description = column.description;
@@ -61,6 +71,7 @@ function enrichProperty(propName, prop, column, stats) {
         column.enumValues.length > 0 &&
         prop.enum === undefined) {
         prop.enum = [...column.enumValues];
+        metadataEnums.add(prop);
         stats.enumsAdded += 1;
     }
     // Marcamos uso para evitar warnings cuando solo se pasa por logging futuro.

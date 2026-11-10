@@ -113,9 +113,6 @@ class FacturaScriptsClient {
     }
     getAxiosInstance(connectionKey) {
         const key = connectionKey || this.defaultConnectionKey;
-        if (this.axiosInstances.has(key || "default")) {
-            return this.axiosInstances.get(key || "default");
-        }
         let connection;
         let resolvedKey;
         try {
@@ -130,6 +127,13 @@ class FacturaScriptsClient {
             throw new Error(`La conexión "${resolvedKey}" es de tipo forja (API de autor de facturascripts.com) ` +
                 "y no sirve para la API REST /api/3. Usa las herramientas forja_* con ella " +
                 "o indica una conexión de tipo api en el parámetro connection.");
+        }
+        // La caché se indexa por la conexión ya resuelta y se descarta si su
+        // configuración cambió: así un cambio de conexión por defecto o de token
+        // surte efecto sin reiniciar el servidor.
+        const cached = this.axiosInstances.get(resolvedKey);
+        if (cached && cached.connection === connection) {
+            return cached.instance;
         }
         const shouldRejectUnauthorized = connection.rejectUnauthorized !== undefined
             ? connection.rejectUnauthorized
@@ -164,7 +168,7 @@ class FacturaScriptsClient {
                 : error.response?.data?.message || error.message || "Error desconocido";
             throw new Error(`Error en FacturaScripts (${connectionName}, HTTP ${statusCode}): ${errorMessage}`);
         });
-        this.axiosInstances.set(key || "default", instance);
+        this.axiosInstances.set(resolvedKey, { connection, instance });
         return instance;
     }
     /**

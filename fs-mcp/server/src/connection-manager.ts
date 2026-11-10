@@ -374,7 +374,9 @@ class ConnectionManager {
       );
     }
 
-    const connection = this.config.connections[connectionKey];
+    const connection = Object.hasOwn(this.config.connections, connectionKey)
+      ? this.config.connections[connectionKey]
+      : undefined;
     if (!connection) {
       throw new Error(
         `Conexión no encontrada: "${connectionKey}". Conexiones disponibles: ${Object.keys(this.config.connections).join(", ")}`
@@ -429,6 +431,13 @@ class ConnectionManager {
       throw new Error("La clave de conexión no puede estar vacía");
     }
 
+    // "__proto__" se guardaría en el archivo como una clave más, y quien lo lea
+    // y copie las conexiones asignando clave a clave (Object.assign, obj[k] = v)
+    // cambiaría el prototipo del objeto en vez de añadir una conexión
+    if (key === "__proto__") {
+      throw new Error('La clave de conexión no puede ser "__proto__"');
+    }
+
     if (!config.name || !config.url || !config.token) {
       throw new Error(
         "La configuración debe incluir: name, url y token"
@@ -446,8 +455,9 @@ class ConnectionManager {
     this.config = this.saveConnections((current) => {
       // Sustituir una conexión borraría su token sin posibilidad de recuperarlo, así que hay que pedirlo
       // expresamente. Se comprueba sobre el archivo recién leído, no sobre la memoria, que puede estar desfasada
-      // (otro proceso la añadió, o el archivo no se pudo leer al arrancar y se corrigió después).
-      const existing = current.connections[key];
+      // (otro proceso la añadió, o el archivo no se pudo leer al arrancar y se corrigió después). Sólo cuentan
+      // las claves propias del mapa: "toString" no es una conexión existente aunque lo herede de Object.prototype.
+      const existing = Object.hasOwn(current.connections, key) ? current.connections[key] : undefined;
       if (existing && !overwrite) {
         throw new Error(
           `Ya existe una conexión con la clave "${key}" (${existing.name}, tipo ${existing.type ?? "api"}, ${existing.url}). ` +
@@ -476,7 +486,7 @@ class ConnectionManager {
    */
   setDefault(key: string): void {
     this.config = this.saveConnections((current) => {
-      if (!current.connections[key]) {
+      if (!Object.hasOwn(current.connections, key)) {
         throw new Error(
           `No se puede establecer como predeterminada: conexión "${key}" no existe`
         );

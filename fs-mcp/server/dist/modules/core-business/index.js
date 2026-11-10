@@ -744,7 +744,7 @@ export const coreBusinessWriteTools = [
             type: 'object',
             properties: {
                 connection: { type: 'string', description: 'Clave de conexión' },
-                referencia: { type: 'string', description: 'Referencia del producto a actualizar (se usa para localizar el idproducto)' },
+                referencia: { type: 'string', description: 'Referencia del producto a actualizar (se usa para localizar el idproducto). Obligatoria si no se indica idproducto' },
                 idproducto: { type: 'number', description: 'ID del producto (clave primaria). Si se indica, se usa directamente y se evita la búsqueda por referencia' },
                 descripcion: { type: 'string', description: 'Nueva descripción' },
                 pvp: { type: 'number', description: 'Nuevo PVP' },
@@ -771,7 +771,7 @@ export const coreBusinessWriteTools = [
                 tipo: { type: 'string', description: 'Tipo de producto' },
                 ventasinstock: { type: 'boolean', description: 'Si se puede vender sin stock' },
             },
-            required: ['connection', 'referencia'],
+            required: ['connection'],
         },
     },
     {
@@ -781,10 +781,10 @@ export const coreBusinessWriteTools = [
             type: 'object',
             properties: {
                 connection: { type: 'string', description: 'Clave de conexión' },
-                referencia: { type: 'string', description: 'Referencia del producto a eliminar (se usa para localizar el idproducto)' },
+                referencia: { type: 'string', description: 'Referencia del producto a eliminar (se usa para localizar el idproducto). Obligatoria si no se indica idproducto' },
                 idproducto: { type: 'number', description: 'ID del producto (clave primaria). Si se indica, se usa directamente y se evita la búsqueda por referencia' },
             },
-            required: ['connection', 'referencia'],
+            required: ['connection'],
         },
     },
     // ── Contactos ──
