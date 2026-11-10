@@ -7,7 +7,7 @@ guarda un PNG por captura. No necesita dependencias: solo Python 3 y Chrome.
 
 ```bash
 FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' \
-  python3 "<scripts>/doc-screenshots.py" "<escenario.json>" [--scan] [--only <nombre> ...] [--check]
+  python3 "<scripts>/doc-screenshots.py" "<escenario.json>" [--scan] [--only <nombre> ...] [--check] [--root <carpeta>]
 ```
 
 - `--check` valida el escenario sin abrir Chrome.
@@ -15,13 +15,19 @@ FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' \
   los **controles visibles** con el `target` que se puede usar en los pasos y si cambian datos (`changes_data`), y los
   datos personales que quedarían a la vista. Úsalo para descubrir los selectores antes de escribir las marcas.
 - `--only` repite solo las capturas indicadas.
-- `--output-dir` sustituye a `output_dir` y `--chrome` indica el ejecutable (también `FS_DOC_CHROME`).
+- `--output-dir` sustituye a `output_dir`, `--root` es la carpeta respecto a la que se resuelve un `output_dir`
+  relativo y `--chrome` indica el ejecutable (también `FS_DOC_CHROME`).
 - Imprime un JSON con cada captura: `file`, `width`, `height`, `anonymized` (valor ficticio y valor real enmascarado)
-  o `error` y `leaks`. Código 0 si todo va bien, 1 si falla alguna captura y 2 si el escenario no es válido o Chrome
-  no arranca.
+  o `error` y `leaks`, y `dialogs` si la pantalla abrió un `alert()`, `confirm()` o `prompt()` (ver
+  [Pasos](#pasos)). Código 0 si todo va bien, 1 si falla alguna captura y 2 si el escenario no es válido o Chrome no
+  arranca.
 
 Las credenciales se leen **solo** de las variables de entorno (`FS_DOC_USER` y `FS_DOC_PASSWORD` por defecto). Nunca
-las escribas en el escenario ni en ningún archivo.
+las escribas en el escenario ni en ningún archivo. Si el inicio de sesión falla de forma intermitente (pasa al
+encadenar o lanzar a la vez varias ejecuciones: «Petición no válida» o «Petición duplicada»), el script lo repite hasta
+tres veces con una espera creciente; no lo repite si el programa dice que el usuario o la contraseña son incorrectos
+o que la IP está bloqueada (el programa bloquea la IP 10 minutos tras cinco fallos). Aun así, lanza las ejecuciones
+de una en una o con pocas a la vez.
 
 ## Estructura
 
@@ -29,7 +35,7 @@ las escribas en el escenario ni en ningún archivo.
 {
   "base_url": "https://fs.localhost/",
   "login": true,
-  "output_dir": "<plugin>/Doc/Assets/<nombre-de-la-página>",
+  "output_dir": "Doc/Assets/<nombre-de-la-página>",
   "viewport": {"width": 1280, "height": 800, "scale": 1},
   "redact": {"keep": ["Contado"], "replace": {"Mi Empresa Real SL": "Empresa Ejemplo SL"}, "blur": [".firma"]},
   "hide": [".toast"],
@@ -53,12 +59,12 @@ las escribas en el escenario ni en ningún archivo.
 |---|---|
 | `base_url` | URL de la instalación; las `url` y los `goto` relativos se resuelven contra ella |
 | `login` | `true` para iniciar sesión con `FS_DOC_USER` y `FS_DOC_PASSWORD`, u `{"user_env": "...", "password_env": "..."}` |
-| `output_dir` | Carpeta de las imágenes; se crea si no existe |
+| `output_dir` | Carpeta de las imágenes; se crea si no existe. Si es relativa (`Doc/Assets/<página>`), se toma respecto a `--root` o, si no se indica, a la raíz del plugin o del core donde está el escenario; fuera de un plugin, a la carpeta actual. Guarda así el `capturas.json` que se conserva en `Doc/Assets/<página>/`, para que sirva en cualquier copia del plugin |
 | `viewport` | Tamaño de la ventana (por defecto 1280 × 800) y `scale` (2 para pantallas retina; ocupa cuatro veces más) |
 | `timeout` | Segundos de espera máximos al cargar o buscar (por defecto 20) |
 | `insecure` | Acepta certificados propios; por defecto, solo en `localhost`, `*.localhost`, `*.test` y `file://` |
 | `redact` | Anonimización común a todas las capturas (ver abajo) |
-| `hide` | Selectores CSS que se ocultan en todas las capturas |
+| `hide` | Selectores CSS que se ocultan en todas las capturas. La barra de depuración y el enlace de ayuda del menú (`#menuIconHelp`, que apunta a la web de la marca) se ocultan siempre |
 | `captures` | Lista de capturas, en orden; cada una sigue en la página donde terminó la anterior si no tiene `url` |
 
 ### Cada captura
@@ -69,7 +75,8 @@ las escribas en el escenario ni en ningún archivo.
 | `url` | Pantalla que se abre antes de los pasos |
 | `steps` | Pasos que preparan la pantalla (ver abajo) |
 | `highlight` | Marcas: `target`, `nth`, `label` (número o texto del círculo), `arrow` (`true` o `left`, `right`, `up`, `down`: lado desde el que llega la flecha), `note` (texto junto a la flecha o bajo el recuadro), `color` y `padding` |
-| `clip` | Selector o lista de selectores: la imagen se recorta al rectángulo que los abarca a ellos **y a las marcas**, más `margin` píxeles (16 por defecto) |
+| `clip` | Selector o lista de selectores: la imagen se recorta al rectángulo que los abarca a ellos **y a las marcas**, más `margin` píxeles (16 por defecto). De cada selector se toma **solo el primer elemento** visible: `.card` recorta a la primera tarjeta aunque haya cinco |
+| `clip_all` | `true` para que cada selector de `clip` abarque **todos** sus elementos visibles (todas las `.card`). Otra forma es poner en `clip` el contenedor común o el primero y el último (`[".card:first-of-type", ".card:last-of-type"]`) |
 | `full_page` | `true` para capturar la página entera en lugar de la ventana |
 | `redact`, `hide` | Se suman a los del escenario |
 
@@ -105,31 +112,56 @@ textos como «Guardar», «Eliminar», «Enviar», «Dar de alta», «Anular» o
 búsqueda o un filtro que se envían por POST no cambian datos: para ellos usa `fill` y un `eval` que envíe el
 formulario (`document.querySelector('input[name="query"]').form.submit()`).
 
+Los botones que solo **abren un modal**, un desplegable, una pestaña o un panel (`data-bs-toggle="modal"`,
+`"dropdown"`, `"tab"`, `"collapse"`...) no se bloquean aunque su texto sea «Enviar» o «Eliminar», porque no envían
+nada; sí se bloquea después el botón del modal que confirma la acción. En `--scan` salen con `changes_data: false`.
+
+Los **diálogos nativos** del navegador no salen en la imagen. El script anota su texto en `dialogs` (`type`,
+`message` con los datos personales enmascarados y `accepted`) para citarlo en la página: los `alert()` se aceptan y
+los `confirm()` y `prompt()` se **cancelan** salvo que el paso lleve `"allow_change": true`, porque aceptarlos suele
+ejecutar la acción.
+
 ## Anonimización (`redact`)
 
-Antes de cada captura, con `auto` activado (por defecto):
+Antes de cada captura, en este orden:
 
-1. **Campos** de formulario por su `name`: nombres y razón social, NIF, email, teléfonos, dirección y cuentas
-   bancarias. En los desplegables de cliente o proveedor, el texto de sus opciones.
-2. **Columnas** de los listados por su cabecera: Cliente, Proveedor, Nombre, CIF/NIF, Email, Teléfono, Dirección...
-3. **Patrones** en todo el texto, los campos y los atributos `title`: emails, NIF/CIF/NIE, teléfonos e IBAN.
-4. Cada valor real encontrado se sustituye **en toda la página** (también en el título, las descripciones y los
-   desplegables) y siempre por el **mismo** valor ficticio durante la ejecución: «Cliente Ejemplo 1», «Proveedor
-   Ejemplo 1», `00000001R`, `usuario1@ejemplo.com`, `600 000 001`, `Calle Ejemplo, 1`, `ES00 0000 0000 0000 0000 0001`.
-5. Oculta los **logotipos de la marca** (imágenes con «FacturaScripts» en su texto alternativo) sin mover el resto de
+1. Las sustituciones de **`replace`**, antes que nada: así «EMPRESA SL (B12345678)» se encuentra entero aunque
+   contenga un NIF que la anonimización automática cambiaría.
+
+Y con `auto` activado (por defecto):
+
+2. El **nombre corto de la empresa** de la barra del menú (`.navbar-brand`) se cambia por `company` («Mi Empresa» por
+   defecto) **solo ahí** y en el título de la pestaña, porque en el resto de la página puede ser una palabra corriente.
+   Si aparece en otro sitio visible, la comprobación final lo avisa.
+3. **Campos** de formulario por su `name`: nombres y razón social, NIF, email, teléfonos, dirección y cuentas
+   bancarias. En los desplegables de cliente o proveedor, el texto de sus opciones. El campo genérico `nombre` solo
+   cuenta si el mismo formulario tiene otro dato personal con valor (NIF, email, teléfono...).
+4. **Columnas** de los listados por su cabecera: Cliente, Proveedor, CIF/NIF, Email, Teléfono, Dirección... La
+   cabecera genérica **Nombre** solo cuenta si el listado tiene otra columna con datos personales: la de ejercicios,
+   almacenes, series o plugins no es de personas.
+5. **Patrones** en todo el texto, los campos y los atributos `title`: emails, NIF/CIF/NIE, teléfonos e IBAN.
+6. Cada valor real encontrado se sustituye **en toda la página** (también en el título, las descripciones y los
+   desplegables), **como palabra completa**, y siempre por el **mismo** valor ficticio durante la ejecución:
+   «Cliente Ejemplo 1», «Proveedor Ejemplo 1», `00000001R`, `usuario1@ejemplo.com`, `600 000 001`,
+   `Calle Ejemplo, 1`, `ES00 0000 0000 0000 0000 0001`. Un nombre o una dirección necesitan letras: «2026» o «0001»
+   en una columna de nombres no se toman por datos personales.
+7. Oculta los **logotipos de la marca** (imágenes con «FacturaScripts» en su texto alternativo) sin mover el resto de
    la pantalla.
-6. Desenfoca las imágenes de los **códigos QR** (llevan el NIF del emisor) y los selectores de `blur`.
+8. Desenfoca las imágenes de los **códigos QR** (llevan el NIF del emisor) y los selectores de `blur`.
 
 | Clave | Qué es |
 |---|---|
 | `auto` | `false` desactiva la anonimización automática (no lo hagas salvo con datos de demostración) |
 | `keep` | Valores que se dejan tal cual porque no son personales («Contado», «Varios»...) |
-| `replace` | `{"valor real": "valor ficticio"}` para lo que no se detecta solo: el nombre de la empresa (`{"FS": "Mi Empresa"}`), una persona en una descripción, una marca... Los valores de menos de cuatro letras se sustituyen solo como palabra completa |
+| `replace` | `{"valor real": "valor ficticio"}` para lo que no se detecta solo: la razón social de la empresa en un texto, una persona en una descripción... Se aplica antes que la anonimización automática y como palabra completa; los valores de menos de cuatro letras distinguen mayúsculas. Evita valores cortos y corrientes (`{"FS": ...}`): cambian cualquier aparición de esa palabra |
 | `blur` | Selectores CSS que se desenfocan: firmas, imágenes, logotipos... |
+| `company` | Nombre ficticio del nombre corto de la empresa en la barra del menú (por defecto «Mi Empresa») |
 
 Después de anonimizar y marcar, el script busca otra vez patrones y valores reales en todo lo visible, y también la
 **marca** («FacturaScripts», «factura.city» o «FS», categoría `marca`), que no puede verse porque la página se publica
 en las dos webs. Si encuentra algo, **no guarda la imagen** y devuelve `leaks` (categoría, valor enmascarado y dónde
 está): añádelo a `replace`, a `blur` o a `hide` y repite. En las instalaciones de prueba, el nombre corto de la empresa
-suele ser «FS» y aparece en la barra de menú y en títulos como «Tablero de FS». La comprobación no ve el texto dentro de imágenes ni los nombres que no sigan un patrón y no estén en
-un campo o columna conocidos: revisa siempre cada imagen a ojo.
+suele ser «FS»: el script ya lo cambia en la barra del menú, y si se ve en otro sitio (un listado de empresas, un
+título dentro de la página) añade solo ese elemento a `hide` o un `replace` con el texto completo («Tablero de FS»).
+La comprobación no ve el texto dentro de imágenes ni los nombres que no sigan un patrón y no estén en un campo o
+columna conocidos: revisa siempre cada imagen a ojo.

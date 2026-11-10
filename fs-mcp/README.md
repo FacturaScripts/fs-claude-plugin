@@ -20,6 +20,7 @@ El manifiesto utiliza un lanzador portable: toma `CLAUDE_PLUGIN_ROOT` en Claude 
 - [Variables de entorno](#variables-de-entorno)
 - [Skills disponibles](#skills-disponibles)
 - [Herramientas disponibles](#herramientas-disponibles)
+- [Conexión Forja](#conexión-forja)
 - [MCP Resources](#mcp-resources)
 - [Módulos locales privados](#módulos-locales-privados)
 - [Sistema de metadata de modelos](#sistema-de-metadata-de-modelos)
@@ -71,7 +72,7 @@ Toda la configuración del plugin se gestiona desde el archivo `~/.fs-claude.jso
 | Clave | Descripción |
 |---|---|
 | `connections.default` | Clave de la conexión por defecto |
-| `connections.connections` | Mapa de conexiones configuradas |
+| `connections.connections` | Mapa de conexiones configuradas. Cada una admite `type` (`api` por defecto o `forja`, ver [Conexión Forja](#conexión-forja)) y `rejectUnauthorized` |
 | `settings.localModulesPath` | Ruta a la carpeta de módulos MCP privados (opcional) |
 
 > Las variables de entorno `FS_CONNECTIONS_FILE` y `FS_DEFAULT_CONNECTION` siguen disponibles como overrides opcionales en los ajustes del plugin, pero no son necesarias para el uso normal.
@@ -99,8 +100,8 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 
 | Herramienta | Descripción |
 |---|---|
-| `add_connection` | Añade o actualiza una conexión a FacturaScripts |
-| `list_connections` | Lista todas las conexiones configuradas |
+| `add_connection` | Añade una conexión a FacturaScripts (`type`: `api` o `forja`; `rejectUnauthorized` opcional). Una clave existente solo se sustituye con `overwrite: true`, y la URL se guarda sin `/api/3` ni `/api/3/forja` |
+| `list_connections` | Lista todas las conexiones configuradas con su tipo |
 | `set_default_connection` | Establece la conexión por defecto |
 
 ### Metadata de modelos
@@ -214,6 +215,79 @@ El MCP permite crear, actualizar y eliminar registros en las entidades principal
 ### Sistema
 
 `get_logmessages`, `get_tasks`, `get_cronjobes`, `get_workeventes`, `get_pagefilteres`, `get_pageoptions`
+
+### Forja (autores de plugins)
+
+`forja_list_plugins`, `forja_get_plugin_options`, `forja_create_plugin`, `forja_get_plugin`, `forja_update_plugin`, `forja_upload_plugin_image`, `forja_delete_plugin_image`, `forja_download_translations`, `forja_upload_translations`, `forja_delete_translations`, `forja_download_docs`, `forja_upload_docs`, `forja_list_builds`, `forja_build_zip`, `forja_upload_build`, `forja_list_publications`, `forja_get_publication`, `forja_create_publication`, `forja_update_publication`. Necesitan una conexión de tipo `forja`, salvo `forja_build_zip`, que trabaja en local; ver [Conexión Forja](#conexión-forja).
+
+---
+
+## Conexión Forja
+
+Los autores de plugins publicados en [facturascripts.com](https://facturascripts.com) pueden gestionarlos desde Claude Code o Codex con la API de autor de Forja (`/api/3/forja`). Es una API distinta de la API REST estándar, así que usa su propio tipo de conexión.
+
+### Obtener el token
+
+El token de autor se obtiene en la pestaña **avanzado** de PortalForja (área de cliente de facturascripts.com). Solo está disponible para contactos con el **acuerdo de proveedor vigente**, y con él solo se pueden gestionar los plugins de los que el contacto es autor, identificados por su `name`.
+
+### Añadir la conexión
+
+Usa la skill `/fs-mcp:add-connection` e indica el tipo `forja`, o la herramienta `add_connection` con `type: "forja"`. En `~/.fs-claude.json` queda así:
+
+```json
+"forja-autor": {
+  "name": "Forja (autor)",
+  "url": "https://facturascripts.com",
+  "token": "token-de-autor",
+  "type": "forja"
+}
+```
+
+- No la marques como conexión por defecto: la conexión por defecto la usan las herramientas `get_*`, `create_*`, etc. de la API estándar, que rechazan las conexiones de tipo `forja` con un error claro.
+- Las herramientas `forja_*` usan por defecto la **primera conexión de tipo forja** configurada, no la conexión por defecto global. Si tienes varias, indica cuál con el parámetro `connection`.
+- Las conexiones existentes sin `type` siguen siendo de tipo `api`; no hace falta cambiarlas.
+- La URL debe ser exactamente `https://facturascripts.com`, sin `www.` ni `http://`: el cliente no sigue redirecciones ni rutas absolutas, para que el token de autor no llegue a otra dirección, y si la forja redirige el error dice adónde para corregir la URL.
+- Las herramientas solo suben archivos con la extensión de su uso (imágenes gif, jpeg, jpg, png o webp; zips que lo son de verdad; cuerpos `.md`, `.markdown` o `.txt`), comprobada tras resolver los enlaces simbólicos, y la descarga de documentación solo escribe un `.zip` y nunca encima de otro tipo de archivo. Así una ruta manipulada no puede publicar en la web, por ejemplo, el archivo de conexiones.
+- Usa una clave que no tengas ya, por ejemplo `forja-autor`: `add_connection` no sustituye una conexión existente salvo con `overwrite: true`, así que una conexión `api` a facturascripts.com llamada `forja` queda a salvo.
+- La URL es la base de la web (`https://facturascripts.com`). Si pegas la de la API (`.../api/3/forja`), se quita esa ruta al guardar.
+
+### Qué permite
+
+| Herramienta | Qué hace |
+|---|---|
+| `forja_list_plugins` / `forja_get_plugin` | Lista tus plugins u obtiene los datos de uno |
+| `forja_get_plugin_options` | Devuelve tu cupo de plugins, si puedes crear uno, los campos obligatorios y opcionales, los tipos, las licencias y el precio mínimo |
+| `forja_create_plugin` | Crea un plugin nuevo con los mismos límites que la web (email verificado, cupo de plugins y nombre libre). Obligatorios `name`, `description` y `type` (`free`, `for-sale`, `sponsor` o `private`); opcionales `license` (`LGPL` por defecto) y `price` (solo `for-sale`). Queda privado hasta que el personal lo apruebe |
+| `forja_update_plugin` | Cambia `description`, `description_short`, `publicrepo` o `youtube` |
+| `forja_upload_plugin_image` / `forja_delete_plugin_image` | Sube una imagen (posición 1-3 opcional) o borra la de una posición |
+| `forja_download_translations` | Escribe `<plugin_path>/Translation/<idioma>.json` (todos los idiomas o solo `lang`), sustituyendo los archivos locales |
+| `forja_upload_translations` | Sube los archivos de `<plugin_path>/Translation/` (todos o solo `lang`) o una sola clave con `lang`, `key` y `value`, y devuelve el informe del servidor |
+| `forja_delete_translations` | Borra traducciones del plugin: una clave en todos los idiomas (`key`), un idioma completo (`lang`), una clave en un idioma (`key` y `lang`) o todas, en todos los idiomas (`all: true`, sin `key` ni `lang`). Sin parámetros no borra nada y las claves de otros plugins nunca se tocan. Devuelve las filas borradas, las claves y el recuento por idioma. No se puede deshacer: confirma con el usuario antes de usarla |
+| `forja_download_docs` | Guarda en `output_zip` el zip de documentación (`type`: `all`, `user` o `dev`) y devuelve solo un resumen |
+| `forja_upload_docs` | Sube un zip de documentación con la misma estructura (`User/*.md`, `Dev/*.md`, `Assets/`, `forja.json`) |
+| `forja_build_zip` | Crea en una carpeta temporal el zip de una versión a partir de la carpeta local (`source_path`) de un plugin o del core. Ver [Zip de una versión](#zip-de-una-versión) |
+| `forja_list_builds` / `forja_upload_build` | Lista las versiones o sube el zip de una nueva (`version` opcional). Si el zip lo creó `forja_build_zip`, lo borra tras subirlo con éxito salvo `keep_zip: true`; los demás zips nunca se borran |
+| `forja_list_publications` / `forja_get_publication` | Lista las publicaciones (`type`: `news`, `user` o `dev`) u obtiene una |
+| `forja_create_publication` / `forja_update_publication` | Crea o modifica una publicación; el cuerpo Markdown va en `body` o en `body_file` (`.md`, `.markdown` o `.txt`), y al crear se pueden adjuntar `images` |
+
+Las rutas locales (`plugin_path`, `source_path`, `zip_path`, `output_zip`, `image_path`, `body_file`, `images`) deben ser absolutas (se admite `~`), porque el servidor MCP no se ejecuta en la carpeta de tu proyecto. fs-mcp no descomprime ni interpreta los zips que sube o descarga; preparar el zip de documentación desde `Doc/` corresponde a las herramientas de fs-dev.
+
+### Zip de una versión
+
+`forja_build_zip` prepara el zip que se sube con `forja_upload_build`, para que llegue a Forja tal y como lo recibirá quien descargue la versión. Basta con pedir «créame el zip del plugin X» o «créame el zip del core»:
+
+- **Plugin**: carpeta con un `facturascripts.ini`. Lee su `name` y su `version` (numérica, por ejemplo `1.5`) y mete todo en una carpeta raíz con ese `name`, aunque la carpeta local se llame de otra forma.
+- **Core**: carpeta con `Core/Kernel.php` y sin `facturascripts.ini`. La versión es la de `Kernel::version()` y la carpeta raíz, `facturascripts`, la que espera el actualizador. Exige `Core`, `vendor` y `node_modules`, y avisa si `vendor` trae dependencias de desarrollo.
+- **Se quita**: los archivos y carpetas ocultos (`.git`, `.github`, `.claude`, `.agents`, `.DS_Store`, `.gitignore`...), la carpeta `Test` y la carpeta `Doc` de la raíz, los archivos de asistentes de IA (`CLAUDE.md`, `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.local.md`), los metadatos del sistema (`__MACOSX`, `Thumbs.db`, `desktop.ini`) y los enlaces simbólicos. En el core, también `Plugins`, `Dinamic`, `MyFiles` y los `config*.php` de la raíz, que tienen las claves de la base de datos.
+- Las carpetas van con permisos 0755 y los archivos con 0644, como al empaquetar a mano.
+- Falla, sin crear el zip, si un plugin tiene `composer.json` o `package.json` en la raíz sin `vendor` o `node_modules`, porque Forja lo rechazaría.
+- El zip queda en `<carpeta temporal del sistema>/fs-mcp-forja-builds/<nombre>-XXXX/<nombre>-<versión>.zip`. La herramienta devuelve su ruta, el tipo, el nombre, la versión, los archivos incluidos, el tamaño y un resumen de lo excluido por grupo, con las primeras rutas de cada uno.
+
+- Con `include_docs: true` conserva `Doc/User`, `Doc/Dev`, `Doc/Assets` y `Doc/forja.json` (nunca `Doc/Context`), para que Forja importe la documentación al publicar la versión.
+
+Forja quita del zip al publicarlo los archivos de IA, los metadatos del sistema y la carpeta `Doc` entera, después de importar `Doc/User` y `Doc/Dev` como documentación del plugin, así que quien descarga la versión no los recibe. Sin `include_docs`, la documentación se sube aparte con `forja_upload_docs`.
+
+Errores habituales: **401** token no válido, **403** acuerdo de proveedor no vigente y **404** plugin inexistente o del que no eres autor. Los mensajes del servidor se devuelven tal cual, con el estado HTTP y su código.
 
 ---
 

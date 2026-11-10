@@ -31,6 +31,9 @@ FacturaScripts. Por eso el texto es agnóstico:
 ## Comunes a las dos
 
 - **Sin título `#`**: el título de la página es el `title` de `Doc/forja.json`. La página empieza con el texto.
+- **Al menos 300 caracteres de cuerpo**: la web rechaza las páginas más cortas. Si una página se queda en una o dos
+  frases, únela a otra relacionada.
+- **Títulos únicos**: dos páginas del mismo plugin (o del core) no comparten `title`, tampoco entre `User` y `Dev`.
 - **Introducción** de uno o dos párrafos cortos: qué se consigue y, si hace falta, cómo funciona por dentro en una
   frase. Nada de «En esta página veremos...».
 - **Secciones `##`** con frases cortas y concretas. En las páginas de uso, con un emoji delante que ayude a ojear
@@ -42,7 +45,15 @@ FacturaScripts. Por eso el texto es agnóstico:
   `**menú Ventas** → **Facturas**`). Rutas de menú con `→`.
 - **Avisos** en línea con `⚠️` al principio del párrafo, sin bloques especiales ni `>`.
 - Los textos de la interfaz se copian **literalmente** de las traducciones `es_ES` del plugin o del core
-  (`Translation/es_ES.json`), con sus mayúsculas.
+  (`Translation/es_ES.json`), con sus mayúsculas. **Nunca la clave de traducción**: «pulsa **Enviar a Verifactu**», no
+  «pulsa **send-to-verifactu**». Si una pantalla muestra la clave porque falta su traducción, es un fallo del plugin:
+  escribe el texto que debería verse si está claro y anótalo como hallazgo.
+- **Sin notas internas**: nada de «no se ha probado», «pendiente de confirmar», «según el código...» ni comentarios
+  para el equipo. La página solo dice lo que el usuario necesita y está comprobado; las dudas van al informe de quien
+  la escribe.
+- **Cada afirmación comprobada en el código** (y en la aplicación si se ve en pantalla), no solo en `Doc/Context/`, que
+  explica las decisiones pero puede estar desfasado. Si no coinciden, manda el código y la diferencia se anota como
+  hallazgo.
 - **«Ver también»** al final (`## Ver también`, sin emoji) con dos o tres enlaces relativos a páginas relacionadas de
   la misma documentación ([Texto sin marca](#texto-sin-marca)). Si no hay ninguna, omite la sección. No inventes
   páginas: enlaza solo las que existan en `Doc/` o las que vayas a crear en el mismo trabajo.
@@ -77,8 +88,43 @@ FacturaScripts. Por eso el texto es agnóstico:
   antes y después. Si varios pasos seguidos ocurren en la misma pantalla, una sola imagen al final de esos pasos.
 - El **texto alternativo** describe lo que se ve y lo que está marcado («Pestaña Verifactu de una factura sin enviar,
   con el botón Dar de alta marcado»), no el nombre del archivo.
-- Las **marcas numeradas** de la imagen siguen el orden de los pasos del texto: si el texto dice «1. Marca las casillas,
-  2. Pulsa Acciones, 3. Elige Enviar a Verifactu», la imagen lleva las marcas 1, 2 y 3 en esos elementos.
+- **Marcas numeradas: una sola convención.**
+  - Si la imagen ilustra **pasos numerados**, la marca *n* está en el elemento del paso *n*: «1. Marca las casillas,
+    2. Pulsa **Acciones**, 3. Elige **Enviar a Verifactu**» lleva las marcas 1, 2 y 3. Si los pasos 4 y 5 están en la
+    imagen siguiente, sus marcas son 4 y 5, no 1 y 2.
+  - Si la imagen ilustra **un párrafo o una lista sin numerar** (qué muestra una pantalla), el texto cita cada marca
+    con «(*n*)» justo después del elemento: «el estado **Aceptada** (1) y la fecha de envío (2)».
+  - Los números de la imagen siguen siempre el orden en que el texto nombra los elementos, sin saltos ni números que
+    el texto no cite. Una marca sin número (solo el recuadro) basta cuando la imagen señala un único elemento.
 - Una imagen por idea: recorta a la zona que importa y no repitas la misma pantalla sin un cambio que aporte.
 - Ningún dato real ni sensible: las capturas se hacen con el script `doc-screenshots.py`, que anonimiza y lo
   comprueba, y además se revisan a ojo una a una.
+
+## Plugins con núcleo y plugins hijos
+
+Algunos plugins comparten un plugin núcleo (por ejemplo, FiscalES con Verifactu, TicketBAI, SII y Facturae): el núcleo
+tiene las pantallas comunes (certificados, configuración fiscal) y cada hijo, las de su organismo. Como una página no
+puede enlazar a otro plugin:
+
+- El **núcleo** documenta lo común completo, una vez: cómo funciona cada pantalla común, todas sus opciones y sus
+  errores. Pon en su `controllers` los controladores de esas pantallas, para que la página salga en la ayuda de la
+  pantalla aunque el usuario llegue desde un hijo.
+- Cada **hijo** documenta su tarea de principio a fin y, cuando necesita algo del núcleo, lo resume en su página o en
+  una página propia corta (`## ⚙️ Antes de empezar`): solo los pasos que ese hijo exige, nombrando el menú donde está
+  («desde **menú Administrador** → **Empresas**»), sin repetir toda la referencia.
+- Ese resumen se escribe igual en todos los hijos (mismos pasos y textos), para que un cambio en el núcleo se pueda
+  aplicar a todos a la vez; anota en el `Doc/Context` del núcleo qué páginas de los hijos lo repiten.
+- Lo propio de un hijo (su configuración, sus estados, sus errores) va solo en ese hijo.
+
+## Publicación
+
+- Las páginas de `Doc/User` y `Doc/Dev` se publican solas al subir una versión del plugin o del core que traiga su
+  `Doc/`: la web importa esas carpetas con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan, y
+  después quita la carpeta `Doc/` entera del zip que se descarga. `Doc/Context/`, `AGENTS.md` y `CLAUDE.md` no se
+  publican nunca: no enlaces a ellos desde una página.
+- La web reconoce cada página por su ruta (`User/x.md`) y, si no la encuentra, por su `permalink`. Para renombrar una
+  página publicada cambia su `title`, no su `permalink`. Las páginas de la web que no vienen en el paquete no se
+  tocan.
+- Para corregir lo publicado sin esperar a una versión, o para traer a `Doc/` lo que se editó en la web, usa la skill
+  `fs-dev:sincronizar-forja`. Antes de subir, `forja-doc-bundle.py pack` comprueba la longitud, los enlaces, las
+  imágenes y los títulos repetidos.

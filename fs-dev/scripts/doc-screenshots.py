@@ -6,7 +6,10 @@ Google Chrome (o Chromium) sin interfaz, inicia sesión en la instalación de
 pruebas, recorre cada pantalla y guarda un PNG por captura. Antes de cada
 captura:
 
-- Oculta la barra de depuración y desactiva las animaciones.
+- Oculta la barra de depuración y el enlace de ayuda del menú, y desactiva las
+  animaciones.
+- Aplica primero las sustituciones manuales (``redact.replace``) y cambia el
+  nombre corto de la empresa de la barra del menú por uno ficticio.
 - Anonimiza los datos personales: sustituye por valores ficticios los emails,
   NIF/CIF/NIE, teléfonos e IBAN que encuentra en el texto, los campos de nombre,
   NIF, email, teléfono, dirección y cuenta de los formularios y las columnas
@@ -23,14 +26,17 @@ captura:
 
 Los clics que pueden cambiar datos (botones que envían un formulario POST,
 enlaces con ``action=`` o textos como «Guardar», «Enviar» o «Dar de alta») se
-bloquean salvo que el paso lleve ``"allow_change": true``.
+bloquean salvo que el paso lleve ``"allow_change": true``. Los botones que solo
+abren un modal, un desplegable o una pestaña (``data-bs-toggle``) no se
+bloquean. El texto de los ``alert()`` nativos se devuelve en ``dialogs``; los
+``confirm()`` y ``prompt()`` se cancelan salvo con ``allow_change``.
 
 Las credenciales no van en el escenario: se leen de las variables de entorno
 ``FS_DOC_USER`` y ``FS_DOC_PASSWORD`` (o de las que indique ``login``).
 
 Uso:
     doc-screenshots.py <escenario.json> [--only <nombre> ...] [--scan] [--check]
-                       [--output-dir <carpeta>] [--chrome <ruta>]
+                       [--output-dir <carpeta>] [--root <carpeta>] [--chrome <ruta>]
 
 ``--check`` solo valida el escenario. ``--scan`` no guarda capturas: recorre
 las pantallas y devuelve, para cada una, los controles visibles con el selector
@@ -48,6 +54,7 @@ import base64
 import fcntl
 import json
 import os
+import re
 import select
 import shutil
 import sys
@@ -80,7 +87,7 @@ SENSITIVE_PATTERNS = {
 
 # Campos de formulario (atributo name) con datos personales y su categoría.
 FIELD_RULES = [
-    [r'^(nombre|nombrecliente|nombreproveedor|razonsocial|apellidos|apellidos2|personacontacto|'
+    [r'^(nombrecliente|nombreproveedor|razonsocial|apellidos|apellidos2|personacontacto|'
      r'nombrecomercial|codcliente|codproveedor|codcontacto)$', 'name'],
     [r'^(cifnif|nif|dni)$', 'nif'],
     [r'^(email|email2|emailcopia|emailfrom)$', 'email'],
@@ -91,7 +98,7 @@ FIELD_RULES = [
 
 # Cabeceras de columna de los listados con datos personales y su categoría.
 HEADER_RULES = [
-    [r'^(cliente|proveedor|acreedor|nombre|razón social|nombre comercial|contacto|persona de contacto|'
+    [r'^(cliente|proveedor|acreedor|razón social|nombre comercial|contacto|persona de contacto|'
      r'titular|destinatario|apellidos)$', 'name'],
     [r'^(cif/nif|nif|cif|dni|nif/cif)$', 'nif'],
     [r'^(email|e-mail|correo|correo electrónico)$', 'email'],
@@ -99,6 +106,30 @@ HEADER_RULES = [
     [r'^(dirección)$', 'address'],
     [r'^(iban|cuenta bancaria)$', 'iban'],
 ]
+
+# Campos y cabeceras genéricos («nombre», «Nombre»): también los usan ejercicios, almacenes, series o plugins, así
+# que solo se anonimizan si el mismo formulario o listado tiene otro dato personal (NIF, email, teléfono...).
+WEAK_FIELD_RULES = [[r'^(nombre)$', 'name']]
+WEAK_HEADER_RULES = [[r'^(nombre)$', 'name']]
+
+# Nombre ficticio por defecto del nombre corto de la empresa, que el menú muestra en la barra superior.
+DEFAULT_COMPANY = 'Mi Empresa'
+
+# Lo que se oculta siempre (además de la barra de depuración): el enlace de ayuda del menú, que apunta a la web de la
+# marca y da falsos avisos de marca.
+DEFAULT_HIDE = ['#menuIconHelp']
+
+# Botones que solo abren o cierran algo en la página (modales, desplegables, pestañas...) y no envían nada.
+SAFE_TOGGLES = ('modal', 'dropdown', 'tab', 'pill', 'collapse', 'offcanvas')
+
+# Intentos de inicio de sesión: el core bloquea la IP 10 minutos tras 5 fallos, así que no se pasa de 3.
+LOGIN_ATTEMPTS = 3
+
+# Segundos de espera antes de repetir el inicio de sesión; se multiplican por el número de intento.
+LOGIN_PAUSE = 2.0
+
+# Avisos del inicio de sesión que no se arreglan repitiendo: credenciales incorrectas o IP bloqueada.
+LOGIN_FATAL_PATTERN = r'incorrect|bloquead|no encontrado|banned|not found'
 
 # Marca que no puede verse: la documentación se publica igual en facturascripts.com y en factura.city.
 BRAND_PATTERN = r'[Ff]actura[Ss]cripts|[Ff]actura\.city|\bFS\b'
@@ -114,9 +145,9 @@ RISKY_ACTION_PATTERN = (
 
 # Claves admitidas en el escenario, en cada captura, en cada marca y en cada paso.
 SCENARIO_KEYS = {'base_url', 'output_dir', 'viewport', 'timeout', 'login', 'redact', 'hide', 'captures', 'insecure'}
-CAPTURE_KEYS = {'name', 'file', 'url', 'steps', 'highlight', 'clip', 'margin', 'full_page', 'redact', 'hide'}
+CAPTURE_KEYS = {'name', 'file', 'url', 'steps', 'highlight', 'clip', 'clip_all', 'margin', 'full_page', 'redact', 'hide'}
 HIGHLIGHT_KEYS = {'target', 'nth', 'label', 'arrow', 'note', 'color', 'padding'}
-REDACT_KEYS = {'auto', 'keep', 'replace', 'blur'}
+REDACT_KEYS = {'auto', 'keep', 'replace', 'blur', 'company'}
 STEP_ACTIONS = {'goto', 'click', 'fill', 'select', 'wait', 'wait_for', 'scroll_to', 'eval'}
 STEP_OPTIONS = {'nth', 'value', 'allow_change', 'timeout'}
 ARROW_DIRECTIONS = {'left', 'right', 'up', 'down'}
@@ -138,9 +169,9 @@ PAGE_HELPERS = r"""
     const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const mask = s => s.length <= 2 ? '**' : s.slice(0, 2) + '*'.repeat(Math.min(s.length - 2, 8)) + ' (' + s.length + ')';
 
-    // Busca un elemento por selector CSS o por texto («text=Guardar»), visible y fuera de las marcas.
+    // Busca los elementos por selector CSS o por texto («text=Guardar»), visibles y fuera de las marcas.
     // «zona >> text=Texto» busca el texto solo dentro de los elementos visibles de la zona.
-    function find(target, nth) {
+    function findAll(target) {
         let list;
         let scopes = [document];
         const chain = target.split(' >> ');
@@ -171,19 +202,29 @@ PAGE_HELPERS = r"""
                 list = all;
             }
         }
-        const el = list[nth || 0];
+        return list;
+    }
+
+    // El elemento número «nth» (desde 0) de los que encuentra findAll.
+    function find(target, nth) {
+        const el = findAll(target)[nth || 0];
         if (!el) {
-            throw new Error('No se encuentra el elemento «' + chain.join(' >> ') + '»' + (nth ? ' número ' + nth : '') + '.');
+            throw new Error('No se encuentra el elemento «' + target + '»' + (nth ? ' número ' + nth : '') + '.');
         }
         return el;
     }
 
-    // Motivos por los que un clic puede cambiar datos.
-    function risky(el, pattern) {
+    // Motivos por los que un clic puede cambiar datos. Los botones que solo abren un modal, un desplegable, una
+    // pestaña o un panel (data-bs-toggle) no envían nada, aunque su texto sea «Enviar» o «Eliminar».
+    function risky(el, pattern, toggles) {
         const ctrl = el.closest('button, a, input[type="submit"], input[type="button"], [role="button"]') || el;
         const text = norm(ctrl.textContent || ctrl.value || ctrl.title || ctrl.getAttribute('aria-label'));
         const reasons = [];
         const form = ctrl.form || null;
+        const toggle = (ctrl.getAttribute('data-bs-toggle') || ctrl.getAttribute('data-toggle') || '').toLowerCase();
+        if ((toggles || []).includes(toggle) && ctrl.type !== 'submit') {
+            return reasons;
+        }
         if (ctrl.type === 'submit' && form && (form.getAttribute('method') || 'get').toLowerCase() === 'post') {
             reasons.push('envía un formulario POST');
         }
@@ -196,10 +237,10 @@ PAGE_HELPERS = r"""
         return reasons;
     }
 
-    function click(target, nth, allowChange, pattern) {
+    function click(target, nth, allowChange, pattern, toggles) {
         const el = find(target, nth);
         if (!allowChange) {
-            const reasons = risky(el, pattern);
+            const reasons = risky(el, pattern, toggles);
             if (reasons.length) {
                 throw new Error('Clic bloqueado en «' + target + '»: ' + reasons.join('; ')
                     + '. Si de verdad debe ejecutarse, añade "allow_change": true al paso.');
@@ -256,7 +297,49 @@ PAGE_HELPERS = r"""
     }
 
     // Estado de la anonimización, compartido entre llamadas de la misma página.
-    const state = {map: new Map(), fakes: new Set(), counters: {}, keep: new Set()};
+    const state = {map: new Map(), fakes: new Set(), counters: {}, keep: new Set(), company: null};
+
+    // Indica si un texto es un valor ficticio o parte de uno («00000001R» dentro de «Empresa Ejemplo (00000001R)»).
+    function isFake(value) {
+        return state.fakes.has(value) || [...state.fakes].some(f => f.length > value.length && f.includes(value));
+    }
+
+    // Un nombre de persona o empresa tiene letras: «2026» (un ejercicio) o «0001» no lo son.
+    function plausibleName(value) {
+        return /\p{L}{2,}/u.test(value);
+    }
+
+    // Expresión que busca un valor real como palabra completa, para no tocar «Anabel» al sustituir «Ana».
+    function wordRe(original, ignoreCase) {
+        return new RegExp('(?<![\\p{L}\\p{N}_])' + escapeRe(original) + '(?![\\p{L}\\p{N}_])', ignoreCase ? 'giu' : 'gu');
+    }
+
+    // Sustituye unos pares [expresión, valor ficticio] en toda la página, también en las opciones de los desplegables.
+    function applyPairs(pairs) {
+        if (!pairs.length) {
+            return;
+        }
+        const apply = value => {
+            pairs.forEach(([re, value2]) => {
+                value = value.replace(re, value2);
+            });
+            return value;
+        };
+        replaceEverywhere(apply);
+        document.querySelectorAll('option').forEach(o => {
+            const text = apply(o.text);
+            if (text !== o.text) {
+                o.text = text;
+            }
+        });
+    }
+
+    // Pares para sustituir los valores reales encontrados, del más largo al más corto. Los de menos de cuatro letras
+    // («FS») distinguen mayúsculas.
+    function pairsOf(entries) {
+        return entries.sort((a, b) => b[0].length - a[0].length)
+            .map(([original, data]) => [wordRe(original, original.length >= 4), data.fake]);
+    }
 
     function nifLetter(n) {
         return 'TRWAGMYFPDXBNJZSQVHLCKE'[n % 23];
@@ -303,7 +386,10 @@ PAGE_HELPERS = r"""
 
     function fake(category, original, hint) {
         original = norm(original);
-        if (!original || state.fakes.has(original) || state.keep.has(original.toLowerCase())) {
+        if (!original || isFake(original) || state.keep.has(original.toLowerCase())) {
+            return original;
+        }
+        if (['name', 'address'].includes(category) && !plausibleName(original)) {
             return original;
         }
         if (!state.map.has(original)) {
@@ -365,22 +451,57 @@ PAGE_HELPERS = r"""
 
     function redact(cfg) {
         (cfg.keep || []).forEach(v => state.keep.add(norm(v).toLowerCase()));
+
+        // 0. Los valores de «replace», antes que nada: si el NIF de «EMPRESA SL (B12345678)» se enmascarase primero,
+        // el texto completo ya no se encontraría.
+        const manual = [];
         Object.entries(cfg.replace || {}).forEach(([original, value]) => {
             if (norm(original) && !state.map.has(norm(original))) {
                 state.map.set(norm(original), {fake: value, category: 'manual'});
                 state.fakes.add(norm(value));
             }
+            if (norm(original)) {
+                manual.push([norm(original), state.map.get(norm(original))]);
+            }
         });
+        applyPairs(pairsOf(manual));
+
         if (cfg.auto !== false) {
-            // 1. Campos de formulario por su nombre.
+            // 1. El nombre corto de la empresa en la barra del menú, solo ahí: en el resto de la página puede ser una
+            // palabra corriente («FS» en «FS v2»). Si aparece en otro sitio, la comprobación final lo avisa.
+            document.querySelectorAll('nav .navbar-brand').forEach(brand => {
+                textNodes(brand).forEach(node => {
+                    const value = norm(node.nodeValue);
+                    if (!value || isFake(value) || state.keep.has(value.toLowerCase())) {
+                        return;
+                    }
+                    state.company = state.company || {original: value, fake: cfg.company};
+                    node.nodeValue = node.nodeValue.replace(value, value === state.company.original ? state.company.fake : cfg.company);
+                });
+            });
+            if (state.company && document.title.includes(state.company.original)) {
+                document.title = document.title.replace(wordRe(state.company.original, false), state.company.fake);
+            }
+
+            // 2. Campos de formulario por su nombre. Los genéricos («nombre») solo si el formulario tiene otro dato
+            // personal con valor.
             const fieldRules = cfg.fields.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
+            const weakFieldRules = cfg.weak_fields.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
+            const personalForm = el => {
+                const scope = el.form || el.closest('form') || document;
+                return [...scope.querySelectorAll('input[name], textarea[name], select[name]')]
+                    .some(o => o !== el && o.value && fieldRules.some(([re, cat]) => cat !== 'name' && re.test(o.name)));
+            };
             document.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
                 if (['hidden', 'password', 'checkbox', 'radio', 'file', 'submit', 'button'].includes(el.type)) {
                     return;
                 }
-                const rule = fieldRules.find(([re]) => re.test(el.name));
+                let rule = fieldRules.find(([re]) => re.test(el.name));
                 if (!rule) {
-                    return;
+                    rule = weakFieldRules.find(([re]) => re.test(el.name));
+                    if (!rule || !personalForm(el)) {
+                        return;
+                    }
                 }
                 const label = el.closest('.mb-3, .form-group, td, div') ? norm((el.closest('.mb-3, .form-group, div').querySelector('label') || {}).textContent) : '';
                 const hint = el.name + ' ' + label;
@@ -396,26 +517,33 @@ PAGE_HELPERS = r"""
                 }
             });
 
-            // 2. Columnas de los listados por su cabecera.
+            // 3. Columnas de los listados por su cabecera. Las genéricas («Nombre») solo si el listado tiene otra
+            // columna con datos personales: la de ejercicios, almacenes o plugins no es de personas.
             const headerRules = cfg.headers.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
+            const weakHeaderRules = cfg.weak_headers.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
             document.querySelectorAll('table').forEach(table => {
                 const headRow = table.tHead ? table.tHead.rows[table.tHead.rows.length - 1] : null;
                 if (!headRow) {
                     return;
                 }
                 const columns = [];
+                const weak = [];
                 let index = 0;
                 [...headRow.cells].forEach(th => {
                     const text = norm(th.textContent);
                     const rule = headerRules.find(([re]) => re.test(text));
+                    const weakRule = rule ? null : weakHeaderRules.find(([re]) => re.test(text));
                     if (rule) {
                         columns.push([index, rule[1], text]);
+                    } else if (weakRule) {
+                        weak.push([index, weakRule[1], text]);
                     }
                     index += th.colSpan || 1;
                 });
                 if (!columns.length) {
                     return;
                 }
+                columns.push(...weak);
                 [...table.tBodies].forEach(tbody => [...tbody.rows].forEach(row => {
                     columns.forEach(([col, cat, hint]) => {
                         const cell = row.cells[col];
@@ -426,41 +554,21 @@ PAGE_HELPERS = r"""
                 }));
             });
 
-            // 3. Patrones en el texto, los campos y los atributos.
+            // 4. Patrones en el texto, los campos y los atributos.
             const patterns = Object.entries(cfg.patterns).map(([cat, re]) => [cat, new RegExp(re, 'g')]);
             replaceEverywhere(value => {
                 patterns.forEach(([cat, re]) => {
-                    value = value.replace(re, match => state.fakes.has(match) || state.keep.has(match.toLowerCase()) ? match : fake(cat, match, ''));
+                    value = value.replace(re, match => isFake(match) || state.keep.has(match.toLowerCase()) ? match : fake(cat, match, ''));
                 });
                 return value;
             });
         }
 
-        // 4. Cada valor real que se ha encontrado, en cualquier parte de la página. Los de «replace» se aplican aunque
-        // sean cortos («FS»), pero como palabra completa.
-        const pairs = [...state.map.entries()].filter(([original, data]) => original.length >= 3 || data.category === 'manual')
-            .sort((a, b) => b[0].length - a[0].length)
-            .map(([original, data]) => [
-                new RegExp(original.length < 4 ? '\\b' + escapeRe(original) + '\\b' : escapeRe(original), original.length < 4 ? 'g' : 'gi'),
-                data.fake
-            ]);
-        replaceEverywhere(value => {
-            pairs.forEach(([re, value2]) => {
-                value = value.replace(re, value2);
-            });
-            return value;
-        });
-        document.querySelectorAll('option').forEach(o => {
-            let text = o.text;
-            pairs.forEach(([re, value2]) => {
-                text = text.replace(re, value2);
-            });
-            if (text !== o.text) {
-                o.text = text;
-            }
-        });
+        // 5. Cada valor real que se ha encontrado, en cualquier parte de la página y como palabra completa. Los de
+        // «replace» se aplican aunque sean cortos («FS»).
+        applyPairs(pairsOf([...state.map.entries()].filter(([original, data]) => original.length >= 3 || data.category === 'manual')));
 
-        // 5. Los logotipos de la marca se ocultan sin mover el resto de la pantalla.
+        // 6. Los logotipos de la marca se ocultan sin mover el resto de la pantalla.
         if (cfg.auto !== false) {
             const brand = new RegExp(cfg.brand);
             document.querySelectorAll('img').forEach(img => {
@@ -470,19 +578,20 @@ PAGE_HELPERS = r"""
             });
         }
 
-        // 6. Lo que se desenfoca porque no se puede sustituir.
+        // 7. Lo que se desenfoca porque no se puede sustituir.
         let blurred = 0;
         (cfg.blur || []).forEach(sel => document.querySelectorAll(sel).forEach(el => {
             el.style.filter = 'blur(6px)';
             blurred++;
         }));
 
-        return {
-            replaced: [...state.map.entries()].map(([original, data]) => ({
-                category: data.category, original: mask(original), fake: data.fake
-            })),
-            blurred
-        };
+        const replaced = [...state.map.entries()].map(([original, data]) => ({
+            category: data.category, original: mask(original), fake: data.fake
+        }));
+        if (state.company) {
+            replaced.push({category: 'empresa', original: mask(state.company.original), fake: state.company.fake});
+        }
+        return {replaced, blurred};
     }
 
     // Datos personales y marca que siguen visibles: patrones que no son valores ficticios, valores reales sin sustituir
@@ -500,18 +609,22 @@ PAGE_HELPERS = r"""
             return r.x < region.x + region.width && r.x + r.w > region.x && r.y < region.y + region.height && r.y + r.h > region.y;
         };
         const patterns = Object.entries(cfg.patterns).map(([cat, re]) => [cat, new RegExp(re, 'g')]);
-        const originals = [...state.map.keys()].filter(o => o.length >= 3).map(o => [o, new RegExp(escapeRe(o), 'i')]);
+        const originals = [...state.map.keys()].filter(o => o.length >= 3).map(o => [o, wordRe(o, true)]);
+        if (state.company && state.company.original.length >= 3 && !state.map.has(state.company.original)) {
+            originals.push([state.company.original, wordRe(state.company.original, false)]);
+        }
         const brand = new RegExp(cfg.brand, 'g');
         const check = (value, where) => {
             (value.match(brand) || []).forEach(match => found.push({category: 'marca', value: match, where}));
             patterns.forEach(([cat, re]) => {
                 (value.match(re) || []).forEach(match => {
-                    if (!state.fakes.has(match) && !state.keep.has(match.toLowerCase())) {
+                    if (!isFake(match) && !state.keep.has(match.toLowerCase())) {
                         found.push({category: cat, value: mask(match), where});
                     }
                 });
             });
             originals.forEach(([original, re]) => {
+                re.lastIndex = 0;
                 if (re.test(value)) {
                     found.push({category: 'original', value: mask(original), where});
                 }
@@ -663,11 +776,16 @@ PAGE_HELPERS = r"""
         return boxes;
     }
 
-    // Rectángulo que abarca los elementos de «clip» y las marcas, con un margen, en coordenadas del documento.
-    function clipRect(targets, marks, margin) {
-        const rects = targets.map(t => {
-            const r = rectOf(find(t, 0));
-            return {x: r.x, y: r.y, w: r.w, h: r.h};
+    // Rectángulo que abarca los elementos de «clip» y las marcas, con un margen, en coordenadas del documento. De cada
+    // selector se toma el primer elemento visible o, con «all», todos los visibles.
+    function clipRect(targets, marks, margin, all) {
+        const rects = targets.flatMap(t => {
+            let els = [find(t, 0)];
+            if (all) {
+                const shown = findAll(t).filter(visible);
+                els = shown.length ? shown : els;
+            }
+            return els.map(rectOf);
         }).concat(marks || []);
         if (!rects.length) {
             return null;
@@ -718,7 +836,7 @@ PAGE_HELPERS = r"""
                 tag: el.tagName.toLowerCase() + (el.type ? '[' + el.type + ']' : ''),
                 text: text.slice(0, 60),
                 target: selectorOf(el),
-                changes_data: risky(el, cfg.risky).length > 0
+                changes_data: risky(el, cfg.risky, cfg.toggles).length > 0
             });
         });
         return {
@@ -762,6 +880,8 @@ def validate_redact(redact: object, where: str) -> list[str]:
     if 'replace' in redact and not (isinstance(redact['replace'], dict)
                                     and all(isinstance(v, str) for v in redact['replace'].values())):
         errors.append(f'{where}: «redact.replace» debe ser un objeto {{"valor real": "valor ficticio"}}.')
+    if 'company' in redact and not (isinstance(redact['company'], str) and redact['company'].strip()):
+        errors.append(f'{where}: «redact.company» debe ser el nombre ficticio de la empresa.')
     return errors
 
 
@@ -872,8 +992,9 @@ def validate_scenario(data: object) -> list[str]:
             errors.append(f'{where}: «clip» debe ser un selector o una lista de selectores.')
         if 'margin' in capture and (not isinstance(capture['margin'], (int, float)) or capture['margin'] < 0):
             errors.append(f'{where}: «margin» debe ser un número de píxeles.')
-        if 'full_page' in capture and not isinstance(capture['full_page'], bool):
-            errors.append(f'{where}: «full_page» debe ser true o false.')
+        for key in ('full_page', 'clip_all'):
+            if key in capture and not isinstance(capture[key], bool):
+                errors.append(f'{where}: «{key}» debe ser true o false.')
         if 'hide' in capture and not (isinstance(capture['hide'], list) and all(isinstance(v, str) for v in capture['hide'])):
             errors.append(f'{where}: «hide» debe ser una lista de selectores CSS.')
         errors += validate_redact(capture.get('redact'), where)
@@ -892,11 +1013,15 @@ def merge_redact(base: dict | None, extra: dict | None) -> dict:
         'keep': list(base.get('keep', [])) + list(extra.get('keep', [])),
         'replace': {**base.get('replace', {}), **extra.get('replace', {})},
         'blur': (AUTO_BLUR if auto else []) + list(base.get('blur', [])) + list(extra.get('blur', [])),
+        'company': extra.get('company', base.get('company', DEFAULT_COMPANY)),
         'patterns': SENSITIVE_PATTERNS,
         'brand': BRAND_PATTERN,
         'fields': FIELD_RULES,
+        'weak_fields': WEAK_FIELD_RULES,
         'headers': HEADER_RULES,
+        'weak_headers': WEAK_HEADER_RULES,
         'risky': RISKY_ACTION_PATTERN,
+        'toggles': list(SAFE_TOGGLES),
     }
 
 
@@ -914,6 +1039,36 @@ def resolve_credentials(login: object, env: dict) -> tuple[str, str] | None:
             f'Faltan las credenciales: define las variables de entorno {user_env} y {password_env} '
             'con el usuario y la contraseña de la instalación de pruebas.')
     return user, password
+
+
+def mask_sensitive(text: str) -> str:
+    """Enmascara los emails, NIF, teléfonos e IBAN de un texto que se devuelve en el informe (el de un alert())."""
+    for pattern in SENSITIVE_PATTERNS.values():
+        text = re.sub(pattern, lambda m: m.group(0)[:2] + '*' * min(len(m.group(0)) - 2, 8), text)
+    return text
+
+
+def project_root(path: Path) -> Path | None:
+    """Devuelve la raíz del plugin (con facturascripts.ini) o del core que contiene la ruta, o None."""
+    for folder in [path, *path.parents]:
+        if (folder / 'facturascripts.ini').is_file() or (folder / 'Core' / 'Kernel.php').is_file():
+            return folder
+    return None
+
+
+def resolve_output_dir(folder: str, scenario_path: Path | None, root: str | None) -> Path:
+    """Resuelve la carpeta de las imágenes.
+
+    Una ruta relativa («Doc/Assets/<página>») se toma respecto a ``--root``, a la raíz del plugin o del core donde está
+    el escenario (así ``capturas.json`` sirve en cualquier copia del plugin) o, si no hay ninguna, a la carpeta actual.
+    """
+    path = Path(folder).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+    base = Path(root).expanduser() if root else None
+    if base is None and scenario_path is not None:
+        base = project_root(scenario_path.resolve().parent)
+    return ((base or Path.cwd()) / path).resolve()
 
 
 def is_local_url(url: str) -> bool:
@@ -960,6 +1115,9 @@ class Browser:
     def __init__(self, binary: str, viewport: dict, insecure: bool, timeout: float):
         self.timeout = timeout
         self.events: list[dict] = []
+        # Diálogos nativos (alert, confirm, prompt) abiertos por la página y si se aceptan los confirm y prompt.
+        self.dialogs: list[dict] = []
+        self.accept_dialogs = False
         self.buffer = b''
         self.next_id = 0
         self.session = None
@@ -1004,8 +1162,8 @@ class Browser:
         raw, self.buffer = self.buffer.split(b'\0', 1)
         return json.loads(raw)
 
-    def call(self, method: str, params: dict | None = None, session: bool = False, timeout: float | None = None) -> dict:
-        """Envía un comando y espera su respuesta; los eventos que llegan entretanto se guardan."""
+    def _send(self, method: str, params: dict | None = None, session: bool = False) -> int:
+        """Envía un comando sin esperar la respuesta y devuelve su identificador."""
         self.next_id += 1
         message = {'id': self.next_id, 'method': method, 'params': params or {}}
         if session:
@@ -1013,15 +1171,35 @@ class Browser:
         data = json.dumps(message).encode() + b'\0'
         while data:
             data = data[os.write(self.cmd_write, data):]
+        return self.next_id
+
+    def _on_event(self, event: dict) -> None:
+        """Guarda un evento de la página o, si es un diálogo nativo, anota su texto y lo cierra.
+
+        Un ``alert()`` bloquea la página hasta que se cierra. Se acepta siempre; un ``confirm()`` o un ``prompt()``
+        solo se aceptan si el paso lleva ``allow_change``, porque aceptarlos suele ejecutar la acción.
+        """
+        if event.get('method') != 'Page.javascriptDialogOpening':
+            self.events.append(event)
+            return
+        params = event.get('params', {})
+        kind = params.get('type', 'alert')
+        accept = kind in ('alert', 'beforeunload') or self.accept_dialogs
+        self.dialogs.append({'type': kind, 'message': mask_sensitive(params.get('message', '')), 'accepted': accept})
+        self._send('Page.handleJavaScriptDialog', {'accept': accept}, session=True)
+
+    def call(self, method: str, params: dict | None = None, session: bool = False, timeout: float | None = None) -> dict:
+        """Envía un comando y espera su respuesta; los eventos que llegan entretanto se guardan."""
+        message_id = self._send(method, params, session)
         deadline = time.monotonic() + (timeout or self.timeout)
         while True:
             reply = self._read_message(deadline)
-            if reply.get('id') == self.next_id:
+            if reply.get('id') == message_id:
                 if 'error' in reply:
                     raise ScreenshotError(f'{method}: {reply["error"].get("message")}')
                 return reply.get('result', {})
             if 'method' in reply:
-                self.events.append(reply)
+                self._on_event(reply)
 
     def wait_event(self, method: str, timeout: float) -> bool:
         """Espera un evento de la página; devuelve False si no llega a tiempo."""
@@ -1036,7 +1214,7 @@ class Browser:
             except ScreenshotError:
                 return False
             if 'method' in message:
-                self.events.append(message)
+                self._on_event(message)
 
     def evaluate(self, expression: str):
         """Evalúa JavaScript en la página y devuelve su valor; los errores de la página se lanzan como excepción."""
@@ -1125,31 +1303,59 @@ def absolute_url(base_url: str, url: str) -> str:
     return urljoin(base_url if base_url.endswith('/') else base_url + '/', url.lstrip('/'))
 
 
-def login(browser: Browser, base_url: str, credentials: tuple[str, str]) -> None:
-    """Inicia sesión en FacturaScripts si la página pide usuario y contraseña."""
-    browser.navigate(base_url)
+def login(browser: Browser, base_url: str, credentials: tuple[str, str], attempts: int = LOGIN_ATTEMPTS,
+          pause: float = LOGIN_PAUSE) -> None:
+    """Inicia sesión en FacturaScripts si la página pide usuario y contraseña.
+
+    El inicio de sesión falla a veces sin motivo al encadenar o paralelizar ejecuciones («Petición no válida» o
+    «Petición duplicada»): se repite hasta ``attempts`` veces con una espera creciente. No se repite si el programa dice
+    que el usuario o la contraseña son incorrectos o que la IP está bloqueada.
+    """
     form_js = "[...document.forms].find(f => f.querySelector('input[name=\"action\"][value=\"login\"]'))"
-    if not browser.evaluate(f'!!{form_js}'):
-        return
+    alert_js = "[...document.querySelectorAll('.alert, .toast')].map(e => e.textContent.replace(/\\s+/g, ' ').trim()).join(' ')"
     user, password = credentials
-    browser.evaluate(
-        f'(() => {{ const f = {form_js};'
-        f' f.querySelector(\'input[name="fsNick"]\').value = {json.dumps(user)};'
-        f' f.querySelector(\'input[name="fsPassword"]\').value = {json.dumps(password)};'
-        ' f.submit(); return true; })()')
-    browser.wait_event('Page.loadEventFired', browser.timeout)
-    browser.settle()
-    if browser.evaluate(f'!!{form_js}'):
-        raise ScreenshotError('No se ha podido iniciar sesión: revisa el usuario y la contraseña de la instalación de pruebas.')
+    message = ''
+    for attempt in range(1, attempts + 1):
+        try:
+            browser.navigate(base_url)
+            if not browser.evaluate(f'!!{form_js}'):
+                return
+            browser.evaluate(
+                f'(() => {{ const f = {form_js};'
+                f' f.querySelector(\'input[name="fsNick"]\').value = {json.dumps(user)};'
+                f' f.querySelector(\'input[name="fsPassword"]\').value = {json.dumps(password)};'
+                ' f.submit(); return true; })()')
+            browser.wait_event('Page.loadEventFired', browser.timeout)
+            browser.settle()
+            if not browser.evaluate(f'!!{form_js}'):
+                return
+            message = browser.evaluate(alert_js) or ''
+        except ScreenshotError as error:
+            message = str(error)
+        if re.search(LOGIN_FATAL_PATTERN, message, re.IGNORECASE):
+            break
+        if attempt < attempts:
+            time.sleep(pause * attempt)
+    raise ScreenshotError('No se ha podido iniciar sesión' + (f' («{message}»)' if message else '')
+                          + ': revisa el usuario y la contraseña de la instalación de pruebas.')
 
 
 def run_step(browser: Browser, step: dict, base_url: str, redact: dict) -> None:
     """Ejecuta un paso de una captura."""
     nth = step.get('nth', 0)
+    browser.accept_dialogs = step.get('allow_change', False)
+    try:
+        run_action(browser, step, nth, base_url, redact)
+    finally:
+        browser.accept_dialogs = False
+
+
+def run_action(browser: Browser, step: dict, nth: int, base_url: str, redact: dict) -> None:
+    """Ejecuta la acción de un paso."""
     if 'goto' in step:
         browser.navigate(absolute_url(base_url, step['goto']))
     elif 'click' in step:
-        browser.helper('click', step['click'], nth, step.get('allow_change', False), redact['risky'])
+        browser.helper('click', step['click'], nth, step.get('allow_change', False), redact['risky'], redact['toggles'])
         browser.after_action()
     elif 'fill' in step:
         browser.helper('fill', step['fill'], nth, step['value'])
@@ -1181,12 +1387,18 @@ def run_capture(browser: Browser, scenario: dict, capture: dict, output_dir: Pat
     """Prepara una pantalla y guarda su captura, o la inspecciona con ``--scan``."""
     base_url = scenario.get('base_url', '')
     redact = merge_redact(scenario.get('redact'), capture.get('redact'))
-    hide = list(scenario.get('hide', [])) + list(capture.get('hide', []))
+    hide = DEFAULT_HIDE + list(scenario.get('hide', [])) + list(capture.get('hide', []))
     result: dict = {'name': capture['name']}
-    if capture.get('url'):
-        browser.navigate(absolute_url(base_url, capture['url']))
-    for step in capture.get('steps', []):
-        run_step(browser, step, base_url, redact)
+    browser.dialogs = []
+    try:
+        if capture.get('url'):
+            browser.navigate(absolute_url(base_url, capture['url']))
+        for step in capture.get('steps', []):
+            run_step(browser, step, base_url, redact)
+    finally:
+        # El texto de los alert(), confirm() y prompt() que haya abierto la pantalla, para citarlo en la página.
+        if browser.dialogs:
+            result['dialogs'] = browser.dialogs
     browser.helper('prepare', hide)
     anonymized = browser.helper('redact', redact)
     result['anonymized'] = anonymized['replaced']
@@ -1199,7 +1411,7 @@ def run_capture(browser: Browser, scenario: dict, capture: dict, output_dir: Pat
     clip_targets = capture.get('clip')
     if clip_targets:
         clip_targets = [clip_targets] if isinstance(clip_targets, str) else clip_targets
-        clip = browser.helper('clipRect', clip_targets, marks, capture.get('margin', 16))
+        clip = browser.helper('clipRect', clip_targets, marks, capture.get('margin', 16), capture.get('clip_all', False))
 
     # Solo cuenta lo que entra en la imagen: el recorte, la página entera o la ventana.
     if clip or capture.get('full_page', False):
@@ -1246,7 +1458,7 @@ def run(scenario: dict, args: argparse.Namespace, env: dict) -> tuple[int, dict]
         folder = args.output_dir or scenario.get('output_dir')
         if not folder:
             raise ScreenshotError('Indica la carpeta de las imágenes con «output_dir» o --output-dir.')
-        output_dir = Path(folder).expanduser().resolve()
+        output_dir = resolve_output_dir(folder, getattr(args, 'scenario_path', None), getattr(args, 'root', None))
         output_dir.mkdir(parents=True, exist_ok=True)
 
     base_url = scenario.get('base_url', '')
@@ -1262,7 +1474,8 @@ def run(scenario: dict, args: argparse.Namespace, env: dict) -> tuple[int, dict]
             try:
                 results.append(run_capture(browser, scenario, capture, output_dir, args.scan))
             except ScreenshotError as error:
-                results.append({'name': capture['name'], 'error': str(error)})
+                results.append({'name': capture['name'], 'error': str(error),
+                                **({'dialogs': browser.dialogs} if browser.dialogs else {})})
     finally:
         browser.close()
     failed = [r for r in results if 'error' in r]
@@ -1279,7 +1492,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--check', action='store_true', help='Solo valida el escenario.')
     parser.add_argument('--output-dir', help='Carpeta de las imágenes (sustituye a «output_dir»).')
     parser.add_argument('--chrome', help='Ruta del ejecutable de Chrome o Chromium.')
+    parser.add_argument('--root', help='Carpeta respecto a la que se resuelve un «output_dir» relativo '
+                                       '(por defecto, la raíz del plugin o del core donde está el escenario).')
     args = parser.parse_args(argv)
+    args.scenario_path = Path(args.scenario)
 
     try:
         scenario = load_scenario(Path(args.scenario))

@@ -37,7 +37,7 @@ test('cambiar la conexión por defecto surte efecto sin reiniciar', async () => 
 
 test('cambiar el token de una conexión surte efecto sin reiniciar', async () => {
   await fsClient.get('/clientes', {}, 'b');
-  connectionManager.addConnection('b', { name: 'B', url: fsB.url, token: 'token-b-nuevo' });
+  connectionManager.addConnection('b', { name: 'B', url: fsB.url, token: 'token-b-nuevo' }, true);
   await fsClient.get('/clientes', {}, 'b');
 
   assert.equal(fsB.peticiones.at(-2).headers.token, 'token-b');

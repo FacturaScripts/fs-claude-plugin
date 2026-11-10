@@ -172,8 +172,9 @@ decisiones) y dice qué archivo abrir para cada tema; no hace falta leerlo todo.
   `Doc/Context/` y en su índice.
 - `Doc/forja.json` agrupa en `User` y `Dev` las páginas de esas carpetas por su nombre de archivo, con campos
   opcionales: `title`, `title_short`, `permalink` (enlace en la web, máx. 200 caracteres; no se puede cambiar una vez
-  publicada la página), `parent`, `ordernum`, `youtubeid`, `imageurl`, `icon`, `color`, `keywords` y `controllers`
-  (máx. 300 caracteres cada uno) y `visibility`.
+  publicada la página), `parent` (nombre de archivo de la página padre, con `.md`), `ordernum`, `youtubeid`,
+  `imageurl`, `icon`, `color`, `keywords` y `controllers` (máx. 300 caracteres cada uno; `controllers`, separados por
+  comas sin espacios) y `visibility` (`true` o `false`, sin comillas).
 - `CLAUDE.md` solo importa este archivo (`@AGENTS.md`). Las instrucciones locales que no se versionan van en
   `CLAUDE.local.md` (Claude Code) o `AGENTS.override.md` (Codex).
 """
@@ -362,6 +363,8 @@ def check_forja_page(section: str, page: str, fields: object, pages: dict, folde
         expected = FORJA_FIELDS.get(name)
         if expected is None:
             problems.append(f'{where}: campo desconocido «{name}» (admitidos: {", ".join(FORJA_FIELDS)})')
+        elif name == 'visibility' and isinstance(value, str):
+            problems.append(f'{where}: «visibility» debe ser true o false, sin comillas, no el texto «{value}»')
         elif not isinstance(value, expected) or (expected is int and isinstance(value, bool)):
             tipo = {str: 'texto', int: 'número entero', bool: 'true o false'}[expected]
             problems.append(f'{where}: «{name}» debe ser {tipo}')
@@ -370,8 +373,13 @@ def check_forja_page(section: str, page: str, fields: object, pages: dict, folde
                             f'{FORJA_MAX_LENGTH[name]}')
         elif name == 'color' and value not in FORJA_COLORS:
             problems.append(f'{where}: color «{value}» no admitido ({", ".join(FORJA_COLORS)})')
+        elif name == 'parent' and not value.endswith('.md'):
+            problems.append(f'{where}: «parent» es el nombre de archivo de la página padre con «.md» '
+                            f'(«{value}.md»), no su permalink')
         elif name == 'parent' and value not in pages and not (folder / value).is_file():
             problems.append(f'{where}: la página padre «{value}» no existe en Doc/{section}/')
+        elif name == 'controllers' and any(char.isspace() for char in value):
+            problems.append(f'{where}: «controllers» va separado solo por comas, sin espacios')
     return problems
 
 

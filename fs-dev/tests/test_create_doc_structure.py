@@ -139,7 +139,7 @@ class CreateDocStructureTest(unittest.TestCase):
         forja['User']['ventas.md'] = {'parent': 'nada.md', 'ordernum': '1', 'visibility': 'si', 'color': 'light',
                                       'autor': 'yo', 'permalink': 'p' * 201, 'keywords': 'k' * 301}
         forja['User']['inicio.md']['controllers'] = 'c' * 300
-        forja['User']['falta.md'] = {}
+        forja['User']['falta.md'] = {'parent': 'inicio', 'visibility': 1, 'controllers': 'ListA, EditA'}
         forja['Otra'] = {}
         (self.root / 'Doc/forja.json').write_text(json.dumps(forja), encoding='utf-8')
 
@@ -147,7 +147,11 @@ class CreateDocStructureTest(unittest.TestCase):
 
         self.assertEqual(code, 1)
         for text in ('la página padre «nada.md» no existe', '«ordernum» debe ser número entero',
-                     '«visibility» debe ser true o false', 'color «light» no admitido', 'campo desconocido «autor»',
+                     '«visibility» debe ser true o false, sin comillas, no el texto «si»',
+                     'falta.md: «visibility» debe ser true o false',
+                     '«parent» es el nombre de archivo de la página padre con «.md» («inicio.md»)',
+                     '«controllers» va separado solo por comas, sin espacios',
+                     'color «light» no admitido', 'campo desconocido «autor»',
                      'User › falta.md no existe', 'sección desconocida «Otra»',
                      '«permalink» tiene 201 caracteres y el máximo es 200',
                      '«keywords» tiene 301 caracteres y el máximo es 300'):
