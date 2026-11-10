@@ -1,6 +1,6 @@
 {
   "name": "fs-mcp",
-  "version": "1.3.2",
+  "version": "1.4.2",
   "description": "Servidor MCP de FacturaScripts para Claude Code y Codex, con múltiples instalaciones y módulos locales privados.",
   "author": {
     "name": "Daniel Fernández Giménez",
@@ -15,7 +15,7 @@
       "command": "node",
       "args": [
         "-e",
-        "const path = require('node:path'); const { pathToFileURL } = require('node:url'); const root = process.env.CLAUDE_PLUGIN_ROOT || process.cwd(); import(pathToFileURL(path.join(root, 'server/dist/index.js')).href);"
+        "const fs = require('node:fs'); const path = require('node:path'); const { pathToFileURL } = require('node:url'); let root = process.env.CLAUDE_PLUGIN_ROOT; if (!root || !path.isAbsolute(root)) { let name; try { name = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.claude-plugin', 'plugin.json'), 'utf8')).name; } catch {} if (name !== 'fs-mcp') { console.error('[fs-mcp] No se arranca el servidor: falta CLAUDE_PLUGIN_ROOT (o no es una ruta absoluta) y el directorio de trabajo no es la raíz del plugin fs-mcp.'); process.exit(1); } root = process.cwd(); } import(pathToFileURL(path.join(root, 'server/dist/index.js')).href);"
       ],
       "cwd": ".",
       "env": {

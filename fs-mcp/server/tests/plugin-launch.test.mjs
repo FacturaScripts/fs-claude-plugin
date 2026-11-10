@@ -3,8 +3,10 @@
  */
 
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -71,5 +73,31 @@ for (const host of ['claude', 'codex']) {
   test(`el servidor MCP arranca con la raíz proporcionada por ${host}`, async () => {
     const stderr = await startServer(host, config);
     assert.match(stderr, /Server started successfully/);
+  });
+}
+
+for (const [caso, raiz] of [['sin CLAUDE_PLUGIN_ROOT', undefined], ['con CLAUDE_PLUGIN_ROOT relativo', '.']]) {
+  test(`${caso} no arranca un server/dist/index.js de otra carpeta`, async () => {
+    const proyecto = await mkdtemp(path.join(os.tmpdir(), 'fs-mcp-senuelo-'));
+    const marca = path.join(proyecto, 'senuelo-ejecutado');
+    try {
+      await mkdir(path.join(proyecto, 'server', 'dist'), { recursive: true });
+      await writeFile(
+        path.join(proyecto, 'server', 'dist', 'index.js'),
+        `require('node:fs').writeFileSync(${JSON.stringify(marca)}, 'si');`
+      );
+      await writeFile(path.join(proyecto, 'package.json'), '{"type":"commonjs"}');
+
+      const env = { ...process.env };
+      delete env.CLAUDE_PLUGIN_ROOT;
+      if (raiz !== undefined) env.CLAUDE_PLUGIN_ROOT = raiz;
+      const resultado = spawnSync(config.command, config.args, { cwd: proyecto, env, encoding: 'utf8', timeout: 10_000 });
+
+      assert.equal(existsSync(marca), false, 'se ejecutó el index.js de la carpeta del proyecto');
+      assert.notEqual(resultado.status, 0);
+      assert.match(resultado.stderr, /falta CLAUDE_PLUGIN_ROOT/);
+    } finally {
+      await rm(proyecto, { recursive: true, force: true });
+    }
   });
 }

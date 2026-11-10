@@ -19,7 +19,14 @@ export const varianteMetadata = {
             "label": "Código de barras",
             "maxLength": 20,
             "description": "Código de barras EAN/UPC de la variante.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "coste",
@@ -32,7 +39,14 @@ export const varianteMetadata = {
             "label": "Precio de coste",
             "default": 0,
             "description": "Precio de coste unitario de la variante.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idatributovalor1",
@@ -50,7 +64,14 @@ export const varianteMetadata = {
                 "column": "id",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idatributovalor2",
@@ -68,7 +89,14 @@ export const varianteMetadata = {
                 "column": "id",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idatributovalor3",
@@ -86,7 +114,13 @@ export const varianteMetadata = {
                 "column": "id",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         },
         {
             "name": "idatributovalor4",
@@ -104,7 +138,13 @@ export const varianteMetadata = {
                 "column": "id",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.4"
+                }
+            ]
         },
         {
             "name": "idproducto",
@@ -122,7 +162,14 @@ export const varianteMetadata = {
                 "column": "idproducto",
                 "onDelete": "CASCADE",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idvariante",
@@ -134,7 +181,14 @@ export const varianteMetadata = {
             "isRequired": false,
             "label": "idvariante",
             "description": "Identificador interno autoincremental de la variante.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "margen",
@@ -147,7 +201,13 @@ export const varianteMetadata = {
             "label": "Margen",
             "default": 0,
             "description": "Margen porcentual aplicado al coste para calcular el precio de venta.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2020.61"
+                }
+            ]
         },
         {
             "name": "precio",
@@ -160,7 +220,14 @@ export const varianteMetadata = {
             "label": "Precio",
             "default": 0,
             "description": "Precio de venta unitario de la variante (sin IVA).",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "referencia",
@@ -173,7 +240,14 @@ export const varianteMetadata = {
             "label": "Referencia",
             "maxLength": 30,
             "description": "Referencia/SKU única de la variante.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "stockfis",
@@ -186,7 +260,14 @@ export const varianteMetadata = {
             "label": "Stock",
             "default": 0,
             "description": "Stock físico actual de la variante sumado entre todos los almacenes.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -240,9 +321,22 @@ export const varianteMetadata = {
             "remoteColumn": "referencia"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default varianteMetadata;

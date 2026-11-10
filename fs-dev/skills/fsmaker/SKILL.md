@@ -40,6 +40,7 @@ La tabla siguiente corresponde a fsmaker 2.3.0:
 | `github-action` | Gestiona archivos de GitHub Actions para el plugin |
 | `github-run` | Ejecuta un workflow de GitHub Actions con `gh workflow run` |
 | `gitignore` | Crea un archivo .gitignore para FacturaScripts |
+| `docs` | Crea o completa la estructura de documentación (`Doc/`, `AGENTS.md` y `CLAUDE.md`); solo en versiones posteriores a la 2.3.0 |
 | `zip` | Genera un archivo ZIP del plugin actual |
 
 ---
@@ -52,7 +53,7 @@ Desde la carpeta raíz de FacturaScripts o dentro del directorio `Plugins/`:
 fsmaker plugin
 ```
 
-fsmaker hace preguntas interactivas (nombre, descripción, versión mínima) y genera toda la estructura de carpetas y archivos (`facturascripts.ini`, `Init.php`, etc.).
+fsmaker hace preguntas interactivas (nombre, descripción, versión mínima) y genera toda la estructura de carpetas y archivos (`facturascripts.ini`, `Init.php`, etc.). Las versiones con el comando `docs` crean además la estructura de documentación; para completarla en un plugin existente o fusionar un `.gitignore` anterior, usa la skill `fs-dev:crear-documentacion`.
 
 ---
 
