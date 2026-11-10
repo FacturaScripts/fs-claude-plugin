@@ -850,9 +850,11 @@ export async function handleAnalyticsTool(name, args) {
                 // La URL trata «\» como «/», así que se parte por las dos. Tampoco se
                 // admiten caracteres de control: la URL quita \t, \r y \n en cualquier
                 // posición, y «.\t.» llegaría como «..». Ni espacios en los extremos:
-                // la URL recorta los del final, y «.. » también llegaría como «..»
+                // la URL recorta los del final, y «.. » también llegaría como «..». Ni «?»
+                // ni «#»: la URL corta ahí la ruta, y «..?x» llegaría como «..». Los
+                // parámetros van en params
                 const segmentos = String(recurso).split(/[/\\]/).map((s) => s.replace(/%2e/gi, '.'));
-                if (/^[/\\]/.test(String(recurso)) || /[\x00-\x1f]/.test(String(recurso)) || recurso !== recurso.trim() ||
+                if (/^[/\\]/.test(String(recurso)) || /[\x00-\x1f?#]/.test(String(recurso)) || recurso !== recurso.trim() ||
                     segmentos.some((s) => s === '.' || s === '..')) {
                     throw new Error(`Recurso no válido: ${recurso}`);
                 }

@@ -129,7 +129,9 @@ for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', 'x\\
   '.\t./.\t./deploy', '/.\r./.\n./index.php', 'users\x00', 'users\x1f',
   // y recorta los espacios del final de la URL entera: «.. » llegaría como «..».
   // « ..» no sale de la API, pero un espacio en los extremos tampoco se admite
-  '.. ', '. ', '%2e%2e ', ' ..']) {
+  '.. ', '. ', '%2e%2e ', ' ..',
+  // La URL corta la ruta en «?» y «#»: «..?x» llegaría como «..» y saldría de /api/3
+  '..?x', '..#x', 'x/..?x', '/..#x', 'users?x=1', 'users#x']) {
   test(`get_mi_recurso rechaza el recurso ${JSON.stringify(recurso)} sin llamar a la API`, async () => {
     const desde = fs.peticiones.length;
     const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso });
@@ -137,6 +139,14 @@ for (const recurso of ['./users', 'x/../users', 'users/./', '%2e%2e/users', 'x\\
     assert.deepEqual(fs.peticiones.slice(desde), []);
   });
 }
+
+// Los parámetros van en params, y ahí «?» y «#» llegan codificados
+test('get_mi_recurso pasa en la consulta los parámetros con «?» y «#»', async () => {
+  const desde = fs.peticiones.length;
+  const resultado = await handleAnalyticsTool('get_mi_recurso', { connection: 'pega', recurso: 'users', params: '{"q":"a?b#c"}' });
+  assert.deepEqual(fs.peticiones.slice(desde).map((p) => p.path), ['/api/3/users?filter%5Bq%5D=a%3Fb%23c']);
+  assert.ok(resultado.content[0].text.includes('admin'));
+});
 
 test('con texto antes del JSON, el registro se filtra igual', async () => {
   const respuesta = JSON.stringify(await fsClient.get('users', {}, 'cruda'));
