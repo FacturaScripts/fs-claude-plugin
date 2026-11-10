@@ -492,6 +492,56 @@ class EvasionTest(unittest.TestCase):
         report = self.audit({'Lib/Diez.php': "<?php\n$t = <<<A\nhola\nsystem($_GET['c']);\n"})
         self.assertIn(4, [item['linea'] for item in report['hallazgos']])
 
+    def test_codigo_de_una_interpolacion_se_analiza(self) -> None:
+        """PHP ejecuta lo que va entre {$…} o ${…} en comillas dobles, heredoc y comillas invertidas.
+
+        Cada caso pasa ``php -l``.
+        """
+        cases = {
+            'llaves': ('        $r = "{$a[system($z)]}";', 'Ejecuta un comando del sistema', 8),
+            'dolar-llave': ('        $r = "${system($z)}";', 'Ejecuta un comando del sistema', 8),
+            'llaves-anidadas': ('        $r = "{$o->{\'p\'}[system($z)]}";', 'Ejecuta un comando del sistema', 8),
+            'heredoc': ('        $r = <<<A\n{$a[system($z)]}\nA;', 'Ejecuta un comando del sistema', 9),
+            'heredoc-dolar-llave': ('        $r = <<<A\n${system($z)}\nA;', 'Ejecuta un comando del sistema', 9),
+            'invertidas': ('        $r = `ls {$a[system($z)]}`;', 'Ejecuta un comando del sistema', 8),
+            'include': ('        $r = "{$a[include $y]}";', 'Incluye un archivo PHP calculado en tiempo de ejecución', 8),
+        }
+        for name, (body, title, line) in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Trece.php': php_class('Trece', body)})
+                self.assertIn(line, [item['linea'] for item in self.by_title(report).get(title, [])])
+
+    def test_interpolacion_no_desincroniza_las_cadenas(self) -> None:
+        """Una comilla o una etiqueta de cierre dentro de {$…} no acaban la cadena: lo de detrás se analiza."""
+        cases = {
+            'comilla-en-la-clave': '<?php\n$r = "{$a[\'"\']}";\n',
+            'cierre-de-heredoc-en-la-clave': '<?php\n$r = <<<A\n{$a["\nA\n"]}\nA;\n',
+        }
+        for name, head in cases.items():
+            with self.subTest(name):
+                content = head + 'include $y;\nsystem($z);\n'
+                report = self.by_title(self.audit({'Lib/Catorce.php': content}))
+                last = content.count('\n')
+                self.assertEqual([last - 1], [item['linea'] for item in report.get(
+                    'Incluye un archivo PHP calculado en tiempo de ejecución', [])])
+                self.assertEqual([last], [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
+
+    def test_cadena_sin_interpolacion_de_codigo_no_da_hallazgos(self) -> None:
+        """Sin {$…} ni ${…}, el contenido de la cadena sigue siendo texto: nada de lo que lleva se marca."""
+        cases = {
+            'texto': '        $r = "system($z) {no} \\{$x} {\\$x} $a[k] $o->p";',
+            'simples': "        $r = '{$a[system($z)]}';",
+            'nowdoc': "        $r = <<<'A'\n{$a[system($z)]}\nA;",
+            'escapada': '        $r = "{\\$a[system($z)]}";',
+            # ${nombre} es la variable $nombre, no la palabra reservada
+            'nombre-dolar-llave': '        $r = "${include} ${system}";',
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                report = self.by_title(self.audit({'Lib/Quince.php': php_class('Quince', body)}))
+                self.assertNotIn('Ejecuta un comando del sistema', report)
+                self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', report)
+
     def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
         """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
 

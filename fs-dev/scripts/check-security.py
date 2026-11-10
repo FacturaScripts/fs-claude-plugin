@@ -291,6 +291,8 @@ FIXED_INCLUDE_PATH = re.compile(
     r'(?:\s*\.\s*(?:DIRECTORY_SEPARATOR|' + PATH_LITERAL + r'))*)'
     r'\s*(?(open)\)\s*)(?:;|\?>)'
 )
+# Lo que sigue a ${ dentro de una cadena y PHP lee como nombre de variable
+INTERPOLATED_NAME = re.compile(r'[A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*(?=[\[}])')
 # Envoltura de stream, con el mismo criterio que PHP: '://' o 'data:'. Se busca en
 # cualquier punto porque la ruta concatenada no incluye __DIR__ ni FS_FOLDER.
 STREAM_WRAPPER = re.compile(r'://|data:', re.I)
@@ -312,6 +314,12 @@ def strip_php(content: str) -> tuple[str, str]:
     las cadenas para que ``'...'`` siga reconociéndose como un literal, y trata
     los atributos ``#[...]`` como código. Las comillas invertidas se conservan
     porque en PHP ejecutan un comando.
+
+    Dentro de las comillas dobles, las invertidas y el heredoc, PHP ejecuta como
+    código lo que va entre ``{$`` … ``}`` y ``${`` … ``}``. Ese tramo se conserva
+    en el código, con sus propias cadenas y comentarios, y la cadena se corta a
+    su alrededor: la llave (o el dólar de ``${``) y la llave de cierre pasan a
+    ser delimitadores. Así ``"a{$x}b"`` queda ``" "$x" "``, con la misma longitud.
     """
     text: list[str] = []
     code: list[str] = []
@@ -320,6 +328,10 @@ def strip_php(content: str) -> tuple[str, str]:
     in_php = False
     # La etiqueta puede llevar bytes 0x80-0xff, como un nombre de variable
     heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*)\1\r?\n')
+    # Modos abiertos dentro de la isla de PHP, del exterior al interior: ('cadena', delimitador,
+    # inicio) para comillas dobles o invertidas, ('heredoc', cierre) y ('codigo', llaves abiertas) para
+    # el código de una interpolación
+    stack: list[tuple[str, object]] = []
 
     while index < length:
         if not in_php:
@@ -337,6 +349,57 @@ def strip_php(content: str) -> tuple[str, str]:
 
         char = content[index]
         pair = content[index:index + 2]
+
+        if stack and stack[-1][0] != 'codigo':
+            kind, value = stack[-1][:2]
+            delimiter = value if kind == 'cadena' else "'"
+            # El heredoc sólo cierra a principio de línea y fuera de una interpolación
+            closing = value.match(content, index) if kind == 'heredoc' and content[index - 1] == '\n' else None
+            if closing:
+                chunk = closing.group(0)
+                text.append(chunk)
+                code.append(blank(chunk[:-1]) + "'")
+                stack.pop()
+                index = closing.end()
+                continue
+            if char == '\\':
+                chunk = content[index:index + 2]
+                text.append(chunk)
+                code.append(blank(chunk))
+                index += len(chunk)
+                continue
+            if kind == 'cadena' and char == value:
+                text.append(char)
+                code.append(char)
+                stack.pop()
+                index += 1
+                continue
+            if pair in ('{$', '${'):
+                text.append(pair[0])
+                code.append(delimiter)
+                index += 1
+                if pair == '${':
+                    # ${nombre} y ${nombre[…]} son la variable $nombre; ${expresión}, su valor
+                    text.append('{')
+                    code.append('$' if INTERPOLATED_NAME.match(content, index + 1) else ' ')
+                    index += 1
+                stack.append(('codigo', 0))
+                continue
+            text.append(char)
+            code.append(blank(char))
+            index += 1
+            continue
+
+        if stack and char in '{}':
+            depth = stack[-1][1]
+            if char == '}' and depth == 0:
+                stack.pop()
+                kind, value = stack[-1][:2]
+                text.append(char)
+                code.append(value if kind == 'cadena' else "'")
+                index += 1
+                continue
+            stack[-1] = ('codigo', depth + (1 if char == '{' else -1))
 
         if pair == '?>':
             text.append(pair)
@@ -365,7 +428,14 @@ def strip_php(content: str) -> tuple[str, str]:
             index = end
             continue
 
-        if char in ('"', "'", '`'):
+        if char in ('"', '`'):
+            text.append(char)
+            code.append(char)
+            stack.append(('cadena', char, index))
+            index += 1
+            continue
+
+        if char == "'":
             end = index + 1
             while end < length and content[end] != char:
                 end += 2 if content[end] == '\\' else 1
@@ -379,21 +449,34 @@ def strip_php(content: str) -> tuple[str, str]:
         match = heredoc.match(content, index) if pair == '<<' else None
         # La etiqueta cierra si no la sigue otro carácter de nombre, como en PHP;
         # sin cierre no es un heredoc y lo que sigue se lee como código
-        found = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
-                                     re.M).search(content, match.end())
-        if found:
+        closing = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
+                                       re.M)
+        found = match and closing.search(content, match.end())
+        if found and match.group(1) == "'":
+            # El nowdoc no interpola
             end = found.end()
             literal = content[index:end]
             text.append(literal)
-            code.append("'" + blank(literal[1:-1]) + "'" if len(literal) >= 2 else literal)
+            code.append("'" + blank(literal[1:-1]) + "'")
             index = end
+            continue
+        if found:
+            chunk = match.group(0)
+            text.append(chunk)
+            code.append("'" + blank(chunk[1:]))
+            stack.append(('heredoc', closing))
+            index = match.end()
             continue
 
         text.append(char)
         code.append(char)
         index += 1
 
-    return ''.join(text), ''.join(code)
+    stripped = ''.join(code)
+    # Una cadena sin cerrar llega al final del archivo, y su último carácter hace de delimitador
+    if len(stack) == 1 and stack[0][0] == 'cadena' and length - stack[0][2] >= 2:
+        stripped = stripped[:-1] + stack[0][1]
+    return ''.join(text), stripped
 
 
 def strip_js(content: str) -> tuple[str, str]:
@@ -794,13 +877,18 @@ def interpolates(source: Source, start: int, end: int) -> bool:
 
     Interpolan las comillas dobles y el heredoc; las comillas simples y el
     nowdoc no. ``code`` conserva los delimitadores de cada cadena con el
-    contenido en blanco, así que sirve para localizarlas en ``text``. Las
-    cadenas que interpolan se buscan una vez por archivo.
+    contenido en blanco, así que sirve para localizarlas en ``text``. Un tramo
+    ``{$…}`` o ``${…}`` queda en ``code`` como código, y la cadena acaba en su
+    llave o en su dólar: eso también es interpolar. Las cadenas que interpolan
+    se buscan una vez por archivo.
     """
     if source.interpolations is None:
         source.interpolations = []
         for literal in re.finditer(r'''(["'])\s*\1''', source.code):
             text = source.text[literal.start():literal.end()]
+            if source.text[literal.end() - 1:literal.end() + 1] in ('{$', '${'):
+                source.interpolations.append(literal.span())
+                continue
             if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
                 continue
             # Un «$» precedido de un número impar de barras está escapado. Un nombre
@@ -860,13 +948,14 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     end = end if close == -1 else close
     statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
+    # Antes que la variable concatenada: la de un tramo {$…} también está en el código
+    if interpolates(source, match.end(), include_expression_end(source, match.end(), end)):
+        return True, ['la ruta interpola una variable en la cadena'], None
     # El mismo nombre de variable que en interpolates, y ${...}
     if re.search(r'\$[A-Za-z_{\x80-\U0010ffff]', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
-    if interpolates(source, match.end(), include_expression_end(source, match.end(), end)):
-        return True, ['la ruta interpola una variable en la cadena'], None
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
