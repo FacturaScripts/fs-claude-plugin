@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PresupuestoclientesParams {
@@ -1100,7 +1101,7 @@ export async function handleSalesOrdersTool(
 
           case 'delete_factura_cliente': {
             const params = input as any as DeleteDocumentoClienteParams;
-            const result = await fsClient.delete(`/facturaclientes/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/facturaclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1114,7 +1115,7 @@ export async function handleSalesOrdersTool(
 
           case 'delete_albaran_cliente': {
             const params = input as any as DeleteDocumentoClienteParams;
-            const result = await fsClient.delete(`/albaranclientes/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/albaranclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1128,7 +1129,7 @@ export async function handleSalesOrdersTool(
 
           case 'delete_pedido_cliente': {
             const params = input as any as DeleteDocumentoClienteParams;
-            const result = await fsClient.delete(`/pedidoclientes/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/pedidoclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1142,7 +1143,7 @@ export async function handleSalesOrdersTool(
 
           case 'delete_presupuesto_cliente': {
             const params = input as any as DeleteDocumentoClienteParams;
-            const result = await fsClient.delete(`/presupuestoclientes/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/presupuestoclientes/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1167,28 +1168,28 @@ export async function handleSalesOrdersTool(
           case 'update_factura_cliente': {
             const params = input as any as { connection?: string; idfactura: number; [key: string]: unknown };
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturaclientes/${encodeURIComponent(String(idfactura))}`, data, connection);
+            const result = await fsClient.put(`/facturaclientes/${pathId(idfactura)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_albaran_cliente': {
             const params = input as any as { connection?: string; idalbaran: number; [key: string]: unknown };
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranclientes/${encodeURIComponent(String(idalbaran))}`, data, connection);
+            const result = await fsClient.put(`/albaranclientes/${pathId(idalbaran)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_pedido_cliente': {
             const params = input as any as { connection?: string; idpedido: number; [key: string]: unknown };
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidoclientes/${encodeURIComponent(String(idpedido))}`, data, connection);
+            const result = await fsClient.put(`/pedidoclientes/${pathId(idpedido)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_presupuesto_cliente': {
             const params = input as any as { connection?: string; idpresupuesto: number; [key: string]: unknown };
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestoclientes/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
+            const result = await fsClient.put(`/presupuestoclientes/${pathId(idpresupuesto)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 

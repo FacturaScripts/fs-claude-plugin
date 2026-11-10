@@ -2,6 +2,9 @@
  * FacturaScripts de pega para las pruebas: un servidor HTTP en loopback que
  * registra cada petición (método, ruta y cabeceras) y responde con lo que
  * devuelva `responder` o, por defecto, con una lista vacía.
+ *
+ * La ruta se registra tal como llega por la red, sin decodificar (`req.url`),
+ * igual que la ve el core: su API tampoco la decodifica.
  */
 
 import fs from 'node:fs';

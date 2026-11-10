@@ -1,5 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
@@ -1076,7 +1077,7 @@ export async function handlePurchasingTool(
 
           case 'delete_factura_proveedor': {
             const params = input as any as DeleteDocumentoProveedorParams;
-            const result = await fsClient.delete(`/facturaproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/facturaproveedores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1090,7 +1091,7 @@ export async function handlePurchasingTool(
 
           case 'delete_albaran_proveedor': {
             const params = input as any as DeleteDocumentoProveedorParams;
-            const result = await fsClient.delete(`/albaranproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/albaranproveedores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1104,7 +1105,7 @@ export async function handlePurchasingTool(
 
           case 'delete_pedido_proveedor': {
             const params = input as any as DeleteDocumentoProveedorParams;
-            const result = await fsClient.delete(`/pedidoproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/pedidoproveedores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1118,7 +1119,7 @@ export async function handlePurchasingTool(
 
           case 'delete_presupuesto_proveedor': {
             const params = input as any as DeleteDocumentoProveedorParams;
-            const result = await fsClient.delete(`/presupuestoproveedores/${encodeURIComponent(String(params.id))}`, params.connection);
+            const result = await fsClient.delete(`/presupuestoproveedores/${pathId(params.id)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1126,28 +1127,28 @@ export async function handlePurchasingTool(
           case 'update_factura_proveedor': {
             const params = input as any as { connection?: string; idfactura: number; [key: string]: unknown };
             const { connection, idfactura, ...data } = params;
-            const result = await fsClient.put(`/facturaproveedores/${encodeURIComponent(String(idfactura))}`, data, connection);
+            const result = await fsClient.put(`/facturaproveedores/${pathId(idfactura)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_albaran_proveedor': {
             const params = input as any as { connection?: string; idalbaran: number; [key: string]: unknown };
             const { connection, idalbaran, ...data } = params;
-            const result = await fsClient.put(`/albaranproveedores/${encodeURIComponent(String(idalbaran))}`, data, connection);
+            const result = await fsClient.put(`/albaranproveedores/${pathId(idalbaran)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_pedido_proveedor': {
             const params = input as any as { connection?: string; idpedido: number; [key: string]: unknown };
             const { connection, idpedido, ...data } = params;
-            const result = await fsClient.put(`/pedidoproveedores/${encodeURIComponent(String(idpedido))}`, data, connection);
+            const result = await fsClient.put(`/pedidoproveedores/${pathId(idpedido)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'update_presupuesto_proveedor': {
             const params = input as any as { connection?: string; idpresupuesto: number; [key: string]: unknown };
             const { connection, idpresupuesto, ...data } = params;
-            const result = await fsClient.put(`/presupuestoproveedores/${encodeURIComponent(String(idpresupuesto))}`, data, connection);
+            const result = await fsClient.put(`/presupuestoproveedores/${pathId(idpresupuesto)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
@@ -1161,13 +1162,13 @@ export async function handlePurchasingTool(
           case 'update_cuentabancoproveedor': {
             const params = input as any as { connection?: string; codcuenta: string; [key: string]: unknown };
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoproveedores/${encodeURIComponent(String(codcuenta))}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoproveedores/${pathId(codcuenta)}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_cuentabancoproveedor': {
             const params = input as any as { connection?: string; codcuenta: string };
-            const result = await fsClient.delete(`/cuentabancoproveedores/${encodeURIComponent(String(params.codcuenta))}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoproveedores/${pathId(params.codcuenta)}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 

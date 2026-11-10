@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const configurationTools: Tool[] = [
@@ -746,12 +747,12 @@ export async function handleConfigurationTool(
 
       case 'update_serie': {
         const { connection: _conn, codserie, ...data } = args;
-        result = await fsClient.put(`/series/${encodeURIComponent(String(codserie))}`, data, connection);
+        result = await fsClient.put(`/series/${pathId(codserie)}`, data, connection);
         break;
       }
 
       case 'delete_serie': {
-        result = await fsClient.delete(`/series/${encodeURIComponent(String(args.codserie))}`, connection);
+        result = await fsClient.delete(`/series/${pathId(args.codserie)}`, connection);
         break;
       }
 
@@ -763,12 +764,12 @@ export async function handleConfigurationTool(
 
       case 'update_empresa': {
         const { connection: _conn, idempresa, ...data } = args;
-        result = await fsClient.put(`/empresas/${encodeURIComponent(String(idempresa))}`, data, connection);
+        result = await fsClient.put(`/empresas/${pathId(idempresa)}`, data, connection);
         break;
       }
 
       case 'delete_empresa': {
-        result = await fsClient.delete(`/empresas/${encodeURIComponent(String(args.idempresa))}`, connection);
+        result = await fsClient.delete(`/empresas/${pathId(args.idempresa)}`, connection);
         break;
       }
 
@@ -780,12 +781,12 @@ export async function handleConfigurationTool(
 
       case 'update_estadodocumento': {
         const { connection: _conn, idestado, ...data } = args;
-        result = await fsClient.put(`/estadodocumentos/${encodeURIComponent(String(idestado))}`, data, connection);
+        result = await fsClient.put(`/estadodocumentos/${pathId(idestado)}`, data, connection);
         break;
       }
 
       case 'delete_estadodocumento': {
-        result = await fsClient.delete(`/estadodocumentos/${encodeURIComponent(String(args.idestado))}`, connection);
+        result = await fsClient.delete(`/estadodocumentos/${pathId(args.idestado)}`, connection);
         break;
       }
 
@@ -797,12 +798,12 @@ export async function handleConfigurationTool(
 
       case 'update_agenciatransporte': {
         const { connection: _conn, codtrans, ...data } = args;
-        result = await fsClient.put(`/agenciatransportes/${encodeURIComponent(String(codtrans))}`, data, connection);
+        result = await fsClient.put(`/agenciatransportes/${pathId(codtrans)}`, data, connection);
         break;
       }
 
       case 'delete_agenciatransporte': {
-        result = await fsClient.delete(`/agenciatransportes/${encodeURIComponent(String(args.codtrans))}`, connection);
+        result = await fsClient.delete(`/agenciatransportes/${pathId(args.codtrans)}`, connection);
         break;
       }
 
@@ -814,12 +815,12 @@ export async function handleConfigurationTool(
 
       case 'update_identificadorfiscal': {
         const { connection: _conn, tipoidfiscal, ...data } = args;
-        result = await fsClient.put(`/identificadorfiscales/${encodeURIComponent(String(tipoidfiscal))}`, data, connection);
+        result = await fsClient.put(`/identificadorfiscales/${pathId(tipoidfiscal)}`, data, connection);
         break;
       }
 
       case 'delete_identificadorfiscal': {
-        result = await fsClient.delete(`/identificadorfiscales/${encodeURIComponent(String(args.tipoidfiscal))}`, connection);
+        result = await fsClient.delete(`/identificadorfiscales/${pathId(args.tipoidfiscal)}`, connection);
         break;
       }
 
@@ -831,12 +832,12 @@ export async function handleConfigurationTool(
 
       case 'update_secuenciadocumento': {
         const { connection: _conn, idsecuencia, ...data } = args;
-        result = await fsClient.put(`/secuenciadocumentos/${encodeURIComponent(String(idsecuencia))}`, data, connection);
+        result = await fsClient.put(`/secuenciadocumentos/${pathId(idsecuencia)}`, data, connection);
         break;
       }
 
       case 'delete_secuenciadocumento': {
-        result = await fsClient.delete(`/secuenciadocumentos/${encodeURIComponent(String(args.idsecuencia))}`, connection);
+        result = await fsClient.delete(`/secuenciadocumentos/${pathId(args.idsecuencia)}`, connection);
         break;
       }
 
