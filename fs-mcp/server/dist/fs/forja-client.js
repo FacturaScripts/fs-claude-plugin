@@ -158,12 +158,27 @@ export class ForjaClient {
             maxBodyLength: Infinity,
             maxContentLength: Infinity,
             httpsAgent: new https.Agent({ rejectUnauthorized }),
+            // No se siguen redirecciones: al seguir una a otro host, follow-redirects
+            // solo quita Authorization y Cookie, y la cabecera X-Forja-Token (el token
+            // de autor) llegaría al destino. La forja no redirige en uso normal.
+            maxRedirects: 0,
+            // Toda ruta va bajo baseURL: una ruta absoluta («http://…» o «//host/…»)
+            // no puede llevar el token a otro host.
+            allowAbsoluteUrls: false,
         });
         instance.interceptors.response.use((response) => response, (error) => {
             const name = config.name || key;
             const status = error.response?.status;
             if (status === undefined) {
                 throw new ForjaApiError(`Forja (${name}): ${error.message || "error de conexión"}`);
+            }
+            const location = error.response?.headers?.location;
+            if (status >= 300 && status < 400 && location) {
+                // Se dice adónde iba para poder corregir la URL de la conexión
+                // (por ejemplo, de http:// o www. a https://facturascripts.com).
+                throw new ForjaApiError(`Forja (${name}, HTTP ${status}): la forja ha redirigido a ${location} y no se sigue la ` +
+                    "redirección para no enviar el token de autor a otra dirección; si es la dirección correcta, " +
+                    "corrige la URL de la conexión", status);
             }
             const { code, message } = parseErrorBody(error.response?.data);
             const hint = STATUS_HINTS[status];
