@@ -212,20 +212,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         switch (toolName) {
             case 'add_connection': {
                 const { key, name, url, token, version, setAsDefault } = toolInput;
+                // La validación acepta "1" y "0" como booleanos, y "0" es verdadero en JS
+                const makeDefault = setAsDefault === true || setAsDefault === '1';
                 connectionManager.addConnection(key, {
                     name,
                     url,
                     token,
                     ...(version ? { version } : {}),
                 });
-                if (setAsDefault) {
+                if (makeDefault) {
                     connectionManager.setDefault(key);
                 }
                 return {
                     content: [
                         {
                             type: 'text',
-                            text: `Connection "${name}" (${key}) added successfully${setAsDefault ? ' and set as default' : ''}`,
+                            text: `Connection "${name}" (${key}) added successfully${makeDefault ? ' and set as default' : ''}`,
                         },
                     ],
                 };

@@ -259,8 +259,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           url: string;
           token: string;
           version?: string;
-          setAsDefault?: boolean;
+          setAsDefault?: boolean | '1' | '0';
         };
+        // La validación acepta "1" y "0" como booleanos, y "0" es verdadero en JS
+        const makeDefault = setAsDefault === true || setAsDefault === '1';
 
         connectionManager.addConnection(key, {
           name,
@@ -269,7 +271,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ...(version ? { version } : {}),
         });
 
-        if (setAsDefault) {
+        if (makeDefault) {
           connectionManager.setDefault(key);
         }
 
@@ -278,7 +280,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text' as const,
               text: `Connection "${name}" (${key}) added successfully${
-                setAsDefault ? ' and set as default' : ''
+                makeDefault ? ' and set as default' : ''
               }`,
             },
           ],

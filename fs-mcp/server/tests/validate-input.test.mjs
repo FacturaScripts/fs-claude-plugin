@@ -187,6 +187,23 @@ for (const [tool, prop] of [['add_connection', 'key'], ['add_connection', 'name'
   });
 }
 
+for (const [setAsDefault, esperado] of [['0', false], [false, false], ['1', true], [true, true]]) {
+  test(`add_connection con setAsDefault ${JSON.stringify(setAsDefault)} ${esperado ? 'la pone' : 'no la pone'} por defecto`, async () => {
+    const key = `nueva-${String(setAsDefault)}`;
+    try {
+      const { result } = await llamar('add_connection', { key, name: 'Nueva', url: 'http://127.0.0.1:9', token: 't', setAsDefault });
+      assert.notEqual(result.isError, true);
+      const guardado = JSON.parse(fs.readFileSync(path.join(home, 'connections.json'), 'utf8'));
+      assert.ok(Object.hasOwn(guardado.connections, key));
+      assert.equal(guardado.default, esperado ? key : 'pega');
+      assert.equal(result.content[0].text.includes('set as default'), esperado);
+    } finally {
+      // Vuelve a 'pega' en el archivo y en el servidor, que la guarda en memoria
+      await llamar('set_default_connection', { key: 'pega' });
+    }
+  });
+}
+
 test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
   const esquema = { properties: { codpostal: { type: 'string' } } };
   assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);
