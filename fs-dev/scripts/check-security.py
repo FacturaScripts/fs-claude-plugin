@@ -21,7 +21,7 @@ Analiza como PHP también las extensiones que el servidor puede ejecutar como
 tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…) y los archivos de
 extensión desconocida que contengan ``<?php`` o ``<?=``, aunque estén en
 ``node_modules/``. Los binarios no, y la documentación y los workflows
-(``.md``, ``.yml``, ``.github/``) solo si empiezan por PHP. Un ``.js``,
+(``.md``, ``.yml``) solo si empiezan por PHP. Un ``.js``,
 ``.html``, ``.twig`` o ``.xml`` con PHP dentro se analiza con su lenguaje y se
 anota como no analizado como PHP, igual que un binario que contiene ``<?php``.
 Los directorios de tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a
@@ -75,8 +75,7 @@ BINARY_EXTENSIONS = frozenset({
     '.woff', '.woff2', '.ttf', '.otf', '.eot', '.zip', '.gz', '.tgz', '.bz2', '.xz', '.7z', '.rar',
     '.mp3', '.mp4', '.ogg', '.wav', '.webm',
 })
-# Documentación y configuración de CI (también todo .github/): citan PHP de ejemplo
-# o lo generan para otro sitio.
+# Documentación y configuración de CI: citan PHP de ejemplo o lo generan para otro sitio.
 DOC_EXTENSIONS = frozenset({'.md', '.markdown', '.yml', '.yaml'})
 
 # Funciones que ejecutan comandos o código y que no deben usarse como callback.
@@ -495,12 +494,7 @@ def is_binary(path: Path, data: bytes) -> bool:
     return path.suffix.lower() in BINARY_EXTENSIONS or b'\0' in data[:8192]
 
 
-def is_doc_file(path: Path, plugin_dir: Path) -> bool:
-    """Indica si un archivo es documentación o configuración de CI."""
-    return path.suffix.lower() in DOC_EXTENSIONS or '.github' in path.relative_to(plugin_dir).parts
-
-
-def unknown_has_php(path: Path, plugin_dir: Path, data: bytes) -> bool:
+def unknown_has_php(path: Path, data: bytes) -> bool:
     """Indica si un archivo de extensión desconocida se analiza como PHP.
 
     Un ``include`` lo ejecutaría igual, pero un binario tiene ``<?=`` por azar, y
@@ -509,7 +503,7 @@ def unknown_has_php(path: Path, plugin_dir: Path, data: bytes) -> bool:
     """
     if is_binary(path, data):
         return False
-    if is_doc_file(path, plugin_dir):
+    if path.suffix.lower() in DOC_EXTENSIONS:
         return PHP_MARKER_BYTES.match(data.lstrip(b'\xef\xbb\xbf \t\r\n')) is not None
     return PHP_MARKER_BYTES.search(data) is not None
 
@@ -522,7 +516,7 @@ def is_binary_with_php(path: Path) -> bool:
     return data is not None and is_binary(path, data) and BINARY_PHP_TAG.search(data) is not None
 
 
-def is_php_file(path: Path, plugin_dir: Path) -> bool:
+def is_php_file(path: Path) -> bool:
     """Indica si PHP puede ejecutar el archivo: por su extensión o, si no es de un
     lenguaje conocido, porque contiene PHP. Un ``.js`` que cita ``<?php`` en un
     comentario sigue siendo JS."""
@@ -532,7 +526,7 @@ def is_php_file(path: Path, plugin_dir: Path) -> bool:
     if suffix in LANGUAGES:
         return False
     data = read_bytes(path)
-    return data is not None and unknown_has_php(path, plugin_dir, data)
+    return data is not None and unknown_has_php(path, data)
 
 
 def load_source(path: Path, plugin_dir: Path) -> Source | None:
@@ -544,7 +538,7 @@ def load_source(path: Path, plugin_dir: Path) -> Source | None:
     language = LANGUAGES.get(path.suffix.lower())
     if language is None:
         data = read_bytes(path)
-        if data is None or not unknown_has_php(path, plugin_dir, data):
+        if data is None or not unknown_has_php(path, data):
             return None
         language = 'php'
         raw = data.decode('utf-8', errors='replace')
@@ -1090,7 +1084,7 @@ def iter_files(plugin_dir: Path, include_vendor: bool, include_tests: bool = Fal
                 found.links.append(f'{(relative_root / name).as_posix()} -> {os.readlink(path)}')
             if in_vendor and not include_vendor:
                 found.vendor.append(path)
-            elif in_node_modules and not is_php_file(path, plugin_dir):
+            elif in_node_modules and not is_php_file(path):
                 found.node_modules.append(path)
             else:
                 found.files.append(path)

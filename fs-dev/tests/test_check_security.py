@@ -597,6 +597,16 @@ class EvasionTest(unittest.TestCase):
         self.assertFalse(any('.git' in item for item in report['limitaciones']))
         self.assert_limpio(plugin)
 
+    def test_git_no_se_recorre(self) -> None:
+        """Lo que hay dentro de .git no se analiza: ni cuenta ni da hallazgos."""
+        report = self.audit({'.git/hooks/post-checkout.php': "<?php\nsystem($_GET['c']);\n"})
+        self.assertEqual(1, report['analizados']['archivos'], 'solo facturascripts.ini')
+        self.assertEqual([], report['hallazgos'])
+
+    def test_github_no_excluye_otras_extensiones(self) -> None:
+        """La regla de la documentación va por extensión: un .txt de .github/ con PHP a mitad se analiza."""
+        self.assert_ejecuta_comandos(self.audit({'.github/notas.txt': "texto\n<?php system($_GET['c']);\n"}))
+
 
 if __name__ == '__main__':
     unittest.main()
