@@ -67,6 +67,13 @@ class PlantillaGrandeTest(AuditTestCase):
         self.assertLess(seconds, 10, f'tardó {seconds:.1f} s')
         self.assertIn('Ejecuta un comando del sistema', self.titles(report))
 
+    def test_modificadores_en_muchas_lineas_tardan_menos_de_10_segundos(self) -> None:
+        """«final readonly» en miles de líneas: el «\\s+» de cada modificador cruzaba los saltos."""
+        content = ('<?php\n' + 'final readonly\n' * 20000 + 'exec($o);\n').encode()
+        report, seconds = self.timed_audit({'Lib/Modificadores.php': content})
+        self.assertLess(seconds, 10, f'tardó {seconds:.1f} s')
+        self.assertIn('Ejecuta un comando del sistema', self.titles(report))
+
     def test_detecta_la_clase_igual_que_antes(self) -> None:
         """Una clase en cualquiera de estas formas no es un script suelto."""
         cases = {
@@ -81,6 +88,10 @@ class PlantillaGrandeTest(AuditTestCase):
             'tras un atributo': '<?php\n#[Attribute]\nclass A {}\n',
             'tras un comentario': '<?php\n/* x */ class A {}\n',
             'tras HTML': '<div>\n</div>\n<?php\nclass A {}\n',
+            'modificador en otra línea': '<?php\nfinal\nreadonly\nclass A {}\n',
+            'modificador y línea en blanco': '<?php\nabstract\n\nclass A {}\n',
+            'readonly final': '<?php\nreadonly final class A {}\n',
+            'tres modificadores': '<?php\nfinal readonly abstract class A {}\n',
         }
         for name, content in cases.items():
             with self.subTest(name):

@@ -139,8 +139,10 @@ URL_PATTERN = re.compile(r'''(?:https?:)?//([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.
 SCHEME_URL_PATTERN = re.compile(r'''https?://([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+)''', re.I)
 FUNCTION_PATTERN = re.compile(r'\bfunction\s+(\w+)\s*\(')
 # [^\S\n] y no \s: con re.M, «^\s*» cruza los saltos y se reintenta desde cada línea, y
-# en una plantilla con mucho HTML (que queda en blanco) la búsqueda se vuelve cuadrática
-PHP_CLASS_PATTERN = re.compile(r'^[^\S\n]*(?:(?:abstract|final|readonly)\s+)*(?:class|trait|interface|enum)\s+\w+', re.M)
+# en una plantilla con mucho HTML (que queda en blanco) la búsqueda se vuelve cuadrática.
+# Por lo mismo, como mucho tres modificadores (PHP no admite repetirlos): su «\s+»
+# también cruza saltos, y «final readonly» repetido en muchas líneas lo dispararía
+PHP_CLASS_PATTERN = re.compile(r'^[^\S\n]*(?:(?:abstract|final|readonly)\s+){0,3}(?:class|trait|interface|enum)\s+\w+', re.M)
 LONG_ENCODED_PATTERN = re.compile(r'[A-Za-z0-9+/]{300,}={0,2}')
 HEX_ESCAPES_PATTERN = re.compile(r'(?:\\x[0-9a-fA-F]{2}){20,}')
 # Guarda que impide ejecutar un script salvo desde la línea de comandos.
