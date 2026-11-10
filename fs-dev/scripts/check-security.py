@@ -44,6 +44,7 @@ solo informa: nunca modifica el plugin.
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import os
 import re
@@ -163,6 +164,10 @@ class Source:
     line_starts: list[int] = field(default_factory=list)
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
+    # Los calculan interpolates e include_expression_end una sola vez, por el
+    # mismo motivo: se consultan por cada include.
+    interpolations: list[tuple[int, int]] | None = None
+    expression_stops: tuple[list[int], list[int], dict[int, list[int]]] | None = None
 
     def line_of(self, offset: int) -> int:
         """Devuelve el número de línea (desde 1) de una posición del archivo."""
@@ -789,18 +794,24 @@ def interpolates(source: Source, start: int, end: int) -> bool:
 
     Interpolan las comillas dobles y el heredoc; las comillas simples y el
     nowdoc no. ``code`` conserva los delimitadores de cada cadena con el
-    contenido en blanco, así que sirve para localizarlas en ``text``.
+    contenido en blanco, así que sirve para localizarlas en ``text``. Las
+    cadenas que interpolan se buscan una vez por archivo.
     """
-    for literal in re.finditer(r'''(["'])\s*\1''', source.code[start:end]):
-        text = source.text[start + literal.start():start + literal.end()]
-        if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
-            continue
-        # Un «$» precedido de un número impar de barras está escapado. Un nombre
-        # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
-        # texto ya decodificado, cualquier carácter no ASCII)
-        if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{\x80-\U0010ffff]', text):
-            return True
-    return False
+    if source.interpolations is None:
+        source.interpolations = []
+        for literal in re.finditer(r'''(["'])\s*\1''', source.code):
+            text = source.text[literal.start():literal.end()]
+            if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
+                continue
+            # Un «$» precedido de un número impar de barras está escapado. Un nombre
+            # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
+            # texto ya decodificado, cualquier carácter no ASCII)
+            if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{\x80-\U0010ffff]', text):
+                source.interpolations.append(literal.span())
+    # Las cadenas no se solapan: si la primera desde «start» no acaba antes de
+    # «end», tampoco las siguientes
+    index = bisect.bisect_left(source.interpolations, (start,))
+    return index < len(source.interpolations) and source.interpolations[index][1] <= end
 
 
 def include_expression_end(source: Source, start: int, end: int) -> int:
@@ -808,20 +819,31 @@ def include_expression_end(source: Source, start: int, end: int) -> int:
 
     Acaba al final de la sentencia (``end``) o en una coma o un cierre de
     paréntesis, corchete o llave que no abrió ella: ``(include $a) + [...]``.
+    Las comas y los cierres se agrupan una vez por archivo según la profundidad
+    a la que están, y la expresión acaba en el primero de su misma profundidad.
     """
-    depth = 0
+    if source.expression_stops is None:
+        brackets: list[int] = []
+        depths: list[int] = []
+        stops: dict[int, list[int]] = {}
+        depth = 0
+        for found in re.finditer(r'[()\[\]{},]', source.code):
+            char = found.group()
+            if char in '([{':
+                depth += 1
+            else:
+                stops.setdefault(depth, []).append(found.start())
+                if char != ',':
+                    depth -= 1
+            brackets.append(found.start())
+            depths.append(depth)
+        source.expression_stops = (brackets, depths, stops)
+    brackets, depths, stops = source.expression_stops
+    before = bisect.bisect_left(brackets, start)
+    positions = stops.get(depths[before - 1] if before else 0, [])
+    index = bisect.bisect_left(positions, start)
     end = min(end, len(source.code))
-    for index in range(start, end):
-        char = source.code[index]
-        if char in '([{':
-            depth += 1
-        elif char in ')]}':
-            if depth == 0:
-                return index
-            depth -= 1
-        elif char == ',' and depth == 0:
-            return index
-    return end
+    return positions[index] if index < len(positions) and positions[index] < end else end
 
 
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:

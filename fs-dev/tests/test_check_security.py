@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 from contextlib import redirect_stdout
@@ -473,6 +474,17 @@ class EvasionTest(unittest.TestCase):
         report = self.audit({'Lib/Diez.php': "<?php\n$t = <<<A\nhola\nsystem($_GET['c']);\n"})
         self.assertIn(4, [item['linea'] for item in report['hallazgos']])
 
+    def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
+        """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
+
+        Con 4000 include en una sola sentencia, la base tarda en torno a un cuarto de
+        segundo y una búsqueda por include, decenas. La cota deja margen de sobra.
+        """
+        plugin = build_plugin(self.root, {'Lib/Once.php': '<?php\n' + "include f('')." * 4000 + "'';\n"})
+        started = time.monotonic()
+        CHECKER.audit(plugin)
+        self.assertLess(time.monotonic() - started, 5)
+
     def test_include_fijo_no_mira_cadenas_que_no_son_su_ruta(self) -> None:
         """Una cadena interpolada después del include, fuera de su expresión, no lo marca."""
         cases = {
@@ -481,6 +493,8 @@ class EvasionTest(unittest.TestCase):
             'cierre-y-variable': "<?php include __DIR__ . '/a.php' ?>\n<?php $y = 1; ?>\n",
             'parentesis': php_class('Siete', "        $cfg = (include __DIR__ . '/cfg.php') + ['k' => \"$x\"];"),
             'coma': php_class('Siete', "        $r = [include __DIR__ . '/a.php', \"$x\"];"),
+            # La llave que cierra el método está a la profundidad del include, pero después del «;»
+            'despues-del-punto-y-coma': php_class('Siete', "        include __DIR__ . '/a.php';\n        echo \"$x\";"),
             # Sin «;» ni «?>» hasta el final del archivo: no debe salirse de él
             'sin-fin': "<?php include __DIR__ . '/a.php'",
         }
