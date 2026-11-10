@@ -12,4 +12,10 @@
  * puede ir en la ruta sin cambiar el recurso.
  */
 export declare function pathId(value: unknown): string;
+/**
+ * Como pathId, para un código que el esquema declara string. Un número se
+ * rechaza en vez de convertirlo: en JSON no lleva ceros a la izquierda, y el
+ * código 00123 llegaría como 123, que puede ser el de otro registro.
+ */
+export declare function pathCode(value: unknown, name: string): string;
 //# sourceMappingURL=pathId.d.ts.map

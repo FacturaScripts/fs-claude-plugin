@@ -3,7 +3,7 @@
  * Incluye: Clientes, Proveedores, Productos, Familias, Fabricantes, Almacenes, etc.
  */
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 /**
  * Resuelve el idproducto (clave primaria) de un producto a partir de su referencia.
@@ -1643,12 +1643,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_cliente': {
             const params = input;
             const { connection, codcliente, ...data } = params;
-            const result = await fsClient.put(`/clientes/${pathId(codcliente)}`, data, connection);
+            const result = await fsClient.put(`/clientes/${pathCode(codcliente, 'codcliente')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cliente': {
             const params = input;
-            const result = await fsClient.delete(`/clientes/${pathId(params.codcliente)}`, params.connection);
+            const result = await fsClient.delete(`/clientes/${pathCode(params.codcliente, 'codcliente')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_proveedor': {
@@ -1660,12 +1660,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_proveedor': {
             const params = input;
             const { connection, codproveedor, ...data } = params;
-            const result = await fsClient.put(`/proveedores/${pathId(codproveedor)}`, data, connection);
+            const result = await fsClient.put(`/proveedores/${pathCode(codproveedor, 'codproveedor')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_proveedor': {
             const params = input;
-            const result = await fsClient.delete(`/proveedores/${pathId(params.codproveedor)}`, params.connection);
+            const result = await fsClient.delete(`/proveedores/${pathCode(params.codproveedor, 'codproveedor')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_producto': {
@@ -1696,12 +1696,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_contacto': {
             const params = input;
             const { connection, codcontacto, ...data } = params;
-            const result = await fsClient.put(`/contactos/${pathId(codcontacto)}`, data, connection);
+            const result = await fsClient.put(`/contactos/${pathCode(codcontacto, 'codcontacto')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_contacto': {
             const params = input;
-            const result = await fsClient.delete(`/contactos/${pathId(params.codcontacto)}`, params.connection);
+            const result = await fsClient.delete(`/contactos/${pathCode(params.codcontacto, 'codcontacto')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_variante': {
@@ -1730,12 +1730,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_familia': {
             const params = input;
             const { connection, codfamilia, ...data } = params;
-            const result = await fsClient.put(`/familias/${pathId(codfamilia)}`, data, connection);
+            const result = await fsClient.put(`/familias/${pathCode(codfamilia, 'codfamilia')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_familia': {
             const params = input;
-            const result = await fsClient.delete(`/familias/${pathId(params.codfamilia)}`, params.connection);
+            const result = await fsClient.delete(`/familias/${pathCode(params.codfamilia, 'codfamilia')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_fabricante': {
@@ -1747,12 +1747,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_fabricante': {
             const params = input;
             const { connection, codfabricante, ...data } = params;
-            const result = await fsClient.put(`/fabricantes/${pathId(codfabricante)}`, data, connection);
+            const result = await fsClient.put(`/fabricantes/${pathCode(codfabricante, 'codfabricante')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_fabricante': {
             const params = input;
-            const result = await fsClient.delete(`/fabricantes/${pathId(params.codfabricante)}`, params.connection);
+            const result = await fsClient.delete(`/fabricantes/${pathCode(params.codfabricante, 'codfabricante')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_almacen': {
@@ -1764,12 +1764,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_almacen': {
             const params = input;
             const { connection, codalmacen, ...data } = params;
-            const result = await fsClient.put(`/almacenes/${pathId(codalmacen)}`, data, connection);
+            const result = await fsClient.put(`/almacenes/${pathCode(codalmacen, 'codalmacen')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_almacen': {
             const params = input;
-            const result = await fsClient.delete(`/almacenes/${pathId(params.codalmacen)}`, params.connection);
+            const result = await fsClient.delete(`/almacenes/${pathCode(params.codalmacen, 'codalmacen')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_tarifa': {
@@ -1781,12 +1781,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_tarifa': {
             const params = input;
             const { connection, codtarifa, ...data } = params;
-            const result = await fsClient.put(`/tarifas/${pathId(codtarifa)}`, data, connection);
+            const result = await fsClient.put(`/tarifas/${pathCode(codtarifa, 'codtarifa')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_tarifa': {
             const params = input;
-            const result = await fsClient.delete(`/tarifas/${pathId(params.codtarifa)}`, params.connection);
+            const result = await fsClient.delete(`/tarifas/${pathCode(params.codtarifa, 'codtarifa')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_atributo': {
@@ -1798,12 +1798,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_atributo': {
             const params = input;
             const { connection, codatributo, ...data } = params;
-            const result = await fsClient.put(`/atributos/${pathId(codatributo)}`, data, connection);
+            const result = await fsClient.put(`/atributos/${pathCode(codatributo, 'codatributo')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_atributo': {
             const params = input;
-            const result = await fsClient.delete(`/atributos/${pathId(params.codatributo)}`, params.connection);
+            const result = await fsClient.delete(`/atributos/${pathCode(params.codatributo, 'codatributo')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_atributovalor': {
@@ -1832,12 +1832,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_agente': {
             const params = input;
             const { connection, codagente, ...data } = params;
-            const result = await fsClient.put(`/agentes/${pathId(codagente)}`, data, connection);
+            const result = await fsClient.put(`/agentes/${pathCode(codagente, 'codagente')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_agente': {
             const params = input;
-            const result = await fsClient.delete(`/agentes/${pathId(params.codagente)}`, params.connection);
+            const result = await fsClient.delete(`/agentes/${pathCode(params.codagente, 'codagente')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_grupoclientes': {
@@ -1849,12 +1849,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_grupoclientes': {
             const params = input;
             const { connection, codgrupo, ...data } = params;
-            const result = await fsClient.put(`/grupoclientes/${pathId(codgrupo)}`, data, connection);
+            const result = await fsClient.put(`/grupoclientes/${pathCode(codgrupo, 'codgrupo')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_grupoclientes': {
             const params = input;
-            const result = await fsClient.delete(`/grupoclientes/${pathId(params.codgrupo)}`, params.connection);
+            const result = await fsClient.delete(`/grupoclientes/${pathCode(params.codgrupo, 'codgrupo')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'create_productoproveedor': {
@@ -1900,12 +1900,12 @@ export async function handleCoreBusinessTool(name, args) {
         case 'update_cuentabancocliente': {
             const params = input;
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoclientes/${pathId(codcuenta)}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoclientes/${pathCode(codcuenta, 'codcuenta')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cuentabancocliente': {
             const params = input;
-            const result = await fsClient.delete(`/cuentabancoclientes/${pathId(params.codcuenta)}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoclientes/${pathCode(params.codcuenta, 'codcuenta')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:

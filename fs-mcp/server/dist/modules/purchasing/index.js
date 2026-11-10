@@ -1,5 +1,5 @@
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const purchasingTools = [
     {
@@ -959,12 +959,12 @@ export async function handlePurchasingTool(name, args) {
         case 'update_cuentabancoproveedor': {
             const params = input;
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoproveedores/${pathId(codcuenta)}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoproveedores/${pathCode(codcuenta, 'codcuenta')}`, data, connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         case 'delete_cuentabancoproveedor': {
             const params = input;
-            const result = await fsClient.delete(`/cuentabancoproveedores/${pathId(params.codcuenta)}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoproveedores/${pathCode(params.codcuenta, 'codcuenta')}`, params.connection);
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
         default:

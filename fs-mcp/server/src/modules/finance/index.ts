@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
@@ -620,13 +620,13 @@ export async function handleFinanceTool(
     case 'update_formapago': {
       const params = input as any as UpdateFormaPagoParams;
       const { connection, codpago, ...data } = params;
-      const result = await fsClient.put(`/formapagos/${pathId(codpago)}`, data, connection);
+      const result = await fsClient.put(`/formapagos/${pathCode(codpago, 'codpago')}`, data, connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
     case 'delete_formapago': {
       const params = input as any as DeleteFormaPagoParams;
-      const result = await fsClient.delete(`/formapagos/${pathId(params.codpago)}`, params.connection);
+      const result = await fsClient.delete(`/formapagos/${pathCode(params.codpago, 'codpago')}`, params.connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
@@ -640,13 +640,13 @@ export async function handleFinanceTool(
     case 'update_divisa': {
       const params = input as any as UpdateDivisaParams;
       const { connection, coddivisa, ...data } = params;
-      const result = await fsClient.put(`/divisas/${pathId(coddivisa)}`, data, connection);
+      const result = await fsClient.put(`/divisas/${pathCode(coddivisa, 'coddivisa')}`, data, connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
     case 'delete_divisa': {
       const params = input as any as DeleteDivisaParams;
-      const result = await fsClient.delete(`/divisas/${pathId(params.coddivisa)}`, params.connection);
+      const result = await fsClient.delete(`/divisas/${pathCode(params.coddivisa, 'coddivisa')}`, params.connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
@@ -660,13 +660,13 @@ export async function handleFinanceTool(
     case 'update_impuesto': {
       const params = input as any as UpdateImpuestoParams;
       const { connection, codimpuesto, ...data } = params;
-      const result = await fsClient.put(`/impuestos/${pathId(codimpuesto)}`, data, connection);
+      const result = await fsClient.put(`/impuestos/${pathCode(codimpuesto, 'codimpuesto')}`, data, connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
     case 'delete_impuesto': {
       const params = input as any as DeleteImpuestoParams;
-      const result = await fsClient.delete(`/impuestos/${pathId(params.codimpuesto)}`, params.connection);
+      const result = await fsClient.delete(`/impuestos/${pathCode(params.codimpuesto, 'codimpuesto')}`, params.connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
@@ -680,13 +680,13 @@ export async function handleFinanceTool(
     case 'update_retencion': {
       const params = input as any as UpdateRetencionParams;
       const { connection, codretencion, ...data } = params;
-      const result = await fsClient.put(`/retenciones/${pathId(codretencion)}`, data, connection);
+      const result = await fsClient.put(`/retenciones/${pathCode(codretencion, 'codretencion')}`, data, connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
     case 'delete_retencion': {
       const params = input as any as DeleteRetencionParams;
-      const result = await fsClient.delete(`/retenciones/${pathId(params.codretencion)}`, params.connection);
+      const result = await fsClient.delete(`/retenciones/${pathCode(params.codretencion, 'codretencion')}`, params.connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 

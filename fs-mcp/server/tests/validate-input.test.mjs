@@ -160,6 +160,33 @@ for (const tool of ['update_producto', 'delete_producto']) {
   });
 }
 
+test('un código de la ruta como número se rechaza: perdería los ceros a la izquierda', async () => {
+  for (const tool of ['delete_cliente', 'update_cliente']) {
+    const { result, peticiones } = await llamar(tool, { connection: 'pega', codcliente: 123 });
+    assert.equal(result.isError, true, tool);
+    assert.match(result.content[0].text, /"codcliente" va como texto, entre comillas/);
+    assert.deepEqual(peticiones, [], tool);
+  }
+});
+
+test('un código de la ruta como texto llega intacto, con sus ceros', async () => {
+  const { result, peticiones } = await llamar('update_cliente', { connection: 'pega', codcliente: '00123', codpostal: 8001 });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['PUT /api/3/clientes/00123']);
+});
+
+for (const [tool, prop] of [['add_connection', 'key'], ['add_connection', 'name'], ['add_connection', 'url'], ['add_connection', 'token'], ['add_connection', 'version'], ['set_default_connection', 'key']]) {
+  test(`${tool} rechaza ${prop} como número y no toca el archivo de conexiones`, async () => {
+    const archivo = path.join(home, 'connections.json');
+    const antes = fs.readFileSync(archivo, 'utf8');
+    const args = { key: 'nueva', name: 'Nueva', url: 'http://127.0.0.1:9', token: 't', [prop]: 5 };
+    const { result } = await llamar(tool, tool === 'set_default_connection' ? { key: 5 } : args);
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, new RegExp(`"${prop}" va como texto, entre comillas`));
+    assert.equal(fs.readFileSync(archivo, 'utf8'), antes);
+  });
+}
+
 test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
   const esquema = { properties: { codpostal: { type: 'string' } } };
   assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);

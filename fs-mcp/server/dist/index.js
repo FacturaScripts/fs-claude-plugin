@@ -178,6 +178,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Combine with tools from modules that are registered via setRequestHandler
     return { tools: toolList };
 });
+// Las tools de conexión guardan sus argumentos en el archivo de conexiones tal
+// como llegan, así que ahí un número no vale por texto: se guardaría como número
+const CONNECTION_TOOLS = new Set(['add_connection', 'set_default_connection']);
+function connectionArgsAsText(toolName, schema, input) {
+    if (!CONNECTION_TOOLS.has(toolName))
+        return null;
+    for (const [name, value] of Object.entries(input ?? {})) {
+        const property = schema.properties?.[name];
+        if (property?.type === 'string' && typeof value === 'number') {
+            return `el argumento "${name}" va como texto, entre comillas`;
+        }
+    }
+    return null;
+}
 /**
  * Call tool handler
  */
@@ -187,7 +201,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Los handlers no validan sus argumentos: se rechaza lo que no case con el
     // inputSchema antes de llamarlos
     const tool = tools.get(toolName);
-    const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) : null;
+    const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) ?? connectionArgsAsText(toolName, tool.inputSchema, toolInput) : null;
     if (invalid) {
         return {
             content: [{ type: 'text', text: `Argumentos no válidos para ${toolName}: ${invalid}` }],
