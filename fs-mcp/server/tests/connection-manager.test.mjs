@@ -6,6 +6,7 @@
  */
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -382,4 +383,76 @@ test('con un enlace simbólico roto a un directorio que no existe, no se guarda 
   assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
   assert.equal(fs.existsSync(dotfiles), false);
   assert.throws(() => connectionManager.getConnection('a'), /no encontrada|No hay conexión/);
+});
+
+/**
+ * Ejecuta `cuerpo` en otro proceso con el gestor cargado como `connectionManager`
+ * y devuelve su salida. Con tope de tiempo: un bucle que no termina falla el
+ * test en vez de colgar la batería.
+ */
+function enOtroProceso(file, cuerpo, prologo = '') {
+  const script = `${prologo}\nconst { connectionManager } = await import(${JSON.stringify(managerUrl)});\n${cuerpo}`;
+  return execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+    env: { ...process.env, FS_CONNECTIONS_FILE: file },
+    encoding: 'utf-8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+    timeout: 10000,
+  });
+}
+
+const intentarGuardar = `
+try {
+  connectionManager.addConnection('a', { name: 'A', url: 'http://127.0.0.1:1', token: 'secreto' });
+  console.log('guardado');
+} catch (error) {
+  console.log(error.code);
+}`;
+
+test('un enlace roto cuyo destino vuelve a él a través de un directorio que no existe no cuelga el servidor', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  // El sistema da ENOENT ("falta" no existe); quitando el ".." sobre el texto, vuelve a ser el propio enlace
+  const enlace = path.join(dir, 'connections.json');
+  fs.symlinkSync('falta/../connections.json', enlace);
+
+  assert.equal(enOtroProceso(enlace, intentarGuardar).trim(), 'ENOENT');
+  assert.equal(fs.lstatSync(enlace).isSymbolicLink(), true);
+  assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
+});
+
+test('un enlace roto con ".." dentro de un directorio enlazado se resuelve sobre el directorio real', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  // home/cfg -> ../real/cfg y real/cfg/link -> ../other/conn.json: para el sistema, real/other/conn.json
+  for (const sub of ['real/cfg', 'real/other', 'home/other']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
+  fs.symlinkSync(path.join('..', 'real', 'cfg'), path.join(dir, 'home', 'cfg'));
+  fs.symlinkSync(path.join('..', 'other', 'conn.json'), path.join(dir, 'real', 'cfg', 'link'));
+  process.env.FS_CONNECTIONS_FILE = path.join(dir, 'home', 'cfg', 'link');
+  const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
+
+  connectionManager.addConnection('k1', conexion);
+  connectionManager.addConnection('k2', conexion);
+
+  const destino = path.join(dir, 'real', 'other', 'conn.json');
+  assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(destino, 'utf-8')).connections).sort(), ['k1', 'k2']);
+  assert.deepEqual(fs.readdirSync(path.join(dir, 'home', 'other')), []);
+  assert.equal(fs.lstatSync(path.join(dir, 'real', 'cfg', 'link')).isSymbolicLink(), true);
+});
+
+test('una cadena de enlaces rotos que no se acaba se corta con ELOOP', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  // El sistema corta las cadenas reales con ELOOP antes que el tope; aquí se simula una que no lo hace
+  const prologo = `
+import fs from 'node:fs';
+import path from 'node:path';
+const { realpathSync } = fs;
+let salto = 0;
+fs.realpathSync = (p, ...resto) => {
+  if (path.basename(p).startsWith('enlace')) throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+  return realpathSync(p, ...resto);
+};
+fs.readlinkSync = () => 'enlace' + ++salto;`;
+
+  assert.equal(enOtroProceso(path.join(dir, 'enlace0'), intentarGuardar, prologo).trim(), 'ELOOP');
 });

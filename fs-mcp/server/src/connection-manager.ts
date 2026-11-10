@@ -14,6 +14,9 @@ interface FsClaudeConfig {
   [key: string]: unknown;
 }
 
+/** Tope de enlaces simbólicos encadenados que se siguen, el SYMLOOP_MAX de Linux. */
+const MAX_SYMLINK_HOPS = 40;
+
 /** Antigüedad a partir de la cual un temporal del archivo de conexiones se da por abandonado. */
 const STALE_TMP_MS = 10 * 60 * 1000;
 
@@ -226,7 +229,9 @@ class ConnectionManager {
     }
 
     let existingConfig: unknown = undefined;
-    const rawData = fs.existsSync(this.connectionsPath) ? fs.readFileSync(this.connectionsPath, "utf-8") : "";
+    // Se lee de la misma ruta en la que se va a escribir
+    const target = this.realConnectionsPath();
+    const rawData = fs.existsSync(target) ? fs.readFileSync(target, "utf-8") : "";
     if (rawData.trim() !== "") {
       try {
         existingConfig = JSON.parse(rawData);
@@ -257,12 +262,12 @@ class ConnectionManager {
             };
       const next = change(this.withDefaults(fsClaudeConfig.connections));
       fsClaudeConfig.connections = next;
-      this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
+      this.writeFileAtomic(target, JSON.stringify(fsClaudeConfig, null, 2));
       return next;
     }
 
     const next = change(this.withDefaults(existingConfig as ConnectionsConfig | undefined));
-    this.writeFileAtomic(JSON.stringify(next, null, 2));
+    this.writeFileAtomic(target, JSON.stringify(next, null, 2));
     return next;
   }
 
@@ -285,8 +290,7 @@ class ConnectionManager {
    * El temporal se lleva a disco (fsync) antes del rename: sin eso, un corte de
    * luz puede dejar el archivo renombrado con 0 bytes, y uno vacío se rehace.
    */
-  private writeFileAtomic(content: string): void {
-    const target = this.realConnectionsPath();
+  private writeFileAtomic(target: string, content: string): void {
     const tmpPath = `${target}.${randomUUID()}.tmp`;
     try {
       const fd = fs.openSync(tmpPath, "wx", 0o600);
@@ -311,8 +315,7 @@ class ConnectionManager {
    */
   private realConnectionsPath(): string {
     let current = this.connectionsPath;
-    // Termina: un ciclo de enlaces hace que realpathSync falle con ELOOP
-    for (;;) {
+    for (let hops = 0; hops <= MAX_SYMLINK_HOPS; hops++) {
       try {
         return fs.realpathSync(current);
       } catch (error) {
@@ -326,8 +329,17 @@ class ConnectionManager {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") return current;
         throw error;
       }
-      current = path.resolve(path.dirname(current), target);
+      // El destino relativo se une al directorio real del enlace sin normalizar
+      // sus "..": los resuelve el sistema sobre los directorios reales, como al
+      // seguir el enlace. path.resolve los quitaría sobre el texto, y daría otra
+      // ruta (o la del propio enlace, sin terminar nunca).
+      current = path.isAbsolute(target)
+        ? target
+        : `${fs.realpathSync(path.dirname(current))}${path.sep}${target}`;
     }
+    throw Object.assign(new Error(`Demasiados enlaces simbólicos encadenados en ${this.connectionsPath}`), {
+      code: "ELOOP",
+    });
   }
 
   /**

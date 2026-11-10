@@ -2,6 +2,8 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
+/** Tope de enlaces simbólicos encadenados que se siguen, el SYMLOOP_MAX de Linux. */
+const MAX_SYMLINK_HOPS = 40;
 /** Antigüedad a partir de la cual un temporal del archivo de conexiones se da por abandonado. */
 const STALE_TMP_MS = 10 * 60 * 1000;
 /** Sufijo de los temporales que crea writeFileAtomic: `<archivo>.<uuid>.tmp`. */
@@ -194,7 +196,9 @@ class ConnectionManager {
             fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
         }
         let existingConfig = undefined;
-        const rawData = fs.existsSync(this.connectionsPath) ? fs.readFileSync(this.connectionsPath, "utf-8") : "";
+        // Se lee de la misma ruta en la que se va a escribir
+        const target = this.realConnectionsPath();
+        const rawData = fs.existsSync(target) ? fs.readFileSync(target, "utf-8") : "";
         if (rawData.trim() !== "") {
             try {
                 existingConfig = JSON.parse(rawData);
@@ -219,11 +223,11 @@ class ConnectionManager {
                 };
             const next = change(this.withDefaults(fsClaudeConfig.connections));
             fsClaudeConfig.connections = next;
-            this.writeFileAtomic(JSON.stringify(fsClaudeConfig, null, 2));
+            this.writeFileAtomic(target, JSON.stringify(fsClaudeConfig, null, 2));
             return next;
         }
         const next = change(this.withDefaults(existingConfig));
-        this.writeFileAtomic(JSON.stringify(next, null, 2));
+        this.writeFileAtomic(target, JSON.stringify(next, null, 2));
         return next;
     }
     /** Completa con valores vacíos lo que falte de una configuración leída del archivo. */
@@ -244,8 +248,7 @@ class ConnectionManager {
      * El temporal se lleva a disco (fsync) antes del rename: sin eso, un corte de
      * luz puede dejar el archivo renombrado con 0 bytes, y uno vacío se rehace.
      */
-    writeFileAtomic(content) {
-        const target = this.realConnectionsPath();
+    writeFileAtomic(target, content) {
         const tmpPath = `${target}.${randomUUID()}.tmp`;
         try {
             const fd = fs.openSync(tmpPath, "wx", 0o600);
@@ -271,8 +274,7 @@ class ConnectionManager {
      */
     realConnectionsPath() {
         let current = this.connectionsPath;
-        // Termina: un ciclo de enlaces hace que realpathSync falle con ELOOP
-        for (;;) {
+        for (let hops = 0; hops <= MAX_SYMLINK_HOPS; hops++) {
             try {
                 return fs.realpathSync(current);
             }
@@ -289,8 +291,17 @@ class ConnectionManager {
                     return current;
                 throw error;
             }
-            current = path.resolve(path.dirname(current), target);
+            // El destino relativo se une al directorio real del enlace sin normalizar
+            // sus "..": los resuelve el sistema sobre los directorios reales, como al
+            // seguir el enlace. path.resolve los quitaría sobre el texto, y daría otra
+            // ruta (o la del propio enlace, sin terminar nunca).
+            current = path.isAbsolute(target)
+                ? target
+                : `${fs.realpathSync(path.dirname(current))}${path.sep}${target}`;
         }
+        throw Object.assign(new Error(`Demasiados enlaces simbólicos encadenados en ${this.connectionsPath}`), {
+            code: "ELOOP",
+        });
     }
     /**
      * Obtiene una conexión por clave o la conexión por defecto
