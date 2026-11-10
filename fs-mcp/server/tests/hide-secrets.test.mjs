@@ -46,6 +46,11 @@ const crudo = http.createServer((req, res) => {
   if (ruta === '/api/3/settings') return res.end(`\nWarning: Undefined array key [x] in /app/x.php on line 3\n${JSON.stringify([ajuste])}`);
   // Aviso sin salto de línea antes del JSON, sin «{» ni «[»
   if (ruta === '/api/3/users/sinsalto') return res.end(`Aviso sin salto de línea: ${JSON.stringify([usuario])}`);
+  // El JSON se busca desde 20 principios de línea como mucho: en el vigésimo se
+  // encuentra, en el vigesimoprimero no, y miles de ellos fallan sin tardar
+  if (ruta === '/api/3/users/tope') return res.end(`aviso\n${'[x]\n'.repeat(19)}${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/users/sobretope') return res.end(`aviso\n${'[x]\n'.repeat(20)}${JSON.stringify([usuario])}`);
+  if (ruta === '/api/3/users/patologico') return res.end(`x\n${'[\n'.repeat(10000)}${JSON.stringify([usuario])}`);
   // «{» o «[» a principio de línea sin JSON válido detrás
   if (ruta === '/api/3/users/falso') return res.end(`[x] aviso con HASH\n{no es JSON`);
   if (ruta === '/api/3/apikeyes') return res.end('Warning: aviso de PHP sin JSON detrás, con CLAVE');
@@ -144,6 +149,22 @@ test('con un aviso con «[» antes del JSON, settings se filtra igual', async ()
   const respuesta = JSON.stringify(await fsClient.get('settings', {}, 'cruda'));
   assert.ok(!respuesta.includes('SMTP'));
   assert.ok(respuesta.includes('smtp.example.test'));
+});
+
+test('el JSON se encuentra en el vigésimo principio de línea con «[»', async () => {
+  const respuesta = JSON.stringify(await fsClient.get('users/tope', {}, 'cruda'));
+  assert.deepEqual(secretos.filter((s) => respuesta.includes(s)), []);
+  assert.ok(respuesta.includes('admin'));
+});
+
+test('pasado el vigésimo principio de línea con «[», se falla sin devolver el texto', async () => {
+  await assert.rejects(fsClient.get('users/sobretope', {}, 'cruda'), /respuesta no JSON/);
+});
+
+test('miles de líneas que empiezan por «[» fallan en menos de un segundo', async () => {
+  const inicio = performance.now();
+  await assert.rejects(fsClient.get('users/patologico', {}, 'cruda'), /respuesta no JSON/);
+  assert.ok(performance.now() - inicio < 1000, `tardó ${Math.round(performance.now() - inicio)} ms`);
 });
 
 test('con «{» o «[» a principio de línea y ningún JSON válido, da error sin devolver el texto', async () => {

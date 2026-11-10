@@ -87,6 +87,13 @@ function fieldsToHide(response: AxiosResponse): string[] | undefined {
 }
 
 /**
+ * Principios de línea con «{» o «[» desde los que se busca el JSON detrás de un
+ * aviso de PHP. Las líneas de un aviso empiezan por su tipo, «<br />» o espacios,
+ * así que el JSON suele ser el primero; el margen es para texto de otro origen.
+ */
+const MAX_JSON_STARTS = 20;
+
+/**
  * Quita los campos indicados de la respuesta. Cubre las tres formas de respuesta
  * de la API: lista de registros, un registro y {ok, data}.
  */
@@ -100,10 +107,16 @@ function hideApiFields<T>(fields: string[] | undefined, data: T): T {
   // falla sin devolver el texto, que puede contener los campos. El aviso puede
   // llevar «{» o «[» («{closure}()», «Undefined array key [x]»), y PHP acaba cada
   // uno con un salto de línea: el JSON se prueba desde el primer «{» o «[» del
-  // texto y desde cada uno que empieza una línea, por orden
+  // texto y desde los que empiezan una línea, por orden. Cada intento analiza el
+  // resto entero, así que se limitan: sin el tope, un texto con miles de líneas
+  // que empiezan por «[» costaría segundos de CPU
   if (typeof data === "string") {
     const starts = new Set([data.search(/[[{]/)]);
+    let lines = 0;
     for (const match of data.matchAll(/\n[[{]/g)) {
+      if (++lines > MAX_JSON_STARTS) {
+        break;
+      }
       starts.add(match.index + 1);
     }
     starts.delete(-1);
