@@ -33,12 +33,17 @@ interface InputSchema {
   required?: string[] | undefined;
 }
 
+/** Un número escrito como texto: "5", "-3", "2.5". Sin espacios, exponentes ni hexadecimal. */
+const NUMERIC_STRING = /^-?\d+(\.\d+)?$/;
+
 function matchesType(value: unknown, type: string | undefined): boolean {
   switch (type) {
     case 'string':
       return typeof value === 'string';
     case 'number':
-      return typeof value === 'number' && Number.isFinite(value);
+      // Una cadena numérica se acepta, como antes de validar (los identificadores
+      // van a la ruta como texto), y se pasa sin convertir
+      return (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && NUMERIC_STRING.test(value));
     case 'boolean':
       return typeof value === 'boolean';
     case 'array':

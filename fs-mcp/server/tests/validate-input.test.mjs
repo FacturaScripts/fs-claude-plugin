@@ -70,6 +70,19 @@ test('un id que no es número se rechaza antes de llegar a la API', async () => 
   assert.deepEqual(peticiones, []);
 });
 
+test('un id vacío se rechaza como no numérico', async () => {
+  const { result, peticiones } = await llamar('delete_factura_cliente', { connection: 'pega', id: '' });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /"id" debe ser de tipo number/);
+  assert.deepEqual(peticiones, []);
+});
+
+test('un id numérico escrito como texto llega a la API, como antes de validar', async () => {
+  const { result, peticiones } = await llamar('delete_factura_cliente', { connection: 'pega', id: '5' });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['DELETE /api/3/facturaclientes/5']);
+});
+
 test('falta un argumento obligatorio: se rechaza sin llamar a la API', async () => {
   const { result, peticiones } = await llamar('delete_factura_cliente', { connection: 'pega' });
   assert.equal(result.isError, true);
