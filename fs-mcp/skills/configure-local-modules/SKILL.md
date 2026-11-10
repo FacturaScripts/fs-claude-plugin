@@ -49,7 +49,7 @@ Pregunta al usuario si quiere:
 Para crear la carpeta por defecto y registrarla:
 
 ```python
-import json
+import json, os, uuid
 from pathlib import Path
 
 fs_claude = Path.home() / '.fs-claude.json'
@@ -66,7 +66,22 @@ config = json.loads(fs_claude.read_text(encoding='utf-8')) if fs_claude.exists()
     "settings": {"sortClassMembers": True, "updateCopyright": True}
 }
 config.setdefault('settings', {})['localModulesPath'] = str(modules_dir)
-fs_claude.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding='utf-8')
+# Se escribe en un temporal del mismo directorio, se lleva a disco y se renombra
+# encima: el archivo nunca queda vacío ni a medias, tampoco mientras lo lee el
+# servidor MCP. Guarda los tokens: el temporal se crea en exclusiva y legible
+# sólo por el usuario (0600). Si es un enlace simbólico, se escribe en su destino.
+destino = fs_claude.resolve()
+tmp = destino.with_name(f"{destino.name}.{uuid.uuid4()}.tmp")
+fd = os.open(tmp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+try:
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(config, indent=2, ensure_ascii=False))
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, destino)
+except BaseException:
+    tmp.unlink(missing_ok=True)
+    raise
 print(f"Ruta guardada en: {fs_claude}")
 ```
 
