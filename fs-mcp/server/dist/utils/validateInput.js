@@ -22,14 +22,20 @@
 import { hasMetadataEnum } from '../metadata/enrich.js';
 /** Un número escrito como texto: "5", "-3", "2.5". Sin espacios, exponentes ni hexadecimal. */
 const NUMERIC_STRING = /^-?\d+(\.\d+)?$/;
+const INTEGER_STRING = /^-?\d+$/;
 function matchesType(value, type) {
     switch (type) {
         case 'string':
-            return typeof value === 'string';
+            // Un número se acepta, como antes de validar (codejercicio: 2025), y se pasa
+            // sin convertir: el cliente lo manda como texto
+            return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
         case 'number':
             // Una cadena numérica se acepta, como antes de validar (los identificadores
             // van a la ruta como texto), y se pasa sin convertir
             return (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && NUMERIC_STRING.test(value));
+        case 'integer':
+            // Como number, sin decimales
+            return Number.isInteger(value) || (typeof value === 'string' && INTEGER_STRING.test(value));
         case 'boolean':
             // "1" y "0" llegaban a la API y funcionan en MySQL y PostgreSQL. "true" y
             // "false" no: la API guarda el texto tal cual, y en MySQL sin modo estricto

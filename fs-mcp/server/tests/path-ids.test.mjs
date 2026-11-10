@@ -44,6 +44,8 @@ const EXCLUIDAS = new Set(['get_mi_recurso']);
 
 // Llamadas que llevan un identificador en la ruta en src/modules
 const CON_ID_EN_RUTA = 99;
+// De ellas, las que llevan un código declarado string (update_* y delete_*)
+const CON_CODIGO_EN_RUTA = 48;
 
 test.after(async () => {
   await fs.cerrar();
@@ -55,7 +57,7 @@ test.after(async () => {
  * Devuelve, por tool, las rutas que llegaron y el mensaje de error si lo hubo,
  * lanzado o devuelto como resultado con isError (algunos módulos lo capturan).
  */
-async function recorrer(valor) {
+async function recorrer(valor, valorNumber = valor) {
   const resultados = [];
   for (const [modulo, registrar, manejar] of modulos) {
     const m = await import(`../dist/modules/${modulo}/index.js`);
@@ -65,7 +67,9 @@ async function recorrer(valor) {
       if (EXCLUIDAS.has(nombre)) continue;
       const args = { connection: 'pega' };
       for (const [prop, esquema] of Object.entries(tool.inputSchema.properties ?? {})) {
-        if (prop !== 'connection' && (esquema.type === 'string' || esquema.type === 'number')) args[prop] = valor;
+        if (prop === 'connection') continue;
+        if (esquema.type === 'string') args[prop] = valor;
+        if (esquema.type === 'number') args[prop] = valorNumber;
       }
       const desde = fs.peticiones.length;
       let error = '';
@@ -98,4 +102,13 @@ test('las tools que llevan un id en la ruta lo meten tal cual, sin codificar', a
   assert.deepEqual(codificadas, []);
   const talCual = resultados.filter(({ rutas }) => rutas.some((r) => r.endsWith('/C+1')));
   assert.ok(talCual.length >= CON_ID_EN_RUTA, `sólo ${talCual.length} tools llevaron «C+1» tal cual a la ruta`);
+});
+
+test('un código declarado string no va a la ruta si llega como número', async () => {
+  // 123 en las propiedades string; las number llevan un id válido
+  const resultados = await recorrer(123, 7);
+  const conNumero = resultados.flatMap(({ nombre, rutas }) => rutas.filter((r) => r.endsWith('/123')).map((r) => `${nombre}: ${r}`));
+  assert.deepEqual(conNumero, []);
+  const rechazadas = resultados.filter(({ error }) => /va como texto, entre comillas/.test(error));
+  assert.ok(rechazadas.length >= CON_CODIGO_EN_RUTA, `sólo ${rechazadas.length} tools rechazaron el código como número`);
 });

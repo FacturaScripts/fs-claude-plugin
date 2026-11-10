@@ -5,7 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const configurationTools: Tool[] = [
@@ -747,12 +747,12 @@ export async function handleConfigurationTool(
 
       case 'update_serie': {
         const { connection: _conn, codserie, ...data } = args;
-        result = await fsClient.put(`/series/${pathId(codserie)}`, data, connection);
+        result = await fsClient.put(`/series/${pathCode(codserie, 'codserie')}`, data, connection);
         break;
       }
 
       case 'delete_serie': {
-        result = await fsClient.delete(`/series/${pathId(args.codserie)}`, connection);
+        result = await fsClient.delete(`/series/${pathCode(args.codserie, 'codserie')}`, connection);
         break;
       }
 
@@ -798,12 +798,12 @@ export async function handleConfigurationTool(
 
       case 'update_agenciatransporte': {
         const { connection: _conn, codtrans, ...data } = args;
-        result = await fsClient.put(`/agenciatransportes/${pathId(codtrans)}`, data, connection);
+        result = await fsClient.put(`/agenciatransportes/${pathCode(codtrans, 'codtrans')}`, data, connection);
         break;
       }
 
       case 'delete_agenciatransporte': {
-        result = await fsClient.delete(`/agenciatransportes/${pathId(args.codtrans)}`, connection);
+        result = await fsClient.delete(`/agenciatransportes/${pathCode(args.codtrans, 'codtrans')}`, connection);
         break;
       }
 
@@ -815,12 +815,12 @@ export async function handleConfigurationTool(
 
       case 'update_identificadorfiscal': {
         const { connection: _conn, tipoidfiscal, ...data } = args;
-        result = await fsClient.put(`/identificadorfiscales/${pathId(tipoidfiscal)}`, data, connection);
+        result = await fsClient.put(`/identificadorfiscales/${pathCode(tipoidfiscal, 'tipoidfiscal')}`, data, connection);
         break;
       }
 
       case 'delete_identificadorfiscal': {
-        result = await fsClient.delete(`/identificadorfiscales/${pathId(args.tipoidfiscal)}`, connection);
+        result = await fsClient.delete(`/identificadorfiscales/${pathCode(args.tipoidfiscal, 'tipoidfiscal')}`, connection);
         break;
       }
 
