@@ -698,6 +698,44 @@ class IncludeNoPhpTest(unittest.TestCase):
         titles = [item['titulo'] for item in CHECKER.audit(plugin)['hallazgos']]
         self.assertNotIn('Incluye como PHP un archivo sin extensión PHP', titles)
 
+    def assert_git_declarado(self, relative: str, content: bytes) -> None:
+        """Un .git con PHP se declara sin analizar, y el veredicto no da el plugin por limpio."""
+        plugin = self.plugin(relative, content)
+        report = CHECKER.audit(plugin)
+        git_dir = relative[:relative.index('.git') + 4]
+        self.assertIn(f'{git_dir}/ es un repositorio git que contiene PHP y no se ha analizado.',
+                      report['limitaciones'])
+        self.assertEqual(1, report['analizados']['sin_analizar'])
+        self.assertNotIn('SIN HALLAZGOS RELEVANTES', self.run_main(plugin)[1])
+
+    def test_php_en_hooks_de_git(self) -> None:
+        """Un .php en .git/hooks/ se ejecuta si se incluye."""
+        self.assert_git_declarado('.git/hooks/x.php', b"<?php system($_GET['c']);\n")
+
+    def test_php_en_git_anidado(self) -> None:
+        """También en un .git que no está en la raíz."""
+        self.assert_git_declarado('Lib/.git/x.php', b"<?php system($_GET['c']);\n")
+
+    def test_php_binario_en_git(self) -> None:
+        """Un .php de .git cuenta por su extensión, aunque su contenido parezca binario."""
+        self.assert_git_declarado('.git/x.php', b'\0' + self.PAYLOAD)
+
+    def test_texto_con_php_en_git(self) -> None:
+        """Un archivo de texto de .git con PHP dentro cuenta, aunque no tenga extensión PHP."""
+        self.assert_git_declarado('.git/hooks/post-merge', b'#!/usr/bin/env php\n' + self.PAYLOAD)
+
+    def test_clon_normal_sale_limpio(self) -> None:
+        """Un .git de verdad, con objetos comprimidos que tienen <?= por azar, no se declara."""
+        plugin = build_plugin(self.root, {'.git/config': '[core]\n', '.git/HEAD': 'ref: refs/heads/main\n',
+                                          '.git/hooks/pre-commit.sample': '#!/bin/sh\nexit 0\n'})
+        (plugin / '.git/objects/pack').mkdir(parents=True)
+        (plugin / '.git/objects/pack/pack-1.pack').write_bytes(b'PACK\0\0\0\2' + b'\x9c<?=\xff' * 50)
+        report = CHECKER.audit(plugin)
+        self.assertEqual(0, report['analizados']['sin_analizar'], report['limitaciones'])
+        code, output = self.run_main(plugin)
+        self.assertEqual(0, code)
+        self.assertIn('SIN HALLAZGOS RELEVANTES', output)
+
 
 if __name__ == '__main__':
     unittest.main()

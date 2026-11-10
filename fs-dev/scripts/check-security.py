@@ -28,8 +28,8 @@ sin extensión PHP. Un ``.js``,
 anota como no analizado como PHP, igual que un binario que contiene ``<?php``.
 Los directorios de tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a
 cualquier profundidad salvo con ``--include-tests``, y ``.git`` siempre. Lo que
-no se analiza (``vendor/``, el resto de ``node_modules/`` y los directorios
-enlazados, que no se siguen) se enumera en las limitaciones, y entonces el
+no se analiza (``vendor/``, el resto de ``node_modules/``, un ``.git`` que
+contiene PHP y los directorios enlazados, que no se siguen) se enumera en las limitaciones, y entonces el
 resultado no afirma que el plugin esté limpio, solo lo analizado.
 
 Uso:
@@ -516,6 +516,32 @@ def is_binary_with_php(path: Path) -> bool:
         return False
     data = read_bytes(path)
     return data is not None and is_binary(path, data) and BINARY_PHP_TAG.search(data) is not None
+
+
+def git_has_php(git_dir: Path) -> bool:
+    """Indica si un ``.git`` contiene un archivo que un include ejecutaría como PHP.
+
+    Cuenta los de extensión PHP y los de texto con ``<?php`` o ``<?=``. Los binarios
+    no: los objetos comprimidos tienen ``<?=`` por azar, y un include de un archivo
+    sin extensión PHP ya lo señala ``non_php_include``.
+    """
+    for root, _dirs, names in os.walk(git_dir):
+        for name in names:
+            path = Path(root) / name
+            if path.suffix.lower() in PHP_EXTENSIONS:
+                return True
+            if path.is_symlink():
+                continue
+            try:
+                with path.open('rb') as handle:
+                    head = handle.read(8192)
+                    if is_binary(path, head):
+                        continue
+                    if PHP_MARKER_BYTES.search(head + handle.read()):
+                        return True
+            except OSError:
+                continue
+    return False
 
 
 def is_php_file(path: Path) -> bool:
@@ -1080,7 +1106,8 @@ def iter_files(plugin_dir: Path, include_vendor: bool, include_tests: bool = Fal
     Los directorios de tests se omiten a cualquier profundidad salvo que se
     pidan, igual que en ``check-min-version.py``: FacturaScripts no los carga y
     sus datos de prueba (claves, contraseñas) solo generan ruido. ``.git`` no se
-    recorre: no tiene nada que el servidor ejecute. Los directorios enlazados no
+    recorre, y solo se anota si contiene PHP: un clon normal no tiene nada que
+    el servidor ejecute. Los directorios enlazados no
     se recorren, y se anotan. De ``node_modules/`` solo
     se analizan los archivos PHP. Los archivos enlazados se analizan, y se anotan
     porque pueden apuntar fuera del plugin.
@@ -1097,6 +1124,8 @@ def iter_files(plugin_dir: Path, include_vendor: bool, include_tests: bool = Fal
                 found.skipped_dirs.append(f'{relative}/ es un enlace a un directorio y no se ha seguido')
             elif name != GIT_DIR:
                 kept.append(name)
+            elif git_has_php(Path(root) / name):
+                found.skipped_dirs.append(f'{relative}/ es un repositorio git que contiene PHP y no se ha analizado')
         dirs[:] = kept
         in_vendor = VENDOR_DIR in relative_root.parts
         in_node_modules = NODE_MODULES_DIR in relative_root.parts
