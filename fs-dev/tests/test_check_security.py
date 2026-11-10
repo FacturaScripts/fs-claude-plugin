@@ -401,6 +401,24 @@ class EvasionTest(unittest.TestCase):
         self.assertEqual([9], [item['linea'] for item in findings])
         self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
 
+    def test_include_que_concatena_una_variable_no_ascii_o_variable(self) -> None:
+        """Una variable concatenada se ve aunque su nombre no sea ASCII o se escriba con ${...}."""
+        cases = {
+            'euro': "include __DIR__ . '/' . $€;\n".encode(),
+            # Un byte 0x80-0xff suelto llega como U+FFFD al leer el archivo
+            'latin1': b"include __DIR__ . '/' . $\xff;\n",
+            'dolar-llave': "include __DIR__ . '/' . ${'f'};\n".encode(),
+        }
+        for name, line in cases.items():
+            with self.subTest(name):
+                plugin = build_plugin(self.root / name, {})
+                (plugin / 'Lib').mkdir()
+                (plugin / 'Lib/Doce.php').write_bytes(b'<?php\n' + line)
+                findings = self.by_title(CHECKER.audit(plugin)).get(
+                    'Incluye un archivo PHP calculado en tiempo de ejecución', [])
+                self.assertEqual([2], [item['linea'] for item in findings])
+                self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
+
     def test_include_con_interpolacion_en_la_cadena(self) -> None:
         """Una variable interpolada en comillas dobles o en heredoc hace la ruta dinámica."""
         cases = {

@@ -860,7 +860,8 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     end = end if close == -1 else close
     statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
-    if re.search(r'\$\w', statement):
+    # El mismo nombre de variable que en interpolates, y ${...}
+    if re.search(r'\$[A-Za-z_{\x80-\U0010ffff]', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
