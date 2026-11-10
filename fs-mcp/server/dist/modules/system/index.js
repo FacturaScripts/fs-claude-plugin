@@ -3,6 +3,7 @@
  * Provides tools for accessing system logs, tasks, and events
  */
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const systemTools = [
     {
@@ -414,11 +415,11 @@ export async function handleSystemTool(name, args) {
             }
             case 'update_user': {
                 const { connection: _conn, nick, ...data } = args;
-                result = await fsClient.put(`/users/${nick}`, data, connection);
+                result = await fsClient.put(`/users/${pathId(nick)}`, data, connection);
                 break;
             }
             case 'delete_user': {
-                result = await fsClient.delete(`/users/${args.nick}`, connection);
+                result = await fsClient.delete(`/users/${pathId(args.nick)}`, connection);
                 break;
             }
             case 'create_role': {
@@ -428,11 +429,11 @@ export async function handleSystemTool(name, args) {
             }
             case 'update_role': {
                 const { connection: _conn, codrole, ...data } = args;
-                result = await fsClient.put(`/roles/${codrole}`, data, connection);
+                result = await fsClient.put(`/roles/${pathId(codrole)}`, data, connection);
                 break;
             }
             case 'delete_role': {
-                result = await fsClient.delete(`/roles/${args.codrole}`, connection);
+                result = await fsClient.delete(`/roles/${pathId(args.codrole)}`, connection);
                 break;
             }
             case 'create_roleaccess': {
@@ -442,11 +443,11 @@ export async function handleSystemTool(name, args) {
             }
             case 'update_roleaccess': {
                 const { connection: _conn, id, ...data } = args;
-                result = await fsClient.put(`/roleaccess/${id}`, data, connection);
+                result = await fsClient.put(`/roleaccess/${pathId(id)}`, data, connection);
                 break;
             }
             case 'delete_roleaccess': {
-                result = await fsClient.delete(`/roleaccess/${args.id}`, connection);
+                result = await fsClient.delete(`/roleaccess/${pathId(args.id)}`, connection);
                 break;
             }
             case 'create_roleuser': {
@@ -455,7 +456,7 @@ export async function handleSystemTool(name, args) {
                 break;
             }
             case 'delete_roleuser': {
-                result = await fsClient.delete(`/roleusers/${args.id}`, connection);
+                result = await fsClient.delete(`/roleusers/${pathId(args.id)}`, connection);
                 break;
             }
             default:
