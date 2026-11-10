@@ -332,9 +332,11 @@ def strip_php(content: str) -> tuple[str, str]:
     # inicio) para comillas dobles o invertidas, ('heredoc', cierre) y ('codigo', llaves abiertas) para
     # el código de una interpolación
     stack: list[tuple[str, object]] = []
-    # Si una etiqueta no tiene ninguna línea de cierre desde una posición, tampoco la
-    # tiene desde una posterior: cada heredoc sin cierre no vuelve a recorrer el archivo
-    unclosed: dict[str, int] = {}
+    # Último cierre encontrado de cada etiqueta, o None si no lo tiene. Las aperturas se
+    # recorren hacia delante, así que una posterior que no pase de ese cierre encontraría
+    # el mismo, y sin cierre desde una posición tampoco lo hay desde otra posterior: ni un
+    # heredoc sin cierre ni uno anidado vuelven a recorrer el archivo
+    searched: dict[str, re.Match | None] = {}
 
     while index < length:
         if not in_php:
@@ -454,10 +456,12 @@ def strip_php(content: str) -> tuple[str, str]:
         # sin cierre no es un heredoc y lo que sigue se lee como código
         closing = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
                                        re.M)
-        found = match and match.end() < unclosed.get(match.group(2), length + 1) \
-            and closing.search(content, match.end())
-        if match and not found:
-            unclosed[match.group(2)] = min(match.end(), unclosed.get(match.group(2), length + 1))
+        found = None
+        if match:
+            label = match.group(2)
+            found = searched.get(label)
+            if label not in searched or found and match.end() > found.start():
+                found = searched[label] = closing.search(content, match.end())
         if found and match.group(1) == "'":
             # El nowdoc no interpola
             end = found.end()

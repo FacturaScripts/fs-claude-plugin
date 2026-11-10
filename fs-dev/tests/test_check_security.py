@@ -553,6 +553,33 @@ class EvasionTest(unittest.TestCase):
         CHECKER.audit(plugin)
         self.assertLess(time.monotonic() - started, 5)
 
+    def test_heredoc_seguidos_con_la_misma_etiqueta(self) -> None:
+        """Cada heredoc busca su propio cierre, aunque otro anterior use la misma etiqueta."""
+        cases = {
+            # El segundo nowdoc acaba en su cierre, no en el del primero
+            'nowdoc': "<?php\n$a = <<<'A'\nx\nA;\n$b = <<<'A'\nsystem($z);\nA;\nsystem($y);\n",
+            # El segundo heredoc no tiene cierre: es código
+            'sin-cierre': "<?php\n$a = <<<A\nx\nA;\n$b = <<<A\nzz\nsystem($y);\n",
+        }
+        for name, content in cases.items():
+            with self.subTest(name):
+                report = self.by_title(self.audit({'Lib/Dieciocho.php': content}))
+                self.assertEqual([8 if name == 'nowdoc' else 7],
+                                 [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
+
+    def test_muchos_heredoc_anidados_no_tardan_de_mas(self) -> None:
+        """El cierre de una etiqueta ya buscado sirve para la misma etiqueta abierta antes de él.
+
+        Con 20.000 heredoc <<<A anidados en interpolaciones, buscar el cierre desde cada
+        apertura tarda unos diez segundos. La cota deja margen de sobra.
+        """
+        n = 20000
+        content = '<?php $a = ' + '<<<A\n{$a[' * n + '1' + ']}\nA\n' * n + ';\n'
+        plugin = build_plugin(self.root, {'Lib/Diecisiete.php': content})
+        started = time.monotonic()
+        CHECKER.audit(plugin)
+        self.assertLess(time.monotonic() - started, 5)
+
     def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
         """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
 
