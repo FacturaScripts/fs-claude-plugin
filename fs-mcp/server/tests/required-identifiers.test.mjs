@@ -47,3 +47,21 @@ for (const [tool, falta] of [
     assert.deepEqual(peticiones, []);
   });
 }
+
+// La validación contra inputSchema rechaza el identificador que falta, pero no uno
+// vacío: con él, la petición saldría con el filtro vacío
+for (const [tool, falta, vacio] of [
+  ['exportar_factura_cliente', 'idfactura', 0],
+  ['get_facturas_cliente_por_cifnif', 'cifnif', ''],
+  ['get_tiempo_beneficios_cliente', 'codcliente', ''],
+]) {
+  test(`${tool} con ${falta} vacío devuelve error sin llamar a la API`, async () => {
+    let resultado;
+    const peticiones = await peticionesDe(async () => {
+      resultado = await handleAnalyticsTool(tool, { connection: 'pega', [falta]: vacio });
+    });
+    assert.equal(resultado.isError, true);
+    assert.match(resultado.content[0].text, new RegExp(falta));
+    assert.deepEqual(peticiones, []);
+  });
+}
