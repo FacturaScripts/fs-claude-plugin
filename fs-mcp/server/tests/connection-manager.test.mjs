@@ -310,3 +310,39 @@ test('al cargar se borran los temporales abandonados y no los de un guardado en 
   assert.equal(connectionManager.getConnection().name, 'Pruebas');
   assert.deepEqual(fs.readdirSync(dir).sort(), ['connections.json', enCurso, ...ajenos].sort());
 });
+
+test('un temporal que no se puede borrar no impide borrar los que vienen detrás', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
+  temporales.push(dir);
+  const file = path.join(dir, 'connections.json');
+  fs.writeFileSync(file, JSON.stringify({ default: 'a', connections: { a: conexion } }), { mode: 0o600 });
+  const viejo = new Date(Date.now() - 60 * 60 * 1000);
+  // Un directorio con nombre de temporal (rmSync falla) y uno que desaparece antes del lstat
+  const directorio = `connections.json.${'4'.repeat(8)}-4444-4444-4444-${'4'.repeat(12)}.tmp`;
+  const desaparecido = `connections.json.${'5'.repeat(8)}-5555-5555-5555-${'5'.repeat(12)}.tmp`;
+  const abandonado = `connections.json.${'6'.repeat(8)}-6666-6666-6666-${'6'.repeat(12)}.tmp`;
+  fs.mkdirSync(path.join(dir, directorio));
+  fs.utimesSync(path.join(dir, directorio), viejo, viejo);
+  fs.writeFileSync(path.join(dir, abandonado), 'token', { mode: 0o600 });
+  fs.utimesSync(path.join(dir, abandonado), viejo, viejo);
+  process.env.FS_CONNECTIONS_FILE = file;
+
+  // El orden de readdir no está definido: se fija para que los que fallan vayan delante
+  const { readdirSync } = fs;
+  fs.readdirSync = (p, ...resto) =>
+    p === dir ? [directorio, desaparecido, abandonado, 'connections.json'] : readdirSync(p, ...resto);
+  const avisos = [];
+  const consoleError = console.error;
+  console.error = (...args) => avisos.push(args.join(' '));
+  try {
+    await import(`${managerUrl}?caso=${++instancia}`);
+  } finally {
+    fs.readdirSync = readdirSync;
+    console.error = consoleError;
+  }
+
+  assert.equal(fs.existsSync(path.join(dir, abandonado)), false);
+  assert.equal(fs.existsSync(path.join(dir, directorio)), true);
+  assert.equal(avisos.filter((a) => a.includes('temporal')).length, 1);
+  assert.match(avisos.join('\n'), new RegExp(directorio.replace(/\./g, '\\.')));
+});

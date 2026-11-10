@@ -86,27 +86,38 @@ class ConnectionManager {
      * Borra los temporales de guardados que no terminaron (el proceso murió entre
      * la escritura y el rename), que contienen los tokens. Sólo los que tienen
      * más de unos minutos, para no llevarse el de un guardado en curso de otro
-     * proceso. Si no se puede, se avisa y se sigue cargando.
+     * proceso. Si uno no se puede borrar, se avisa y se sigue con los demás; uno
+     * que ya no está (lo ha borrado otro proceso) no es un error.
      */
     removeStaleTemporaries() {
+        let target;
+        let names;
         try {
-            const target = this.realConnectionsPath();
-            const dir = path.dirname(target);
-            const base = path.basename(target);
-            const limit = Date.now() - STALE_TMP_MS;
-            for (const name of fs.readdirSync(dir)) {
-                if (!name.startsWith(base) || !TMP_SUFFIX.test(name.slice(base.length)))
-                    continue;
-                const tmpPath = path.join(dir, name);
-                if (fs.lstatSync(tmpPath).mtimeMs < limit) {
-                    fs.rmSync(tmpPath, { force: true });
-                }
-            }
+            target = this.realConnectionsPath();
+            names = fs.readdirSync(path.dirname(target));
         }
         catch (error) {
             if (error.code === "ENOENT")
                 return;
             console.error(`[fs-mcp] No se pudieron borrar los temporales de ${this.connectionsPath}: ${describeError(error)}`);
+            return;
+        }
+        const base = path.basename(target);
+        const limit = Date.now() - STALE_TMP_MS;
+        for (const name of names) {
+            if (!name.startsWith(base) || !TMP_SUFFIX.test(name.slice(base.length)))
+                continue;
+            const tmpPath = path.join(path.dirname(target), name);
+            try {
+                if (fs.lstatSync(tmpPath).mtimeMs < limit) {
+                    fs.rmSync(tmpPath, { force: true });
+                }
+            }
+            catch (error) {
+                if (error.code === "ENOENT")
+                    continue;
+                console.error(`[fs-mcp] No se pudo borrar el temporal ${tmpPath}: ${describeError(error)}`);
+            }
         }
     }
     /**

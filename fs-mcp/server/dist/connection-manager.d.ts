@@ -22,7 +22,8 @@ declare class ConnectionManager {
      * Borra los temporales de guardados que no terminaron (el proceso murió entre
      * la escritura y el rename), que contienen los tokens. Sólo los que tienen
      * más de unos minutos, para no llevarse el de un guardado en curso de otro
-     * proceso. Si no se puede, se avisa y se sigue cargando.
+     * proceso. Si uno no se puede borrar, se avisa y se sigue con los demás; uno
+     * que ya no está (lo ha borrado otro proceso) no es un error.
      */
     private removeStaleTemporaries;
     /**
