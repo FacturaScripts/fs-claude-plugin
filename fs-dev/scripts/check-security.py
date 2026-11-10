@@ -44,6 +44,7 @@ solo informa: nunca modifica el plugin.
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import os
 import re
@@ -163,6 +164,8 @@ class Source:
     code: str
     minified: bool = False
     line_starts: list[int] = field(default_factory=list)
+    # Lo calcula execution_context una sola vez: dónde termina cada «function x(» y su nombre.
+    functions: tuple[list[int], list[str]] | None = None
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
 
@@ -670,8 +673,13 @@ def execution_context(source: Source, offset: int, public_file: bool) -> str:
     if source.language == 'twig':
         return 'plantilla renderizada en el navegador del usuario'
 
-    functions = FUNCTION_PATTERN.findall(source.code[:offset])
-    current = functions[-1] if functions else ''
+    if source.functions is None:
+        found = list(FUNCTION_PATTERN.finditer(source.code))
+        source.functions = ([match.end() for match in found], [match.group(1) for match in found])
+    ends, names = source.functions
+    # La última función cuya cabecera termina antes de la posición
+    before = bisect.bisect_right(ends, offset)
+    current = names[before - 1] if before else ''
 
     if source.relative == 'Init.php':
         return {

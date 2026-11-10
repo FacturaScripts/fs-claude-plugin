@@ -126,5 +126,28 @@ class RetornoDeCarroTest(AuditTestCase):
                 self.assertEqual(lines, [3])
 
 
+class MuchosHallazgosTest(AuditTestCase):
+    """Un archivo con miles de hallazgos no tarda en describir su contexto."""
+
+    def test_20000_hallazgos_tardan_menos_de_10_segundos(self) -> None:
+        """Buscar las funciones anteriores en cada hallazgo crecía con el cuadrado: más de un minuto."""
+        body = ''.join(f'    public function f{n}() {{ exec("ls"); }}\n' for n in range(20000))
+        content = f'<?php\nclass Init\n{{\n{body}}}\n'.encode()
+        report, seconds = self.timed_audit({'Lib/Muchos.php': content})
+        self.assertLess(seconds, 10, f'tardó {seconds:.1f} s')
+        self.assertEqual(self.titles(report).count('Ejecuta un comando del sistema'), 20000)
+
+    def test_el_contexto_usa_la_funcion_que_contiene_el_hallazgo(self) -> None:
+        """Init::update y Init::init se distinguen aunque haya muchas funciones antes."""
+        body = ''.join(f'    public function f{n}() {{}}\n' for n in range(50))
+        content = (f'<?php\nclass Init\n{{\n{body}'
+                   '    public function update() { exec($a); }\n'
+                   '    public function init() { exec($b); }\n}\n').encode()
+        contexts = [item['contexto'] for item in self.audit({'Init.php': content})['hallazgos']
+                    if item['titulo'] == 'Ejecuta un comando del sistema']
+        self.assertEqual(contexts, ['Init::update(), al instalar o actualizar el plugin',
+                                    'Init::init(), en cada petición a FacturaScripts'])
+
+
 if __name__ == '__main__':
     unittest.main()
