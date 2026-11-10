@@ -44,7 +44,8 @@ declare class ConnectionManager {
      *
      * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
      * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
-     * se pudieron interpretar.
+     * se pudieron interpretar. Un archivo vacío no tiene nada que perder y se
+     * rehace como si no existiera.
      */
     private saveConnections;
     /** Completa con valores vacíos lo que falte de una configuración leída del archivo. */

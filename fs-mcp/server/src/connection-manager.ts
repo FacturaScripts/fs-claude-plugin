@@ -161,7 +161,8 @@ class ConnectionManager {
    *
    * Si el archivo existe pero no es un objeto JSON válido, no se escribe:
    * sobrescribirlo borraría las conexiones (y los ajustes) que contiene y que no
-   * se pudieron interpretar.
+   * se pudieron interpretar. Un archivo vacío no tiene nada que perder y se
+   * rehace como si no existiera.
    */
   private saveConnections(change: (current: ConnectionsConfig) => ConnectionsConfig): ConnectionsConfig {
     const dir = path.dirname(this.connectionsPath);
@@ -170,9 +171,10 @@ class ConnectionManager {
     }
 
     let existingConfig: unknown = undefined;
-    if (fs.existsSync(this.connectionsPath)) {
+    const rawData = fs.existsSync(this.connectionsPath) ? fs.readFileSync(this.connectionsPath, "utf-8") : "";
+    if (rawData.trim() !== "") {
       try {
-        existingConfig = JSON.parse(fs.readFileSync(this.connectionsPath, "utf-8"));
+        existingConfig = JSON.parse(rawData);
       } catch (error) {
         throw new Error(
           `No se guarda la conexión: ${this.connectionsPath} no es un JSON válido y se perdería su contenido. ` +

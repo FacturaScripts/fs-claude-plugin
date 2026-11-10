@@ -234,3 +234,14 @@ test('un archivo de conexiones que es un enlace simbólico se conserva y su dest
   assert.equal(fs.statSync(destino).mode & 0o777, 0o600);
   assert.deepEqual(fs.readdirSync(dotfiles), ['connections.json']);
 });
+
+for (const contenido of ['', ' \n']) {
+  test(`un archivo de conexiones vacío (${JSON.stringify(contenido)}) se rehace al añadir una conexión`, async () => {
+    const { connectionManager, file } = await nuevoGestor(contenido);
+
+    connectionManager.addConnection('a', conexion);
+
+    assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
+    assert.equal(connectionManager.getConnection().name, 'Pruebas');
+  });
+}
