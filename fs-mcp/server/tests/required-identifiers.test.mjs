@@ -65,3 +65,20 @@ for (const [tool, falta, vacio] of [
     assert.deepEqual(peticiones, []);
   });
 }
+
+// Sólo espacios tampoco es un identificador: la petición saldría con filter[cifnif]=+
+for (const [tool, falta] of [
+  ['exportar_factura_cliente', 'idfactura'],
+  ['get_facturas_cliente_por_cifnif', 'cifnif'],
+  ['get_tiempo_beneficios_cliente', 'codcliente'],
+]) {
+  test(`${tool} con ${falta} de sólo espacios devuelve error sin llamar a la API`, async () => {
+    let resultado;
+    const peticiones = await peticionesDe(async () => {
+      resultado = await handleAnalyticsTool(tool, { connection: 'pega', [falta]: '  ' });
+    });
+    assert.equal(resultado.isError, true);
+    assert.match(resultado.content[0].text, new RegExp(falta));
+    assert.deepEqual(peticiones, []);
+  });
+}

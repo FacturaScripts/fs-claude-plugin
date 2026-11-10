@@ -812,7 +812,7 @@ export async function handleAnalyticsTool(
               const connection = input.connection as string;
               const cifnif = input.cifnif as string;
               // Sin filtro la API devolvería el primer cliente de la tabla
-              if (!cifnif) {
+              if (!cifnif || !String(cifnif).trim()) {
                 throw new Error('Falta el parámetro cifnif.');
               }
 
@@ -920,7 +920,7 @@ export async function handleAnalyticsTool(
               const codcliente = input.codcliente as string;
               const codejercicio = input.codejercicio as string | undefined;
               // Sin filtro se sumarían las facturas de todos los clientes
-              if (!codcliente) {
+              if (!codcliente || !String(codcliente).trim()) {
                 throw new Error('Falta el parámetro codcliente.');
               }
 
@@ -1039,7 +1039,7 @@ export async function handleAnalyticsTool(
               const connection = input.connection as string;
               const idfactura = input.idfactura as number;
               // Sin filtro la API devolvería la primera factura de la tabla
-              if (!idfactura) {
+              if (!idfactura || !String(idfactura).trim()) {
                 throw new Error('Falta el parámetro idfactura.');
               }
 

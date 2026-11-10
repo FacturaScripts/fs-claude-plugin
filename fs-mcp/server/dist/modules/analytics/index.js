@@ -614,7 +614,7 @@ export async function handleAnalyticsTool(name, args) {
                 const connection = input.connection;
                 const cifnif = input.cifnif;
                 // Sin filtro la API devolvería el primer cliente de la tabla
-                if (!cifnif) {
+                if (!cifnif || !String(cifnif).trim()) {
                     throw new Error('Falta el parámetro cifnif.');
                 }
                 // Buscar cliente por CIF/NIF (un CIF identifica como mucho a un puñado de clientes; limit fijo es suficiente)
@@ -693,7 +693,7 @@ export async function handleAnalyticsTool(name, args) {
                 const codcliente = input.codcliente;
                 const codejercicio = input.codejercicio;
                 // Sin filtro se sumarían las facturas de todos los clientes
-                if (!codcliente) {
+                if (!codcliente || !String(codcliente).trim()) {
                     throw new Error('Falta el parámetro codcliente.');
                 }
                 // Obtener facturas del cliente (paginación completa)
@@ -786,7 +786,7 @@ export async function handleAnalyticsTool(name, args) {
                 const connection = input.connection;
                 const idfactura = input.idfactura;
                 // Sin filtro la API devolvería la primera factura de la tabla
-                if (!idfactura) {
+                if (!idfactura || !String(idfactura).trim()) {
                     throw new Error('Falta el parámetro idfactura.');
                 }
                 // Obtener cabecera de factura (limit:1 está bien, idfactura es único)
