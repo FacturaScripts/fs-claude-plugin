@@ -18,9 +18,19 @@ de modo que un ``exec`` dentro de un comentario o de un texto no cuenta, pero no
 resuelve tipos ni sigue el flujo de datos.
 
 Analiza como PHP también las extensiones que el servidor puede ejecutar como
-tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…). Los directorios de
-tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a cualquier
-profundidad salvo con ``--include-tests``.
+tal (``.phtml``, ``.inc``, ``.php5``, ``.php7``, ``.pht``…) y los archivos de
+extensión desconocida que contengan ``<?php`` o ``<?=``, aunque estén en
+``node_modules/``. Los binarios no, y la documentación y los workflows
+(``.md``, ``.yml``) solo si empiezan por PHP; como PHP ejecuta lo que incluye
+esté donde esté el bloque, se señala todo ``include`` de ruta fija a un archivo
+sin extensión PHP. Un ``.js``,
+``.html``, ``.twig`` o ``.xml`` con PHP dentro se analiza con su lenguaje y se
+anota como no analizado como PHP, igual que un binario que contiene ``<?php``.
+Los directorios de tests (``Test``, ``Tests``, ``test``, ``tests``) se omiten a
+cualquier profundidad salvo con ``--include-tests``, y ``.git`` siempre. Lo que
+no se analiza (``vendor/``, el resto de ``node_modules/``, un ``.git`` que
+contiene PHP y los directorios enlazados, que no se siguen) se enumera en las limitaciones, y entonces el
+resultado no afirma que el plugin esté limpio, solo lo analizado.
 
 Uso:
     check-security.py <ruta_plugin> [--json] [--min-severity alta|media|baja|info]
@@ -37,6 +47,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -45,8 +56,10 @@ from pathlib import Path
 SEVERITY_ORDER = {'alta': 3, 'media': 2, 'baja': 1, 'info': 0}
 SEVERITY_LABELS = {'alta': 'ALTA', 'media': 'MEDIA', 'baja': 'BAJA', 'info': 'INFO'}
 
-# Directorios que no forman parte del código propio del plugin.
-EXCLUDED_DIRS = frozenset({'.git', 'node_modules'})
+# Directorios que no forman parte del código propio del plugin. De node_modules/
+# se analizan igualmente los archivos PHP: el servidor puede servirlos directamente.
+GIT_DIR = '.git'
+NODE_MODULES_DIR = 'node_modules'
 VENDOR_DIR = 'vendor'
 TEST_DIRS = frozenset({'Test', 'Tests', 'test', 'tests'})
 
@@ -56,8 +69,17 @@ PHP_EXTENSIONS = frozenset({'.php', '.phtml', '.inc', '.php3', '.php4', '.php5',
 # Extensiones de texto que se analizan y lenguaje con el que se interpretan.
 LANGUAGES = {
     **{suffix: 'php' for suffix in PHP_EXTENSIONS},
-    '.js': 'js', '.mjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml',
+    '.js': 'js', '.mjs': 'js', '.cjs': 'js', '.twig': 'twig', '.html': 'twig', '.xml': 'xml',
 }
+
+# Binarios: sus bytes pueden contener <?= por azar y no se analizan como PHP.
+BINARY_EXTENSIONS = frozenset({
+    '.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.tif', '.tiff', '.avif', '.pdf',
+    '.woff', '.woff2', '.ttf', '.otf', '.eot', '.zip', '.gz', '.tgz', '.bz2', '.xz', '.7z', '.rar',
+    '.mp3', '.mp4', '.ogg', '.wav', '.webm',
+})
+# Documentación y configuración de CI: citan PHP de ejemplo o lo generan para otro sitio.
+DOC_EXTENSIONS = frozenset({'.md', '.markdown', '.yml', '.yaml'})
 
 # Funciones que ejecutan comandos o código y que no deben usarse como callback.
 DANGEROUS_FUNCTIONS = (
@@ -139,6 +161,8 @@ class Source:
     code: str
     minified: bool = False
     line_starts: list[int] = field(default_factory=list)
+    # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
+    standalone: bool | None = None
 
     def line_of(self, offset: int) -> int:
         """Devuelve el número de línea (desde 1) de una posición del archivo."""
@@ -245,6 +269,30 @@ class Rule:
     check: Callable[['Source', re.Match], tuple[bool, list[str], str | None]] | None = None
 
 
+# Etiqueta que abre una isla de PHP. El ``<?`` suelto también cuenta, porque
+# short_open_tag viene activado por defecto; ``<?xml`` no.
+PHP_OPEN_TAG = re.compile(r'<\?(?:php(?=\s)|=|(?!xml))', re.I)
+
+# Indicio de que un archivo contiene PHP aunque su extensión no lo diga.
+PHP_MARKER = re.compile(r'<\?(?:php\b|=)', re.I)
+PHP_MARKER_BYTES = re.compile(rb'<\?(?:php\b|=)', re.I)
+# Forma de ruta de include que se sabe leer: un directorio fijo o un literal,
+# concatenado con separadores y literales sin interpolación, y nada más hasta
+# el final de la sentencia (';' o '?>'), con un paréntesis opcional alrededor.
+PATH_LITERAL = r"'(?:[^'\\]|\\.)*'" + '|' + r'"(?:[^"\\$]|\\.)*"'
+FIXED_INCLUDE_PATH = re.compile(
+    r'\s*(?P<open>\(\s*)?'
+    r'(?P<expr>(?:__DIR__|dirname\s*\(\s*__FILE__\s*\)|FS_FOLDER|' + PATH_LITERAL + r')'
+    r'(?:\s*\.\s*(?:DIRECTORY_SEPARATOR|' + PATH_LITERAL + r'))*)'
+    r'\s*(?(open)\)\s*)(?:;|\?>)'
+)
+# Envoltura de stream, con el mismo criterio que PHP: '://' o 'data:'. Se busca en
+# cualquier punto porque la ruta concatenada no incluye __DIR__ ni FS_FOLDER.
+STREAM_WRAPPER = re.compile(r'://|data:', re.I)
+# En un binario, <?= sale por azar; <?php, no.
+BINARY_PHP_TAG = re.compile(rb'<\?php\b', re.I)
+
+
 def blank(segment: str) -> str:
     """Sustituye un fragmento por espacios conservando sus saltos de línea."""
     return ''.join('\n' if char == '\n' else ' ' for char in segment)
@@ -253,19 +301,43 @@ def blank(segment: str) -> str:
 def strip_php(content: str) -> tuple[str, str]:
     """Devuelve el PHP sin comentarios y el PHP sin comentarios ni cadenas.
 
-    Conserva los delimitadores de las cadenas para que ``'...'`` siga
-    reconociéndose como un literal, y trata los atributos ``#[...]`` como código.
-    Las comillas invertidas se conservan porque en PHP ejecutan un comando.
+    Sigue los modos de PHP: lo que queda fuera de las islas ``<?php`` … ``?>`` es
+    HTML, que se conserva en el texto (por sus URL) y se blanquea en el código,
+    y ``?>`` cierra también un comentario de línea. Conserva los delimitadores de
+    las cadenas para que ``'...'`` siga reconociéndose como un literal, y trata
+    los atributos ``#[...]`` como código. Las comillas invertidas se conservan
+    porque en PHP ejecutan un comando.
     """
     text: list[str] = []
     code: list[str] = []
     length = len(content)
     index = 0
+    in_php = False
     heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
 
     while index < length:
+        if not in_php:
+            tag = PHP_OPEN_TAG.search(content, index)
+            end = length if tag is None else tag.start()
+            text.append(content[index:end])
+            code.append(blank(content[index:end]))
+            if tag is not None:
+                text.append(tag.group(0))
+                code.append(tag.group(0))
+                in_php = True
+                end = tag.end()
+            index = end
+            continue
+
         char = content[index]
         pair = content[index:index + 2]
+
+        if pair == '?>':
+            text.append(pair)
+            code.append(pair)
+            in_php = False
+            index += 2
+            continue
 
         if pair == '/*':
             end = content.find('*/', index + 2)
@@ -279,6 +351,8 @@ def strip_php(content: str) -> tuple[str, str]:
         if pair == '//' or (char == '#' and content[index + 1:index + 2] != '['):
             end = content.find('\n', index)
             end = length if end == -1 else end
+            close = content.find('?>', index, end)
+            end = end if close == -1 else close
             chunk = blank(content[index:end])
             text.append(chunk)
             code.append(chunk)
@@ -415,15 +489,122 @@ def strip_xml(content: str) -> tuple[str, str]:
     return cleaned, cleaned
 
 
-def load_source(path: Path, plugin_dir: Path) -> Source | None:
-    """Lee un archivo y prepara sus versiones sin comentarios y sin cadenas."""
-    language = LANGUAGES.get(path.suffix.lower())
-    if language is None:
-        return None
+def read_text(path: Path) -> str | None:
+    """Lee un archivo como texto, o devuelve None si no se puede leer."""
     try:
-        raw = path.read_text(encoding='utf-8', errors='replace')
+        return path.read_text(encoding='utf-8', errors='replace')
     except OSError:
         return None
+
+
+def is_regular_file(path: Path, follow: bool = True) -> bool:
+    """Indica si la ruta es un archivo regular: un FIFO o un dispositivo colgaría la lectura."""
+    try:
+        return stat.S_ISREG((os.stat if follow else os.lstat)(path).st_mode)
+    except OSError:
+        return False
+
+
+def read_bytes(path: Path) -> bytes | None:
+    """Lee un archivo regular como bytes, o devuelve None si no se puede leer o no es regular.
+
+    Sigue los enlaces, porque un archivo enlazado se analiza.
+    """
+    if not is_regular_file(path):
+        return None
+    try:
+        return path.read_bytes()
+    except OSError:
+        return None
+
+
+def is_binary(path: Path, data: bytes) -> bool:
+    """Indica si un archivo es binario, por su extensión o por contener bytes nulos."""
+    return path.suffix.lower() in BINARY_EXTENSIONS or b'\0' in data[:8192]
+
+
+def unknown_has_php(path: Path, data: bytes) -> bool:
+    """Indica si un archivo de extensión desconocida se analiza como PHP.
+
+    Un ``include`` lo ejecutaría igual, pero un binario tiene ``<?=`` por azar, y
+    la documentación y los workflows citan PHP de ejemplo o generan otro archivo:
+    se analizan solo si empiezan por PHP. El PHP a mitad de uno de ellos se
+    ejecutaría igual si algo lo incluye; eso lo señala ``non_php_include``.
+    """
+    if is_binary(path, data):
+        return False
+    if path.suffix.lower() in DOC_EXTENSIONS:
+        return PHP_MARKER_BYTES.match(data.lstrip(b'\xef\xbb\xbf \t\r\n')) is not None
+    return PHP_MARKER_BYTES.search(data) is not None
+
+
+def is_binary_with_php(path: Path) -> bool:
+    """Indica si un archivo binario contiene ``<?php``, que un include ejecutaría."""
+    if path.suffix.lower() in LANGUAGES:
+        return False
+    data = read_bytes(path)
+    return data is not None and is_binary(path, data) and BINARY_PHP_TAG.search(data) is not None
+
+
+def git_has_php(git_dir: Path) -> bool:
+    """Indica si un ``.git`` contiene un archivo que un include ejecutaría como PHP.
+
+    Cuentan los de extensión PHP, estén donde estén, y los de texto con ``<?php`` o
+    ``<?=`` si están en ``hooks/``, que es lo que git ejecuta. Los mensajes, los logs
+    y las referencias no cuentan, porque citan lo que se haya escrito en un commit.
+    Tampoco los binarios, porque los objetos comprimidos tienen ``<?=`` por azar.
+    El include de un archivo sin extensión PHP ya lo señala ``non_php_include``.
+    """
+    for root, _dirs, names in os.walk(git_dir):
+        in_hooks = 'hooks' in Path(root).relative_to(git_dir).parts
+        for name in names:
+            path = Path(root) / name
+            if path.suffix.lower() in PHP_EXTENSIONS:
+                return True
+            if not in_hooks or not is_regular_file(path, follow=False):
+                continue
+            try:
+                with path.open('rb') as handle:
+                    head = handle.read(8192)
+                    if is_binary(path, head):
+                        continue
+                    if PHP_MARKER_BYTES.search(head + handle.read()):
+                        return True
+            except OSError:
+                continue
+    return False
+
+
+def is_php_file(path: Path) -> bool:
+    """Indica si PHP puede ejecutar el archivo: por su extensión o, si no es de un
+    lenguaje conocido, porque contiene PHP. Un ``.js`` que cita ``<?php`` en un
+    comentario sigue siendo JS."""
+    suffix = path.suffix.lower()
+    if suffix in PHP_EXTENSIONS:
+        return True
+    if suffix in LANGUAGES:
+        return False
+    data = read_bytes(path)
+    return data is not None and unknown_has_php(path, data)
+
+
+def load_source(path: Path, plugin_dir: Path) -> Source | None:
+    """Lee un archivo y prepara sus versiones sin comentarios y sin cadenas.
+
+    Un archivo de extensión desconocida se analiza como PHP si contiene PHP,
+    porque un ``include`` lo ejecuta igual (ver ``unknown_has_php``).
+    """
+    language = LANGUAGES.get(path.suffix.lower())
+    if language is None:
+        data = read_bytes(path)
+        if data is None or not unknown_has_php(path, data):
+            return None
+        language = 'php'
+        raw = data.decode('utf-8', errors='replace')
+    else:
+        raw = read_text(path)
+        if raw is None:
+            return None
 
     strippers = {'php': strip_php, 'js': strip_js, 'twig': strip_markup, 'xml': strip_xml}
     text, code = strippers[language](raw)
@@ -511,9 +692,11 @@ def variable_value(source: Source, variable: str, before: int) -> str:
 
 def is_standalone_script(source: Source) -> bool:
     """Indica si un PHP ejecuta código propio fuera de cualquier clase."""
-    return (source.language == 'php' and source.relative != 'Init.php'
-            and not PHP_CLASS_PATTERN.search(source.code)
-            and re.search(r'\S', re.sub(r'<\?php|\?>', '', source.code)) is not None)
+    if source.standalone is None:
+        source.standalone = (source.language == 'php' and source.relative != 'Init.php'
+                             and not PHP_CLASS_PATTERN.search(source.code)
+                             and re.search(r'\S', re.sub(r'<\?php|\?>', '', source.code)) is not None)
+    return source.standalone
 
 
 def is_cli_only(source: Source) -> bool:
@@ -615,6 +798,38 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
         return False, [], None
     return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
+
+
+def non_php_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Señala el ``include`` de un archivo que puede no ser PHP.
+
+    PHP ejecuta entero lo que incluye, sea cual sea su extensión y esté donde esté
+    el bloque, y este script no analiza como PHP los binarios ni el PHP a mitad de
+    un ``.md`` o un ``.yml``. Es una heurística, y por eso falla hacia el lado
+    seguro: una ruta solo se da por PHP si la sentencia entera es una forma fija
+    que sabe leer (``FIXED_INCLUDE_PATH``), sus literales, concatenados, acaban
+    en una extensión de PHP y no contienen una envoltura de stream. Cualquier otra forma se señala. Las rutas con
+    variables ya las señala ``dynamic_include``.
+    """
+    if dynamic_include(source, match)[0]:
+        return False, [], None
+    fixed = FIXED_INCLUDE_PATH.match(source.text, match.end())
+    if fixed is None:
+        return True, ['la ruta no tiene una forma fija que este script sepa leer (__DIR__, dirname(__FILE__), '
+                      'FS_FOLDER, DIRECTORY_SEPARATOR y literales concatenados): no puede confirmar que sea PHP'], None
+    path = ''.join(unquote(literal) for literal in re.findall(PATH_LITERAL, fixed.group('expr')))
+    if STREAM_WRAPPER.search(path):
+        return True, [f'incluye {path}: una envoltura de stream (phar://, zip://, php://filter, data:…) carga el '
+                      'código de dentro de otro archivo, así que la extensión no dice qué se ejecuta'], None
+    if Path(path).suffix.lower() in PHP_EXTENSIONS:
+        return False, [], None
+    return True, [f'incluye {path}: PHP ejecuta el archivo entero aunque su extensión no sea de PHP, '
+                  'y este script puede no haberlo analizado como PHP'], None
+
+
+def unquote(literal: str) -> str:
+    """Devuelve el contenido de un literal de cadena de PHP sin interpolación."""
+    return re.sub(r'\\([\\\'"])', r'\1', literal[1:-1])
 
 
 def literal_strings(text: str) -> list[str]:
@@ -797,6 +1012,8 @@ RULES: list[Rule] = [
          php_call('eval', 'create_function'), PHP, check=eval_check),
     Rule('codigo-dinamico', 'media', 'Incluye un archivo PHP calculado en tiempo de ejecución',
          re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=dynamic_include),
+    Rule('codigo-dinamico', 'media', 'Incluye un archivo que puede no ser PHP',
+         re.compile(r'(?<![\w$>:])(?:include|require)(?:_once)?\b', re.I), PHP, check=non_php_include),
     Rule('codigo-dinamico', 'baja', 'Invoca una función cuyo nombre es una variable',
          php_call('call_user_func', 'call_user_func_array', 'forward_static_call'), PHP),
     Rule('codigo-dinamico', 'alta', 'Evalúa código JavaScript en tiempo de ejecución',
@@ -917,30 +1134,57 @@ RULES: list[Rule] = [
 ]
 
 
-def iter_files(plugin_dir: Path, include_vendor: bool,
-               include_tests: bool = False) -> tuple[list[Path], list[Path]]:
-    """Devuelve los archivos del plugin y, aparte, los de ``vendor/`` que no se analizan.
+@dataclass
+class FileSet:
+    """Archivos del plugin: los que se analizan y, aparte, los que no."""
+
+    files: list[Path] = field(default_factory=list)
+    vendor: list[Path] = field(default_factory=list)
+    node_modules: list[Path] = field(default_factory=list)
+    skipped_dirs: list[str] = field(default_factory=list)
+    links: list[str] = field(default_factory=list)
+
+
+def iter_files(plugin_dir: Path, include_vendor: bool, include_tests: bool = False) -> FileSet:
+    """Reparte los archivos del plugin entre los que se analizan y los que no.
 
     Los directorios de tests se omiten a cualquier profundidad salvo que se
     pidan, igual que en ``check-min-version.py``: FacturaScripts no los carga y
-    sus datos de prueba (claves, contraseñas) solo generan ruido.
+    sus datos de prueba (claves, contraseñas) solo generan ruido. ``.git`` no se
+    recorre, y solo se anota si contiene PHP: un clon normal no tiene nada que
+    el servidor ejecute. Los directorios enlazados no
+    se recorren, y se anotan. De ``node_modules/`` solo
+    se analizan los archivos PHP. Los archivos enlazados se analizan, y se anotan
+    porque pueden apuntar fuera del plugin.
     """
-    files: list[Path] = []
-    vendor: list[Path] = []
+    found = FileSet()
     for root, dirs, names in os.walk(plugin_dir):
-        relative_parts = Path(root).relative_to(plugin_dir).parts
-        dirs[:] = sorted(
-            name for name in dirs
-            if name not in EXCLUDED_DIRS and (include_tests or name not in TEST_DIRS)
-        )
-        in_vendor = VENDOR_DIR in relative_parts
+        relative_root = Path(root).relative_to(plugin_dir)
+        kept: list[str] = []
+        for name in sorted(dirs):
+            relative = (relative_root / name).as_posix()
+            if not include_tests and name in TEST_DIRS:
+                continue
+            if (Path(root) / name).is_symlink():
+                found.skipped_dirs.append(f'{relative}/ es un enlace a un directorio y no se ha seguido')
+            elif name != GIT_DIR:
+                kept.append(name)
+            elif git_has_php(Path(root) / name):
+                found.skipped_dirs.append(f'{relative}/ es un repositorio git que contiene PHP y no se ha analizado')
+        dirs[:] = kept
+        in_vendor = VENDOR_DIR in relative_root.parts
+        in_node_modules = NODE_MODULES_DIR in relative_root.parts
         for name in sorted(names):
             path = Path(root) / name
+            if path.is_symlink():
+                found.links.append(f'{(relative_root / name).as_posix()} -> {os.readlink(path)}')
             if in_vendor and not include_vendor:
-                vendor.append(path)
+                found.vendor.append(path)
+            elif in_node_modules and not is_php_file(path):
+                found.node_modules.append(path)
             else:
-                files.append(path)
-    return files, vendor
+                found.files.append(path)
+    return found
 
 
 def is_public_controller(source: Source) -> bool:
@@ -1175,7 +1419,8 @@ def read_plugin_meta(plugin_dir: Path) -> dict:
 
 def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = False) -> dict:
     """Analiza el plugin y construye el informe completo."""
-    files, vendor = iter_files(plugin_dir, include_vendor, include_tests)
+    found = iter_files(plugin_dir, include_vendor, include_tests)
+    files, vendor = found.files, found.vendor
     sources = [source for source in (load_source(path, plugin_dir) for path in files) if source is not None]
 
     findings: list[Finding] = []
@@ -1203,12 +1448,31 @@ def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = 
             f'vendor/ incluye {len(vendor)} archivos ({len(vendor_php)} PHP) de terceros que no se han analizado; '
             'usa --include-vendor para revisarlos.'
         )
+    if found.node_modules:
+        limitations.append(
+            f'node_modules/ incluye {len(found.node_modules)} archivos que no son PHP y no se han analizado; '
+            'los PHP sí, porque el servidor puede servirlos directamente.'
+        )
+    limitations.extend(f'{entry}.' for entry in found.skipped_dirs)
+    # Se analizan con su lenguaje para no inventar hallazgos (las librerías de JS
+    # citan <?php en sus comentarios), pero un require los ejecutaría como PHP.
+    embedded_php = [source.relative for source in sources
+                    if source.language != 'php' and PHP_MARKER.search(source.raw)]
+    limitations.extend(f'{relative} contiene <?php y no se ha analizado como PHP.' for relative in embedded_php)
+    binary_php = [path.relative_to(plugin_dir).as_posix() for path in files if is_binary_with_php(path)]
+    limitations.extend(f'{relative} es binario y contiene <?php: no se ha analizado como PHP.'
+                       for relative in binary_php)
+    limitations.extend(f'{entry} es un enlace simbólico: se ha analizado su destino, que puede estar fuera del '
+                       'plugin.' for entry in found.links)
     if not meta['ini']:
         limitations.append('No hay facturascripts.ini: la ruta puede no ser un plugin de FacturaScripts.')
+    not_analyzed = (len(vendor) + len(found.node_modules) + len(found.skipped_dirs) + len(embedded_php)
+                    + len(binary_php))
 
     return {
         'plugin': {'name': meta['name'], 'version': meta['version'], 'path': str(plugin_dir)},
-        'analizados': {'archivos': len(files), 'por_lenguaje': languages, 'vendor_sin_analizar': len(vendor)},
+        'analizados': {'archivos': len(files), 'por_lenguaje': languages, 'vendor_sin_analizar': len(vendor),
+                       'sin_analizar': not_analyzed},
         'resumen': counts,
         'requiere_revision': counts['alta'] + counts['media'] > 0,
         'hallazgos': [
@@ -1253,6 +1517,9 @@ def print_report(report: dict) -> None:
     print()
     if report['requiere_revision']:
         print('RESULTADO: REVISAR. El plugin tiene comportamientos que conviene comprobar antes de instalarlo.')
+    elif report['analizados']['sin_analizar']:
+        print(f"RESULTADO: SIN HALLAZGOS EN LO ANALIZADO: quedan {report['analizados']['sin_analizar']} archivos o "
+              'directorios sin analizar (ver Limitaciones).')
     else:
         print('RESULTADO: SIN HALLAZGOS RELEVANTES. No se han detectado comportamientos de severidad media o alta.')
     print()
