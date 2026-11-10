@@ -453,8 +453,10 @@ def strip_php(content: str) -> tuple[str, str]:
 
         match = heredoc.match(content, index) if pair == '<<' else None
         # La etiqueta cierra si no la sigue otro carácter de nombre, como en PHP;
-        # sin cierre no es un heredoc y lo que sigue se lee como código
-        closing = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_\x80-\U0010ffff])',
+        # sin cierre no es un heredoc y lo que sigue se lee como código. «No ASCII»
+        # se escribe [^\x00-\x7f] y no \x80-\U0010ffff: acepta lo mismo, y compilar
+        # una clase con todo Unicode por cada etiqueta cuesta milisegundos
+        closing = match and re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'(?![A-Za-z0-9_]|[^\x00-\x7f])',
                                        re.M)
         found = None
         if match:

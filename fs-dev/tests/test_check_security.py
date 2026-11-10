@@ -580,6 +580,18 @@ class EvasionTest(unittest.TestCase):
         CHECKER.audit(plugin)
         self.assertLess(time.monotonic() - started, 5)
 
+    def test_muchos_heredoc_con_etiquetas_distintas_no_tardan_de_mas(self) -> None:
+        """El cierre de cada etiqueta se compila sin recorrer una clase con todo Unicode.
+
+        Con 5.000 etiquetas distintas, compilar esa clase por cada una tarda unos diez
+        segundos. La cota deja margen de sobra.
+        """
+        content = '<?php\n' + ''.join(f'$v = <<<E{i}\nx\nE{i};\n' for i in range(5000))
+        plugin = build_plugin(self.root, {'Lib/Diecinueve.php': content})
+        started = time.monotonic()
+        CHECKER.audit(plugin)
+        self.assertLess(time.monotonic() - started, 5)
+
     def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
         """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
 
