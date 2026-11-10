@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const geographicTools: Tool[] = [
@@ -414,12 +415,12 @@ export async function handleGeographicTool(
 
       case 'update_pais': {
         const { connection: _conn, codpais, ...data } = args;
-        result = await fsClient.put(`/pais/${codpais}`, data, connection);
+        result = await fsClient.put(`/pais/${pathId(codpais)}`, data, connection);
         break;
       }
 
       case 'delete_pais': {
-        result = await fsClient.delete(`/pais/${args.codpais}`, connection);
+        result = await fsClient.delete(`/pais/${pathId(args.codpais)}`, connection);
         break;
       }
 
@@ -431,12 +432,12 @@ export async function handleGeographicTool(
 
       case 'update_provincia': {
         const { connection: _conn, idprovincia, ...data } = args;
-        result = await fsClient.put(`/provincias/${idprovincia}`, data, connection);
+        result = await fsClient.put(`/provincias/${pathId(idprovincia)}`, data, connection);
         break;
       }
 
       case 'delete_provincia': {
-        result = await fsClient.delete(`/provincias/${args.idprovincia}`, connection);
+        result = await fsClient.delete(`/provincias/${pathId(args.idprovincia)}`, connection);
         break;
       }
 
@@ -448,12 +449,12 @@ export async function handleGeographicTool(
 
       case 'update_ciudad': {
         const { connection: _conn, idciudad, ...data } = args;
-        result = await fsClient.put(`/ciudades/${idciudad}`, data, connection);
+        result = await fsClient.put(`/ciudades/${pathId(idciudad)}`, data, connection);
         break;
       }
 
       case 'delete_ciudad': {
-        result = await fsClient.delete(`/ciudades/${args.idciudad}`, connection);
+        result = await fsClient.delete(`/ciudades/${pathId(args.idciudad)}`, connection);
         break;
       }
 
@@ -465,12 +466,12 @@ export async function handleGeographicTool(
 
       case 'update_codigopostal': {
         const { connection: _conn, id, ...data } = args;
-        result = await fsClient.put(`/codigopostales/${id}`, data, connection);
+        result = await fsClient.put(`/codigopostales/${pathId(id)}`, data, connection);
         break;
       }
 
       case 'delete_codigopostal': {
-        result = await fsClient.delete(`/codigopostales/${args.id}`, connection);
+        result = await fsClient.delete(`/codigopostales/${pathId(args.id)}`, connection);
         break;
       }
 

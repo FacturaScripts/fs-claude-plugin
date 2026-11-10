@@ -5,6 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const communicationTools: Tool[] = [
@@ -224,12 +225,12 @@ export async function handleCommunicationTool(
 
       case 'update_emailnotification': {
         const { connection: _conn, name, ...data } = args;
-        result = await fsClient.put(`/emailnotifications/${name}`, data, connection);
+        result = await fsClient.put(`/emailnotifications/${pathId(name)}`, data, connection);
         break;
       }
 
       case 'delete_emailnotification': {
-        result = await fsClient.delete(`/emailnotifications/${args.name}`, connection);
+        result = await fsClient.delete(`/emailnotifications/${pathId(args.name)}`, connection);
         break;
       }
 
