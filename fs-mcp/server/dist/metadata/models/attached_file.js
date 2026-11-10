@@ -18,7 +18,14 @@ export const attachedFileMetadata = {
             "isRequired": true,
             "label": "Fecha",
             "description": "Fecha en la que se subió el archivo al sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "filename",
@@ -31,7 +38,14 @@ export const attachedFileMetadata = {
             "label": "Nombre de archivo",
             "maxLength": 100,
             "description": "Nombre original del archivo al subirse.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "hour",
@@ -43,7 +57,14 @@ export const attachedFileMetadata = {
             "isRequired": false,
             "label": "Hora",
             "description": "Hora en la que se subió el archivo (HH:MM:SS).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idfile",
@@ -55,7 +76,14 @@ export const attachedFileMetadata = {
             "isRequired": false,
             "label": "idfile",
             "description": "Identificador interno autoincremental del archivo.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "mimetype",
@@ -68,7 +96,14 @@ export const attachedFileMetadata = {
             "label": "Tipo",
             "maxLength": 100,
             "description": "Tipo MIME del archivo (ej: application/pdf, image/png).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "path",
@@ -81,7 +116,14 @@ export const attachedFileMetadata = {
             "label": "Ruta completa",
             "maxLength": 200,
             "description": "Ruta relativa donde se almacena el archivo en disco.",
-            "widget": "file"
+            "widget": "file",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "size",
@@ -93,7 +135,14 @@ export const attachedFileMetadata = {
             "isRequired": true,
             "label": "Tamaño",
             "description": "Tamaño del archivo en bytes.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -133,9 +182,22 @@ export const attachedFileMetadata = {
             "remoteColumn": "idfile"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default attachedFileMetadata;

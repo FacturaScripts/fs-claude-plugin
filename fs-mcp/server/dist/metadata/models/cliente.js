@@ -19,7 +19,14 @@ export const clienteMetadata = {
             "label": "Núm. fiscal",
             "maxLength": 30,
             "description": "CIF/NIF/NIE del cliente. Identificador fiscal según el tipo indicado en `tipoidfiscal`.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codagente",
@@ -38,7 +45,14 @@ export const clienteMetadata = {
                 "column": "codagente",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codcliente",
@@ -51,7 +65,14 @@ export const clienteMetadata = {
             "label": "Código",
             "maxLength": 10,
             "description": "Código corto único del cliente, asignado al darlo de alta. Se usa como referencia en facturas, recibos y documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codgrupo",
@@ -70,7 +91,14 @@ export const clienteMetadata = {
                 "column": "codgrupo",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codpago",
@@ -89,7 +117,14 @@ export const clienteMetadata = {
                 "column": "codpago",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codproveedor",
@@ -101,7 +136,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "codproveedor",
             "maxLength": 10,
-            "description": "Código del proveedor asociado, si la misma entidad actúa también como proveedor."
+            "description": "Código del proveedor asociado, si la misma entidad actúa también como proveedor.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codretencion",
@@ -120,7 +162,14 @@ export const clienteMetadata = {
                 "column": "codretencion",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codserie",
@@ -139,7 +188,14 @@ export const clienteMetadata = {
                 "column": "codserie",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codsubcuenta",
@@ -152,7 +208,14 @@ export const clienteMetadata = {
             "label": "Subcuenta",
             "maxLength": 15,
             "description": "Indique una subcuenta a usar o deje el campo en blanco para asignar una automáticamente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "codtarifa",
@@ -171,7 +234,13 @@ export const clienteMetadata = {
                 "column": "codtarifa",
                 "onDelete": "SET NULL",
                 "onUpdate": "CASCADE"
-            }
+            },
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.05"
+                }
+            ]
         },
         {
             "name": "debaja",
@@ -184,7 +253,14 @@ export const clienteMetadata = {
             "label": "debaja",
             "default": false,
             "description": "True si el cliente está dado de baja; false si sigue activo.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "diaspago",
@@ -197,7 +273,14 @@ export const clienteMetadata = {
             "label": "Días de pago",
             "maxLength": 10,
             "description": "Días del mes preferidos para el cobro. Lista separada por comas (ej: 1,15,31).",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "excepcioniva",
@@ -210,7 +293,13 @@ export const clienteMetadata = {
             "label": "Excepción de IVA",
             "maxLength": 20,
             "description": "Excepción aplicable al IVA (operación intracomunitaria, exportación, etc.). Modifica el cálculo de IVA en sus facturas.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2024.92"
+                }
+            ]
         },
         {
             "name": "email",
@@ -223,7 +312,14 @@ export const clienteMetadata = {
             "label": "Email",
             "maxLength": 100,
             "description": "Email principal del cliente para envío de facturas y comunicaciones.",
-            "widget": "email"
+            "widget": "email",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fax",
@@ -236,7 +332,14 @@ export const clienteMetadata = {
             "label": "Fax",
             "maxLength": 30,
             "description": "Número de fax del cliente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechaalta",
@@ -248,7 +351,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Fecha creación",
             "description": "Fecha de alta del cliente en el sistema.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "fechabaja",
@@ -260,7 +370,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Fecha de baja",
             "description": "Fecha de baja del cliente. Si está vacía, el cliente sigue activo.",
-            "widget": "date"
+            "widget": "date",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactoenv",
@@ -272,7 +389,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Dirección de envío",
             "description": "Identificador del contacto que actúa como dirección de envío por defecto.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "idcontactofact",
@@ -284,7 +408,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Dirección de facturación",
             "description": "Identificador del contacto que actúa como dirección de facturación por defecto.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "langcode",
@@ -297,7 +428,13 @@ export const clienteMetadata = {
             "label": "Idioma",
             "maxLength": 10,
             "description": "Código de idioma del cliente (es_ES, en_US, etc.). Usado en plantillas de email y documentos.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2023.03"
+                }
+            ]
         },
         {
             "name": "nombre",
@@ -310,7 +447,14 @@ export const clienteMetadata = {
             "label": "Nombre",
             "maxLength": 100,
             "description": "Nombre por el cual el cliente es conocido. Para uso interno.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "observaciones",
@@ -322,7 +466,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Observaciones",
             "description": "Notas internas sobre el cliente. No aparecen en documentos.",
-            "widget": "textarea"
+            "widget": "textarea",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "operacion",
@@ -335,7 +486,13 @@ export const clienteMetadata = {
             "label": "Operación",
             "maxLength": 30,
             "description": "Tipo de operación fiscal por defecto en sus facturas (interior, intracomunitaria, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2026.1"
+                }
+            ]
         },
         {
             "name": "personafisica",
@@ -352,6 +509,13 @@ export const clienteMetadata = {
             "enumValues": [
                 "1",
                 "0"
+            ],
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
             ]
         },
         {
@@ -365,7 +529,14 @@ export const clienteMetadata = {
             "label": "Razón Social",
             "maxLength": 100,
             "description": "Nombre oficial del cliente, para las facturas y otros documentos.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "regimeniva",
@@ -378,7 +549,14 @@ export const clienteMetadata = {
             "label": "Régimen impuestos",
             "maxLength": 50,
             "description": "Régimen de IVA del cliente (general, simplificado, recargo de equivalencia, etc.).",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "riesgoalcanzado",
@@ -390,7 +568,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Riesgo actual",
             "description": "Importe pendiente de cobro acumulado por el cliente, calculado desde facturas no pagadas.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "riesgomax",
@@ -402,7 +587,14 @@ export const clienteMetadata = {
             "isRequired": false,
             "label": "Riesgo máximo",
             "description": "Límite máximo de riesgo permitido. El sistema avisa al crear documentos si se supera.",
-            "widget": "money"
+            "widget": "money",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono1",
@@ -415,7 +607,14 @@ export const clienteMetadata = {
             "label": "Teléfono",
             "maxLength": 30,
             "description": "Teléfono principal del cliente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "telefono2",
@@ -428,7 +627,14 @@ export const clienteMetadata = {
             "label": "Teléfono 2",
             "maxLength": 30,
             "description": "Teléfono secundario o móvil del cliente.",
-            "widget": "text"
+            "widget": "text",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "tipoidfiscal",
@@ -441,7 +647,14 @@ export const clienteMetadata = {
             "label": "Id. Fiscal",
             "maxLength": 25,
             "description": "Tipo de identificador fiscal (NIF, CIF, NIE, VAT…). Determina el formato esperado en `cifnif`.",
-            "widget": "select"
+            "widget": "select",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "web",
@@ -454,7 +667,14 @@ export const clienteMetadata = {
             "label": "Web",
             "maxLength": 100,
             "description": "URL de la página web del cliente.",
-            "widget": "link"
+            "widget": "link",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -550,10 +770,44 @@ export const clienteMetadata = {
             "remoteColumn": "codcliente"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
-    }
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
+    },
+    "retiredColumns": [
+        {
+            "name": "irpf",
+            "sqlType": "double precision",
+            "tsType": "number",
+            "nullable": true,
+            "isPrimaryKey": false,
+            "isReadonly": false,
+            "isRequired": false,
+            "label": "IRPF",
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true,
+                    "until": "2018.03"
+                }
+            ]
+        }
+    ]
 };
 export default clienteMetadata;
 //# sourceMappingURL=cliente.js.map

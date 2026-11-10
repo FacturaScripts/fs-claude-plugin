@@ -18,7 +18,14 @@ export const pageMetadata = {
             "isRequired": false,
             "label": "Icono",
             "maxLength": 50,
-            "description": "Icono FontAwesome a mostrar en el menú junto al título de la página."
+            "description": "Icono FontAwesome a mostrar en el menú junto al título de la página.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "menu",
@@ -30,7 +37,14 @@ export const pageMetadata = {
             "isRequired": false,
             "label": "Menú",
             "maxLength": 20,
-            "description": "Menú principal donde se ubica la página (ventas, compras, contabilidad, etc.)."
+            "description": "Menú principal donde se ubica la página (ventas, compras, contabilidad, etc.).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "name",
@@ -42,7 +56,14 @@ export const pageMetadata = {
             "isRequired": true,
             "label": "Nombre",
             "maxLength": 40,
-            "description": "Nombre interno único de la página/controlador (ej: ListCliente, EditFacturaCliente)."
+            "description": "Nombre interno único de la página/controlador (ej: ListCliente, EditFacturaCliente).",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "ordernum",
@@ -55,7 +76,14 @@ export const pageMetadata = {
             "label": "ordernum",
             "default": 100,
             "description": "Orden de aparición dentro del submenú.",
-            "widget": "number"
+            "widget": "number",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "showonmenu",
@@ -68,7 +96,14 @@ export const pageMetadata = {
             "label": "showonmenu",
             "default": true,
             "description": "True si la página debe aparecer en el menú; false si solo es accesible directamente.",
-            "widget": "checkbox"
+            "widget": "checkbox",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "submenu",
@@ -80,7 +115,14 @@ export const pageMetadata = {
             "isRequired": false,
             "label": "submenu",
             "maxLength": 20,
-            "description": "Submenú dentro del menú principal donde se ubica la página."
+            "description": "Submenú dentro del menú principal donde se ubica la página.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         },
         {
             "name": "title",
@@ -92,7 +134,14 @@ export const pageMetadata = {
             "isRequired": true,
             "label": "Título",
             "maxLength": 50,
-            "description": "Título legible de la página, mostrado en el menú y la cabecera."
+            "description": "Título legible de la página, mostrado en el menú y la cabecera.",
+            "availability": [
+                {
+                    "source": "core",
+                    "since": "2018.03",
+                    "sinceFirstTag": true
+                }
+            ]
         }
     ],
     "relations": [
@@ -104,9 +153,22 @@ export const pageMetadata = {
             "remoteColumn": "homepage"
         }
     ],
+    "availability": [
+        {
+            "source": "core",
+            "since": "2018.03",
+            "sinceFirstTag": true
+        }
+    ],
     "generatedFrom": {
-        "generatedAt": "2026-10-06T17:52:38.200Z",
-        "facturascriptsCommit": "93a6a74ac"
+        "generatedAt": "2026-10-07T17:38:31.723Z",
+        "facturascriptsCommit": "93a6a74ac",
+        "versions": {
+            "core": {
+                "latest": "2026.7",
+                "tags": 67
+            }
+        }
     }
 };
 export default pageMetadata;
