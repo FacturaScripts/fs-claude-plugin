@@ -108,6 +108,50 @@ class PlantillaGrandeTest(AuditTestCase):
                 self.assertTrue(CHECKER.is_standalone_script(source))
 
 
+class VariablesTest(AuditTestCase):
+    """Un archivo con miles de usos de variables no busca sus asignaciones desde el principio cada vez."""
+
+    CASES = {
+        'comando en variable': '$c = "ls"; exec($c);\n',
+        'url en variable': '$u = "https://ejemplo.test/x"; file_get_contents($u);\n',
+        'función en variable': '$f = "strlen"; $f($x);\n',
+        'curlopt_url': '$u = "https://ejemplo.test/x"; curl_setopt($h, CURLOPT_URL, $u);\n',
+    }
+
+    def test_10000_usos_tardan_menos_de_10_segundos(self) -> None:
+        """Recorrer el archivo desde el principio por cada uso crecía con el cuadrado: decenas de segundos."""
+        for name, line in self.CASES.items():
+            with self.subTest(name):
+                # Un plugin por caso, para que cada uno mida sólo su archivo
+                self.tmp.cleanup()
+                self.setUp()
+                body = line * 10000
+                report, seconds = self.timed_audit({f'Lib/{name.replace(" ", "_")}.php': f'<?php\nclass A\n{{\nfunction f() {{\n{body}}}\n}}\n'.encode()})
+                self.assertLess(seconds, 10, f'tardó {seconds:.1f} s')
+                self.assertTrue(report['hallazgos'])
+
+    def notes(self, content: str, title: str) -> list[list[str]]:
+        """Devuelve las notas de los hallazgos con ese título."""
+        return [item['notas'] for item in self.audit({'Lib/A.php': content.encode()})['hallazgos']
+                if item['titulo'] == title]
+
+    def test_usa_las_tres_ultimas_asignaciones_anteriores(self) -> None:
+        """El valor de la variable son sus tres últimas asignaciones antes del uso, no las de después."""
+        content = ('<?php\nclass A\n{\nfunction f() {\n$f = "a"; $f = "b"; $f = "c";\n'
+                   '$f = "d"; $f($x);\n$f = "system"; $f($y);\n$f = "exec";\n}\n}\n')
+        self.assertEqual(self.notes(content, 'Llama a una función cuyo nombre está en una variable'),
+                         [['$f = "b" "c" "d"'], ['$f = "c" "d" "system"']])
+
+    def test_destino_de_la_ultima_url_anterior(self) -> None:
+        """El destino es la última URL asignada antes de la llamada, saltando las ignoradas."""
+        content = ('<?php\nclass A\n{\nfunction f() {\n'
+                   '$u = "https://uno.test/x";\n$u = "http://localhost/x";\nfile_get_contents($u);\n'
+                   '$u = "https://dos.test/x";\nfile_get_contents($u);\n}\n}\n')
+        notes = [note for found in self.audit({'Lib/A.php': content.encode()})['hallazgos']
+                 for note in found['notas'] if note.startswith('destino:')]
+        self.assertEqual(notes, ['destino: uno.test (asignado a $u)', 'destino: dos.test (asignado a $u)'])
+
+
 class RetornoDeCarroTest(AuditTestCase):
     """Un archivo de extensión desconocida con PHP trata «\\r» como salto, igual que PHP."""
 

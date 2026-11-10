@@ -168,6 +168,9 @@ class Source:
     line_starts: list[int] = field(default_factory=list)
     # Lo calcula execution_context una sola vez: dónde termina cada «function x(» y su nombre.
     functions: tuple[list[int], list[str]] | None = None
+    # Los calculan variable_value y assigned_host una vez por patrón: las asignaciones a
+    # una variable en todo el archivo, con la posición donde termina cada una.
+    assignments: dict[str, tuple[list[int], list]] = field(default_factory=dict)
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
 
@@ -715,11 +718,26 @@ def call_argument(source: Source, match: re.Match) -> str:
     return source.first_argument(match.end() - 1) if match.group(0).endswith('(') else ''
 
 
+def assignments(source: Source, pattern: re.Pattern) -> tuple[list[int], list]:
+    """Devuelve las coincidencias del patrón en todo el texto y dónde termina cada una.
+
+    Se calculan una vez por archivo y patrón: buscarlas desde el principio en cada
+    hallazgo hacía que un archivo con miles de hallazgos tardase minutos.
+    """
+    if pattern.pattern not in source.assignments:
+        found = list(pattern.finditer(source.text))
+        source.assignments[pattern.pattern] = ([match.end() for match in found], found)
+    return source.assignments[pattern.pattern]
+
+
 def variable_value(source: Source, variable: str, before: int) -> str:
     """Devuelve la expresión asignada por última vez a una variable antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'\s*\.?=(?!=)\s*([^;]{1,400});')
-    values = [found.group(1) for found in pattern.finditer(source.text, 0, before)]
-    return ' '.join(values[-3:])
+    ends, found = assignments(source, pattern)
+    # Las que terminan antes de la posición, como un finditer que acabase en ella:
+    # cada una acaba en «;», así que recortar el texto no acorta ninguna
+    count = bisect.bisect_right(ends, before)
+    return ' '.join(match.group(1) for match in found[max(count - 3, 0):count])
 
 
 def is_standalone_script(source: Source) -> bool:
@@ -975,9 +993,27 @@ def url_argument(source: Source, match: re.Match) -> tuple[bool, list[str], str 
 def assigned_host(source: Source, variable: str, before: int) -> str | None:
     """Busca la última asignación de la variable a una URL literal antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'''\s*=\s*['"](https?://[^'"\s]+)''')
-    hosts = [SCHEME_URL_PATTERN.match(found.group(1)) for found in pattern.finditer(source.text, 0, before)]
-    hosts = [host.group(1).lower() for host in hosts if host and host.group(1).lower() not in IGNORED_HOSTS]
-    return hosts[-1] if hosts else None
+    ends, found = assignments(source, pattern)
+    # Como en variable_value, las que terminan antes de la posición. La URL no acaba en
+    # un delimitador, pero la posición es la de una llamada en el código, fuera de las
+    # cadenas, así que nunca cae dentro de ella y no hay ninguna que recortar
+    count = bisect.bisect_right(ends, before)
+    key = pattern.pattern + ' hosts'
+    if key not in source.assignments:
+        # El último host válido entre las n primeras asignaciones, para cada n
+        last: list[str | None] = [None]
+        for match in found:
+            last.append(url_host(match) or last[-1])
+        source.assignments[key] = (ends, last)
+    return source.assignments[key][1][count]
+
+
+def url_host(match: re.Match) -> str | None:
+    """Devuelve el host de la URL capturada, o None si no tiene o se ignora."""
+    host = SCHEME_URL_PATTERN.match(match.group(1))
+    if host and host.group(1).lower() not in IGNORED_HOSTS:
+        return host.group(1).lower()
+    return None
 
 
 def script_src(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
