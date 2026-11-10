@@ -502,22 +502,20 @@ class EvasionTest(unittest.TestCase):
         self.assertIn('SIN HALLAZGOS EN LO ANALIZADO', output)
 
     def test_lo_no_analizado_se_declara_y_cambia_el_veredicto(self) -> None:
-        """Un directorio enlazado no se sigue, .git no se analiza, y el veredicto no afirma que el plugin esté limpio."""
+        """Un directorio enlazado no se sigue, y el veredicto no afirma que el plugin esté limpio."""
         outside = self.root / 'fuera'
         outside.mkdir()
         (outside / 'x.php').write_text("<?php\nsystem($_GET['c']);\n")
-        plugin = build_plugin(self.root, {'Lib/Limpio.php': php_class('Limpio', '        return 1;'),
-                                          '.git/config': '[core]\n'})
+        plugin = build_plugin(self.root, {'Lib/Limpio.php': php_class('Limpio', '        return 1;')})
         (plugin / 'Externo').symlink_to(outside, target_is_directory=True)
 
         report = CHECKER.audit(plugin)
-        self.assertEqual(2, report['analizados']['sin_analizar'])
+        self.assertEqual(1, report['analizados']['sin_analizar'])
         self.assertTrue(any(item.startswith('Externo/ es un enlace a un directorio') for item in report['limitaciones']))
-        self.assertTrue(any(item.startswith('.git/ es un repositorio git') for item in report['limitaciones']))
 
         code, output = self.run_main(plugin)
         self.assertEqual(0, code)
-        self.assertIn('SIN HALLAZGOS EN LO ANALIZADO: quedan 2 archivos o directorios sin analizar', output)
+        self.assertIn('SIN HALLAZGOS EN LO ANALIZADO: quedan 1 archivos o directorios sin analizar', output)
         self.assertNotIn('SIN HALLAZGOS RELEVANTES', output)
 
     def test_archivo_enlazado_se_analiza_y_se_declara(self) -> None:
@@ -530,6 +528,74 @@ class EvasionTest(unittest.TestCase):
         report = CHECKER.audit(plugin)
         self.assert_ejecuta_comandos(report)
         self.assertTrue(any(item.startswith(f'Enlace.php -> {outside}') for item in report['limitaciones']))
+
+    def assert_limpio(self, plugin: Path) -> None:
+        """El script sale con 0 y afirma que no hay hallazgos relevantes."""
+        code, output = self.run_main(plugin)
+        self.assertEqual(0, code, output)
+        self.assertIn('SIN HALLAZGOS RELEVANTES', output)
+
+    def test_workflow_de_github_no_se_analiza_como_php(self) -> None:
+        """El tests.yml habitual de un plugin genera un config.php en un heredoc: no es PHP del plugin."""
+        workflow = (
+            'name: Tests\non: [push]\njobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps:\n'
+            '      - name: Create application config\n        run: |\n'
+            "          cat > config.php << 'EOF'\n          <?php\n"
+            "          define('FS_DB_TYPE', 'mysql');\n          define('FS_DB_USER', 'root');\n"
+            "          define('FS_DB_PASS', '${{ env.DB_PASS }}');\n          EOF\n"
+            '      - run: vendor/bin/phpunit `pwd`/Test\n'
+        )
+        plugin = build_plugin(self.root, {'.github/workflows/tests.yml': workflow})
+        self.assertEqual([], CHECKER.audit(plugin)['hallazgos'])
+        self.assert_limpio(plugin)
+
+    def test_markdown_con_ejemplos_de_php_no_se_analiza_como_php(self) -> None:
+        """Un README con un bloque de PHP documenta, no ejecuta: ni su exec ni sus vallas son hallazgos."""
+        readme = '# MiPlugin\n\nEjemplo:\n\n```php\n<?php\nexec("ls");\n```\n'
+        plugin = build_plugin(self.root, {'README.md': readme, 'Doc/Dev/uso.md': readme})
+        self.assertEqual([], CHECKER.audit(plugin)['hallazgos'])
+        self.assert_limpio(plugin)
+
+    def test_markdown_que_empieza_por_php_se_analiza(self) -> None:
+        """Un .md que empieza por <?php está hecho para incluirse: se sigue analizando como PHP."""
+        self.assert_ejecuta_comandos(self.audit({'Doc/datos.md': "<?php\nsystem($_GET['c']);\n"}))
+
+    def test_texto_con_php_a_mitad_se_sigue_analizando(self) -> None:
+        """En un archivo de texto de extensión desconocida, el PHP a mitad de archivo también se ejecuta."""
+        self.assert_ejecuta_comandos(self.audit({'Lib/datos.txt': "cabecera\n<?php system($_GET['c']);\n"}))
+
+    def test_imagen_con_etiqueta_corta_no_se_analiza_como_php(self) -> None:
+        """Los bytes <?= salen por azar en una imagen: no es PHP y no se analiza como tal."""
+        plugin = build_plugin(self.root, {})
+        (plugin / 'Assets/Images').mkdir(parents=True)
+        (plugin / 'Assets/Images/logo.png').write_bytes(
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR' + b'<?= `x` ' * 200 + b'\x00IEND')
+        (plugin / 'Assets/Images/logo.webp').write_bytes(b'RIFF\x00\x00WEBP' + b'<?=`' * 50)
+        (plugin / 'Doc/manual.pdf').parent.mkdir()
+        (plugin / 'Doc/manual.pdf').write_bytes(b'%PDF-1.4\n<?= `x` \n' * 50)
+        report = CHECKER.audit(plugin)
+        self.assertEqual([], report['hallazgos'])
+        self.assertEqual(0, report['analizados']['sin_analizar'])
+        self.assert_limpio(plugin)
+
+    def test_binario_con_php_completo_se_declara(self) -> None:
+        """Una imagen que contiene <?php no se analiza, pero un include la ejecutaría: se dice."""
+        plugin = build_plugin(self.root, {})
+        (plugin / 'Assets').mkdir()
+        (plugin / 'Assets/x.gif').write_bytes(b'GIF89a\x00\x00<?php system($_GET["c"]); ?>')
+        report = CHECKER.audit(plugin)
+        self.assertIn('Assets/x.gif es binario y contiene <?php: no se ha analizado como PHP.',
+                      report['limitaciones'])
+        self.assertEqual(1, report['analizados']['sin_analizar'])
+
+    def test_git_no_cuenta_como_sin_analizar(self) -> None:
+        """.git no contiene PHP que el servidor ejecute: un plugin clonado puede salir limpio."""
+        plugin = build_plugin(self.root, {'Lib/Limpio.php': php_class('Limpio', '        return 1;'),
+                                          '.git/config': '[core]\n', '.git/HEAD': 'ref: refs/heads/main\n'})
+        report = CHECKER.audit(plugin)
+        self.assertEqual(0, report['analizados']['sin_analizar'])
+        self.assertFalse(any('.git' in item for item in report['limitaciones']))
+        self.assert_limpio(plugin)
 
 
 if __name__ == '__main__':
