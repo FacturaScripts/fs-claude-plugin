@@ -27,3 +27,13 @@ test('una clave heredada de Object.prototype no es una conexión', () => {
   assert.throws(() => connectionManager.setDefault('toString'), /no existe/);
   assert.throws(() => connectionManager.getConnection('constructor'), /no encontrada/);
 });
+
+test('una conexión que se llama como una propiedad heredada sí es una conexión', () => {
+  connectionManager.addConnection('toString', { name: 'T', url: 'http://127.0.0.1:3', token: 'tok-t' });
+
+  connectionManager.setDefault('toString');
+
+  assert.equal(connectionManager.getConnection().name, 'T');
+  assert.equal(connectionManager.getConnection('toString').name, 'T');
+  assert.equal(JSON.parse(fs.readFileSync(process.env.FS_CONNECTIONS_FILE, 'utf-8')).default, 'toString');
+});

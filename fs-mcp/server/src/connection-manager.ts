@@ -398,8 +398,9 @@ class ConnectionManager {
       throw new Error("La clave de conexión no puede estar vacía");
     }
 
-    // Asignar a "__proto__" cambiaría el prototipo del mapa de conexiones en vez
-    // de añadir una: la sesión heredaría una conexión que no está en el archivo
+    // "__proto__" se guardaría en el archivo como una clave más, y quien lo lea
+    // y copie las conexiones asignando clave a clave (Object.assign, obj[k] = v)
+    // cambiaría el prototipo del objeto en vez de añadir una conexión
     if (key === "__proto__") {
       throw new Error('La clave de conexión no puede ser "__proto__"');
     }
