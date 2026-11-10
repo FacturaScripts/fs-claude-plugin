@@ -736,6 +736,26 @@ class IncludeNoPhpTest(unittest.TestCase):
         """La ruta es '/a.php' . '.png': lo que sigue al literal cambia la extensión."""
         self.assert_sentencia_senalada("include __DIR__ . '/a.php' . strtolower('.PNG');")
 
+    def test_envoltura_phar(self) -> None:
+        """phar://x.png/a.php acaba en .php, pero ejecuta el a.php de dentro de un .png.
+
+        Comprobado con PHP 8.4 y phar activo: un .png que es un phar con a.php
+        comprimido en gzip ejecuta su contenido. La regla mira la sentencia, no el archivo.
+        """
+        self.assert_sentencia_senalada("include 'phar://x.png/a.php';")
+
+    def test_envoltura_phar_con_separador(self) -> None:
+        """La misma envoltura repartida entre literales y DIRECTORY_SEPARATOR."""
+        self.assert_sentencia_senalada('include "phar://x.png" . DIRECTORY_SEPARATOR . \'a.php\';')
+
+    def test_envoltura_zip(self) -> None:
+        """Cualquier envoltura, no solo phar://: zip://x.png#a.php también acaba en .php."""
+        self.assert_sentencia_senalada("include 'zip://x.png#a.php';")
+
+    def test_envoltura_data_sin_barras(self) -> None:
+        """PHP reconoce data: como envoltura aunque no lleve //."""
+        self.assert_sentencia_senalada("include 'data:text/plain,a.php';")
+
     def test_ruta_con_variable_no_se_duplica(self) -> None:
         """Una ruta con variables ya la señala el include dinámico: no da también este hallazgo."""
         plugin = build_plugin(self.root, {'Init.php': init_con("include __DIR__ . '/' . $pagina;")})

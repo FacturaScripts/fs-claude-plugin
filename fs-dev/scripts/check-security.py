@@ -286,6 +286,9 @@ FIXED_INCLUDE_PATH = re.compile(
     r'(?:\s*\.\s*(?:DIRECTORY_SEPARATOR|' + PATH_LITERAL + r'))*)'
     r'\s*(?(open)\)\s*)(?:;|\?>)'
 )
+# Envoltura de stream, con el mismo criterio que PHP: '://' o 'data:'. Se busca en
+# cualquier punto porque la ruta concatenada no incluye __DIR__ ni FS_FOLDER.
+STREAM_WRAPPER = re.compile(r'://|data:', re.I)
 # En un binario, <?= sale por azar; <?php, no.
 BINARY_PHP_TAG = re.compile(rb'<\?php\b', re.I)
 
@@ -804,8 +807,8 @@ def non_php_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     el bloque, y este script no analiza como PHP los binarios ni el PHP a mitad de
     un ``.md`` o un ``.yml``. Es una heurística, y por eso falla hacia el lado
     seguro: una ruta solo se da por PHP si la sentencia entera es una forma fija
-    que sabe leer (``FIXED_INCLUDE_PATH``) y sus literales, concatenados, acaban
-    en una extensión de PHP. Cualquier otra forma se señala. Las rutas con
+    que sabe leer (``FIXED_INCLUDE_PATH``), sus literales, concatenados, acaban
+    en una extensión de PHP y no contienen una envoltura de stream. Cualquier otra forma se señala. Las rutas con
     variables ya las señala ``dynamic_include``.
     """
     if dynamic_include(source, match)[0]:
@@ -815,6 +818,9 @@ def non_php_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
         return True, ['la ruta no tiene una forma fija que este script sepa leer (__DIR__, dirname(__FILE__), '
                       'FS_FOLDER, DIRECTORY_SEPARATOR y literales concatenados): no puede confirmar que sea PHP'], None
     path = ''.join(unquote(literal) for literal in re.findall(PATH_LITERAL, fixed.group('expr')))
+    if STREAM_WRAPPER.search(path):
+        return True, [f'incluye {path}: una envoltura de stream (phar://, zip://, php://filter, data:…) carga el '
+                      'código de dentro de otro archivo, así que la extensión no dice qué se ejecuta'], None
     if Path(path).suffix.lower() in PHP_EXTENSIONS:
         return False, [], None
     return True, [f'incluye {path}: PHP ejecuta el archivo entero aunque su extensión no sea de PHP, '
