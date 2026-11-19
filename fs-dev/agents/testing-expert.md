@@ -350,6 +350,13 @@ Ejecución manual, desde la raíz de FacturaScripts:
 - Matriz con PHP 8.1 a 8.4 y bases de datos `mysql` (MariaDB 11) y `postgresql` (PostgreSQL 13).
 - Pasos: clonar el core y el plugin en `Plugins/<NOMBRE_PLUGIN>` con `actions/checkout@v5`, `composer install`, generar `config.php`, copiar `Test/main` a `Test/Plugins`, instalar las dependencias de Composer del plugin y ejecutar `php Test/install-plugins.php` y `vendor/bin/phpunit -c phpunit-plugins.xml --verbose`.
 - Si el plugin depende de otros, añade sus pasos y ejecuta `php Test/install-plugins.php` una vez por cada plugin.
+- Para no gastar minutos de GitHub Actions en ejecuciones que no hacen falta, la plantilla de `fsmaker github-action` añade:
+  - `paths-ignore`, igual para `push` y `pull_request` (se escribe una vez con el ancla `&ignored-paths` y se reutiliza con `*ignored-paths`). Si **todos** los archivos cambiados están en la lista, el workflow no arranca. Incluye `Translation/**`, `Assets/**`, `**.md`, `Doc/**`, `COPYING`, `LICENSE`, `.claude/**`, `.agents/**`, `.codex/**`, `facturascripts.ini`, `package*.json`, `.gitignore`, `.zipignore` y `.github/workflows/release.yml`. Es una lista de exclusiones: PHP, `Table`, `XMLView`, `View`, `Data`, `Test` y `composer.json` siguen lanzando los tests. `View` no se excluye porque los tests pueden renderizar plantillas Twig.
+  - `concurrency` con `cancel-in-progress: true` y el grupo `${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}`: si llega otro commit a la misma rama o PR, se cancela la ejecución anterior y se lanza la nueva.
+  - `workflow_dispatch`, para lanzar los tests a mano desde la pestaña Actions o con `fsmaker github-run`.
+  - `timeout-minutes: 30` en el job, para que un job colgado no consuma las 6 horas que GitHub permite por defecto.
+- Si el workflow es un check obligatorio en una regla de protección de rama, una PR que solo cambie archivos excluidos se queda esperando un check que nunca se ejecuta. En ese caso, quita esa regla o no uses `paths-ignore`.
+- `fsmaker github-action` no sobrescribe un `tests.yml` existente. Para aplicar estos cambios a un plugin que ya lo tiene, añade los bloques a mano o borra el archivo y vuelve a generarlo, y recupera después los pasos propios (dependencias de otros plugins).
 
 ### Modo debug
 

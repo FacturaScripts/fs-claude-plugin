@@ -158,6 +158,14 @@ vendor/bin/phpunit -c phpunit-plugins.xml
 
 `fsmaker github-action` crea el workflow `.github/workflows/tests.yml`, que ejecuta los tests en cada push y pull request. El workflow de la documentación fija el runner en `ubuntu-26.04` para que un cambio de la imagen `ubuntu-latest` no rompa los tests sin revisarlo, y prueba PHP 8.1 a 8.4 con MySQL (MariaDB) y PostgreSQL.
 
+La plantilla de fsmaker evita además ejecuciones que no hacen falta:
+
+- `paths-ignore` (el mismo para `push` y `pull_request`): si todos los archivos cambiados son traducciones (`Translation/**`), assets (`Assets/**`), documentación (`**.md`, `Doc/**`), configuración de asistentes de IA (`.claude/**`, `.agents/**`, `.codex/**`), `facturascripts.ini`, `package*.json`, `.gitignore`, `.zipignore` o el workflow de release, los tests no se lanzan. El resto, incluido `View/**`, sí los lanza.
+- `concurrency` con `cancel-in-progress: true`: un commit nuevo en la misma rama o PR cancela la ejecución anterior y lanza la nueva.
+- `workflow_dispatch` para lanzarlo a mano (`fsmaker github-run`) y `timeout-minutes: 30` en el job.
+
+`fsmaker github-action` no sobrescribe un `tests.yml` existente: en plugins que ya lo tienen, añade estos bloques a mano. El detalle está en el agente [`testing-expert`](../../agents/testing-expert.md).
+
 ## Verificar estilo de código
 
 Los scripts `composer cs-check`, `composer cs-fix` y `composer phpstan` son del `composer.json` del core, y `phpstan` solo analiza `Core/`. Para un plugin, ejecuta los binarios sobre su carpeta desde la raíz de FacturaScripts:
