@@ -5,7 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const geographicTools: Tool[] = [
@@ -415,12 +415,12 @@ export async function handleGeographicTool(
 
       case 'update_pais': {
         const { connection: _conn, codpais, ...data } = args;
-        result = await fsClient.put(`/pais/${pathId(codpais)}`, data, connection);
+        result = await fsClient.put(`/pais/${pathCode(codpais, 'codpais')}`, data, connection);
         break;
       }
 
       case 'delete_pais': {
-        result = await fsClient.delete(`/pais/${pathId(args.codpais)}`, connection);
+        result = await fsClient.delete(`/pais/${pathCode(args.codpais, 'codpais')}`, connection);
         break;
       }
 

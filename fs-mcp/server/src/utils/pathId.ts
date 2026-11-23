@@ -28,3 +28,18 @@ export function pathId(value: unknown): string {
     }
     return id;
 }
+
+/**
+ * Como pathId, para un código que el esquema declara string. Un número se
+ * rechaza en vez de convertirlo: en JSON no lleva ceros a la izquierda, y el
+ * código 00123 llegaría como 123, que puede ser el de otro registro.
+ */
+export function pathCode(value: unknown, name: string): string {
+    if (typeof value === 'number') {
+        throw new Error(
+            `El argumento "${name}" va como texto, entre comillas: "${name}": "${value}". ` +
+            'Escrito como número pierde los ceros a la izquierda y podría ser el de otro registro.'
+        );
+    }
+    return pathId(value);
+}

@@ -15,6 +15,8 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { arrancarFsDePega } from './fake-fs.mjs';
 
+const { validateToolInput } = await import('../dist/utils/validateInput.js');
+
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const api = await arrancarFsDePega((req) => (req.method === 'GET' ? [{ idproducto: 5, referencia: 'R1' }] : { ok: 'hecho' }));
 const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-validar-'));
@@ -141,6 +143,89 @@ test('un booleano escrito como "true" se rechaza: la API lo guardaría como text
   assert.equal(result.isError, true);
   assert.match(result.content[0].text, /"debaja" debe ser true, false, 1 o 0/);
   assert.deepEqual(peticiones, []);
+});
+
+test('un número en una propiedad string llega a la API, como antes de validar', async () => {
+  const { result, peticiones } = await llamar('update_secuenciadocumento', { connection: 'pega', idsecuencia: 1, codejercicio: 2025 });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['PUT /api/3/secuenciadocumentos/1']);
+});
+
+for (const tool of ['update_producto', 'delete_producto']) {
+  test(`${tool} con la referencia como número pide escribirla entre comillas y no llama a la API`, async () => {
+    const { result, peticiones } = await llamar(tool, { connection: 'pega', referencia: 12345 });
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /referencia va como texto, entre comillas/);
+    assert.deepEqual(peticiones, []);
+  });
+}
+
+test('un código de la ruta como número se rechaza: perdería los ceros a la izquierda', async () => {
+  for (const tool of ['delete_cliente', 'update_cliente']) {
+    const { result, peticiones } = await llamar(tool, { connection: 'pega', codcliente: 123 });
+    assert.equal(result.isError, true, tool);
+    assert.match(result.content[0].text, /"codcliente" va como texto, entre comillas/);
+    assert.deepEqual(peticiones, [], tool);
+  }
+});
+
+test('un código de la ruta como texto llega intacto, con sus ceros', async () => {
+  const { result, peticiones } = await llamar('update_cliente', { connection: 'pega', codcliente: '00123', codpostal: 8001 });
+  assert.notEqual(result.isError, true);
+  assert.deepEqual(peticiones, ['PUT /api/3/clientes/00123']);
+});
+
+for (const [tool, prop] of [['add_connection', 'key'], ['add_connection', 'name'], ['add_connection', 'url'], ['add_connection', 'token'], ['add_connection', 'version'], ['set_default_connection', 'key']]) {
+  test(`${tool} rechaza ${prop} como número y no toca el archivo de conexiones`, async () => {
+    const archivo = path.join(home, 'connections.json');
+    const antes = fs.readFileSync(archivo, 'utf8');
+    const args = { key: 'nueva', name: 'Nueva', url: 'http://127.0.0.1:9', token: 't', [prop]: 5 };
+    const { result } = await llamar(tool, tool === 'set_default_connection' ? { key: 5 } : args);
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, new RegExp(`"${prop}" va como texto, entre comillas`));
+    assert.equal(fs.readFileSync(archivo, 'utf8'), antes);
+  });
+}
+
+for (const [setAsDefault, esperado] of [['0', false], [false, false], ['1', true], [true, true]]) {
+  test(`add_connection con setAsDefault ${JSON.stringify(setAsDefault)} ${esperado ? 'la pone' : 'no la pone'} por defecto`, async () => {
+    const key = `nueva-${String(setAsDefault)}`;
+    try {
+      const { result } = await llamar('add_connection', { key, name: 'Nueva', url: 'http://127.0.0.1:9', token: 't', setAsDefault });
+      assert.notEqual(result.isError, true);
+      const guardado = JSON.parse(fs.readFileSync(path.join(home, 'connections.json'), 'utf8'));
+      assert.ok(Object.hasOwn(guardado.connections, key));
+      assert.equal(guardado.default, esperado ? key : 'pega');
+      assert.equal(result.content[0].text.includes('set as default'), esperado);
+    } finally {
+      // Vuelve a 'pega' en el archivo y en el servidor, que la guarda en memoria
+      await llamar('set_default_connection', { key: 'pega' });
+    }
+  });
+}
+
+test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
+  const esquema = { properties: { codpostal: { type: 'string' } } };
+  assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);
+  for (const codpostal of [NaN, Infinity, true]) {
+    assert.equal(validateToolInput(esquema, { codpostal }), 'el argumento "codpostal" debe ser de tipo string');
+  }
+});
+
+test('integer acepta un entero, también escrito como texto, y rechaza los decimales', () => {
+  const esquema = { properties: { position: { type: 'integer' } } };
+  for (const position of [5, -3, '5', '-3']) {
+    assert.equal(validateToolInput(esquema, { position }), null, JSON.stringify(position));
+  }
+  for (const position of [5.5, '5.5', 'abc', '', Infinity, true]) {
+    assert.equal(validateToolInput(esquema, { position }), 'el argumento "position" debe ser de tipo integer', JSON.stringify(position));
+  }
+});
+
+test('number sigue aceptando decimales', () => {
+  const esquema = { properties: { precio: { type: 'number' } } };
+  assert.equal(validateToolInput(esquema, { precio: 5.5 }), null);
+  assert.equal(validateToolInput(esquema, { precio: '5.5' }), null);
 });
 
 for (const personafisica of [true, '1']) {
