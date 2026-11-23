@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 from contextlib import redirect_stdout
@@ -435,6 +436,126 @@ class EvasionTest(unittest.TestCase):
         findings = self.by_title(report)['Incluye un archivo PHP calculado en tiempo de ejecución']
         self.assertEqual([9], [item['linea'] for item in findings])
         self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
+
+    def test_include_que_concatena_una_variable_no_ascii_o_variable(self) -> None:
+        """Una variable concatenada se ve aunque su nombre no sea ASCII o se escriba con ${...}."""
+        cases = {
+            'euro': "include __DIR__ . '/' . $€;\n".encode(),
+            # Un byte 0x80-0xff suelto llega como U+FFFD al leer el archivo
+            'latin1': b"include __DIR__ . '/' . $\xff;\n",
+            'dolar-llave': "include __DIR__ . '/' . ${'f'};\n".encode(),
+        }
+        for name, line in cases.items():
+            with self.subTest(name):
+                plugin = build_plugin(self.root / name, {})
+                (plugin / 'Lib').mkdir()
+                (plugin / 'Lib/Doce.php').write_bytes(b'<?php\n' + line)
+                findings = self.by_title(CHECKER.audit(plugin)).get(
+                    'Incluye un archivo PHP calculado en tiempo de ejecución', [])
+                self.assertEqual([2], [item['linea'] for item in findings])
+                self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
+
+    def test_include_con_interpolacion_en_la_cadena(self) -> None:
+        """Una variable interpolada en comillas dobles o en heredoc hace la ruta dinámica."""
+        cases = {
+            'llaves': '        include "{$_GET[\'p\']}.php";',
+            'simple': '        require "$x.php";',
+            'propiedad': '        include "a/{$this->d}/b.php";',
+            'dolar-llave': '        include "${x}.php";',
+            'heredoc': '        include <<<RUTA\n{$x}.php\nRUTA;',
+            'heredoc-comillas': '        include <<<"RUTA"\n$x.php\nRUTA;',
+            # PHP admite nombres de variable que empiezan por un byte 0x80-0xff
+            'no-ascii': '        include "$ñ.php";',
+            'no-ascii-llaves': '        include "{$ñ}.php";',
+            'no-ascii-simbolo': '        include "$€.php";',
+            # Etiqueta de heredoc no ASCII, que PHP también admite
+            'heredoc-no-ascii': '        include <<<ÑR\n$x.php\nÑR;',
+            'heredoc-no-ascii-simbolo': '        include <<<€R\n$x.php\n€R;',
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Cinco.php': php_class('Cinco', body)})
+                findings = self.by_title(report).get('Incluye un archivo PHP calculado en tiempo de ejecución', [])
+                self.assertEqual([8], [item['linea'] for item in findings])
+                self.assertIn('la ruta interpola una variable en la cadena', findings[0]['notas'])
+
+    def test_include_sin_interpolacion_sigue_siendo_fijo(self) -> None:
+        """Comillas simples, nowdoc y un «$» escapado no interpolan: la ruta es fija."""
+        cases = {
+            'literal': '        include "a/b.php";',
+            'simples': "        include 'x{$y}.php';",
+            'escapado': '        include "a\\$x.php";',
+            'nowdoc': "        include <<<'RUTA'\n{$x}.php\nRUTA;",
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Seis.php': php_class('Seis', body)})
+                self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
+
+    def test_heredoc_con_etiqueta_no_ascii_es_una_cadena(self) -> None:
+        """Un «?>» dentro de un heredoc <<<ÑR no corta la sentencia: la variable de detrás se ve."""
+        body = "        include __DIR__ . '/' . str_repeat(<<<ÑR\n?>\nÑR, 0) . $x . '.php';"
+        report = self.audit({'Lib/Ocho.php': php_class('Ocho', body)})
+        findings = self.by_title(report).get('Incluye un archivo PHP calculado en tiempo de ejecución', [])
+        self.assertEqual([8], [item['linea'] for item in findings])
+        self.assertIn('la ruta parte de un directorio fijo pero concatena una variable', findings[0]['notas'])
+
+    def test_heredoc_cierra_donde_lo_cierra_php(self) -> None:
+        """La etiqueta de cierre acaba donde PHP: sin otro carácter de nombre detrás, también no ASCII.
+
+        Cada caso pasa ``php -l``. El eval del cuerpo es texto, y el include y el system
+        de detrás tienen que verse.
+        """
+        tail = b"include $_GET['f'];\nsystem($_GET['c']);\n"
+        cases = {
+            'euro': '<?php\n$t = <<<A€\neval($_GET[1]);\nA€;\n'.encode(),
+            # Un byte 0x80-0xff suelto llega como U+FFFD al leer el archivo
+            'latin1': b'<?php\n$t = <<<A\xff\neval($_GET[1]);\nA\xff;\n',
+            # «A€» no cierra la etiqueta A: la comilla es parte del cuerpo
+            'cierre-temprano': '<?php\n$t = <<<A\nA€ "\nA;\n'.encode(),
+        }
+        for name, head in cases.items():
+            with self.subTest(name):
+                plugin = build_plugin(self.root / name, {})
+                (plugin / 'Lib').mkdir()
+                (plugin / 'Lib/Nueve.php').write_bytes(head + tail)
+                lines = {item['linea'] for item in CHECKER.audit(plugin)['hallazgos']}
+                self.assertLessEqual({5, 6}, lines)
+                self.assertNotIn(3, lines)
+
+    def test_heredoc_sin_cierre_se_lee_como_codigo(self) -> None:
+        """Sin etiqueta de cierre no hay heredoc: lo que sigue se analiza en vez de darse por cadena."""
+        report = self.audit({'Lib/Diez.php': "<?php\n$t = <<<A\nhola\nsystem($_GET['c']);\n"})
+        self.assertIn(4, [item['linea'] for item in report['hallazgos']])
+
+    def test_muchos_include_en_una_sentencia_no_tardan_de_mas(self) -> None:
+        """Las cadenas y las paradas de la expresión se calculan una vez por archivo, no por include.
+
+        Con 4000 include en una sola sentencia, la base tarda en torno a un cuarto de
+        segundo y una búsqueda por include, decenas. La cota deja margen de sobra.
+        """
+        plugin = build_plugin(self.root, {'Lib/Once.php': '<?php\n' + "include f('')." * 4000 + "'';\n"})
+        started = time.monotonic()
+        CHECKER.audit(plugin)
+        self.assertLess(time.monotonic() - started, 5)
+
+    def test_include_fijo_no_mira_cadenas_que_no_son_su_ruta(self) -> None:
+        """Una cadena interpolada después del include, fuera de su expresión, no lo marca."""
+        cases = {
+            'cierre-y-echo': "<?php include __DIR__ . '/a.php' ?>\n<p>texto</p>\n<?php echo \"Hola $x\"; ?>\n",
+            'cierre-y-atributo': "<?php require __DIR__ . '/a.php' ?>\n<a href=\"<?= $x ?>\">enlace</a>\n",
+            'cierre-y-variable': "<?php include __DIR__ . '/a.php' ?>\n<?php $y = 1; ?>\n",
+            'parentesis': php_class('Siete', "        $cfg = (include __DIR__ . '/cfg.php') + ['k' => \"$x\"];"),
+            'coma': php_class('Siete', "        $r = [include __DIR__ . '/a.php', \"$x\"];"),
+            # La llave que cierra el método está a la profundidad del include, pero después del «;»
+            'despues-del-punto-y-coma': php_class('Siete', "        include __DIR__ . '/a.php';\n        echo \"$x\";"),
+            # Sin «;» ni «?>» hasta el final del archivo: no debe salirse de él
+            'sin-fin': "<?php include __DIR__ . '/a.php'",
+        }
+        for name, content in cases.items():
+            with self.subTest(name):
+                report = self.audit({'Lib/Siete.php': content})
+                self.assertNotIn('Incluye un archivo PHP calculado en tiempo de ejecución', self.by_title(report))
 
     def test_tests_anidados_se_excluyen(self) -> None:
         """Un directorio tests/ dentro de Lib/ también se excluye salvo que se pida."""
