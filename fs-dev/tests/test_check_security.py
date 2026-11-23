@@ -634,13 +634,16 @@ class EvasionTest(unittest.TestCase):
             'nowdoc': "<?php\n$a = <<<'A'\nx\nA;\n$b = <<<'A'\nsystem($z);\nA;\nsystem($y);\n",
             # El segundo heredoc no tiene cierre: es código
             'sin-cierre': "<?php\n$a = <<<A\nx\nA;\n$b = <<<A\nzz\nsystem($y);\n",
+            # Un nowdoc vacío cierra en la línea siguiente a la apertura, no en el cierre del siguiente
+            'nowdoc-vacio': "<?php\n$a = <<<'A'\nA;\nsystem($y);\n$b = <<<'A'\nx\nA;\n",
         }
+        expected = {'nowdoc': 8, 'sin-cierre': 7, 'nowdoc-vacio': 4}
         for name, content in cases.items():
             with self.subTest(name):
-                # Un cierre recordado que no le corresponde puede dejar el análisis en un bucle
+                # Un cierre que no le corresponde puede dejar el análisis en un bucle
                 with time_limit(10):
                     report = self.by_title(self.audit({'Lib/Dieciocho.php': content}))
-                self.assertEqual([8 if name == 'nowdoc' else 7],
+                self.assertEqual([expected[name]],
                                  [item['linea'] for item in report.get('Ejecuta un comando del sistema', [])])
 
     def test_muchos_heredoc_anidados_no_tardan_de_mas(self) -> None:
@@ -656,6 +659,28 @@ class EvasionTest(unittest.TestCase):
         with time_limit(60):
             CHECKER.strip_php(content)
         self.assertLess(time.monotonic() - started, 5)
+
+    def test_buscar_el_cierre_de_un_heredoc_no_recorre_el_archivo(self) -> None:
+        """Los cierres se indexan en una pasada, y cada apertura busca el suyo en el índice.
+
+        Con 20.000 etiquetas distintas, buscar el cierre de cada una recorriendo el archivo tarda
+        decenas de segundos, anidadas o sin cierre; con 20.000 heredoc seguidos de la misma
+        etiqueta, recorrer sus cierres uno a uno también. La cota deja margen de sobra.
+        """
+        n = 20000
+        cases = {
+            'anidados': '<?php $a = ' + ''.join(f'<<<E{i}\n{{$a[' for i in range(n)) + '1'
+                        + ''.join(f']}}\nE{i}\n' for i in reversed(range(n))) + ';\n',
+            'sin-cierre': '<?php\n' + ''.join(f'<<<E{i}\n' for i in range(n)),
+            'seguidos': '<?php\n' + '$v = <<<A\nx\nA;\n' * n,
+        }
+        for name, content in cases.items():
+            with self.subTest(name):
+                # Sólo strip_php: el resto del análisis tiene sus propios costes con este archivo
+                started = time.monotonic()
+                with time_limit(60):
+                    CHECKER.strip_php(content)
+                self.assertLess(time.monotonic() - started, 5)
 
     def test_muchos_heredoc_con_etiquetas_distintas_no_tardan_de_mas(self) -> None:
         """El cierre de cada etiqueta se compila sin recorrer una clase con todo Unicode.
