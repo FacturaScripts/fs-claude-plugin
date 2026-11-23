@@ -59,6 +59,18 @@ function isTrivialDescription(desc: string | undefined): boolean {
     return desc === undefined || desc === null || desc.trim() === '';
 }
 
+/**
+ * Propiedades cuyo enum ha añadido la metadata. Ese enum es orientativo: lista
+ * los valores del core, y un plugin puede usar otros (un tipodoc propio, por
+ * ejemplo), así que la validación de argumentos no lo exige.
+ */
+const metadataEnums = new WeakSet<object>();
+
+/** Si el enum de esta propiedad lo ha añadido la metadata y es sólo orientativo. */
+export function hasMetadataEnum(prop: object): boolean {
+    return metadataEnums.has(prop);
+}
+
 interface MutableProperty {
     type?: string;
     description?: string;
@@ -93,6 +105,7 @@ function enrichProperty(
         prop.enum === undefined
     ) {
         prop.enum = [...column.enumValues];
+        metadataEnums.add(prop);
         stats.enumsAdded += 1;
     }
     // Marcamos uso para evitar warnings cuando solo se pasa por logging futuro.

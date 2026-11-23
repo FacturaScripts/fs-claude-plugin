@@ -34,6 +34,8 @@ export declare function resolveModelFromToolName(toolName: string): ModelMetadat
  * Por ahora solo se considera trivial la cadena vacía o nula.
  */
 declare function isTrivialDescription(desc: string | undefined): boolean;
+/** Si el enum de esta propiedad lo ha añadido la metadata y es sólo orientativo. */
+export declare function hasMetadataEnum(prop: object): boolean;
 /**
  * Enriquece un tool individual con la metadata del modelo correspondiente,
  * si se puede resolver. Devuelve true si tocó algo.

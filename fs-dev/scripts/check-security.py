@@ -138,7 +138,11 @@ CATEGORY_TITLES = {
 URL_PATTERN = re.compile(r'''(?:https?:)?//([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+)(?::\d+)?''', re.I)
 SCHEME_URL_PATTERN = re.compile(r'''https?://([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+)''', re.I)
 FUNCTION_PATTERN = re.compile(r'\bfunction\s+(\w+)\s*\(')
-PHP_CLASS_PATTERN = re.compile(r'^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|trait|interface|enum)\s+\w+', re.M)
+# [^\S\n] y no \s: con re.M, «^\s*» cruza los saltos y se reintenta desde cada línea, y
+# en una plantilla con mucho HTML (que queda en blanco) la búsqueda se vuelve cuadrática.
+# Por lo mismo, como mucho tres modificadores (PHP no admite repetirlos): su «\s+»
+# también cruza saltos, y «final readonly» repetido en muchas líneas lo dispararía
+PHP_CLASS_PATTERN = re.compile(r'^[^\S\n]*(?:(?:abstract|final|readonly)\s+){0,3}(?:class|trait|interface|enum)\s+\w+', re.M)
 LONG_ENCODED_PATTERN = re.compile(r'[A-Za-z0-9+/]{300,}={0,2}')
 HEX_ESCAPES_PATTERN = re.compile(r'(?:\\x[0-9a-fA-F]{2}){20,}')
 # Guarda que impide ejecutar un script salvo desde la línea de comandos.
@@ -162,6 +166,11 @@ class Source:
     code: str
     minified: bool = False
     line_starts: list[int] = field(default_factory=list)
+    # Lo calcula execution_context una sola vez: dónde termina cada «function x(» y su nombre.
+    functions: tuple[list[int], list[str]] | None = None
+    # Los calculan variable_value y assigned_host una vez por patrón: las asignaciones a
+    # una variable en todo el archivo, con la posición donde termina cada una.
+    assignments: dict[str, tuple[list[int], list]] = field(default_factory=dict)
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
     # Los calculan interpolates e include_expression_end una sola vez, por el
@@ -200,21 +209,40 @@ class Source:
         Recorre la versión sin cadenas para que las comas y los paréntesis de un
         literal no corten el argumento, y devuelve el texto con sus cadenas.
         """
+        return self.argument(offset, 0, limit)
+
+    def argument(self, offset: int, position: int, limit: int = 600) -> str:
+        """Devuelve el argumento ``position`` (desde 0) de la llamada cuyo paréntesis abre en ``offset``.
+
+        Args:
+            offset: Posición desde la que se busca el paréntesis de apertura.
+            position: Índice del argumento que se quiere, empezando por 0.
+            limit: Longitud máxima que se examina.
+
+        Returns:
+            El texto del argumento con sus cadenas, o cadena vacía si la llamada
+            tiene menos argumentos.
+        """
         start = self.code.find('(', offset)
         if start == -1:
             return ''
         depth = 0
+        current = 0
+        begin = start + 1
         for index in range(start + 1, min(len(self.code), start + limit)):
             char = self.code[index]
             if char in '([{':
                 depth += 1
             elif char in ')]}':
                 if depth == 0:
-                    return self.text[start + 1:index]
+                    return self.text[begin:index] if current == position else ''
                 depth -= 1
             elif char == ',' and depth == 0:
-                return self.text[start + 1:index]
-        return self.text[start + 1:start + limit]
+                if current == position:
+                    return self.text[begin:index]
+                current += 1
+                begin = index + 1
+        return self.text[begin:start + limit] if current == position else ''
 
     def arguments(self, offset: int, limit: int = 1200) -> str:
         """Devuelve todos los argumentos de la llamada cuyo paréntesis abre en ``offset``.
@@ -705,7 +733,8 @@ def load_source(path: Path, plugin_dir: Path) -> Source | None:
         if data is None or not unknown_has_php(path, data):
             return None
         language = 'php'
-        raw = data.decode('utf-8', errors='replace')
+        # Como read_text, que lee con saltos universales: PHP también toma «\r» como salto
+        raw = data.decode('utf-8', errors='replace').replace('\r\n', '\n').replace('\r', '\n')
     else:
         raw = read_text(path)
         if raw is None:
@@ -753,8 +782,13 @@ def execution_context(source: Source, offset: int, public_file: bool) -> str:
     if source.language == 'twig':
         return 'plantilla renderizada en el navegador del usuario'
 
-    functions = FUNCTION_PATTERN.findall(source.code[:offset])
-    current = functions[-1] if functions else ''
+    if source.functions is None:
+        found = list(FUNCTION_PATTERN.finditer(source.code))
+        source.functions = ([match.end() for match in found], [match.group(1) for match in found])
+    ends, names = source.functions
+    # La última función cuya cabecera termina antes de la posición
+    before = bisect.bisect_right(ends, offset)
+    current = names[before - 1] if before else ''
 
     if source.relative == 'Init.php':
         return {
@@ -788,11 +822,26 @@ def call_argument(source: Source, match: re.Match) -> str:
     return source.first_argument(match.end() - 1) if match.group(0).endswith('(') else ''
 
 
+def assignments(source: Source, pattern: re.Pattern) -> tuple[list[int], list]:
+    """Devuelve las coincidencias del patrón en todo el texto y dónde termina cada una.
+
+    Se calculan una vez por archivo y patrón: buscarlas desde el principio en cada
+    hallazgo hacía que un archivo con miles de hallazgos tardase minutos.
+    """
+    if pattern.pattern not in source.assignments:
+        found = list(pattern.finditer(source.text))
+        source.assignments[pattern.pattern] = ([match.end() for match in found], found)
+    return source.assignments[pattern.pattern]
+
+
 def variable_value(source: Source, variable: str, before: int) -> str:
     """Devuelve la expresión asignada por última vez a una variable antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'\s*\.?=(?!=)\s*([^;]{1,400});')
-    values = [found.group(1) for found in pattern.finditer(source.text, 0, before)]
-    return ' '.join(values[-3:])
+    ends, found = assignments(source, pattern)
+    # Las que terminan antes de la posición, como un finditer que acabase en ella:
+    # cada una acaba en «;», así que recortar el texto no acorta ninguna
+    count = bisect.bisect_right(ends, before)
+    return ' '.join(match.group(1) for match in found[max(count - 3, 0):count])
 
 
 def is_standalone_script(source: Source) -> bool:
@@ -843,19 +892,56 @@ def dynamic_command(source: Source, match: re.Match) -> tuple[bool, list[str], s
     return True, notes, None
 
 
-def destination_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
-    """Anota el destino de una petición cuando es un literal o una variable con URL fija."""
-    argument = call_argument(source, match).strip()
+def destination_notes(source: Source, argument: str, before: int) -> list[str]:
+    """Describe el destino de una petición a partir del argumento que lleva la URL.
+
+    Args:
+        source: Archivo analizado.
+        argument: Texto del argumento con la URL.
+        before: Posición de la llamada, para resolver la última asignación de una variable.
+
+    Returns:
+        Una nota con el dominio si la URL es un literal, una constante o una variable
+        con URL fija; si no, una nota con la expresión tal cual; o ninguna si no hay argumento.
+    """
+    argument = argument.strip()
     host = SCHEME_URL_PATTERN.search(resolve_constant(source, argument))
     if host is None:
         variable = re.match(r'\$\w+', argument)
-        value = variable_value(source, variable.group(0), match.start()) if variable else ''
+        value = variable_value(source, variable.group(0), before) if variable else ''
         host = SCHEME_URL_PATTERN.search(value)
     if host and host.group(1).lower() not in IGNORED_HOSTS:
-        return True, [f'destino: {host.group(1).lower()}'], None
+        return [f'destino: {host.group(1).lower()}']
     if argument:
-        return True, ['destino: ' + re.sub(r'\s+', ' ', argument)[:120]], None
-    return True, [], None
+        return ['destino: ' + re.sub(r'\s+', ' ', argument)[:120]]
+    return []
+
+
+def destination_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de una petición cuando es un literal o una variable con URL fija."""
+    return True, destination_notes(source, call_argument(source, match), match.start()), None
+
+
+def http_static_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de ``Http::get()`` y avisa cuando el método HTTP está en una variable.
+
+    ``Http::$metodo(...)`` y ``Http::{$metodo}(...)`` hacen la misma petición que
+    ``Http::get()`` o ``Http::post()``, pero no se ve cuál: puede ser también ``delete``.
+    """
+    notes = destination_notes(source, call_argument(source, match), match.start())
+    method = match.group('metodo')
+    if method.startswith(('$', '{')):
+        notes.append(f'el método HTTP está en una variable ({method}): puede ser get, post, put, patch o delete')
+    return True, notes, None
+
+
+def http_constructor_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
+    """Anota el destino de ``new Http($metodo, $url)``, cuya URL es el segundo argumento."""
+    method = source.argument(match.end() - 1, 0).strip()
+    notes = destination_notes(source, source.argument(match.end() - 1, 1), match.start())
+    if method.startswith('$'):
+        notes.append(f'el método HTTP está en una variable ({method})')
+    return True, notes, None
 
 
 def backtick_check(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
@@ -1081,9 +1167,29 @@ def url_argument(source: Source, match: re.Match) -> tuple[bool, list[str], str 
 def assigned_host(source: Source, variable: str, before: int) -> str | None:
     """Busca la última asignación de la variable a una URL literal antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'''\s*=\s*['"](https?://[^'"\s]+)''')
-    hosts = [SCHEME_URL_PATTERN.match(found.group(1)) for found in pattern.finditer(source.text, 0, before)]
-    hosts = [host.group(1).lower() for host in hosts if host and host.group(1).lower() not in IGNORED_HOSTS]
-    return hosts[-1] if hosts else None
+    ends, found = assignments(source, pattern)
+    # Como en variable_value, las que terminan antes de la posición. La URL no acaba en
+    # un delimitador, así que la posición de la llamada puede caer dentro de ella cuando
+    # la «asignación» está en realidad en HTML o entre comillas invertidas
+    # («$h='https://x<?=file_get_contents($h)?>»). Un finditer recortado la daba por
+    # asignada y atribuía ese destino falso; aquí no cuenta, y gana la anterior
+    count = bisect.bisect_right(ends, before)
+    key = pattern.pattern + ' hosts'
+    if key not in source.assignments:
+        # El último host válido entre las n primeras asignaciones, para cada n
+        last: list[str | None] = [None]
+        for match in found:
+            last.append(url_host(match) or last[-1])
+        source.assignments[key] = (ends, last)
+    return source.assignments[key][1][count]
+
+
+def url_host(match: re.Match) -> str | None:
+    """Devuelve el host de la URL capturada, o None si no tiene o se ignora."""
+    host = SCHEME_URL_PATTERN.match(match.group(1))
+    if host and host.group(1).lower() not in IGNORED_HOSTS:
+        return host.group(1).lower()
+    return None
 
 
 def script_src(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
@@ -1216,7 +1322,10 @@ RULES: list[Rule] = [
     Rule('red-saliente', 'media', 'Fija la URL de una petición cURL',
          re.compile(r'\bCURLOPT_URL\s*,'), PHP, check=curlopt_check),
     Rule('red-saliente', 'media', 'Hace una petición HTTP con la clase Http del core',
-         re.compile(r'\bHttp::(?:get|post|postJson|put|patch|delete)\s*\('), PHP, check=destination_check),
+         re.compile(r'\bHttp::(?P<metodo>get|post|postJson|put|patch|delete|\$\w+|\{[^}]*\})\s*\(', re.I),
+         PHP, check=http_static_check),
+    Rule('red-saliente', 'media', 'Hace una petición HTTP con la clase Http del core',
+         re.compile(r'(?<![\w$>:])new\s+\\?(?:FacturaScripts\\Core\\)?Http\s*\('), PHP, check=http_constructor_check),
     Rule('red-saliente', 'media', 'Usa un cliente HTTP o SOAP de terceros',
          re.compile(r'\bnew\s+\\?SoapClient\b|GuzzleHttp\\|Symfony\\Component\\HttpClient|\bnew\s+\\?Client\s*\(\s*\[\s*[\'"]base_uri'),
          PHP, target='text'),
@@ -1449,7 +1558,7 @@ def collect_domains(sources: list[Source]) -> list[dict]:
     ``script`` si carga código en el navegador o ``referencia`` en otro caso
     (enlaces, textos de ayuda, identificadores).
     """
-    call_hint = re.compile(r'curl_|Http::|file_get_contents|fopen|fsockopen|fetch\s*\(|\$\.(?:ajax|get|post)|'
+    call_hint = re.compile(r'curl_|Http::|new\s+\\?(?:FacturaScripts\\Core\\)?Http\s*\(|file_get_contents|fopen|fsockopen|fetch\s*\(|\$\.(?:ajax|get|post)|'
                            r'XMLHttpRequest|SoapClient|base_uri|sendBeacon|WebSocket|->(?:get|post|request)\s*\(',
                            re.I)
     domains: dict[str, dict] = {}

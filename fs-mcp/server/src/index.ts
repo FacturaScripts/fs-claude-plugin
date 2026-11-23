@@ -29,6 +29,7 @@ import { addDateRangeParams } from './metadata/dateRange.js';
 import { enrichAllTools } from './metadata/enrich.js';
 import { bootstrapCoreMetadata, getAllModelMetadata } from './metadata/registry.js';
 import { loadLocalModules, type LocalModuleHandler } from './local-loader.js';
+import { validateToolInput } from './utils/validateInput.js';
 
 // Track registered tools
 const tools = new Map<string, Tool>();
@@ -216,12 +217,38 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: toolList };
 });
 
+// Las tools de conexión guardan sus argumentos en el archivo de conexiones tal
+// como llegan, así que ahí un número no vale por texto: se guardaría como número
+const CONNECTION_TOOLS = new Set(['add_connection', 'set_default_connection']);
+
+function connectionArgsAsText(toolName: string, schema: Tool['inputSchema'], input: Record<string, unknown> | undefined): string | null {
+  if (!CONNECTION_TOOLS.has(toolName)) return null;
+  for (const [name, value] of Object.entries(input ?? {})) {
+    const property = schema.properties?.[name] as { type?: string } | undefined;
+    if (property?.type === 'string' && typeof value === 'number') {
+      return `el argumento "${name}" va como texto, entre comillas`;
+    }
+  }
+  return null;
+}
+
 /**
  * Call tool handler
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name;
   const toolInput = request.params.arguments as Record<string, unknown>;
+
+  // Los handlers no validan sus argumentos: se rechaza lo que no case con el
+  // inputSchema antes de llamarlos
+  const tool = tools.get(toolName);
+  const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) ?? connectionArgsAsText(toolName, tool.inputSchema, toolInput) : null;
+  if (invalid) {
+    return {
+      content: [{ type: 'text' as const, text: `Argumentos no válidos para ${toolName}: ${invalid}` }],
+      isError: true,
+    };
+  }
 
   try {
     switch (toolName) {
@@ -232,8 +259,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           url: string;
           token: string;
           version?: string;
-          setAsDefault?: boolean;
+          setAsDefault?: boolean | '1' | '0';
         };
+        // La validación acepta "1" y "0" como booleanos, y "0" es verdadero en JS
+        const makeDefault = setAsDefault === true || setAsDefault === '1';
 
         connectionManager.addConnection(key, {
           name,
@@ -242,7 +271,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ...(version ? { version } : {}),
         });
 
-        if (setAsDefault) {
+        if (makeDefault) {
           connectionManager.setDefault(key);
         }
 
@@ -251,7 +280,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text' as const,
               text: `Connection "${name}" (${key}) added successfully${
-                setAsDefault ? ' and set as default' : ''
+                makeDefault ? ' and set as default' : ''
               }`,
             },
           ],

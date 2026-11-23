@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
@@ -915,13 +915,13 @@ export async function handleAccountingTool(
     case 'update_ejercicio': {
       const params = input as any as UpdateEjercicioParams;
       const { connection, codejercicio, ...data } = params;
-      const result = await fsClient.put(`/ejercicios/${pathId(codejercicio)}`, data, connection);
+      const result = await fsClient.put(`/ejercicios/${pathCode(codejercicio, 'codejercicio')}`, data, connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 
     case 'delete_ejercicio': {
       const params = input as any as DeleteEjercicioParams;
-      const result = await fsClient.delete(`/ejercicios/${pathId(params.codejercicio)}`, params.connection);
+      const result = await fsClient.delete(`/ejercicios/${pathCode(params.codejercicio, 'codejercicio')}`, params.connection);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }
 

@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 interface PaginationParams {
@@ -1162,13 +1162,13 @@ export async function handlePurchasingTool(
           case 'update_cuentabancoproveedor': {
             const params = input as any as { connection?: string; codcuenta: string; [key: string]: unknown };
             const { connection, codcuenta, ...data } = params;
-            const result = await fsClient.put(`/cuentabancoproveedores/${pathId(codcuenta)}`, data, connection);
+            const result = await fsClient.put(`/cuentabancoproveedores/${pathCode(codcuenta, 'codcuenta')}`, data, connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
           case 'delete_cuentabancoproveedor': {
             const params = input as any as { connection?: string; codcuenta: string };
-            const result = await fsClient.delete(`/cuentabancoproveedores/${pathId(params.codcuenta)}`, params.connection);
+            const result = await fsClient.delete(`/cuentabancoproveedores/${pathCode(params.codcuenta, 'codcuenta')}`, params.connection);
             return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
           }
 
