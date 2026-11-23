@@ -366,13 +366,12 @@ def strip_php(content: str) -> tuple[str, str]:
     # inicio) para comillas dobles o invertidas, ('heredoc', cierre) y ('codigo', llaves abiertas) para
     # el código de una interpolación
     stack: list[tuple[str, object]] = []
-    # Cierres posibles de un heredoc, calculados en una pasada al ver el primero: el principio
-    # de línea → (etiqueta, fin), y cada etiqueta → sus principios de línea en orden. Una
-    # etiqueta cierra si no la sigue otro carácter de nombre, como en PHP, así que en cada
-    # línea sólo puede cerrar el nombre entero que empieza tras los espacios. Cada apertura
-    # busca su cierre con bisect, sin volver a recorrer el archivo
-    closers: dict[int, tuple[str, int]] | None = None
-    closers_by_label: dict[str, list[int]] = {}
+    # Cierres posibles de un heredoc, calculados en una pasada al ver el primero: cada
+    # etiqueta → sus principios de línea en orden. Una etiqueta cierra si no la sigue otro
+    # carácter de nombre, como en PHP, así que en cada línea sólo puede cerrar el nombre
+    # entero que empieza tras los espacios. Cada apertura busca su cierre con bisect, sin
+    # volver a recorrer el archivo; el cuerpo lo comprueba en su propia línea
+    closers_by_label: dict[str, list[int]] | None = None
 
     while index < length:
         if not in_php:
@@ -395,13 +394,13 @@ def strip_php(content: str) -> tuple[str, str]:
             kind, value = stack[-1][:2]
             delimiter = value if kind == 'cadena' else "'"
             # El heredoc sólo cierra a principio de línea y fuera de una interpolación
-            closing = closers.get(index) if kind == 'heredoc' and content[index - 1] == '\n' else None
-            if closing and closing[0] == value:
-                chunk = content[index:closing[1]]
+            closing = HEREDOC_CLOSER.match(content, index) if kind == 'heredoc' and content[index - 1] == '\n' else None
+            if closing and closing.group(1) == value:
+                chunk = closing.group(0)
                 text.append(chunk)
                 code.append(blank(chunk[:-1]) + "'")
                 stack.pop()
-                index = closing[1]
+                index = closing.end()
                 continue
             if char == '\\':
                 chunk = content[index:index + 2]
@@ -491,18 +490,17 @@ def strip_php(content: str) -> tuple[str, str]:
         # Sin cierre no es un heredoc y lo que sigue se lee como código
         found = None
         if match:
-            if closers is None:
-                closers = {}
+            if closers_by_label is None:
+                closers_by_label = {}
                 for line in HEREDOC_CLOSER.finditer(content):
-                    closers[line.start()] = (line.group(1), line.end())
                     closers_by_label.setdefault(line.group(1), []).append(line.start())
             label = match.group(2)
             starts = closers_by_label.get(label, [])
             position = bisect.bisect_left(starts, match.end())
-            found = closers[starts[position]] if position < len(starts) else None
+            found = HEREDOC_CLOSER.match(content, starts[position]) if position < len(starts) else None
         if found and match.group(1) == "'":
             # El nowdoc no interpola
-            end = found[1]
+            end = found.end()
             literal = content[index:end]
             text.append(literal)
             code.append("'" + blank(literal[1:-1]) + "'")

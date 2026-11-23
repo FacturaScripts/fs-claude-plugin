@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import tracemalloc
 import unittest
 import unittest.mock
 from contextlib import contextmanager, redirect_stdout
@@ -681,6 +682,22 @@ class EvasionTest(unittest.TestCase):
                 with time_limit(60):
                     CHECKER.strip_php(content)
                 self.assertLess(time.monotonic() - started, 5)
+
+    def test_el_indice_de_cierres_no_guarda_cada_linea(self) -> None:
+        """El índice sólo guarda los principios de línea, no una tupla por línea.
+
+        Con una tupla (etiqueta, fin) por cada línea, el pico de strip_php sobre un heredoc
+        de líneas cortas pasa de unos 120 bytes por byte de entrada; sin ella, de unos 37. La
+        cota deja margen a los dos lados.
+        """
+        content = '<?php $x = <<<A\n' + 'a\n' * 200000 + 'A;\n'
+        tracemalloc.start()
+        try:
+            CHECKER.strip_php(content)
+            peak = tracemalloc.get_traced_memory()[1]
+        finally:
+            tracemalloc.stop()
+        self.assertLess(peak / len(content), 60)
 
     def test_muchos_heredoc_con_etiquetas_distintas_no_tardan_de_mas(self) -> None:
         """El cierre de cada etiqueta se compila sin recorrer una clase con todo Unicode.
