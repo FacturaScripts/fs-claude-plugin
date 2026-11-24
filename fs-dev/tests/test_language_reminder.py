@@ -42,14 +42,14 @@ def run_hook(home: Path, payload: object = None) -> subprocess.CompletedProcess:
 
 
 def write_config(home: Path, content: object) -> None:
-    """Escribe ``~/.fs-claude.json`` dentro del HOME aislado.
+    """Escribe ``~/.fs-ai.json`` dentro del HOME aislado.
 
     Args:
         home: HOME aislado.
         content: Objeto que se serializa a JSON, o texto que se escribe tal cual.
     """
     text = content if isinstance(content, str) else json.dumps(content)
-    (home / '.fs-claude.json').write_text(text, encoding='utf-8')
+    (home / '.fs-ai.json').write_text(text, encoding='utf-8')
 
 
 class ResolveLanguageTest(unittest.TestCase):
@@ -138,7 +138,7 @@ class HookProcessTest(unittest.TestCase):
         self.assertIn(expected, specific['additionalContext'])
 
     def test_without_config_file(self) -> None:
-        """Sin ``~/.fs-claude.json`` el aviso es en español."""
+        """Sin ``~/.fs-ai.json`` el aviso es en español."""
         self.assert_context(run_hook(self.home), 'en español')
 
     def test_without_language_key(self) -> None:

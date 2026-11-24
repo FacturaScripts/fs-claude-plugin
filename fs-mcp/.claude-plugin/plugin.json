@@ -1,6 +1,6 @@
 {
   "name": "fs-mcp",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Servidor MCP de FacturaScripts para Claude Code y Codex, con múltiples instalaciones y módulos locales privados.",
   "author": {
     "name": "Daniel Fernández Giménez",
@@ -27,13 +27,13 @@
   "userConfig": {
     "FS_CONNECTIONS_FILE": {
       "title": "Ruta del archivo de conexiones (override)",
-      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-claude.json. Normalmente déjalo vacío.",
+      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-ai.json. Normalmente déjalo vacío.",
       "type": "string",
       "sensitive": false
     },
     "FS_DEFAULT_CONNECTION": {
       "title": "Conexión por defecto (override)",
-      "description": "Clave de la conexión por defecto. Normalmente se gestiona desde ~/.fs-claude.json con el skill 'fs-mcp:add-connection'.",
+      "description": "Clave de la conexión por defecto. Normalmente se gestiona desde ~/.fs-ai.json con el skill 'fs-mcp:add-connection'.",
       "type": "string",
       "sensitive": false
     }

@@ -14,7 +14,7 @@ Los scripts están en [`../../scripts/`](../../scripts/), relativa a este `SKILL
 ## Flujo
 
 1. Lee el `facturascripts.ini` del plugin y anota `min_version`, `min_php`, `require` y `require_php`.
-2. Localiza un clon git del core con todas sus etiquetas. Orden de búsqueda del script: `--core`, `FS_CORE_PATH`, `settings.corePath` (o `settings.coreRepoPath`) de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/`, y el directorio actual. Si no hay ninguno, pide clonar `https://github.com/NeoRazorX/facturascripts.git` y omite la parte de compatibilidad, porque sin historial no se puede datar ningún símbolo; continúa con la de seguridad (paso 5).
+2. Localiza un clon git del core con todas sus etiquetas. Orden de búsqueda del script: `--core`, `FS_CORE_PATH`, `settings.corePath` (o `settings.coreRepoPath`) de `~/.fs-ai.json`, la raíz de la instalación cuando el plugin vive en `Plugins/`, y el directorio actual. Si no hay ninguno, pide clonar `https://github.com/NeoRazorX/facturascripts.git` y omite la parte de compatibilidad, porque sin historial no se puede datar ningún símbolo; continúa con la de seguridad (paso 5).
 3. Ejecuta el script de auditoría (`--core` es opcional si el clon se detecta solo):
 
    ```bash

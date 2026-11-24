@@ -23,7 +23,7 @@ SPEC.loader.exec_module(POST_EDIT)
 
 YEAR = POST_EDIT.datetime.now().year
 
-# HOME aislado para que ~/.fs-claude.json del usuario no altere las pruebas.
+# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
 _HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
 
@@ -251,11 +251,11 @@ class ProcessFileTest(unittest.TestCase):
         self.assertEqual(original, content)
 
     def test_settings_can_disable_both_transformations(self) -> None:
-        """Con ambas opciones desactivadas en ~/.fs-claude.json el archivo no cambia."""
+        """Con ambas opciones desactivadas en ~/.fs-ai.json el archivo no cambia."""
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory) / 'home'
             home.mkdir()
-            (home / '.fs-claude.json').write_text(
+            (home / '.fs-ai.json').write_text(
                 json.dumps({'settings': {'updateCopyright': False, 'sortClassMembers': False}}), encoding='utf-8')
             file_path = Path(directory) / 'Example.php'
             file_path.write_text(PLUGIN_CLASS, encoding='utf-8')

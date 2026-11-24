@@ -3,7 +3,7 @@
  * tipo forja, nunca sustituye una conexión de fs-mcp ni cambia su conexión por defecto, conserva el resto del
  * archivo y normaliza la URL base.
  *
- * Usa un archivo temporal con el formato de ~/.fs-claude.json (HOME apunta a una carpeta temporal) para no tocar
+ * Usa un archivo temporal con el formato de ~/.fs-ai.json (HOME apunta a una carpeta temporal) para no tocar
  * el del usuario.
  */
 
@@ -23,7 +23,7 @@ let managerModule;
 
 before(async () => {
   tempDirectory = await mkdtemp(path.join(os.tmpdir(), 'fs-forja-connections-'));
-  configFile = path.join(tempDirectory, '.fs-claude.json');
+  configFile = path.join(tempDirectory, '.fs-ai.json');
   await writeFile(configFile, JSON.stringify({
     version: '1.0',
     connections: {

@@ -1,5 +1,5 @@
 {
-  "name": "fs-claude-plugin",
+  "name": "fs-ai-plugin",
   "description": "Plugins de FacturaScripts compatibles con Claude Code y Codex: desarrollo, asistencia de usuario, acceso MCP al ERP y gestión de plugins en la forja.",
   "owner": {
     "name": "FacturaScripts",

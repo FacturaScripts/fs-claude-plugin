@@ -7,7 +7,7 @@
  *
  * - `api`: API REST estándar de FacturaScripts (`/api/3`), autenticada con la cabecera `Token`.
  * - `forja`: API de autor de facturascripts.com (`/api/3/forja`). Estas conexiones comparten el archivo
- *   `~/.fs-claude.json`, pero las gestiona y usa el plugin fs-forja: fs-mcp no las crea ni las usa.
+ *   `~/.fs-ai.json`, pero las gestiona y usa el plugin fs-forja: fs-mcp no las crea ni las usa.
  */
 export type ConnectionType = 'api' | 'forja';
 /**

@@ -1,13 +1,13 @@
 # Instrucciones del proyecto para Claude Code y Codex
 
-Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forja` de FacturaScripts. Aunque el repositorio conserva el nombre `fs-claude-plugin`, el código debe funcionar tanto en Claude Code como en Codex.
+Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forja` de FacturaScripts. El repositorio y el marketplace se llaman `fs-ai-plugin` (antes `fs-claude-plugin`) y el código debe funcionar tanto en Claude Code como en Codex.
 
 ## Reglas generales
 
 - Trabaja únicamente dentro de este repositorio, salvo que el usuario autorice expresamente otra carpeta.
 - Nunca crees commits, ramas, tags, pushes ni publicaciones sin una petición expresa del usuario.
 - Conserva los cambios ajenos presentes en el árbol de trabajo y no reviertas archivos que no formen parte de la tarea.
-- No expongas tokens, credenciales ni el contenido sensible de `~/.fs-claude.json`.
+- No expongas tokens, credenciales ni el contenido sensible de `~/.fs-ai.json`.
 - No crees archivos temporales, informes de auditoría o resúmenes dentro del repositorio salvo que el usuario pida expresamente conservarlos. Comunica los resultados en el chat.
 
 ## Fuentes de verdad
@@ -20,8 +20,8 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
 ## Arquitectura compartida
 
 - Mantén un único marketplace y un único código fuente para ambos hosts. No crees un plugin paralelo para Codex salvo que una limitación técnica demostrada haga imposible compartir la implementación y el usuario acepte la separación.
-- Conserva los identificadores `fs-dev`, `fs-user`, `fs-mcp`, `fs-forja` y el marketplace `fs-claude-plugin`.
-- Conserva `~/.fs-claude.json` como configuración compartida por retrocompatibilidad.
+- Conserva los identificadores `fs-dev`, `fs-user`, `fs-mcp`, `fs-forja` y el marketplace `fs-ai-plugin`.
+- Usa `~/.fs-ai.json` como configuración compartida y conserva la lectura del antiguo `~/.fs-claude.json` cuando sea el único que existe, por retrocompatibilidad. Cualquier código o skill que lea o escriba la configuración debe aplicar esa misma regla.
 - La matriz actual de compatibilidad está en [`COMPATIBILITY.md`](COMPATIBILITY.md). Actualízala únicamente cuando cambien capacidades, limitaciones o el flujo de recarga.
 
 ## Skills y perfiles especializados
@@ -59,7 +59,7 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
 
 - El servidor MCP debe seguir funcionando en ambos hosts desde `fs-mcp/server/dist/index.js`.
 - Si modificas TypeScript en `fs-mcp/server/src/`, ejecuta `npm run build --prefix fs-mcp/server` y conserva `dist/` sincronizado porque el plugin lo distribuye precompilado.
-- La configuración principal se lee desde `~/.fs-claude.json`; no vuelvas a documentar `${CLAUDE_PLUGIN_DATA}/connections.json` como ubicación principal.
+- La configuración principal se lee desde `~/.fs-ai.json`; no vuelvas a documentar `${CLAUDE_PLUGIN_DATA}/connections.json` como ubicación principal.
 - La extensión privada está en `/Users/daniel89fg/Trabajos/FacturaScripts/fs-mcp-modules-private` y se carga mediante `settings.localModulesPath`.
 - No modifiques `fs-mcp-modules-private` desde este repositorio salvo petición expresa. Cuando cambie el cargador o el contrato de módulos, valida que los módulos privados siguen cargando sin revelar conexiones ni tokens.
 - fs-mcp solo trabaja con la API REST de las instalaciones del ERP (conexiones de tipo `api`). No vuelvas a añadirle herramientas ni conexiones de la forja: son de `fs-forja`.
@@ -68,13 +68,13 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
 
 - `fs-forja` es el único plugin que trabaja con la API de autor de la forja de facturascripts.com (`/api/3/forja`): herramientas `forja_*`, sus conexiones de tipo `forja` y el zip de versiones. Las referencias a la forja en `fs-dev`, `fs-user` o `fs-mcp` deben remitir a `fs-forja`.
 - Su servidor es independiente del de fs-mcp, con su propio `package.json`, `node_modules` y `dist/` en `fs-forja/server/`, porque cada plugin se instala por separado y no puede importar código de otro.
-- Comparte `~/.fs-claude.json` con fs-mcp: fs-forja solo lee y escribe conexiones de tipo `forja`, nunca sustituye las de fs-mcp ni cambia `connections.default`, y fs-mcp rechaza crear, sustituir o marcar por defecto una conexión de tipo `forja`. Al cambiar el formato del archivo, mantén ambos gestores de conexiones coherentes.
+- Comparte `~/.fs-ai.json` con fs-mcp: fs-forja solo lee y escribe conexiones de tipo `forja`, nunca sustituye las de fs-mcp ni cambia `connections.default`, y fs-mcp rechaza crear, sustituir o marcar por defecto una conexión de tipo `forja`. Al cambiar el formato del archivo, mantén ambos gestores de conexiones coherentes.
 - Si modificas TypeScript en `fs-forja/server/src/`, ejecuta `npm test --prefix fs-forja/server` (compila y prueba) y conserva `dist/` sincronizado.
 
 ## Versiones, instalación y recarga
 
 - Actualiza la versión del subplugin cuando un cambio de distribución necesite invalidar su copia instalada.
-- El marketplace local de desarrollo apunta a este repositorio. Para refrescar Codex usa `codex plugin add <plugin>@fs-claude-plugin` y después abre un hilo nuevo.
+- El marketplace local de desarrollo apunta a este repositorio. Para refrescar Codex usa `codex plugin add <plugin>@fs-ai-plugin` y después abre un hilo nuevo.
 - Para refrescar Claude Code usa su actualización local y `/reload-plugins` o reinicia la sesión.
 - No edites manualmente `~/.codex/config.toml`, caches de plugins ni archivos de marketplace del usuario para simular una actualización.
 - No confundas una validación correcta del código fuente con una sesión ya recargada: skills, hooks, agentes y procesos MCP pueden conservar la versión anterior hasta iniciar una sesión nueva.

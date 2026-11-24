@@ -47,7 +47,7 @@ python3 "<scripts>/check-min-version.py" <ruta_plugin> [--core <ruta_core>] [--j
 
 Opciones relevantes:
 
-- `--core`: ruta del clon git del core. Si no se indica, el script busca `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin está en `Plugins/` y, por último, el directorio actual.
+- `--core`: ruta del clon git del core. Si no se indica, el script busca `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-ai.json`, la raíz de la instalación cuando el plugin está en `Plugins/` y, por último, el directorio actual.
 - `--json`: informe completo en JSON, útil para procesar los símbolos uno a uno.
 - `--include-tests`: analiza también `Test/`, que por defecto se excluye porque usa PHPUnit y no el core.
 - `--min-confidence alta|media|baja`: filtra el ruido; `alta` deja solo clases, llamadas estáticas resueltas, métodos de instancia cuyo receptor tiene tipo conocido y pipes.

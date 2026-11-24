@@ -13,8 +13,8 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 | Idioma de las respuestas | `UserPromptSubmit` con `additionalContext` | `UserPromptSubmit` con `additionalContext` | `fs-dev/scripts/language-reminder.py` |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
 | Servidores MCP | Raíz mediante `CLAUDE_PLUGIN_ROOT` | Raíz mediante el directorio de trabajo del plugin | Lanzador portable definido en `fs-mcp/.claude-plugin/plugin.json` y `fs-forja/.claude-plugin/plugin.json` |
-| Módulos privados | `settings.localModulesPath` | `settings.localModulesPath` | `~/.fs-claude.json` |
-| Conexiones | `connections` de `~/.fs-claude.json` | `connections` de `~/.fs-claude.json` | fs-mcp usa las de tipo `api` y fs-forja, las de tipo `forja` |
+| Módulos privados | `settings.localModulesPath` | `settings.localModulesPath` | `~/.fs-ai.json` |
+| Conexiones | `connections` de `~/.fs-ai.json` | `connections` de `~/.fs-ai.json` | fs-mcp usa las de tipo `api` y fs-forja, las de tipo `forja` |
 
 ## Automatización de ediciones
 
@@ -26,7 +26,7 @@ En Codex, los hooks instalados deben revisarse desde `/hooks`. Cualquier cambio 
 
 ## Idioma de las respuestas
 
-El hook `UserPromptSubmit` de `fs-dev` lee `settings.language` de `~/.fs-claude.json` (español por defecto) y devuelve el aviso en `hookSpecificOutput.additionalContext`, que ambos hosts añaden al contexto del modelo. No usa `matcher`, porque Codex lo ignora en este evento. Sale siempre con código 0: el código 2 bloquearía el mensaje del usuario en los dos hosts.
+El hook `UserPromptSubmit` de `fs-dev` lee `settings.language` de `~/.fs-ai.json` (español por defecto) y devuelve el aviso en `hookSpecificOutput.additionalContext`, que ambos hosts añaden al contexto del modelo. No usa `matcher`, porque Codex lo ignora en este evento. Sale siempre con código 0: el código 2 bloquearía el mensaje del usuario en los dos hosts.
 
 Al ser un hook del plugin, no se ejecuta en los proyectos que desactivan `fs-dev`. Una preferencia que deba aplicarse siempre corresponde a la configuración del usuario: el ajuste `language` de Claude Code, `~/.claude/CLAUDE.md` o `~/.codex/AGENTS.md`.
 
@@ -73,6 +73,6 @@ Fuentes: <https://learn.chatgpt.com/docs/agent-configuration/subagents> y <https
 - Codex hooks: revisa y autoriza de nuevo la definición desde `/hooks`.
 - MCP: abre una sesión nueva o reinicia el host para reiniciar el proceso del servidor.
 
-El nombre `~/.fs-claude.json` se conserva por retrocompatibilidad, aunque el archivo se comparte entre Claude Code y Codex.
+El archivo compartido entre Claude Code y Codex es `~/.fs-ai.json`. Por retrocompatibilidad, si no existe y sí existe el antiguo `~/.fs-claude.json`, los scripts, las skills y los servidores MCP usan el antiguo.
 
 Los lanzadores MCP de fs-mcp y fs-forja usan `CLAUDE_PLUGIN_ROOT` cuando Claude Code la exporta y, en su ausencia, el directorio de trabajo que Codex resuelve respecto a la raíz instalada del plugin. Esto evita rutas absolutas y permite distribuir el mismo manifiesto en ambos hosts.

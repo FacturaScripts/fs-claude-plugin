@@ -62,7 +62,7 @@ export declare class ForjaClient {
     private readonly resolver;
     private readonly instances;
     /**
-     * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-claude.json`
+     * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-ai.json`
      */
     constructor(resolver?: ForjaConnectionResolver);
     /**

@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import fs from "fs";
-import os from "os";
 import path from "path";
+import { resolveConfigPath } from "./utils/configPath.js";
 /**
  * Normaliza la URL base de una instalación: quita las barras finales y, si se ha pegado la URL de la API,
  * su ruta final (`/api/3` o `/api/3/forja`), porque los clientes ya la añaden por su cuenta.
@@ -36,12 +36,13 @@ function describeError(error) {
 /**
  * Gestor de las conexiones de tipo forja de fs-forja.
  *
- * Lee y guarda el mismo archivo que fs-mcp (`~/.fs-claude.json`), pero solo trabaja con las conexiones de tipo
+ * Lee y guarda el mismo archivo que fs-mcp (`~/.fs-ai.json`), pero solo trabaja con las conexiones de tipo
  * `forja`: no las lista, no las devuelve y no las sustituye si son de otro tipo, y nunca cambia la conexión por
  * defecto, que es de fs-mcp. Al guardar conserva intactas las conexiones `api`, los ajustes y el resto del archivo.
  *
  * Prioridad de ubicación:
- * 1. ~/.fs-claude.json (automático, cross-platform, sin configuración necesaria)
+ * 1. ~/.fs-ai.json (automático, cross-platform, sin configuración necesaria), o el antiguo ~/.fs-claude.json
+ *    mientras sea el único que existe
  * 2. FS_CONNECTIONS_FILE env var (compatibilidad con configuraciones existentes)
  */
 class ConnectionManager {
@@ -49,8 +50,8 @@ class ConnectionManager {
     useFsClaudeFormat;
     config;
     constructor() {
-        // Prioridad 1: ~/.fs-claude.json — encontrado automáticamente en cualquier SO
-        const fsClaudePath = path.join(os.homedir(), ".fs-claude.json");
+        // Prioridad 1: ~/.fs-ai.json (o el antiguo ~/.fs-claude.json si es el único) — encontrado automáticamente en cualquier SO
+        const fsClaudePath = resolveConfigPath();
         // Prioridad 2: FS_CONNECTIONS_FILE env var (ignorar placeholders sin expandir)
         const rawConnectionsFile = process.env.FS_CONNECTIONS_FILE;
         const resolvedConnectionsFile = rawConnectionsFile && !rawConnectionsFile.startsWith("${")
@@ -83,7 +84,7 @@ class ConnectionManager {
             this.restrictPermissions();
             const rawData = fs.readFileSync(this.connectionsPath, "utf-8");
             const parsed = JSON.parse(rawData);
-            // Formato ~/.fs-claude.json: las conexiones están en la clave "connections"
+            // Formato ~/.fs-ai.json: las conexiones están en la clave "connections"
             const connectionsData = this.useFsClaudeFormat
                 ? parsed.connections ?? emptyConfig
                 : parsed;
@@ -179,7 +180,7 @@ class ConnectionManager {
             }
         };
         if (this.useFsClaudeFormat) {
-            // Crear ~/.fs-claude.json con estructura completa
+            // Crear ~/.fs-ai.json con estructura completa
             const fsClaudeConfig = {
                 version: "1.0",
                 connections: { default: "", connections: {} },

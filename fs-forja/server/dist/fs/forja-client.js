@@ -127,7 +127,7 @@ export class ForjaClient {
     resolver;
     instances = new Map();
     /**
-     * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-claude.json`
+     * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-ai.json`
      */
     constructor(resolver = resolveForjaConnection) {
         this.resolver = resolver;

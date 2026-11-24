@@ -2,7 +2,7 @@
  * Tests del gestor de conexiones: no sustituir una conexión existente sin pedirlo (tampoco una que solo está en el
  * archivo) y normalizar la URL base.
  *
- * Usa un archivo de conexiones temporal (FS_CONNECTIONS_FILE) para no tocar el ~/.fs-claude.json del usuario.
+ * Usa un archivo de conexiones temporal (FS_CONNECTIONS_FILE) para no tocar el ~/.fs-ai.json del usuario.
  */
 
 import assert from 'node:assert/strict';

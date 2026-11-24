@@ -63,13 +63,29 @@ COPYRIGHT_PATTERN = re.compile(
 )
 
 
+def config_path() -> Path:
+    """Devuelve la ruta del archivo de configuración compartido de los plugins fs-ai.
+
+    Usa ``~/.fs-ai.json``; si no existe pero sí el antiguo ``~/.fs-claude.json``
+    (instalaciones anteriores al cambio de nombre), devuelve este último.
+
+    Returns:
+        Ruta del archivo de configuración, exista o no.
+    """
+    current = Path.home() / '.fs-ai.json'
+    legacy = Path.home() / '.fs-claude.json'
+    if not current.exists() and legacy.exists():
+        return legacy
+    return current
+
+
 def _is_copyright_update_enabled() -> bool:
-    """Comprueba si updateCopyright está activado en ~/.fs-claude.json.
+    """Comprueba si updateCopyright está activado en ~/.fs-ai.json.
 
     Returns:
         ``True`` si la opción está activada o no se puede leer (valor por defecto).
     """
-    fs_claude = Path.home() / '.fs-claude.json'
+    fs_claude = config_path()
     if not fs_claude.exists():
         return True
     try:

@@ -33,10 +33,10 @@ async function nuevoGestor(formato) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
   temporales.push(dir);
   let file;
-  if (formato === 'fs-claude') {
+  if (formato === 'fs-ai') {
     process.env.HOME = dir;
     delete process.env.FS_CONNECTIONS_FILE;
-    file = path.join(dir, '.fs-claude.json');
+    file = path.join(dir, '.fs-ai.json');
   } else {
     file = path.join(dir, 'connections.json');
     process.env.FS_CONNECTIONS_FILE = file;
@@ -47,7 +47,7 @@ async function nuevoGestor(formato) {
 
 const modo = (file) => fs.statSync(file).mode & 0o777;
 
-for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
+for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
   test(`el archivo de conexiones se crea 0600 al arrancar (${formato})`, async () => {
     const { file } = await nuevoGestor(formato);
     assert.equal(modo(file), 0o600);
@@ -61,7 +61,7 @@ for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
   });
 }
 
-for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
+for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
   test(`guardar deja en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, async () => {
     const { connectionManager, file } = await nuevoGestor(formato);
     fs.chmodSync(file, 0o644);
@@ -70,7 +70,7 @@ for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
   });
 }
 
-for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
+for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
   test(`el token no llega a escribirse en un archivo que ya existía en 0644 (${formato})`, async () => {
     const { connectionManager, file } = await nuevoGestor(formato);
     fs.chmodSync(file, 0o644);
@@ -87,15 +87,15 @@ for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
   });
 }
 
-for (const formato of ['fs-claude', 'FS_CONNECTIONS_FILE']) {
+for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
   test(`al cargar queda en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
     temporales.push(dir);
     let file;
-    if (formato === 'fs-claude') {
+    if (formato === 'fs-ai') {
       process.env.HOME = dir;
       delete process.env.FS_CONNECTIONS_FILE;
-      file = path.join(dir, '.fs-claude.json');
+      file = path.join(dir, '.fs-ai.json');
       fs.writeFileSync(file, JSON.stringify({ connections: { default: '', connections: {} } }));
     } else {
       file = path.join(dir, 'connections.json');

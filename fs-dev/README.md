@@ -121,7 +121,7 @@ El contexto incluye también la regla de la documentación propia: el core y cad
 
 En cada mensaje del usuario (`UserPromptSubmit`), el plugin añade al contexto un recordatorio para que el modelo responda siempre en el idioma configurado, incluidos los mensajes de progreso entre herramientas, los resúmenes, las preguntas y las descripciones de comandos. El código, los identificadores, los comandos y los términos técnicos se mantienen en su forma original. Funciona igual en Claude Code y en Codex.
 
-El idioma se elige con `settings.language` en `~/.fs-claude.json`:
+El idioma se elige con `settings.language` en `~/.fs-ai.json`:
 
 | Valor | Resultado |
 |-------|-----------|
@@ -204,7 +204,7 @@ Extrae del plugin las clases (incluidos los `use` agrupados con llaves), llamada
 
 Para no confundir el código del core con el ajeno, descarta los campos que el plugin declara en sus XML de tabla y los métodos de clases nativas de PHP, y atribuye a su origen los símbolos que aportan otros plugins instalados (prefiriendo los de `require`) o las librerías de `vendor/`. Un `pipe('X')` que no existe en el core y que nada del plugin invoca se señala aparte: esa extensión probablemente nunca llega a ejecutarse.
 
-La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-claude.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
+La ruta del core se busca en `--core`, la variable `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-ai.json`, la raíz de la instalación cuando el plugin vive en `Plugins/` y, por último, el directorio actual.
 
 ### Auditoría de seguridad
 
@@ -244,12 +244,14 @@ FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' python3 fs-dev/scripts/d
 
 Abre Google Chrome o Chromium sin interfaz con un perfil temporal (sin dependencias de Python), inicia sesión en la instalación de pruebas con las credenciales de las variables de entorno, ejecuta los pasos de cada pantalla y guarda un PNG por captura. Antes de capturar oculta la barra de depuración, sustituye por valores ficticios los nombres, NIF, emails, teléfonos, direcciones e IBAN (por campo, por columna y por patrón, siempre con el mismo valor ficticio para el mismo valor real), desenfoca los QR, dibuja las marcas (recuadro, número, flecha y nota) y recorta. Si queda algún dato personal visible, no guarda la imagen. Bloquea los clics que pueden cambiar datos salvo que el paso lo permita expresamente. `--scan` lista los controles de cada pantalla con su selector. Devuelve `0` si todo va bien, `1` si falla alguna captura y `2` si el escenario no es válido o Chrome no arranca.
 
-## Configuración personalizada (`~/.fs-claude.json`)
+## Configuración personalizada (`~/.fs-ai.json`)
 
-Puedes desactivar cualquiera de los dos scripts automáticos o cambiar el idioma de las respuestas creando o editando el archivo `~/.fs-claude.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-claude y se encuentra en:
+Puedes desactivar cualquiera de los dos scripts automáticos o cambiar el idioma de las respuestas creando o editando el archivo `~/.fs-ai.json` en tu directorio home. Este archivo es compartido por todos los plugins de fs-ai y se encuentra en:
 
-- **macOS / Linux**: `/Users/tu-usuario/.fs-claude.json`
-- **Windows**: `C:\Users\tu-usuario\.fs-claude.json`
+- **macOS / Linux**: `/Users/tu-usuario/.fs-ai.json`
+- **Windows**: `C:\Users\tu-usuario\.fs-ai.json`
+
+Si vienes de una versión anterior y solo tienes `~/.fs-claude.json`, se sigue usando ese archivo; puedes renombrarlo a `~/.fs-ai.json` cuando quieras.
 
 ### Opciones disponibles
 

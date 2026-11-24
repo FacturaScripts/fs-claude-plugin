@@ -1,6 +1,6 @@
 {
   "name": "fs-forja",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Servidor MCP de la forja de facturascripts.com para Claude Code y Codex: gestiona tus plugins publicados con la API de autor.",
   "author": {
     "name": "Daniel Fernández Giménez",
@@ -35,7 +35,7 @@
   "userConfig": {
     "FS_CONNECTIONS_FILE": {
       "title": "Ruta del archivo de conexiones (override)",
-      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-claude.json. Normalmente déjalo vacío.",
+      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-ai.json. Normalmente déjalo vacío.",
       "type": "string",
       "sensitive": false
     }

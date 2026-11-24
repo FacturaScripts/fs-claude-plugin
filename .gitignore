@@ -1,7 +1,7 @@
 .DS_Store
 .claude/
 
-# La configuración principal de las conexiones está en ~/.fs-claude.json, fuera del repo.
+# La configuración principal de las conexiones está en ~/.fs-ai.json, fuera del repo.
 # Se ignora cualquier connections.json heredado de versiones antiguas para no comprometer
 # credenciales accidentalmente.
 connections.json

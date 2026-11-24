@@ -150,4 +150,4 @@ estado y sus descargas. La documentación no viaja en el zip: publícala con
 - No hagas commits salvo que el usuario lo pida; recuérdale que `Doc/forja.json` guarda los `idpublication`.
 - No envíes ni borres nada sin confirmación expresa, y publica las páginas de documentación con `dry_run` primero.
 - Ten en cuenta que subir traducciones gasta puntos del autor: dilo antes de subirlas.
-- No muestres el token de la conexión ni el contenido de `~/.fs-claude.json`.
+- No muestres el token de la conexión ni el contenido de `~/.fs-ai.json`.

@@ -113,10 +113,10 @@ for (const contenido of ['[]', 'null', '5', '"texto"']) {
   });
 }
 
-test('el formato ~/.fs-claude.json también se niega con un array y conserva el archivo', async () => {
+test('el formato ~/.fs-ai.json también se niega con un array y conserva el archivo', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
-  const file = path.join(dir, '.fs-claude.json');
+  const file = path.join(dir, '.fs-ai.json');
   fs.writeFileSync(file, '[]', 'utf-8');
   const homeOriginal = process.env.HOME;
   const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;
@@ -169,7 +169,7 @@ test('al arrancar no se trunca un archivo que otro proceso acaba de crear', asyn
 test('tras corregir un archivo roto, añadir una conexión conserva las demás, el default y los ajustes', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
-  const file = path.join(dir, '.fs-claude.json');
+  const file = path.join(dir, '.fs-ai.json');
   fs.writeFileSync(file, '{"connections": {"default": "a", ', 'utf-8');
   const homeOriginal = process.env.HOME;
   const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;

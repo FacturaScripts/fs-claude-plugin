@@ -19,7 +19,7 @@ SORTER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = SORTER
 SPEC.loader.exec_module(SORTER)
 
-# HOME aislado para que ~/.fs-claude.json del usuario no altere las pruebas.
+# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
 _HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
 
@@ -235,7 +235,7 @@ class FileTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory) / 'home'
             home.mkdir()
-            (home / '.fs-claude.json').write_text('{"settings": {"sortClassMembers": false}}', encoding='utf-8')
+            (home / '.fs-ai.json').write_text('{"settings": {"sortClassMembers": false}}', encoding='utf-8')
             path = Path(directory) / 'Demo.php'
             original = php('    public $b;\n    public $a;')
             path.write_text(original, encoding='utf-8')

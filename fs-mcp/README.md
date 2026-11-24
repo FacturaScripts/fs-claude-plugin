@@ -45,9 +45,9 @@ Si tienes varias empresas o instalaciones, puedes añadir varias conexiones y ca
 
 ---
 
-## Configuración (`~/.fs-claude.json`)
+## Configuración (`~/.fs-ai.json`)
 
-Toda la configuración del plugin se gestiona desde el archivo `~/.fs-claude.json`, en el directorio home del usuario. Es cross-platform y se encuentra automáticamente en cualquier SO.
+Toda la configuración del plugin se gestiona desde el archivo `~/.fs-ai.json`, en el directorio home del usuario. Es cross-platform y se encuentra automáticamente en cualquier SO. Si solo existe el antiguo `~/.fs-claude.json`, se sigue usando ese.
 
 ```json
 {
@@ -84,7 +84,7 @@ Toda la configuración del plugin se gestiona desde el archivo `~/.fs-claude.jso
 |---|---|
 | `fs-mcp:add-connection` | Guía interactiva para añadir o actualizar una conexión a FacturaScripts |
 | `fs-mcp:list-connections` | Lista y gestiona las conexiones configuradas |
-| `fs-mcp:configure-local-modules` | Configura `settings.localModulesPath` en `~/.fs-claude.json` para cargar módulos MCP privados |
+| `fs-mcp:configure-local-modules` | Configura `settings.localModulesPath` en `~/.fs-ai.json` para cargar módulos MCP privados |
 | `fs-mcp:sync-models` | Mantiene el catálogo de modelos: detecta columnas nuevas/modificadas/eliminadas, redacta descripciones, regenera metadata y compila. Soporta core y plugins privados, ruta local o GitHub. |
 
 ---
@@ -217,7 +217,7 @@ El MCP permite crear, actualizar y eliminar registros en las entidades principal
 
 ### Forja (autores de plugins)
 
-Las herramientas `forja_*` de la API de autor de facturascripts.com ya no forman parte de fs-mcp: están en el plugin **[fs-forja](../fs-forja/README.md)**, que tiene su propio servidor MCP y sus propias conexiones de tipo `forja` en el mismo `~/.fs-claude.json`. fs-mcp no crea, no usa ni modifica esas conexiones.
+Las herramientas `forja_*` de la API de autor de facturascripts.com ya no forman parte de fs-mcp: están en el plugin **[fs-forja](../fs-forja/README.md)**, que tiene su propio servidor MCP y sus propias conexiones de tipo `forja` en el mismo `~/.fs-ai.json`. fs-mcp no crea, no usa ni modifica esas conexiones.
 
 ---
 
@@ -240,13 +240,13 @@ El servidor MCP soporta **módulos locales privados**: herramientas adicionales 
 
 ### Configurar la ruta de módulos
 
-Usa la skill para configurar la ruta en `~/.fs-claude.json`:
+Usa la skill para configurar la ruta en `~/.fs-ai.json`:
 
 ```
 /fs-mcp:configure-local-modules
 ```
 
-La skill detecta si ya tienes una ruta configurada. Si no, puedes indicar una carpeta existente o dejar que cree automáticamente `~/fs-claude-mcp-private/`. La ruta se guarda en `settings.localModulesPath` de `~/.fs-claude.json` y el servidor la carga al arrancar sin necesidad de variables de entorno.
+La skill detecta si ya tienes una ruta configurada. Si no, puedes indicar una carpeta existente o dejar que cree automáticamente `~/fs-ai-mcp-private/`. La ruta se guarda en `settings.localModulesPath` de `~/.fs-ai.json` y el servidor la carga al arrancar sin necesidad de variables de entorno.
 
 ### Estructura de un módulo local
 

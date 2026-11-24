@@ -1,11 +1,11 @@
 ---
 name: configure-local-modules
-description: Configura la ruta de módulos MCP locales privados en ~/.fs-claude.json
+description: Configura la ruta de módulos MCP locales privados en ~/.fs-ai.json
 ---
 
 # Configurar Módulos Locales Privados
 
-Este skill configura la ruta de módulos MCP privados en `~/.fs-claude.json` (el archivo de configuración unificado de fs-claude), y te guía para crear módulos nuevos.
+Este skill configura la ruta de módulos MCP privados en `~/.fs-ai.json` (el archivo de configuración unificado de fs-ai), y te guía para crear módulos nuevos.
 
 ## ¿Para qué sirve?
 
@@ -13,7 +13,7 @@ Los módulos locales son herramientas MCP que **solo tú usas** — endpoints pr
 
 ## Cómo funciona
 
-El servidor MCP lee `settings.localModulesPath` de `~/.fs-claude.json` al arrancar. Si la ruta existe, carga automáticamente todos los módulos dentro. No requiere configuración de variables de entorno.
+El servidor MCP lee `settings.localModulesPath` de `~/.fs-ai.json` al arrancar. Si la ruta existe, carga automáticamente todos los módulos dentro. No requiere configuración de variables de entorno.
 
 ---
 
@@ -27,13 +27,16 @@ Ejecuta este comando para saber si ya tienes una ruta configurada:
 import json
 from pathlib import Path
 
-fs_claude = Path.home() / '.fs-claude.json'
+# ~/.fs-ai.json, o el antiguo ~/.fs-claude.json mientras sea el único que existe
+fs_claude = Path.home() / '.fs-ai.json'
+if not fs_claude.exists() and (Path.home() / '.fs-claude.json').exists():
+    fs_claude = Path.home() / '.fs-claude.json'
 if fs_claude.exists():
     config = json.loads(fs_claude.read_text(encoding='utf-8'))
     path = config.get('settings', {}).get('localModulesPath', '')
     print(f"Ruta configurada: {path}" if path else "Sin ruta configurada")
 else:
-    print("~/.fs-claude.json no existe aún")
+    print("~/.fs-ai.json no existe aún")
 ```
 
 ### 2a. Si ya hay una ruta configurada
@@ -44,7 +47,7 @@ Usa esa ruta directamente. Confirma al usuario que el servidor MCP la cargará a
 
 Pregunta al usuario si quiere:
 - **Usar una carpeta existente**: proporciona la ruta absoluta
-- **Crear la carpeta por defecto**: se crea `~/fs-claude-mcp-private/` automáticamente
+- **Crear la carpeta por defecto**: se crea `~/fs-ai-mcp-private/` automáticamente
 
 Para crear la carpeta por defecto y registrarla:
 
@@ -52,14 +55,17 @@ Para crear la carpeta por defecto y registrarla:
 import json, os, uuid
 from pathlib import Path
 
-fs_claude = Path.home() / '.fs-claude.json'
-modules_dir = Path.home() / 'fs-claude-mcp-private'
+# ~/.fs-ai.json, o el antiguo ~/.fs-claude.json mientras sea el único que existe
+fs_claude = Path.home() / '.fs-ai.json'
+if not fs_claude.exists() and (Path.home() / '.fs-claude.json').exists():
+    fs_claude = Path.home() / '.fs-claude.json'
+modules_dir = Path.home() / 'fs-ai-mcp-private'
 
 # Crear el directorio si no existe
 modules_dir.mkdir(exist_ok=True)
 print(f"Carpeta creada: {modules_dir}")
 
-# Actualizar ~/.fs-claude.json
+# Actualizar ~/.fs-ai.json
 config = json.loads(fs_claude.read_text(encoding='utf-8')) if fs_claude.exists() else {
     "version": "1.0",
     "connections": {"default": "", "connections": {}},
@@ -109,7 +115,7 @@ El directorio soporta **dos niveles de organización**:
 ### Opción 1 — Módulos directamente en la raíz
 
 ```
-fs-claude-mcp-private/
+fs-ai-mcp-private/
   mi-modulo/
     index.js       ← único archivo necesario
     metadata.js    ← opcional, si se genera con sync-models
@@ -120,7 +126,7 @@ fs-claude-mcp-private/
 ### Opción 2 — Módulos agrupados en subcarpetas
 
 ```
-fs-claude-mcp-private/
+fs-ai-mcp-private/
   MiGrupo/
     manifest.json      ← configuración del grupo (para sync-models)
     descriptions.json  ← descripciones de columnas del grupo (para sync-models)
@@ -196,7 +202,7 @@ export async function handleTool(name, args, client) {
 }
 ```
 
-El parámetro `client` ya viene configurado con las conexiones de `~/.fs-claude.json` — no necesitas importar nada.
+El parámetro `client` ya viene configurado con las conexiones de `~/.fs-ai.json` — no necesitas importar nada.
 
 ### ⚠️ Filtros: cómo funcionan (importante)
 
@@ -223,9 +229,9 @@ Para ordenar usa `sort[campo]`: `{ 'sort[creationdate]': 'DESC' }`.
 
 ## Flujo de este skill
 
-1. **Detección**: Compruebo si `~/.fs-claude.json` ya tiene `settings.localModulesPath`
-2. **Configuración**: Si no hay ruta, pregunto si usar una existente o crear `~/fs-claude-mcp-private/`
-3. **Escritura**: Actualizo `~/.fs-claude.json` con la ruta elegida
+1. **Detección**: Compruebo si `~/.fs-ai.json` ya tiene `settings.localModulesPath`
+2. **Configuración**: Si no hay ruta, pregunto si usar una existente o crear `~/fs-ai-mcp-private/`
+3. **Escritura**: Actualizo `~/.fs-ai.json` con la ruta elegida
 4. **Módulo nuevo (si aplica)**: Pregunto si va en la raíz o en un grupo, y edito/creo los archivos
 5. **Reinicio**: Indico al usuario que abra una sesión nueva o reinicie Claude Code/Codex para cargar los módulos
 

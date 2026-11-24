@@ -1,11 +1,11 @@
 ---
 name: add-connection
-description: Añade o sustituye la conexión de tipo forja con el token de autor de la API de la forja de facturascripts.com, en ~/.fs-claude.json.
+description: Añade o sustituye la conexión de tipo forja con el token de autor de la API de la forja de facturascripts.com, en ~/.fs-ai.json.
 ---
 
 # Añadir la conexión de la forja
 
-Esta skill configura la conexión que usan las herramientas `forja_*` de fs-forja para gestionar los plugins publicados en facturascripts.com con la API de autor (`/api/3/forja`). Se guarda en `~/.fs-claude.json`, el mismo archivo que usa fs-mcp, como una conexión con `"type": "forja"`.
+Esta skill configura la conexión que usan las herramientas `forja_*` de fs-forja para gestionar los plugins publicados en facturascripts.com con la API de autor (`/api/3/forja`). Se guarda en `~/.fs-ai.json`, el mismo archivo que usa fs-mcp, como una conexión con `"type": "forja"`.
 
 fs-forja y fs-mcp comparten el archivo, pero no las conexiones:
 
@@ -41,7 +41,10 @@ Si fs-forja está activo, llama a `forja_list_connections`. Si ya hay una conexi
 import json, os, re, sys, uuid
 from pathlib import Path
 
-fs_claude = Path.home() / '.fs-claude.json'
+# ~/.fs-ai.json, o el antiguo ~/.fs-claude.json mientras sea el único que existe
+fs_claude = Path.home() / '.fs-ai.json'
+if not fs_claude.exists() and (Path.home() / '.fs-claude.json').exists():
+    fs_claude = Path.home() / '.fs-claude.json'
 
 # Leer configuración existente o crear nueva
 if fs_claude.exists():

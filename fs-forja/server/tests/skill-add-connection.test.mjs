@@ -1,5 +1,5 @@
 /**
- * Pruebas de cómo escribe ~/.fs-claude.json la skill fs-forja:add-connection.
+ * Pruebas de cómo escribe ~/.fs-ai.json la skill fs-forja:add-connection.
  *
  * Cada caso extrae el bloque de Python que escribe el archivo del SKILL.md, sustituye los valores de ejemplo y lo
  * ejecuta con python3 en un HOME temporal.
@@ -47,7 +47,7 @@ function bloque({ clave = 'forja-autor', url = 'https://facturascripts.com/api/3
 }
 
 /**
- * Crea un HOME temporal, opcionalmente con un ~/.fs-claude.json.
+ * Crea un HOME temporal, opcionalmente con un ~/.fs-ai.json.
  *
  * @param {object} [contenido] Contenido del archivo.
  * @returns {{home: string, file: string}} Rutas del HOME y del archivo.
@@ -55,7 +55,7 @@ function bloque({ clave = 'forja-autor', url = 'https://facturascripts.com/api/3
 function crearHome(contenido) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-forja-skill-'));
   temporales.push(home);
-  const file = path.join(home, '.fs-claude.json');
+  const file = path.join(home, '.fs-ai.json');
   if (contenido) fs.writeFileSync(file, JSON.stringify(contenido), { mode: 0o600 });
   return { home, file };
 }
@@ -155,7 +155,7 @@ test('conserva el enlace simbólico y escribe en su destino', () => {
   const { home, file } = crearHome();
   const dotfiles = path.join(home, 'dotfiles');
   fs.mkdirSync(dotfiles);
-  const destino = path.join(dotfiles, 'fs-claude.json');
+  const destino = path.join(dotfiles, 'fs-ai.json');
   fs.writeFileSync(destino, JSON.stringify(inicial), { mode: 0o600 });
   fs.symlinkSync(destino, file);
 
@@ -163,5 +163,5 @@ test('conserva el enlace simbólico y escribe en su destino', () => {
 
   assert.equal(fs.lstatSync(file).isSymbolicLink(), true);
   assert.ok('forja-autor' in JSON.parse(fs.readFileSync(destino, 'utf-8')).connections.connections);
-  assert.deepEqual(fs.readdirSync(dotfiles), ['fs-claude.json']);
+  assert.deepEqual(fs.readdirSync(dotfiles), ['fs-ai.json']);
 });

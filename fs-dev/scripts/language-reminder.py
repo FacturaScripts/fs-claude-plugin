@@ -2,7 +2,7 @@
 """Recuerda al modelo, en cada mensaje del usuario, el idioma en el que debe responder.
 
 Hook ``UserPromptSubmit`` compartido por Claude Code y Codex. Lee el idioma de
-``settings.language`` en ``~/.fs-claude.json``:
+``settings.language`` en ``~/.fs-ai.json``:
 
 - Sin la clave, con ``null`` o con ``true``: español (``es``).
 - Un código de idioma (``en``, ``ca``, ``pt-BR``...) o un nombre (``inglés``,
@@ -112,11 +112,27 @@ ENGLISH_NAMES: Dict[str, str] = {
 }
 
 
+def config_path() -> Path:
+    """Devuelve la ruta del archivo de configuración compartido de los plugins fs-ai.
+
+    Usa ``~/.fs-ai.json``; si no existe pero sí el antiguo ``~/.fs-claude.json``
+    (instalaciones anteriores al cambio de nombre), devuelve este último.
+
+    Returns:
+        Ruta del archivo de configuración, exista o no.
+    """
+    current = Path.home() / '.fs-ai.json'
+    legacy = Path.home() / '.fs-claude.json'
+    if not current.exists() and legacy.exists():
+        return legacy
+    return current
+
+
 def read_language_setting(config_file: Path) -> Any:
     """Lee el valor de ``settings.language`` del archivo de configuración compartido.
 
     Args:
-        config_file: Ruta de ``~/.fs-claude.json``.
+        config_file: Ruta de ``~/.fs-ai.json``.
 
     Returns:
         El valor configurado, o ``None`` si falta la clave o no se puede leer el archivo.
@@ -185,7 +201,7 @@ def build_output(config_file: Path) -> Optional[Dict[str, Any]]:
     """Prepara la respuesta del hook según la configuración.
 
     Args:
-        config_file: Ruta de ``~/.fs-claude.json``.
+        config_file: Ruta de ``~/.fs-ai.json``.
 
     Returns:
         El JSON con ``additionalContext``, o ``None`` si el recordatorio está desactivado.
@@ -216,7 +232,7 @@ def main() -> int:
             sys.stdin.read()
         except (OSError, ValueError):
             pass
-        output = build_output(Path.home() / '.fs-claude.json')
+        output = build_output(config_path())
         if output is not None:
             sys.stdout.write(json.dumps(output, ensure_ascii=False) + '\n')
     except Exception as error:  # noqa: BLE001 - el hook nunca debe interrumpir al host.

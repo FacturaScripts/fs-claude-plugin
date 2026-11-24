@@ -12,7 +12,8 @@ export declare function normalizeBaseUrl(url: string): string;
  * Lee y persiste configuración desde/hacia archivo JSON
  *
  * Prioridad de ubicación:
- * 1. ~/.fs-claude.json (automático, cross-platform, sin configuración necesaria)
+ * 1. ~/.fs-ai.json (automático, cross-platform, sin configuración necesaria), o el antiguo ~/.fs-claude.json
+ *    mientras sea el único que existe
  * 2. FS_CONNECTIONS_FILE env var (compatibilidad con configuraciones existentes)
  */
 declare class ConnectionManager {

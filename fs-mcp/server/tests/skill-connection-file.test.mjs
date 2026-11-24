@@ -1,5 +1,5 @@
 /**
- * Pruebas de cómo escriben ~/.fs-claude.json las skills add-connection y
+ * Pruebas de cómo escriben ~/.fs-ai.json las skills add-connection y
  * configure-local-modules.
  *
  * Cada caso extrae el bloque de Python que escribe el archivo del SKILL.md y lo
@@ -52,7 +52,7 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
   test(`${skill} no escribe sobre el archivo en el sitio, que lo dejaría vacío mientras lo hace`, () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-skill-'));
     temporales.push(home);
-    const file = path.join(home, '.fs-claude.json');
+    const file = path.join(home, '.fs-ai.json');
     fs.writeFileSync(file, contenidoInicial, { mode: 0o644 });
     fs.chmodSync(file, 0o644);
     // Un enlace duro al archivo de antes: si la skill escribiera en el sitio, cambiaría
@@ -78,7 +78,7 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
 
     ejecutar(skill, home);
 
-    assert.equal(modo(path.join(home, '.fs-claude.json')), 0o600);
+    assert.equal(modo(path.join(home, '.fs-ai.json')), 0o600);
   });
 
   test(`${skill} conserva el enlace simbólico y escribe en su destino`, () => {
@@ -86,9 +86,9 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
     temporales.push(home);
     const dotfiles = path.join(home, 'dotfiles');
     fs.mkdirSync(dotfiles);
-    const destino = path.join(dotfiles, 'fs-claude.json');
+    const destino = path.join(dotfiles, 'fs-ai.json');
     fs.writeFileSync(destino, contenidoInicial, { mode: 0o600 });
-    const file = path.join(home, '.fs-claude.json');
+    const file = path.join(home, '.fs-ai.json');
     fs.symlinkSync(destino, file);
 
     ejecutar(skill, home);
@@ -96,13 +96,13 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
     assert.equal(fs.lstatSync(file).isSymbolicLink(), true);
     assert.ok('dos' in JSON.parse(fs.readFileSync(destino, 'utf-8')).connections.connections);
     assert.equal(modo(destino), 0o600);
-    assert.deepEqual(fs.readdirSync(dotfiles), ['fs-claude.json']);
+    assert.deepEqual(fs.readdirSync(dotfiles), ['fs-ai.json']);
   });
 
   test(`${skill} lleva el temporal a disco antes de renombrarlo`, () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-skill-'));
     temporales.push(home);
-    fs.writeFileSync(path.join(home, '.fs-claude.json'), contenidoInicial, { mode: 0o600 });
+    fs.writeFileSync(path.join(home, '.fs-ai.json'), contenidoInicial, { mode: 0o600 });
     const prologo = [
       'import os',
       '_fsync, _replace = os.fsync, os.replace',

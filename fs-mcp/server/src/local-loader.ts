@@ -21,12 +21,12 @@
 
 import { readdirSync, existsSync, statSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
-import { homedir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from './fs/client.js';
 import { registerModelMetadata } from './metadata/registry.js';
 import type { ModelMetadata } from './metadata/types.js';
+import { resolveConfigPath } from './utils/configPath.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,12 +42,13 @@ export interface LocalModuleHandler {
 }
 
 /**
- * Lee la ruta de módulos privados desde ~/.fs-claude.json (settings.localModulesPath).
+ * Lee la ruta de módulos privados desde ~/.fs-ai.json (settings.localModulesPath), o desde el antiguo
+ * ~/.fs-claude.json mientras sea el único que existe.
  * Es la fuente de verdad unificada para toda la configuración del plugin.
  */
 function readLocalModulesPathFromFsConfig(): string | undefined {
   try {
-    const fsClaudePath = join(homedir(), '.fs-claude.json');
+    const fsClaudePath = resolveConfigPath();
     if (!existsSync(fsClaudePath)) return undefined;
 
     const config = JSON.parse(readFileSync(fsClaudePath, 'utf-8')) as Record<string, unknown>;
@@ -151,7 +152,7 @@ function isModuleGroup(dirPath: string): boolean {
 }
 
 /**
- * Carga todos los módulos locales desde la ruta configurada en ~/.fs-claude.json
+ * Carga todos los módulos locales desde la ruta configurada en ~/.fs-ai.json
  * (settings.localModulesPath), con fallback a dist/modules-local si no está configurada.
  *
  * Soporta dos niveles de organización:
@@ -163,7 +164,7 @@ export async function loadLocalModules(toolsMap: Map<string, Tool>): Promise<Loc
   const envPath = process.env['FS_LOCAL_MODULES_PATH'];
   const isInterpolated = envPath !== undefined && envPath.trim() !== '' && !envPath.includes('${');
 
-  // Prioridad 2: ~/.fs-claude.json → settings.localModulesPath
+  // Prioridad 2: ~/.fs-ai.json → settings.localModulesPath
   const resolvedPath = isInterpolated
     ? envPath!.trim()
     : readLocalModulesPathFromFsConfig();

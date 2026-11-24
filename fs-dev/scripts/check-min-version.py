@@ -30,7 +30,7 @@ Uso:
 
 La ruta del core se busca, por este orden, en ``--core``, la variable
 ``FS_CORE_PATH``, las claves ``settings.corePath`` o ``settings.coreRepoPath``
-de ``~/.fs-claude.json``, la raíz de la instalación cuando el plugin vive en
+de ``~/.fs-ai.json``, la raíz de la instalación cuando el plugin vive en
 ``Plugins/`` y el directorio actual. ``--plugins-dir`` indica el directorio
 ``Plugins/`` donde buscar los plugins de ``require`` y los símbolos que aportan
 otros plugins; si no se indica, se deduce cuando el plugin está instalado.
@@ -305,9 +305,25 @@ class CoreRepo:
         return self.tags[-1]
 
 
+def config_path() -> Path:
+    """Devuelve la ruta del archivo de configuración compartido de los plugins fs-ai.
+
+    Usa ``~/.fs-ai.json``; si no existe pero sí el antiguo ``~/.fs-claude.json``
+    (instalaciones anteriores al cambio de nombre), devuelve este último.
+
+    Returns:
+        Ruta del archivo de configuración, exista o no.
+    """
+    current = Path.home() / '.fs-ai.json'
+    legacy = Path.home() / '.fs-claude.json'
+    if not current.exists() and legacy.exists():
+        return legacy
+    return current
+
+
 def config_core_path() -> Path | None:
-    """Lee la ruta del core declarada en ``~/.fs-claude.json``, si la hay."""
-    config_file = Path.home() / '.fs-claude.json'
+    """Lee la ruta del core declarada en ``~/.fs-ai.json``, si la hay."""
+    config_file = config_path()
     if not config_file.is_file():
         return None
 

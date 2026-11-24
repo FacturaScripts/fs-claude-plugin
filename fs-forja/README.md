@@ -2,7 +2,7 @@
 
 Plugin para Claude Code y Codex que proporciona un servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) conectado a la **API de autor de la forja de [facturascripts.com](https://facturascripts.com)** (`/api/3/forja`). Permite a los autores de plugins publicados, y a los miembros aceptados de sus equipos, gestionarlos desde el asistente: datos e imágenes, traducciones, versiones, publicaciones (noticias y documentación), informes de error e issues.
 
-Es independiente de **fs-mcp**, que conecta con la API REST de una instalación del ERP para consultar y modificar sus datos. Cada plugin tiene su servidor y sus herramientas; solo comparten el archivo de configuración `~/.fs-claude.json`.
+Es independiente de **fs-mcp**, que conecta con la API REST de una instalación del ERP para consultar y modificar sus datos. Cada plugin tiene su servidor y sus herramientas; solo comparten el archivo de configuración `~/.fs-ai.json`.
 
 ## Requisitos
 
@@ -29,7 +29,7 @@ El acceso a la API de autor lo concede el personal de facturascripts.com en la f
 
 ## Configurar la conexión
 
-Usa la skill `/fs-forja:add-connection` o la herramienta `forja_add_connection`. La conexión se guarda en `~/.fs-claude.json`, junto a las conexiones de fs-mcp, con `"type": "forja"`:
+Usa la skill `/fs-forja:add-connection` o la herramienta `forja_add_connection`. La conexión se guarda en `~/.fs-ai.json`, junto a las conexiones de fs-mcp, con `"type": "forja"`:
 
 ```json
 "forja-autor": {
@@ -45,7 +45,7 @@ Usa la skill `/fs-forja:add-connection` o la herramienta `forja_add_connection`.
 - Usa una clave que no tengas ya, por ejemplo `forja-autor`. Si existe una conexión de fs-mcp con esa clave (por ejemplo, una conexión `api` a facturascripts.com llamada `forja`), `forja_add_connection` falla y no la toca. Una conexión de tipo forja existente solo se sustituye con `overwrite: true`.
 - La URL debe ser exactamente `https://facturascripts.com`, sin `www.` ni `http://`: el cliente no sigue redirecciones ni rutas absolutas, para que el token de autor no llegue a otra dirección, y si la forja redirige el error dice adónde para corregir la URL. Si pegas la de la API (`.../api/3/forja`), se quita esa ruta al guardar.
 - Las herramientas solo suben archivos con la extensión de su uso (imágenes gif, jpeg, jpg, png o webp; zips que lo son de verdad; cuerpos `.md`, `.markdown` o `.txt`), comprobada tras resolver los enlaces simbólicos, y `forja_publish_doc_page` solo sube imágenes que están dentro de la carpeta `Doc` del plugin. Así una ruta manipulada no puede publicar en la web, por ejemplo, el archivo de conexiones.
-- El servidor lee `~/.fs-claude.json` al arrancar. Si añades la conexión editando el archivo (y no con `forja_add_connection`), abre una sesión nueva en Claude Code o un hilo nuevo en Codex.
+- El servidor lee `~/.fs-ai.json` al arrancar. Si añades la conexión editando el archivo (y no con `forja_add_connection`), abre una sesión nueva en Claude Code o un hilo nuevo en Codex.
 
 Para usar otro archivo, configura la opción `FS_CONNECTIONS_FILE` del plugin; normalmente se deja vacía.
 

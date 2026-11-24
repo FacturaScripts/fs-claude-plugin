@@ -34,7 +34,7 @@ export interface LocalModuleHandler {
     handleTool(name: string, args: Record<string, unknown>): Promise<ToolResult | null>;
 }
 /**
- * Carga todos los módulos locales desde la ruta configurada en ~/.fs-claude.json
+ * Carga todos los módulos locales desde la ruta configurada en ~/.fs-ai.json
  * (settings.localModulesPath), con fallback a dist/modules-local si no está configurada.
  *
  * Soporta dos niveles de organización:

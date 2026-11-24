@@ -5,7 +5,7 @@ description: Guía para añadir una nueva conexión de FacturaScripts al archivo
 
 # Añadir Conexión a FacturaScripts
 
-Este skill configura una nueva conexión a una instancia de FacturaScripts. Las conexiones se guardan en `~/.fs-claude.json`, un archivo en el directorio home del usuario que **funciona en cualquier sistema operativo** (macOS, Linux, Windows) y es leído automáticamente por el servidor MCP sin necesidad de configuración adicional.
+Este skill configura una nueva conexión a una instancia de FacturaScripts. Las conexiones se guardan en `~/.fs-ai.json`, un archivo en el directorio home del usuario que **funciona en cualquier sistema operativo** (macOS, Linux, Windows) y es leído automáticamente por el servidor MCP sin necesidad de configuración adicional.
 
 ## ¿Qué necesitas?
 
@@ -42,30 +42,34 @@ Una vez recopilados los datos, ejecuta estos comandos para obtener la ruta corre
 
 ```bash
 # Detectar sistema operativo y directorio home
-python3 -c "import os, sys; home = os.path.expanduser('~'); print(os.path.join(home, '.fs-claude.json'))"
+python3 -c "import os; h = os.path.expanduser('~'); n = os.path.join(h, '.fs-ai.json'); v = os.path.join(h, '.fs-claude.json'); print(v if not os.path.exists(n) and os.path.exists(v) else n)"
 ```
 
-Esto devuelve la ruta exacta a `~/.fs-claude.json` en cualquier SO:
-- macOS/Linux: `/Users/username/.fs-claude.json` o `/home/username/.fs-claude.json`
-- Windows: `C:\Users\username\.fs-claude.json`
+Esto devuelve la ruta exacta a `~/.fs-ai.json` en cualquier SO:
+- macOS/Linux: `/Users/username/.fs-ai.json` o `/home/username/.fs-ai.json`
+- Windows: `C:\Users\username\.fs-ai.json`
 
+Si solo existe el archivo antiguo `~/.fs-claude.json` (instalaciones anteriores al cambio de nombre), se sigue usando ese.
 ### 3. Añade la conexión
 
 **Opción A — Si el plugin MCP está instalado y activo:**
 
-Usa la herramienta `add_connection` directamente, con `rejectUnauthorized: false` si el certificado no es verificable. El servidor MCP guarda automáticamente en `~/.fs-claude.json` y la conexión queda disponible sin reiniciar.
+Usa la herramienta `add_connection` directamente, con `rejectUnauthorized: false` si el certificado no es verificable. El servidor MCP guarda automáticamente en `~/.fs-ai.json` y la conexión queda disponible sin reiniciar.
 
 Si la clave ya existe, `add_connection` falla y no toca la conexión existente: el error indica su nombre y su URL. Propón otra clave o, si el usuario confirma que quiere **sustituirla** (su token anterior se pierde), repite la llamada con `overwrite: true`.
 
 **Opción B — Si el plugin MCP no está disponible todavía:**
 
-Ejecuta este script Python para crear o actualizar `~/.fs-claude.json`:
+Ejecuta este script Python para crear o actualizar `~/.fs-ai.json`:
 
 ```python
 import json, os, re, sys, uuid
 from pathlib import Path
 
-fs_claude = Path.home() / '.fs-claude.json'
+# ~/.fs-ai.json, o el antiguo ~/.fs-claude.json mientras sea el único que existe
+fs_claude = Path.home() / '.fs-ai.json'
+if not fs_claude.exists() and (Path.home() / '.fs-claude.json').exists():
+    fs_claude = Path.home() / '.fs-claude.json'
 
 # Leer configuración existente o crear nueva
 if fs_claude.exists():
@@ -134,9 +138,9 @@ Para que el servidor MCP cargue las conexiones del archivo recién actualizado, 
 - **Claude Cowork**: cierra y reabre la app
 - **Codex**: abre un hilo nuevo; si el servidor sigue activo con la configuración anterior, reinicia Codex
 
-> El servidor MCP lee `~/.fs-claude.json` al arrancar. No requiere configurar `FS_CONNECTIONS_FILE` manualmente; el archivo se encuentra automáticamente en cualquier plataforma.
+> El servidor MCP lee `~/.fs-ai.json` al arrancar. No requiere configurar `FS_CONNECTIONS_FILE` manualmente; el archivo se encuentra automáticamente en cualquier plataforma.
 
-## Estructura del archivo `~/.fs-claude.json`
+## Estructura del archivo `~/.fs-ai.json`
 
 ```json
 {
@@ -185,7 +189,7 @@ Para instalaciones locales o con certificado auto-firmado, añade `"rejectUnauth
 
 ## Conexiones de la forja
 
-Esta skill solo añade conexiones a la API REST de una instalación de FacturaScripts. El token de autor de la API de la forja de facturascripts.com (el de la pestaña **avanzado** de PortalForja) **no se configura aquí**: lo gestiona el plugin **fs-forja**, con la skill `fs-forja:add-connection` o su herramienta `forja_add_connection`. Se guarda en el mismo `~/.fs-claude.json` como una conexión de tipo `forja`, que fs-mcp no usa ni modifica. Si el usuario quiere conectar con la forja y fs-forja no está instalado, indícale que lo active desde el gestor de plugins.
+Esta skill solo añade conexiones a la API REST de una instalación de FacturaScripts. El token de autor de la API de la forja de facturascripts.com (el de la pestaña **avanzado** de PortalForja) **no se configura aquí**: lo gestiona el plugin **fs-forja**, con la skill `fs-forja:add-connection` o su herramienta `forja_add_connection`. Se guarda en el mismo `~/.fs-ai.json` como una conexión de tipo `forja`, que fs-mcp no usa ni modifica. Si el usuario quiere conectar con la forja y fs-forja no está instalado, indícale que lo active desde el gestor de plugins.
 
 ## Gestión de errores
 
@@ -193,7 +197,7 @@ Esta skill solo añade conexiones a la API REST de una instalación de FacturaSc
 - Si es la primera conexión, se establecerá automáticamente como predeterminada
 - Si hay problemas con Python, el archivo se puede editar manualmente con cualquier editor de texto
 
-## Configuración adicional en `~/.fs-claude.json`
+## Configuración adicional en `~/.fs-ai.json`
 
 La sección `settings` permite personalizar el comportamiento de los plugins de FacturaScripts para Claude:
 

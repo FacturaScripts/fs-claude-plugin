@@ -19,7 +19,7 @@ COPYRIGHT = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = COPYRIGHT
 SPEC.loader.exec_module(COPYRIGHT)
 
-# HOME aislado para que ~/.fs-claude.json del usuario no altere las pruebas.
+# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
 _HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
 

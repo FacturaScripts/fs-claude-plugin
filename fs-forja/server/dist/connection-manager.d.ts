@@ -10,12 +10,13 @@ export declare function normalizeBaseUrl(url: string): string;
 /**
  * Gestor de las conexiones de tipo forja de fs-forja.
  *
- * Lee y guarda el mismo archivo que fs-mcp (`~/.fs-claude.json`), pero solo trabaja con las conexiones de tipo
+ * Lee y guarda el mismo archivo que fs-mcp (`~/.fs-ai.json`), pero solo trabaja con las conexiones de tipo
  * `forja`: no las lista, no las devuelve y no las sustituye si son de otro tipo, y nunca cambia la conexión por
  * defecto, que es de fs-mcp. Al guardar conserva intactas las conexiones `api`, los ajustes y el resto del archivo.
  *
  * Prioridad de ubicación:
- * 1. ~/.fs-claude.json (automático, cross-platform, sin configuración necesaria)
+ * 1. ~/.fs-ai.json (automático, cross-platform, sin configuración necesaria), o el antiguo ~/.fs-claude.json
+ *    mientras sea el único que existe
  * 2. FS_CONNECTIONS_FILE env var (compatibilidad con configuraciones existentes)
  */
 declare class ConnectionManager {
