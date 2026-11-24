@@ -1,10 +1,11 @@
 /**
  * Cliente HTTP de la API de autor de Forja (facturascripts.com).
  *
- * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor
- * que cada contacto con el acuerdo de proveedor vigente obtiene en la pestaña «avanzado» de PortalForja.
- * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]`, sube
- * archivos en multipart y descarga binarios (zip de documentación) directamente a disco.
+ * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor que
+ * genera en la pestaña «avanzado» de PortalForja un contacto al que el personal ha concedido el acceso. Da acceso a
+ * los plugins de los que el contacto es autor y a los de los equipos en los que está aceptado.
+ * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]` y sube archivos en
+ * multipart.
  */
 import { Method } from "axios";
 import type { ConnectionConfig } from "../types/facturascripts.js";
@@ -23,23 +24,12 @@ export type ForjaConnectionResolver = (key?: string) => ResolvedForjaConnection;
  * Archivo local que se adjunta a una petición multipart.
  */
 export interface ForjaUploadFile {
-    /** Nombre del campo del formulario (por ejemplo `zip`, `docs` o `images[]`). */
+    /** Nombre del campo del formulario (por ejemplo `zip`, `image` o `images[]`). */
     field: string;
     /** Ruta del archivo en disco. */
     path: string;
     /** Nombre con el que se envía; por defecto, el nombre del archivo. */
     filename?: string;
-}
-/**
- * Resultado de una descarga escrita en disco.
- */
-export interface ForjaDownloadResult {
-    /** Ruta absoluta del archivo escrito. */
-    path: string;
-    /** Tamaño en bytes. */
-    bytes: number;
-    /** Content-Type devuelto por el servidor, si lo hay. */
-    contentType?: string;
 }
 /**
  * Error devuelto por la API de Forja, con el estado HTTP y el código `{code, message}` del servidor.
@@ -122,16 +112,6 @@ export declare class ForjaClient {
      * @returns Cuerpo de la respuesta
      */
     sendMultipart<T = unknown>(method: Method, endpoint: string, fields: Record<string, unknown>, files: ForjaUploadFile[], connectionKey?: string): Promise<T>;
-    /**
-     * Descarga un binario y lo escribe en disco, creando la carpeta de destino si no existe.
-     *
-     * @param endpoint - Ruta relativa a `/api/3/forja`
-     * @param params - Parámetros de la query
-     * @param outputFile - Ruta del archivo de salida
-     * @param connectionKey - Clave de la conexión (opcional)
-     * @returns Ruta, tamaño y tipo del archivo escrito
-     */
-    download(endpoint: string, params: Record<string, unknown> | undefined, outputFile: string, connectionKey?: string): Promise<ForjaDownloadResult>;
     /**
      * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión).
      */

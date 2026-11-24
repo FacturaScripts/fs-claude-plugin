@@ -3,15 +3,15 @@
  *
  * Reproduce las reglas con las que se empaquetan los plugins a mano (copia sin archivos ocultos y zip sin la
  * carpeta Test, con permisos 0755 en carpetas y 0644 en archivos, dentro de una carpeta raíz con el nombre del
- * plugin) y les suma lo que Forja quita al publicar: archivos de asistentes de IA, la carpeta Doc y los metadatos
- * del sistema. Así el zip llega a Forja tal y como lo recibirá quien lo descargue.
+ * plugin) y les suma lo que Forja quita al publicar (archivos de asistentes de IA, configuración de PHPUnit y
+ * metadatos del sistema) y la carpeta Doc. Así el zip llega a Forja tal y como lo recibirá quien lo descargue.
  *
  * - Plugin: carpeta con un facturascripts.ini; la carpeta raíz del zip es su name y la versión, su version.
  * - Core: carpeta con Core/Kernel.php y sin facturascripts.ini; la carpeta raíz es facturascripts (la que espera
  *   el actualizador) y la versión, la de Kernel::version(). Además quita Plugins, Dinamic, MyFiles y los config*.php.
  *
- * Con includeDocs, el zip conserva Doc/User, Doc/Dev, Doc/Assets y Doc/forja.json para que Forja importe la
- * documentación al publicar la versión; Forja la quita después del zip guardado. Doc/Context nunca se incluye.
+ * La carpeta Doc nunca entra: Forja no importa la documentación del zip, que se publica como publicaciones con
+ * forja_publish_doc_page.
  *
  * El zip se escribe sin dependencias externas (deflate de zlib y CRC-32 propio) en una carpeta temporal propia,
  * que es la única de la que forja_upload_build borra zips tras subirlos.
@@ -20,8 +20,9 @@
 export declare const EXCLUDE_REASONS: {
     readonly hidden: "archivos y carpetas ocultos (.git, .github, .claude, .agents, .DS_Store, .gitignore...)";
     readonly test: "carpeta Test de la raíz";
-    readonly doc: "carpeta Doc de la raíz, o lo que no es documentación publicable con include_docs (Forja no la reparte)";
-    readonly ai: "archivos de asistentes de IA (CLAUDE.md, AGENTS.md...)";
+    readonly doc: "carpeta Doc de la raíz (la documentación se publica aparte, con forja_publish_doc_page)";
+    readonly ai: "archivos de asistentes de IA (CLAUDE.md, AGENTS.md, GEMINI.md...)";
+    readonly phpunit: "configuración de PHPUnit (phpunit*.xml, phpunit*.xml.dist), que Forja quita";
     readonly system: "metadatos del sistema (__MACOSX, Thumbs.db, desktop.ini)";
     readonly symlink: "enlaces simbólicos (Forja no los admite)";
     readonly core: "carpetas y archivos locales del core (Plugins, Dinamic, MyFiles, config*.php)";
@@ -111,10 +112,9 @@ export declare function readProjectInfo(source: string): Promise<ProjectInfo>;
  * @param parts - Partes de la ruta relativa a la carpeta del proyecto
  * @param isDirectory - Si la entrada es una carpeta
  * @param type - Tipo de proyecto
- * @param includeDocs - Si se conserva la documentación publicable de Doc
  * @returns Grupo de exclusión o null
  */
-export declare function excludeReason(parts: string[], isDirectory: boolean, type: ProjectInfo['type'], includeDocs?: boolean): ExcludeReason | null;
+export declare function excludeReason(parts: string[], isDirectory: boolean, type: ProjectInfo['type']): ExcludeReason | null;
 /**
  * Calcula el CRC-32 de un contenido.
  *
@@ -126,9 +126,8 @@ export declare function crc32(data: Buffer): number;
  * Crea el zip de una versión de un plugin o del core en una carpeta temporal propia.
  *
  * @param source - Carpeta absoluta del plugin o del core
- * @param includeDocs - Conserva Doc/User, Doc/Dev, Doc/Assets y Doc/forja.json para que Forja importe la documentación
  * @returns Ruta del zip, datos del proyecto y resumen de lo excluido
  * @throws Error si la carpeta no es válida o el zip no lo sería para Forja
  */
-export declare function buildProjectZip(source: string, includeDocs?: boolean): Promise<BuildZipResult>;
+export declare function buildProjectZip(source: string): Promise<BuildZipResult>;
 //# sourceMappingURL=build-zip.d.ts.map

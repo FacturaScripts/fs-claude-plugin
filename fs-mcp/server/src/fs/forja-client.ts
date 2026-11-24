@@ -1,15 +1,16 @@
 /**
  * Cliente HTTP de la API de autor de Forja (facturascripts.com).
  *
- * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor
- * que cada contacto con el acuerdo de proveedor vigente obtiene en la pestaña «avanzado» de PortalForja.
- * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]`, sube
- * archivos en multipart y descarga binarios (zip de documentación) directamente a disco.
+ * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor que
+ * genera en la pestaña «avanzado» de PortalForja un contacto al que el personal ha concedido el acceso. Da acceso a
+ * los plugins de los que el contacto es autor y a los de los equipos en los que está aceptado.
+ * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]` y sube archivos en
+ * multipart.
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, Method } from "axios";
 import fs from "fs";
-import { mkdir, readFile, stat, writeFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import https from "https";
 import path from "path";
 import { connectionManager, normalizeBaseUrl } from "../connection-manager.js";
@@ -32,24 +33,12 @@ export type ForjaConnectionResolver = (key?: string) => ResolvedForjaConnection;
  * Archivo local que se adjunta a una petición multipart.
  */
 export interface ForjaUploadFile {
-  /** Nombre del campo del formulario (por ejemplo `zip`, `docs` o `images[]`). */
+  /** Nombre del campo del formulario (por ejemplo `zip`, `image` o `images[]`). */
   field: string;
   /** Ruta del archivo en disco. */
   path: string;
   /** Nombre con el que se envía; por defecto, el nombre del archivo. */
   filename?: string;
-}
-
-/**
- * Resultado de una descarga escrita en disco.
- */
-export interface ForjaDownloadResult {
-  /** Ruta absoluta del archivo escrito. */
-  path: string;
-  /** Tamaño en bytes. */
-  bytes: number;
-  /** Content-Type devuelto por el servidor, si lo hay. */
-  contentType?: string;
 }
 
 /**
@@ -79,9 +68,11 @@ const REQUEST_TIMEOUT_MS = 300_000;
 
 /** Pistas que se añaden al mensaje según el estado HTTP, para orientar al usuario. */
 const STATUS_HINTS: Record<number, string> = {
-  401: "revisa el token de autor de la pestaña «avanzado» de PortalForja",
-  403: "el contacto no tiene un acuerdo de proveedor vigente",
-  404: "el plugin no existe o no eres su autor",
+  401: "revisa el token de autor: se genera en la pestaña «avanzado» de PortalForja y solo se muestra al generarlo",
+  402: "no tienes puntos suficientes en la forja para esta operación",
+  403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; también se responde 403 tras varios intentos fallidos desde la misma IP",
+  404: "el recurso no existe, o el plugin no es tuyo ni de un equipo en el que estés aceptado",
+  429: "se ha superado un límite de la forja (peticiones, publicaciones o traducciones por día o semana); espera antes de reintentar",
 };
 
 /**
@@ -347,48 +338,6 @@ export class ForjaClient {
     }
     const response = await this.request<T>(method, endpoint, { data: form }, connectionKey);
     return response.data;
-  }
-
-  /**
-   * Descarga un binario y lo escribe en disco, creando la carpeta de destino si no existe.
-   *
-   * @param endpoint - Ruta relativa a `/api/3/forja`
-   * @param params - Parámetros de la query
-   * @param outputFile - Ruta del archivo de salida
-   * @param connectionKey - Clave de la conexión (opcional)
-   * @returns Ruta, tamaño y tipo del archivo escrito
-   */
-  async download(
-    endpoint: string,
-    params: Record<string, unknown> | undefined,
-    outputFile: string,
-    connectionKey?: string
-  ): Promise<ForjaDownloadResult> {
-    const response = await this.request<ArrayBuffer>(
-      "GET",
-      endpoint,
-      { params: compact(params), responseType: "arraybuffer", headers: { Accept: "*/*" } },
-      connectionKey
-    );
-    const target = path.resolve(outputFile);
-    const bytes = Buffer.from(response.data);
-    // Solo se escriben zips, y solo encima de otro zip: así una ruta equivocada no destruye otro archivo.
-    if (bytes.subarray(0, 2).toString("latin1") !== "PK") {
-      throw new ForjaApiError(`GET ${endpoint}: la respuesta no es un archivo zip`);
-    }
-    const existing = await readFile(target).catch(() => null);
-    if (existing && existing.subarray(0, 2).toString("latin1") !== "PK") {
-      throw new ForjaApiError(`No se sobrescribe ${target}: ya existe y no es un archivo zip`);
-    }
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, bytes);
-
-    const result: ForjaDownloadResult = { path: target, bytes: bytes.length };
-    const contentType = response.headers["content-type"];
-    if (typeof contentType === "string") {
-      result.contentType = contentType;
-    }
-    return result;
   }
 
   /**

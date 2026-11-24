@@ -3,15 +3,15 @@
  *
  * Reproduce las reglas con las que se empaquetan los plugins a mano (copia sin archivos ocultos y zip sin la
  * carpeta Test, con permisos 0755 en carpetas y 0644 en archivos, dentro de una carpeta raíz con el nombre del
- * plugin) y les suma lo que Forja quita al publicar: archivos de asistentes de IA, la carpeta Doc y los metadatos
- * del sistema. Así el zip llega a Forja tal y como lo recibirá quien lo descargue.
+ * plugin) y les suma lo que Forja quita al publicar (archivos de asistentes de IA, configuración de PHPUnit y
+ * metadatos del sistema) y la carpeta Doc. Así el zip llega a Forja tal y como lo recibirá quien lo descargue.
  *
  * - Plugin: carpeta con un facturascripts.ini; la carpeta raíz del zip es su name y la versión, su version.
  * - Core: carpeta con Core/Kernel.php y sin facturascripts.ini; la carpeta raíz es facturascripts (la que espera
  *   el actualizador) y la versión, la de Kernel::version(). Además quita Plugins, Dinamic, MyFiles y los config*.php.
  *
- * Con includeDocs, el zip conserva Doc/User, Doc/Dev, Doc/Assets y Doc/forja.json para que Forja importe la
- * documentación al publicar la versión; Forja la quita después del zip guardado. Doc/Context nunca se incluye.
+ * La carpeta Doc nunca entra: Forja no importa la documentación del zip, que se publica como publicaciones con
+ * forja_publish_doc_page.
  *
  * El zip se escribe sin dependencias externas (deflate de zlib y CRC-32 propio) en una carpeta temporal propia,
  * que es la única de la que forja_upload_build borra zips tras subirlos.
@@ -26,8 +26,9 @@ import { deflateRawSync } from 'zlib';
 export const EXCLUDE_REASONS = {
   hidden: 'archivos y carpetas ocultos (.git, .github, .claude, .agents, .DS_Store, .gitignore...)',
   test: 'carpeta Test de la raíz',
-  doc: 'carpeta Doc de la raíz, o lo que no es documentación publicable con include_docs (Forja no la reparte)',
-  ai: 'archivos de asistentes de IA (CLAUDE.md, AGENTS.md...)',
+  doc: 'carpeta Doc de la raíz (la documentación se publica aparte, con forja_publish_doc_page)',
+  ai: 'archivos de asistentes de IA (CLAUDE.md, AGENTS.md, GEMINI.md...)',
+  phpunit: 'configuración de PHPUnit (phpunit*.xml, phpunit*.xml.dist), que Forja quita',
   system: 'metadatos del sistema (__MACOSX, Thumbs.db, desktop.ini)',
   symlink: 'enlaces simbólicos (Forja no los admite)',
   core: 'carpetas y archivos locales del core (Plugins, Dinamic, MyFiles, config*.php)',
@@ -36,7 +37,10 @@ export const EXCLUDE_REASONS = {
 export type ExcludeReason = keyof typeof EXCLUDE_REASONS;
 
 /** Archivos de asistentes de IA que Forja quita en cualquier carpeta (en minúsculas). */
-const AI_FILE_NAMES = ['agents.md', 'agents.override.md', 'claude.local.md', 'claude.md'];
+const AI_FILE_NAMES = ['agents.md', 'agents.override.md', 'claude.local.md', 'claude.md', 'gemini.md'];
+
+/** Configuración de PHPUnit, que Forja quita en cualquier carpeta (en minúsculas). */
+const PHPUNIT_PATTERN = /^phpunit.*\.xml(\.dist)?$/;
 
 /** Metadatos del sistema que Forja quita en cualquier carpeta (en minúsculas); los que empiezan por punto ya son ocultos. */
 const SYSTEM_ENTRY_NAMES = ['__macosx', 'desktop.ini', 'thumbs.db'];
@@ -44,9 +48,6 @@ const SYSTEM_ENTRY_NAMES = ['__macosx', 'desktop.ini', 'thumbs.db'];
 /** Carpetas y archivos de la raíz del core que son de la instalación local. */
 const CORE_LOCAL_FOLDERS = ['Dinamic', 'MyFiles', 'Plugins'];
 const CORE_CONFIG_PATTERN = /^config.*\.php$/i;
-
-/** Contenido de Doc que Forja importa como documentación al publicar una versión. */
-const PUBLISHABLE_DOC_ENTRIES = ['Assets', 'Dev', 'User', 'forja.json'];
 
 /** Carpeta raíz del zip del core: la que el actualizador del core espera encontrar. */
 const CORE_ZIP_FOLDER = 'facturascripts';
@@ -283,14 +284,12 @@ export async function readProjectInfo(source: string): Promise<ProjectInfo> {
  * @param parts - Partes de la ruta relativa a la carpeta del proyecto
  * @param isDirectory - Si la entrada es una carpeta
  * @param type - Tipo de proyecto
- * @param includeDocs - Si se conserva la documentación publicable de Doc
  * @returns Grupo de exclusión o null
  */
 export function excludeReason(
   parts: string[],
   isDirectory: boolean,
-  type: ProjectInfo['type'],
-  includeDocs = false
+  type: ProjectInfo['type']
 ): ExcludeReason | null {
   const name = parts[parts.length - 1] ?? '';
   const lower = name.toLowerCase();
@@ -305,15 +304,14 @@ export function excludeReason(
   if (isRoot && isDirectory && name === 'Test') {
     return 'test';
   }
-  // sin include_docs se quita la carpeta Doc entera; con él, solo entra lo que Forja importa
-  if (parts[0] === 'Doc') {
-    const notPublishable = parts.length === 2 && !PUBLISHABLE_DOC_ENTRIES.includes(name);
-    if (!includeDocs || (isRoot && !isDirectory) || notPublishable) {
-      return 'doc';
-    }
+  if (isRoot && name === 'Doc') {
+    return 'doc';
   }
   if (!isDirectory && AI_FILE_NAMES.includes(lower)) {
     return 'ai';
+  }
+  if (!isDirectory && PHPUNIT_PATTERN.test(lower)) {
+    return 'phpunit';
   }
   if (type === 'core' && isRoot && ((isDirectory && CORE_LOCAL_FOLDERS.includes(name)) || (!isDirectory && CORE_CONFIG_PATTERN.test(name)))) {
     return 'core';
@@ -326,13 +324,11 @@ export function excludeReason(
  *
  * @param source - Carpeta del proyecto
  * @param info - Datos del proyecto
- * @param includeDocs - Si se conserva la documentación publicable de Doc
  * @returns Entradas del zip (con la carpeta raíz) y exclusiones por grupo
  */
 async function collectEntries(
   source: string,
-  info: ProjectInfo,
-  includeDocs: boolean
+  info: ProjectInfo
 ): Promise<{ entries: ZipEntry[]; excluded: Partial<Record<ExcludeReason, ExcludedGroup>> }> {
   const entries: ZipEntry[] = [];
   const excluded: Partial<Record<ExcludeReason, ExcludedGroup>> = {};
@@ -360,7 +356,7 @@ async function collectEntries(
         continue;
       }
 
-      const reason = excludeReason(childParts, entryInfo.isDirectory(), info.type, includeDocs);
+      const reason = excludeReason(childParts, entryInfo.isDirectory(), info.type);
       if (reason) {
         exclude(reason, entryInfo.isDirectory() ? `${relative}/` : relative);
         continue;
@@ -562,18 +558,17 @@ async function writeZip(target: string, entries: ZipEntry[]): Promise<{ files: n
  * Crea el zip de una versión de un plugin o del core en una carpeta temporal propia.
  *
  * @param source - Carpeta absoluta del plugin o del core
- * @param includeDocs - Conserva Doc/User, Doc/Dev, Doc/Assets y Doc/forja.json para que Forja importe la documentación
  * @returns Ruta del zip, datos del proyecto y resumen de lo excluido
  * @throws Error si la carpeta no es válida o el zip no lo sería para Forja
  */
-export async function buildProjectZip(source: string, includeDocs = false): Promise<BuildZipResult> {
+export async function buildProjectZip(source: string): Promise<BuildZipResult> {
   const sourceInfo = await lstat(source).catch(() => null);
   if (!sourceInfo || !sourceInfo.isDirectory()) {
     throw new Error(`No existe la carpeta: ${source}`);
   }
 
   const info = await readProjectInfo(source);
-  const { entries, excluded } = await collectEntries(source, info, includeDocs);
+  const { entries, excluded } = await collectEntries(source, info);
   const warnings = await checkRequirements(source, info, entries);
 
   const fileCount = entries.filter((entry) => entry.file !== undefined).length;

@@ -185,9 +185,9 @@ Para instalaciones locales o con certificado auto-firmado, añade `"rejectUnauth
 
 ## Conexiones de tipo forja
 
-Las conexiones de tipo `forja` no apuntan a la API REST de una instalación, sino a la API de autor de facturascripts.com (`/api/3/forja`), que usan las herramientas `forja_*` para gestionar tus plugins publicados: datos e imágenes, traducciones, documentación, versiones y publicaciones.
+Las conexiones de tipo `forja` no apuntan a la API REST de una instalación, sino a la API de autor de facturascripts.com (`/api/3/forja`), que usan las herramientas `forja_*` para gestionar tus plugins publicados y los de tus equipos: datos e imágenes, traducciones, documentación, versiones, publicaciones, errores e issues.
 
-- **Token**: es el token de autor de la pestaña **avanzado** de PortalForja. Solo lo tienen los contactos con el acuerdo de proveedor vigente.
+- **Token**: es el token de autor que se genera en la pestaña **avanzado** de PortalForja, que solo aparece cuando el personal de facturascripts.com te ha concedido el acceso a la API. Solo se muestra al generarlo: si se pierde, genera otro y actualiza la conexión con `overwrite: true`.
 - **URL**: la de la web de Forja, por ejemplo `https://facturascripts.com` (sin `/api/3/forja`; si se pega, se quita al guardar).
 - **Clave**: usa una distinta de las existentes, por ejemplo `forja-autor`. Si ya tienes una conexión `api` a facturascripts.com con la clave `forja`, no la sustituyas: la usan las herramientas de datos (`get_webprojects`, `get_publications`...).
 - **No la marques como predeterminada**: las herramientas de la API estándar (`get_*`, `create_*`...) usan la conexión por defecto y rechazan las de tipo forja. Las herramientas `forja_*` usan por su cuenta la primera conexión de tipo forja, o la que indiques en `connection`.

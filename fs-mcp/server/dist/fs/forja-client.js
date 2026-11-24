@@ -1,14 +1,15 @@
 /**
  * Cliente HTTP de la API de autor de Forja (facturascripts.com).
  *
- * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor
- * que cada contacto con el acuerdo de proveedor vigente obtiene en la pestaña «avanzado» de PortalForja.
- * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]`, sube
- * archivos en multipart y descarga binarios (zip de documentación) directamente a disco.
+ * La API vive en `<url>/api/3/forja` y se autentica con la cabecera `X-Forja-Token`, usando el token de autor que
+ * genera en la pestaña «avanzado» de PortalForja un contacto al que el personal ha concedido el acceso. Da acceso a
+ * los plugins de los que el contacto es autor y a los de los equipos en los que está aceptado.
+ * A diferencia de la API REST estándar (`fs/client.ts`), envía JSON sin el envoltorio `filter[]` y sube archivos en
+ * multipart.
  */
 import axios from "axios";
 import fs from "fs";
-import { mkdir, readFile, stat, writeFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import https from "https";
 import path from "path";
 import { connectionManager, normalizeBaseUrl } from "../connection-manager.js";
@@ -36,9 +37,11 @@ export class ForjaApiError extends Error {
 const REQUEST_TIMEOUT_MS = 300_000;
 /** Pistas que se añaden al mensaje según el estado HTTP, para orientar al usuario. */
 const STATUS_HINTS = {
-    401: "revisa el token de autor de la pestaña «avanzado» de PortalForja",
-    403: "el contacto no tiene un acuerdo de proveedor vigente",
-    404: "el plugin no existe o no eres su autor",
+    401: "revisa el token de autor: se genera en la pestaña «avanzado» de PortalForja y solo se muestra al generarlo",
+    402: "no tienes puntos suficientes en la forja para esta operación",
+    403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; también se responde 403 tras varios intentos fallidos desde la misma IP",
+    404: "el recurso no existe, o el plugin no es tuyo ni de un equipo en el que estés aceptado",
+    429: "se ha superado un límite de la forja (peticiones, publicaciones o traducciones por día o semana); espera antes de reintentar",
 };
 /**
  * Resolución por defecto: la conexión indicada, que debe ser de tipo forja, o la primera conexión de tipo
@@ -255,36 +258,6 @@ export class ForjaClient {
         }
         const response = await this.request(method, endpoint, { data: form }, connectionKey);
         return response.data;
-    }
-    /**
-     * Descarga un binario y lo escribe en disco, creando la carpeta de destino si no existe.
-     *
-     * @param endpoint - Ruta relativa a `/api/3/forja`
-     * @param params - Parámetros de la query
-     * @param outputFile - Ruta del archivo de salida
-     * @param connectionKey - Clave de la conexión (opcional)
-     * @returns Ruta, tamaño y tipo del archivo escrito
-     */
-    async download(endpoint, params, outputFile, connectionKey) {
-        const response = await this.request("GET", endpoint, { params: compact(params), responseType: "arraybuffer", headers: { Accept: "*/*" } }, connectionKey);
-        const target = path.resolve(outputFile);
-        const bytes = Buffer.from(response.data);
-        // Solo se escriben zips, y solo encima de otro zip: así una ruta equivocada no destruye otro archivo.
-        if (bytes.subarray(0, 2).toString("latin1") !== "PK") {
-            throw new ForjaApiError(`GET ${endpoint}: la respuesta no es un archivo zip`);
-        }
-        const existing = await readFile(target).catch(() => null);
-        if (existing && existing.subarray(0, 2).toString("latin1") !== "PK") {
-            throw new ForjaApiError(`No se sobrescribe ${target}: ya existe y no es un archivo zip`);
-        }
-        await mkdir(path.dirname(target), { recursive: true });
-        await writeFile(target, bytes);
-        const result = { path: target, bytes: bytes.length };
-        const contentType = response.headers["content-type"];
-        if (typeof contentType === "string") {
-            result.contentType = contentType;
-        }
-        return result;
     }
     /**
      * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión).

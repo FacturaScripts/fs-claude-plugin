@@ -2,7 +2,7 @@
  * Pruebas del cliente de la API de autor de Forja y de las herramientas forja_*.
  *
  * Levanta un servidor HTTP local que imita `/api/3/forja` y comprueba la cabecera X-Forja-Token, el envío de
- * JSON sin el envoltorio filter[], la subida multipart, la descarga del zip a disco y los errores 401 y 404.
+ * JSON sin el envoltorio filter[], la subida multipart, los errores 401 y 404 y la publicación de páginas de Doc.
  */
 
 import assert from 'node:assert/strict';
@@ -31,6 +31,15 @@ let forjaModule;
 let toolsModule;
 /** @type {import('../dist/fs/client.js')} */
 let apiModule;
+
+/**
+ * Publicaciones del plugin DocPlugin, que el servidor de prueba guarda como la forja.
+ *
+ * @type {Map<number, {id: number, url: string, body: string, fields: Record<string, string>}>}
+ */
+const docPublications = new Map();
+let nextPublicationId = 100;
+let uploadedImages = 0;
 
 /**
  * Responde con un cuerpo JSON.
@@ -113,25 +122,19 @@ async function route(req, res, body) {
     return;
   }
 
-  if (url.pathname === '/api/3/forja/plugin-options') {
-    sendJson(res, 200, { can_create: true, quota: { plugins: 1, limit: 5, activeinstalls: 0 }, types: ['free', 'private'] });
-    return;
-  }
-
   const match = url.pathname.match(/^\/api\/3\/forja\/plugins(?:\/([^/]+))?(?:\/(.*))?$/);
   if (!match) {
     sendJson(res, 404, { code: 'not-found', message: 'Ruta desconocida' });
     return;
   }
   const [, plugin, rest] = match;
-  if (plugin !== undefined && decodeURIComponent(plugin) !== 'MiPlugin') {
-    sendJson(res, 404, { code: 'plugin-not-found', message: 'Plugin no encontrado' });
+  if (plugin !== undefined && !['MiPlugin', 'DocPlugin'].includes(decodeURIComponent(plugin))) {
+    sendJson(res, 404, { code: 404, message: 'Plugin no encontrado' });
     return;
   }
 
-  if (rest === 'docs' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/zip' });
-    res.end(ZIP_BYTES);
+  if (plugin === 'DocPlugin') {
+    await routeDocPublications(req, res, rest ?? '', body);
     return;
   }
 
@@ -147,15 +150,12 @@ async function route(req, res, body) {
     return;
   }
 
-  if (rest === 'translations' && req.method === 'GET') {
+  const translations = rest?.match(/^translations(?:\/([^/]+))?$/);
+  if (translations && req.method === 'GET') {
     const all = { es_ES: { hola: 'Hola', adios: 'Adiós' }, en_EN: { hola: 'Hello' } };
-    const lang = url.searchParams.get('lang');
-    // un idioma sin traducciones: PHP devuelve el array vacío como []
-    if (lang === 'zz_ZZ') {
-      sendJson(res, 200, []);
-      return;
-    }
-    sendJson(res, 200, lang ? { [lang]: all[lang] } : all);
+    const lang = translations[1];
+    // un idioma sin traducciones: la forja devuelve {}
+    sendJson(res, 200, lang ? (all[lang] ?? {}) : all);
     return;
   }
 
@@ -165,6 +165,68 @@ async function route(req, res, body) {
     query: Object.fromEntries(url.searchParams),
     json: body.length > 0 ? JSON.parse(body.toString('utf-8')) : null,
   });
+}
+
+/**
+ * Lee los campos y los archivos de un formulario multipart.
+ *
+ * @param {http.IncomingMessage} req Petición.
+ * @param {Buffer} body Cuerpo.
+ * @returns {Promise<{fields: Record<string, string>, files: Array<{filename: string, size: number}>}>} Contenido.
+ */
+async function readForm(req, body) {
+  const form = await new Response(body, { headers: { 'content-type': req.headers['content-type'] } }).formData();
+  const fields = {};
+  const files = [];
+  for (const [name, value] of form.entries()) {
+    if (typeof value === 'string') {
+      fields[name] = value;
+    } else {
+      files.push({ filename: value.name, size: value.size });
+    }
+  }
+  return { fields, files };
+}
+
+/**
+ * Imita las publicaciones de la forja para DocPlugin: las imágenes subidas se añaden al final del texto.
+ *
+ * @param {http.IncomingMessage} req Petición.
+ * @param {http.ServerResponse} res Respuesta.
+ * @param {string} rest Ruta tras /plugins/DocPlugin/.
+ * @param {Buffer} body Cuerpo.
+ */
+async function routeDocPublications(req, res, rest, body) {
+  const match = rest.match(/^publications(?:\/(\d+))?$/);
+  if (!match) {
+    sendJson(res, 404, { code: 404, message: 'Ruta desconocida' });
+    return;
+  }
+  if (req.method === 'GET' && !match[1]) {
+    sendJson(res, 200, { publications: [...docPublications.values()].map(({ id, url }) => ({ id, url })) });
+    return;
+  }
+
+  const multipart = req.headers['content-type']?.startsWith('multipart/form-data');
+  const { fields, files } = multipart ? await readForm(req, body) : { fields: JSON.parse(body.toString('utf-8')), files: [] };
+  const id = match[1] ? Number(match[1]) : nextPublicationId++;
+  const publication = docPublications.get(id) ?? { id, url: `https://forja.test/publication/${id}`, body: '', fields: {} };
+  if (match[1] && !docPublications.has(id)) {
+    sendJson(res, 404, { code: 404, message: 'Publicación no encontrada' });
+    return;
+  }
+  publication.fields = { ...publication.fields, ...fields };
+  if (fields.body !== undefined) {
+    publication.body = String(fields.body);
+  }
+  for (const file of files) {
+    uploadedImages++;
+    // como la forja, el nombre original solo conserva letras, números, «.», «_» y «-»
+    const safeName = file.filename.replace(/[^A-Za-z0-9._-]/g, '_');
+    publication.body += `\n\n![](https://forja.test/MyFiles/2026/11/${uploadedImages}_forja_${safeName}?myft=t)`;
+  }
+  docPublications.set(id, publication);
+  sendJson(res, match[1] ? 200 : 201, { id, url: publication.url, body: publication.body, type: fields.type });
 }
 
 before(async () => {
@@ -225,9 +287,9 @@ test('GET envía X-Forja-Token y los parámetros sin envoltorio filter[]', async
 });
 
 test('PATCH envía el cuerpo como JSON', async () => {
-  const result = await forjaModule.forjaClient.sendJson('PATCH', '/plugins/MiPlugin', { description_short: 'Corta' });
+  const result = await forjaModule.forjaClient.sendJson('PATCH', '/plugins/MiPlugin', { description: 'Larga' });
   assert.equal(result.method, 'PATCH');
-  assert.deepEqual(result.json, { description_short: 'Corta' });
+  assert.deepEqual(result.json, { description: 'Larga' });
   assert.match(requests.at(-1).headers['content-type'] ?? '', /^application\/json/);
 });
 
@@ -250,21 +312,12 @@ test('sube archivos y campos en multipart', async () => {
 test('falla antes de enviar si el archivo a subir no existe', async () => {
   const before = requests.length;
   await assert.rejects(
-    forjaModule.forjaClient.sendMultipart('POST', '/plugins/MiPlugin/docs', {}, [
-      { field: 'docs', path: path.join(tempDirectory, 'no-existe.zip') },
+    forjaModule.forjaClient.sendMultipart('POST', '/plugins/MiPlugin/builds', {}, [
+      { field: 'zip', path: path.join(tempDirectory, 'no-existe.zip') },
     ]),
     /No existe el archivo/
   );
   assert.equal(requests.length, before);
-});
-
-test('descarga el zip de documentación a disco creando la carpeta', async () => {
-  const output = path.join(tempDirectory, 'salida', 'docs', 'MiPlugin-docs.zip');
-  const result = await forjaModule.forjaClient.download('/plugins/MiPlugin/docs', { type: 'all' }, output);
-  assert.equal(result.path, output);
-  assert.equal(result.bytes, ZIP_BYTES.length);
-  assert.equal(result.contentType, 'application/zip');
-  assert.deepEqual(await readFile(output), ZIP_BYTES);
 });
 
 test('devuelve errores 401 legibles con el código del servidor', async () => {
@@ -281,14 +334,14 @@ test('devuelve errores 401 legibles con el código del servidor', async () => {
   );
 });
 
-test('devuelve errores 404 legibles también en descargas binarias', async () => {
+test('devuelve errores 404 legibles con una pista sobre el acceso al plugin', async () => {
   await assert.rejects(
-    forjaModule.forjaClient.download('/plugins/Ajeno/docs', { type: 'all' }, path.join(tempDirectory, 'ajeno.zip')),
+    forjaModule.forjaClient.get('/plugins/Ajeno'),
     (error) => {
       assert.equal(error.status, 404);
-      assert.equal(error.code, 'plugin-not-found');
+      assert.equal(error.code, '404');
       assert.match(error.message, /Plugin no encontrado/);
-      assert.match(error.message, /no eres su autor/);
+      assert.match(error.message, /no es tuyo ni de un equipo/);
       return true;
     }
   );
@@ -329,17 +382,28 @@ test('forja_download_translations escribe un JSON formateado por idioma', async 
   );
 });
 
-test('forja_download_translations acepta la respuesta [] de un plugin sin traducciones', async () => {
-  const pluginPath = path.join(tempDirectory, 'SinTraducciones');
-  await mkdir(pluginPath, { recursive: true });
+test('forja_download_translations pide un idioma por su ruta y no vacía el archivo local si no tiene traducciones', async () => {
+  const pluginPath = path.join(tempDirectory, 'UnIdioma');
+  await createFiles(pluginPath, { 'Translation/zz_ZZ.json': '{"local": "Local"}' });
 
   const result = await toolsModule.handleForjaTool('forja_download_translations', {
     plugin: 'MiPlugin',
     plugin_path: pluginPath,
-    lang: 'zz_ZZ',
+    lang: 'en_EN',
   });
   assert.equal(result.isError, undefined, result.content[0].text);
-  assert.deepEqual(JSON.parse(result.content[0].text).files, []);
+  assert.equal(requests.at(-1).url, '/api/3/forja/plugins/MiPlugin/translations/en_EN');
+  assert.deepEqual(JSON.parse(result.content[0].text).files.map((file) => [file.lang, file.keys]), [['en_EN', 1]]);
+
+  const empty = await toolsModule.handleForjaTool('forja_download_translations', {
+    plugin: 'MiPlugin',
+    plugin_path: pluginPath,
+    lang: 'zz_ZZ',
+  });
+  const summary = JSON.parse(empty.content[0].text);
+  assert.deepEqual(summary.files, []);
+  assert.deepEqual(summary.empty_languages, ['zz_ZZ']);
+  assert.equal(await readFile(path.join(pluginPath, 'Translation', 'zz_ZZ.json'), 'utf-8'), '{"local": "Local"}');
 });
 
 test('forja_upload_translations envía los archivos locales como JSON {idioma: {clave: valor}}', async () => {
@@ -363,6 +427,11 @@ test('forja_upload_translations envía los archivos locales como JSON {idioma: {
     value: 'Nueva',
   });
   assert.deepEqual(JSON.parse(single.content[0].text).json, { es_ES: { nueva: 'Nueva' } });
+
+  // un archivo sin claves no se envía: la forja rechazaría la subida entera
+  await writeFile(path.join(pluginPath, 'Translation', 'gl_ES.json'), '{}');
+  const all = JSON.parse((await toolsModule.handleForjaTool('forja_upload_translations', { plugin: 'MiPlugin', plugin_path: pluginPath })).content[0].text);
+  assert.deepEqual(Object.keys(all.json).sort(), ['ca_ES', 'en_EN', 'es_ES']);
 });
 
 test('forja_create_publication lee el cuerpo de body_file y valida los parámetros', async () => {
@@ -373,9 +442,14 @@ test('forja_create_publication lee el cuerpo de body_file y valida los parámetr
     plugin: 'MiPlugin',
     type: 'news',
     title: 'Versión 2',
+    title_short: 'V2',
+    youtube: 'abc123def',
+    color: 'info',
     body_file: bodyFile,
   });
-  assert.deepEqual(JSON.parse(result.content[0].text).json, { type: 'news', title: 'Versión 2', body: '# Novedades\n' });
+  assert.deepEqual(JSON.parse(result.content[0].text).json, {
+    type: 'news', title: 'Versión 2', title_short: 'V2', youtube: 'abc123def', color: 'info', body: '# Novedades\n',
+  });
 
   // Con imágenes, la publicación se envía en multipart con los archivos en images[].
   const imagePath = path.join(tempDirectory, 'captura.png');
@@ -404,44 +478,70 @@ test('forja_create_publication lee el cuerpo de body_file y valida los parámetr
   });
   assert.equal(invalid.isError, true);
   assert.match(invalid.content[0].text, /ruta absoluta/);
-});
-
-test('forja_get_plugin_options consulta el cupo y las opciones de alta', async () => {
-  const result = await toolsModule.handleForjaTool('forja_get_plugin_options', {});
-  assert.equal(result.isError, undefined);
-  const data = JSON.parse(result.content[0].text);
-  assert.equal(data.can_create, true);
-  assert.equal(data.quota.limit, 5);
-});
-
-test('forja_create_plugin envía los datos como JSON y valida nombre, descripción, tipo y precio antes de enviar', async () => {
-  const result = await toolsModule.handleForjaTool('forja_create_plugin', {
-    name: 'NuevoPlugin',
-    description: 'Qué hace',
-    type: 'for-sale',
-    price: 25,
-    idteam: 7,
-  });
-  const data = JSON.parse(result.content[0].text);
-  assert.equal(data.method, 'POST');
-  assert.equal(data.path, '/api/3/forja/plugins');
-  assert.deepEqual(data.json, { name: 'NuevoPlugin', description: 'Qué hace', type: 'for-sale', price: 25 });
 
   const sent = requests.length;
-  const invalid = [
-    [{ name: '1-no-vale', description: 'Algo', type: 'free' }, /no es un nombre válido/],
-    [{ name: 'OtroPlugin', type: 'free' }, /description es obligatorio/],
-    [{ name: 'OtroPlugin', description: 'Algo' }, /type es obligatorio/],
-    [{ name: 'OtroPlugin', description: 'Algo', type: 'gratis' }, /type debe ser/],
-    [{ name: 'OtroPlugin', description: 'Algo', type: 'free', price: 10 }, /Solo los plugins de tipo for-sale/],
-    [{ name: 'OtroPlugin', description: 'Algo', type: 'for-sale', price: -1 }, /price debe ser un número/],
-  ];
-  for (const [args, message] of invalid) {
-    const response = await toolsModule.handleForjaTool('forja_create_plugin', args);
-    assert.equal(response.isError, true, JSON.stringify(args));
+  for (const [args, message] of [
+    [{ plugin: 'MiPlugin', title: 'Sin tipo', body: 'x' }, /type\) o su publicación padre/],
+    [{ plugin: 'MiPlugin', type: 'news', title: 'Color', body: 'x', color: 'rosa' }, /color debe ser/],
+  ]) {
+    const response = await toolsModule.handleForjaTool('forja_create_publication', args);
+    assert.equal(response.isError, true);
     assert.match(response.content[0].text, message);
   }
-  assert.equal(requests.length, sent, 'Los datos no válidos no deben llegar al servidor');
+  assert.equal(requests.length, sent);
+});
+
+test('forja_update_publication envía PATCH y, con imágenes, POST multipart sobre la publicación', async () => {
+  const patch = JSON.parse((await toolsModule.handleForjaTool('forja_update_publication', { plugin: 'MiPlugin', id: 7, ordernum: 2 })).content[0].text);
+  assert.equal(patch.method, 'PATCH');
+  assert.equal(patch.path, '/api/3/forja/plugins/MiPlugin/publications/7');
+
+  const imagePath = path.join(tempDirectory, 'otra.png');
+  await writeFile(imagePath, 'png');
+  await toolsModule.handleForjaTool('forja_update_publication', { plugin: 'MiPlugin', id: 7, images: [imagePath] });
+  assert.equal(requests.at(-1).method, 'POST');
+  assert.equal(requests.at(-1).url, '/api/3/forja/plugins/MiPlugin/publications/7');
+
+  const deleted = JSON.parse((await toolsModule.handleForjaTool('forja_delete_publication', { plugin: 'MiPlugin', id: 7 })).content[0].text);
+  assert.equal(deleted.method, 'DELETE');
+  assert.equal(deleted.path, '/api/3/forja/plugins/MiPlugin/publications/7');
+});
+
+test('forja_set_build_status cambia el estado de una versión y valida versión y estado', async () => {
+  const result = JSON.parse((await toolsModule.handleForjaTool('forja_set_build_status', { plugin: 'MiPlugin', version: '1.5', status: 'stable' })).content[0].text);
+  assert.equal(result.method, 'PATCH');
+  assert.equal(result.path, '/api/3/forja/plugins/MiPlugin/builds/1.5');
+  assert.deepEqual(result.json, { status: 'stable' });
+
+  const sent = requests.length;
+  for (const args of [{ version: '1.5/../x', status: 'beta' }, { version: '1.5', status: 'publicada' }]) {
+    const response = await toolsModule.handleForjaTool('forja_set_build_status', { plugin: 'MiPlugin', ...args });
+    assert.equal(response.isError, true);
+  }
+  assert.equal(requests.length, sent);
+});
+
+test('los informes de error y las issues se piden con su filtro y su paginación', async () => {
+  const errors = JSON.parse((await toolsModule.handleForjaTool('forja_list_errors', { plugin: 'MiPlugin', status: 'solved', limit: 10, offset: 20 })).content[0].text);
+  assert.equal(errors.path, '/api/3/forja/plugins/MiPlugin/errors');
+  assert.deepEqual(errors.query, { status: 'solved', limit: '10', offset: '20' });
+
+  const error = JSON.parse((await toolsModule.handleForjaTool('forja_get_error', { plugin: 'MiPlugin', hash: 'abc123' })).content[0].text);
+  assert.equal(error.path, '/api/3/forja/plugins/MiPlugin/errors/abc123');
+
+  const issues = JSON.parse((await toolsModule.handleForjaTool('forja_list_issues', { plugin: 'MiPlugin', status: 'open' })).content[0].text);
+  assert.equal(issues.path, '/api/3/forja/plugins/MiPlugin/issues');
+  assert.deepEqual(issues.query, { status: 'open' });
+
+  const issue = JSON.parse((await toolsModule.handleForjaTool('forja_get_issue', { plugin: 'MiPlugin', id: 12 })).content[0].text);
+  assert.equal(issue.path, '/api/3/forja/plugins/MiPlugin/issues/12');
+
+  const sent = requests.length;
+  for (const [tool, args] of [['forja_list_errors', { status: 'abierto' }], ['forja_get_error', { hash: '../x' }], ['forja_get_issue', { id: 0 }]]) {
+    const response = await toolsModule.handleForjaTool(tool, { plugin: 'MiPlugin', ...args });
+    assert.equal(response.isError, true, tool);
+  }
+  assert.equal(requests.length, sent);
 });
 
 test('ignora la ruta /api/3/forja si la URL de la conexión ya la incluye', async () => {
@@ -477,56 +577,6 @@ test('solo sube archivos locales con la extensión de su uso, también tras un e
   assert.equal(requests.length, sent, 'Ningún archivo rechazado debe llegar al servidor');
 });
 
-test('la descarga de documentación solo escribe zips y no sustituye otros archivos', async () => {
-  const notZip = await toolsModule.handleForjaTool('forja_download_docs', {
-    plugin: 'MiPlugin', output_zip: path.join(tempDirectory, 'docs.json'),
-  });
-  assert.equal(notZip.isError, true);
-  assert.match(notZip.content[0].text, /debe acabar en \.zip/);
-
-  const existing = path.join(tempDirectory, 'importante.zip');
-  await writeFile(existing, 'contenido que no es un zip');
-  const overwrite = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: existing });
-  assert.equal(overwrite.isError, true);
-  assert.equal(await readFile(existing, 'utf-8'), 'contenido que no es un zip');
-
-  // encima de otro zip, sí
-  const again = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: existing });
-  assert.equal(again.isError, true, 'el archivo existente no es un zip');
-  const zipPath = path.join(tempDirectory, 'otra', 'docs.zip');
-  await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
-  const second = await toolsModule.handleForjaTool('forja_download_docs', { plugin: 'MiPlugin', output_zip: zipPath });
-  assert.equal(second.isError, undefined);
-});
-
-test('forja_delete_translations envía key y lang en la query del DELETE', async () => {
-  const single = await toolsModule.handleForjaTool('forja_delete_translations', { plugin: 'MiPlugin', key: 'hola', lang: 'es_ES' });
-  const body = JSON.parse(single.content[0].text);
-  assert.equal(body.method, 'DELETE');
-  assert.equal(body.path, '/api/3/forja/plugins/MiPlugin/translations');
-  assert.deepEqual(body.query, { key: 'hola', lang: 'es_ES' });
-  assert.equal(body.json, null);
-
-  const all = await toolsModule.handleForjaTool('forja_delete_translations', { plugin: 'MiPlugin', all: true });
-  assert.deepEqual(JSON.parse(all.content[0].text).query, { all: 'true' });
-});
-
-test('forja_delete_translations no borra nada sin parámetros ni mezcla all con key o lang', async () => {
-  const sent = requests.length;
-  const invalid = [
-    [{ plugin: 'MiPlugin' }, /Indica key, lang o ambos/],
-    [{ plugin: 'MiPlugin', all: false }, /Indica key, lang o ambos/],
-    [{ plugin: 'MiPlugin', all: true, lang: 'es_ES' }, /all no se combina/],
-    [{ plugin: 'MiPlugin', lang: 'español' }, /Código de idioma no válido/],
-  ];
-  for (const [args, message] of invalid) {
-    const response = await toolsModule.handleForjaTool('forja_delete_translations', args);
-    assert.equal(response.isError, true, JSON.stringify(args));
-    assert.match(response.content[0].text, message);
-  }
-  assert.equal(requests.length, sent, 'Las llamadas no válidas no deben llegar al servidor');
-});
-
 test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no se reparte', async () => {
   const pluginPath = path.join(tempDirectory, 'carpeta-local');
   await createFiles(pluginPath, {
@@ -540,6 +590,8 @@ test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no 
     'Doc/forja.json': '{}',
     'CLAUDE.md': '@AGENTS.md',
     'Lib/AGENTS.md': '# Agentes',
+    'GEMINI.md': '# Gemini',
+    'phpunit.xml.dist': '<phpunit/>',
     '.git/config': '[core]',
     '.claude/settings.json': '{}',
     '.DS_Store': '',
@@ -558,8 +610,9 @@ test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no 
   assert.equal(summary.root, 'MiPlugin');
   assert.equal(path.basename(summary.path), 'MiPlugin-2.5.zip');
   assert.equal(summary.files, 5);
-  assert.deepEqual(Object.keys(summary.excluded).sort(), ['ai', 'doc', 'hidden', 'symlink', 'system', 'test']);
-  assert.deepEqual(summary.excluded.ai.sample, ['CLAUDE.md', 'Lib/AGENTS.md']);
+  assert.deepEqual(Object.keys(summary.excluded).sort(), ['ai', 'doc', 'hidden', 'phpunit', 'symlink', 'system', 'test']);
+  assert.deepEqual(summary.excluded.ai.sample, ['CLAUDE.md', 'GEMINI.md', 'Lib/AGENTS.md']);
+  assert.deepEqual(summary.excluded.phpunit.sample, ['phpunit.xml.dist']);
   assert.deepEqual(summary.excluded.doc.sample, ['Doc/']);
 
   const entries = await readZip(summary.path);
@@ -575,13 +628,6 @@ test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no 
   assert.equal(entries.get('MiPlugin/Controller/').mode, 0o040755);
   await rm(path.dirname(summary.path), { recursive: true, force: true });
 
-  // con include_docs entra la documentación que Forja importa, pero no Doc/Context
-  await createFiles(pluginPath, { 'Doc/Context/README.md': 'contexto', 'Doc/Assets/captura.png': 'png', 'Doc/notas.txt': 'notas' });
-  const withDocs = JSON.parse((await toolsModule.handleForjaTool('forja_build_zip', { source_path: pluginPath, include_docs: true })).content[0].text);
-  const docNames = [...(await readZip(withDocs.path)).keys()].filter((name) => name.startsWith('MiPlugin/Doc/') && !name.endsWith('/')).sort();
-  assert.deepEqual(docNames, ['MiPlugin/Doc/Assets/captura.png', 'MiPlugin/Doc/User/guia.md', 'MiPlugin/Doc/forja.json']);
-  assert.deepEqual(withDocs.excluded.doc.sample, ['Doc/Context/', 'Doc/notas.txt']);
-  await rm(path.dirname(withDocs.path), { recursive: true, force: true });
 });
 
 test('forja_build_zip empaqueta el core en la carpeta facturascripts sin los datos de la instalación', async () => {
@@ -691,4 +737,130 @@ test('forja_upload_build borra el zip de forja_build_zip tras subirlo, salvo kee
   assert.equal(failed.isError, true);
   assert.equal(await exists(third), true);
   await rm(path.dirname(third), { recursive: true, force: true });
+});
+
+/** Texto de relleno para que las páginas de prueba superen los 300 caracteres que exige la forja. */
+const FILLER = 'Texto de la página de prueba con suficiente longitud para que la forja lo acepte. '.repeat(5);
+
+test('forja_publish_doc_page crea la página con sus datos de forja.json y coloca las imágenes en su sitio', async () => {
+  const pluginPath = path.join(tempDirectory, 'DocPlugin');
+  await createFiles(pluginPath, {
+    'Doc/User/inicio.md': `Introducción.\n\n![Pantalla](../Assets/inicio.png)\n\n${FILLER}\n\nSigue en [la guía](guia.md#pasos).\n`,
+    'Doc/User/guia.md': `${FILLER}\n\n![Paso 1](../Assets/paso%201.png)\n![Otra vez](../Assets/inicio.png)\n\nVuelve al [inicio](inicio.md).\n`,
+    'Doc/Assets/inicio.png': 'png-inicio',
+    'Doc/Assets/paso 1.png': 'png-paso',
+    'Doc/forja.json': JSON.stringify({
+      User: {
+        'inicio.md': { title: 'Inicio', ordernum: 1, icon: 'fa-solid fa-house', youtubeid: 'abc123def', permalink: 'inicio', visibility: true },
+        'guia.md': { title: 'Guía', parent: 'inicio.md', controllers: 'ListCliente,EditCliente' },
+      },
+      Dev: {},
+    }),
+  });
+
+  // dry_run no publica ni cambia forja.json
+  const sentBefore = requests.length;
+  const dry = JSON.parse((await toolsModule.handleForjaTool('forja_publish_doc_page', {
+    plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/inicio.md', dry_run: true,
+  })).content[0].text);
+  assert.equal(dry.dry_run, true);
+  assert.equal(dry.action, 'create');
+  assert.deepEqual(dry.images.upload, ['Assets/inicio.png']);
+  assert.deepEqual(dry.links.unresolved, ['User/guia.md']);
+  assert.deepEqual(dry.ignored_fields.map((field) => field.split(':')[0]), ['permalink']);
+  assert.equal(requests.slice(sentBefore).filter((request) => request.method !== 'GET').length, 0);
+  assert.equal(JSON.parse(await readFile(path.join(pluginPath, 'Doc/forja.json'), 'utf-8')).User['inicio.md'].idpublication, undefined);
+
+  // la página hija no se puede publicar antes que su padre
+  const orphan = await toolsModule.handleForjaTool('forja_publish_doc_page', { plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/guia.md' });
+  assert.equal(orphan.isError, true);
+  assert.match(orphan.content[0].text, /Publica antes la página padre User\/inicio\.md/);
+
+  const created = JSON.parse((await toolsModule.handleForjaTool('forja_publish_doc_page', {
+    plugin: 'DocPlugin', plugin_path: pluginPath, page: 'Doc/User/inicio.md',
+  })).content[0].text);
+  assert.equal(created.action, 'created');
+  const publication = docPublications.get(created.id);
+  assert.equal(publication.fields.type, 'user');
+  assert.equal(publication.fields.title, 'Inicio');
+  assert.equal(publication.fields.ordernum, '1');
+  assert.equal(publication.fields.youtube, 'abc123def');
+  assert.equal(publication.fields.permalink, undefined);
+  // la imagen está donde la puso el autor y no al final; el enlace a la guía, sin publicar, se deja igual
+  assert.match(publication.body, /^Introducción\.\n\n!\[Pantalla\]\(https:\/\/forja\.test\/MyFiles\/2026\/11\/\d+_forja_inicio\.png\?myft=t\)/);
+  assert.doesNotMatch(publication.body, /\n\n!\[\]\(/);
+  assert.match(publication.body, /\[la guía\]\(guia\.md#pasos\)/);
+
+  const forjaJson = JSON.parse(await readFile(path.join(pluginPath, 'Doc/forja.json'), 'utf-8'));
+  assert.equal(forjaJson.User['inicio.md'].idpublication, created.id);
+  assert.match(forjaJson.User['inicio.md'].assets['Assets/inicio.png'].url, /_inicio\.png/);
+
+  // la guía: hereda el padre, reutiliza la imagen ya subida y enlaza la página publicada
+  const uploadsBefore = uploadedImages;
+  const guideRaw = (await toolsModule.handleForjaTool('forja_publish_doc_page', {
+    plugin: 'DocPlugin', plugin_path: pluginPath, page: path.join(pluginPath, 'Doc/User/guia.md'),
+  }));
+  assert.equal(guideRaw.isError, undefined, guideRaw.content[0].text);
+  const guide = JSON.parse(guideRaw.content[0].text);
+  assert.deepEqual(guide.images, { upload: ['Assets/paso 1.png'], reuse: ['Assets/inicio.png'] });
+  assert.equal(uploadedImages, uploadsBefore + 1);
+  const guideBody = docPublications.get(guide.id).body;
+  assert.equal(docPublications.get(guide.id).fields.idparent, String(created.id));
+  assert.match(guideBody, /!\[Paso 1\]\(https:\/\/forja\.test\/MyFiles\/2026\/11\/\d+_forja_paso_1\.png\?myft=t\)/);
+  assert.match(guideBody, new RegExp(`!\\[Otra vez\\]\\(${forjaJson.User['inicio.md'].assets['Assets/inicio.png'].url.replace(/[.?]/g, '\\$&')}\\)`));
+  assert.match(guideBody, new RegExp(`\\[inicio\\]\\(https://forja\\.test/publication/${created.id}\\)`));
+
+  // al volver a publicar el inicio, la guía ya está publicada: se enlaza y no se sube ninguna imagen
+  const again = JSON.parse((await toolsModule.handleForjaTool('forja_publish_doc_page', {
+    plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/inicio.md',
+  })).content[0].text);
+  assert.equal(again.action, 'updated');
+  assert.equal(again.id, created.id);
+  assert.deepEqual(again.images.upload, []);
+  assert.equal(uploadedImages, uploadsBefore + 1);
+  assert.equal(requests.at(-1).method, 'PATCH');
+  assert.match(docPublications.get(created.id).body, new RegExp(`\\[la guía\\]\\(https://forja\\.test/publication/${guide.id}#pasos\\)`));
+
+  // si la imagen cambia, se vuelve a subir
+  await writeFile(path.join(pluginPath, 'Doc/Assets/inicio.png'), 'png-nueva');
+  const changed = JSON.parse((await toolsModule.handleForjaTool('forja_publish_doc_page', {
+    plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/inicio.md',
+  })).content[0].text);
+  assert.deepEqual(changed.images.upload, ['Assets/inicio.png']);
+});
+
+test('forja_publish_doc_page rechaza páginas cortas, sin título, fuera de Doc o con imágenes que no existen', async () => {
+  const pluginPath = path.join(tempDirectory, 'DocErrores');
+  await createFiles(pluginPath, {
+    'Doc/User/corta.md': 'Muy corta.',
+    'Doc/User/sin-titulo.md': FILLER,
+    'Doc/User/rota.md': `${FILLER}\n![](../Assets/no-existe.png)`,
+    'Doc/User/fuera.md': `${FILLER}\n![](../../secreto.png)`,
+    'Doc/Context/README.md': FILLER,
+    'secreto.png': 'png',
+    'Doc/forja.json': JSON.stringify({
+      User: { 'corta.md': { title: 'Corta' }, 'rota.md': { title: 'Rota' }, 'fuera.md': { title: 'Fuera' }, 'sin-titulo.md': {} },
+      Dev: {},
+    }),
+  });
+  const sent = requests.length;
+  for (const [page, message] of [
+    ['User/corta.md', /al menos 300/],
+    ['User/sin-titulo.md', /Falta el title/],
+    ['User/rota.md', /no existe/],
+    ['User/fuera.md', /fuera de Doc/],
+    ['Context/README.md', /Doc\/User o Doc\/Dev/],
+    ['User/no-existe.md', /No existe la página/],
+  ]) {
+    const response = await toolsModule.handleForjaTool('forja_publish_doc_page', { plugin: 'DocPlugin', plugin_path: pluginPath, page });
+    assert.equal(response.isError, true, page);
+    assert.match(response.content[0].text, message, page);
+  }
+  assert.equal(requests.slice(sent).filter((request) => request.method !== 'GET').length, 0);
+
+  // un idpublication que ya no existe en la forja no crea otra publicación a escondidas
+  await writeFile(path.join(pluginPath, 'Doc/forja.json'), JSON.stringify({ User: { 'sin-titulo.md': { title: 'Vieja', idpublication: 9999 } }, Dev: {} }));
+  const stale = await toolsModule.handleForjaTool('forja_publish_doc_page', { plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/sin-titulo.md' });
+  assert.equal(stale.isError, true);
+  assert.match(stale.content[0].text, /ya no existe en la forja/);
 });
