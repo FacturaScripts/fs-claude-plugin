@@ -5,7 +5,7 @@ description: "Crea en FacturaScripts, mediante fs-mcp, un informe a medida con l
 
 # Informe personalizado
 
-Diseña y genera un informe a partir de la petición del usuario con datos reales de la instancia. Si la petición encaja con una skill específica, úsala en su lugar: [`analizar-ventas`](../analizar-ventas/SKILL.md) para un resumen de ventas, [`clientes-morosos`](../clientes-morosos/SKILL.md) para deuda vencida, [`stock-bajo`](../stock-bajo/SKILL.md) para reposición, [`pendiente-facturar`](../pendiente-facturar/SKILL.md) para lo entregado o trabajado sin facturar, [`pipeline-crm`](../pipeline-crm/SKILL.md) para el embudo de oportunidades, [`rentabilidad-proyectos`](../rentabilidad-proyectos/SKILL.md) para el margen y avance de los proyectos, [`estado-sat`](../estado-sat/SKILL.md) para el servicio técnico y [`agenda-equipo`](../agenda-equipo/SKILL.md) para los pendientes de cada persona.
+Diseña y genera un informe a partir de la petición del usuario con datos reales de la instancia. Si la petición encaja con una skill específica, úsala en su lugar: [`analizar-ventas`](../analizar-ventas/SKILL.md) para un resumen de ventas, [`clientes-morosos`](../clientes-morosos/SKILL.md) para deuda vencida, [`stock-bajo`](../stock-bajo/SKILL.md) para reposición, [`pendiente-facturar`](../pendiente-facturar/SKILL.md) para lo entregado o trabajado sin facturar, [`pipeline-crm`](../pipeline-crm/SKILL.md) para el embudo de oportunidades, [`rentabilidad-proyectos`](../rentabilidad-proyectos/SKILL.md) para el margen y avance de los proyectos, [`estado-sat`](../estado-sat/SKILL.md) para el servicio técnico [`agenda-equipo`](../agenda-equipo/SKILL.md) para los pendientes de cada persona, [`tesoreria`](../tesoreria/SKILL.md) para cobros, pagos y caja, [`pagos-proveedores`](../pagos-proveedores/SKILL.md) para lo que se debe a proveedores, [`rentabilidad`](../rentabilidad/SKILL.md) para márgenes, [`salud-inventario`](../salud-inventario/SKILL.md) para el estado del stock, [`retencion-clientes`](../retencion-clientes/SKILL.md) para clientes perdidos y recurrentes, [`cierre-mensual`](../cierre-mensual/SKILL.md) para el resumen de un mes, [`impuestos-trimestre`](../impuestos-trimestre/SKILL.md) para el IVA y [`informe-contable`](../informe-contable/SKILL.md) para pérdidas y ganancias y balance.
 
 Antes de empezar, lee completo el perfil [`../../agents/reporting-analyst.md`](../../agents/reporting-analyst.md): sus reglas de conexión, paginación, fechas y bases de cálculo, y su catálogo de herramientas, son obligatorios en esta skill. Si en Codex delegas el análisis en un subagente, sigue las indicaciones de [`reporting-analyst`](../reporting-analyst/SKILL.md).
 
@@ -38,10 +38,13 @@ Antes de consultar datos, confirma en una frase el diseño del informe: columnas
 | Tesorería prevista | `get_cash_flow_proyectado` | Cobros y pagos pendientes de los próximos N días, por semanas |
 | Inventario | `get_valoracion_inventario`, `get_rotacion_stock`, `get_stock_muerto`, `get_productos_sobrestock`, `get_productos_no_vendidos`, `get_stocks` | La valoración usa el coste de la variante |
 | Resumen para dirección | `get_dashboard_resumen` | Últimos N días desde hoy, con comparativa |
-| Calidad de los datos | `get_facturas_con_errores` | Facturas con total 0 o incoherencias |
+| Calidad de los datos | `get_facturas_con_errores` | Total cero, signo incoherente con ser rectificativa, total que no cuadra con sus componentes… |
+| Ventas por zona | `get_ventas_por_zona` | Por provincia, ciudad o país en un rango de fechas; base imponible y total |
+| Pérdidas y ganancias y balance | `get_cuenta_resultados`, `get_balance_situacion` | Por ejercicio completo, con el PGC español; aproximación de gestión |
+| IVA de un periodo | `get_impuestos_periodo` | Por fecha de factura; repercutido, soportado, desglose por tipo y diferencia orientativa |
 | Oportunidades del CRM (plugin CRM) | `get_informe_oportunidades_crm`, `get_oportunidades_crm_sin_actividad`, `get_avisos_crm`, `get_oportunidades_crm` | Por fecha de alta; importes sin impuestos; conversión = ganadas / (ganadas + perdidas) |
 | Proyectos (plugin Proyectos) | `get_informe_proyectos`, `get_rentabilidad_proyectos`, `get_informe_tareas_proyecto`, `get_tareas_proyecto_vencidas` | Por fecha de alta; ventas y compras con impuestos, pendiente de facturar sin impuestos |
-| Servicio técnico (plugin Servicios) | `get_informe_servicios_at`, `get_servicios_at_pendientes`, `get_horas_trabajos_at`, `get_trabajos_at_pendientes` | Importes sin impuestos; sin fecha de cierre no hay tiempos de resolución |
+| Servicio técnico (plugin Servicios) | `get_informe_servicios_at`, `get_servicios_at_pendientes`, `get_horas_trabajos_at`, `get_trabajos_at_pendientes`, `get_tiempos_resolucion_at` | Importes sin impuestos; tiempos de resolución calculados desde el historial |
 
 Las herramientas de los plugins solo funcionan si el plugin está activo en la instalación; si no lo está, devuelven un error que lo indica: explícalo al usuario en lugar de dar el informe vacío.
 
@@ -51,11 +54,11 @@ Si ninguna herramienta analítica encaja, construye el informe con las herramien
 
 Dilo antes de empezar y ofrece la alternativa:
 
-- **Balance de situación, pérdidas y ganancias, sumas y saldos o libro mayor:** no hay herramientas que los calculen. En el ERP los aporta el plugin **Informes** desde el menú Informes (`menu-informes`). Con `get_partidas` y `get_subcuentas` solo se pueden obtener datos contables en bruto.
+- **Sumas y saldos, libro mayor o cuentas anuales oficiales:** no hay herramientas que los calculen; `get_cuenta_resultados` y `get_balance_situacion` dan versiones abreviadas de gestión por ejercicio completo. En el ERP los informes oficiales los aporta el plugin **Informes** desde el menú Informes (`menu-informes`).
 - **Centros de coste:** no forman parte del core; la analítica por centros de coste la aporta el plugin **quickPurchaseInvoice**.
 - **Gastos de personal, nóminas o departamentos:** el core no gestiona nóminas ni departamentos.
 - **Gastos por concepto:** solo se pueden aproximar con las compras por familia o con las partidas por subcuenta.
-- **Modelos fiscales (303, 347…):** los aportan plugins específicos (`menu-informes`). El ERP incluye un informe de impuestos en el menú Informes.
+- **Modelos fiscales (303, 347…):** `get_impuestos_periodo` da una orientación del IVA, pero no genera modelos. Los aportan plugins específicos como **Modelo303** (`menu-informes`).
 
 ## Paso 4: generar el informe
 

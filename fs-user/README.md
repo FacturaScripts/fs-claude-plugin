@@ -30,6 +30,14 @@ En Claude Code invoca una skill con `/fs-user:<nombre>`, por ejemplo `/fs-user:a
 | `fs-user:rentabilidad-proyectos` | Ventas, compras, margen y pendiente de facturar de los proyectos (plugin Proyectos), con alertas de pérdidas y retrasos |
 | `fs-user:estado-sat` | Servicio técnico (plugin Servicios): servicios abiertos por antigüedad, carga y horas por técnico, trabajos por facturar y máquinas reincidentes |
 | `fs-user:agenda-equipo` | Agenda por persona o de todo el equipo: avisos del CRM, tareas de proyecto, servicios SAT asignados y presupuestos que vencen |
+| `fs-user:cierre-mensual` | Resumen de cierre de un mes para dirección: ventas, compras, IVA, resultado, cobros, pagos, caja, inventario y plugins activos |
+| `fs-user:tesoreria` | Cobros y pagos pendientes por antigüedad, días medios de cobro y previsión de caja por semanas |
+| `fs-user:pagos-proveedores` | Lo que se debe a proveedores: vencidos, próximos vencimientos y plan de pagos |
+| `fs-user:rentabilidad` | Márgenes por cliente, producto y familia, y facturas vendidas por debajo de coste |
+| `fs-user:salud-inventario` | Valoración del stock, stock muerto, sobrestock, rotación y productos sin ventas |
+| `fs-user:retencion-clientes` | Clientes perdidos, inactivos, nuevos frente a recurrentes, frecuencia de compra, valor y riesgo de crédito |
+| `fs-user:impuestos-trimestre` | IVA repercutido y soportado de un trimestre con desglose por tipo y diferencia orientativa para el modelo 303 |
+| `fs-user:informe-contable` | Pérdidas y ganancias y balance de situación abreviados de un ejercicio, con comparativa y ratios |
 | `fs-user:crear-informe` | Informe a medida: ventas por familia, agente o serie, clientes, compras, inventario, tesorería o documentos pendientes |
 | `fs-user:reporting-analyst` | Análisis puntual de cualquier pregunta de negocio con los datos del ERP |
 
