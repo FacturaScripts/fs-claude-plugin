@@ -270,7 +270,7 @@ Los contactos son del core (`get_contactos`, `create_contacto`, `update_contacto
 |---|---|
 | Oportunidades | `get_oportunidades_crm`, `get_oportunidad_crm` (ficha completa: contacto, presupuesto, notas y archivos), `create_oportunidad_crm`, `update_oportunidad_crm`, `delete_oportunidad_crm`, `set_estado_oportunidad_crm` |
 | Presupuesto | `create_presupuesto_oportunidad_crm` (crea el presupuesto para el cliente del contacto y lo vincula), `set_presupuesto_oportunidad_crm` (vincular uno existente o desvincular) |
-| Archivos | `get_archivos_oportunidad_crm`, `create_archivo_oportunidad_crm` (sube un archivo local), `delete_archivo_oportunidad_crm` |
+| Archivos | `get_archivos_oportunidad_crm`, `create_archivo_oportunidad_crm` (sube un archivo local de hasta 25 MB; por seguridad rechaza los archivos y carpetas ocultos, la configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados), `delete_archivo_oportunidad_crm` |
 | Estados | `get_estados_oportunidad_crm` y sus `create_*`, `update_*` y `delete_*` |
 | Notas | `get_notas_crm`, `create_nota_crm`, `update_nota_crm`, `delete_nota_crm` (de contacto, oportunidad o documento, con aviso opcional) |
 | Contactos | `get_contacto_crm` (ficha CRM: fuente, intereses, listas, oportunidades y notas) |

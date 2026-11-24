@@ -5,8 +5,7 @@
  * oportunidades e informes (embudo, avisos y oportunidades sin actividad).
  */
 
-import { readFile, stat } from 'node:fs/promises';
-import { basename, isAbsolute } from 'node:path';
+import { readFile } from 'node:fs/promises';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
 import { pathId } from '../../utils/pathId.js';
@@ -29,15 +28,13 @@ import {
 } from '../shared/query.js';
 import { CONNECTION_PROPERTY } from '../shared/resource.js';
 import { fail, ok } from '../shared/result.js';
+import { checkUploadPath } from '../shared/upload.js';
 import type { ToolArgs, ToolResult } from '../types.js';
 
 type Row = Record<string, unknown>;
 
 /** Clase del modelo de las oportunidades, con la que se relacionan sus archivos. */
 const OPPORTUNITY_MODEL = 'CrmOportunidad';
-
-/** Tamaño máximo de un archivo que se sube a una oportunidad. */
-const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
 /** Notas de la ficha de un contacto o de una oportunidad. */
 const NOTES_LIMIT = 50;
@@ -138,7 +135,8 @@ export const CRM_TOOLS: Tool[] = [
         name: 'create_archivo_oportunidad_crm',
         description:
             'Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (máximo 25 MB). ' +
-            'Confirma con el usuario la ruta del archivo antes de subirlo.',
+            'Confirma con el usuario la ruta del archivo antes de subirlo. Por seguridad rechaza los archivos y carpetas ' +
+            'ocultos, la configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -469,18 +467,16 @@ async function setPresupuesto(args: ToolArgs): Promise<ToolResult> {
 async function crearArchivo(args: ToolArgs): Promise<ToolResult> {
     const connection = connectionOf(args);
     const id = pathId(args.id);
-    const path = typeof args.ruta === 'string' ? args.ruta : '';
-    if (!isAbsolute(path)) return fail('create_archivo_oportunidad_crm: indica la ruta absoluta del archivo.');
-
-    const info = await stat(path).catch(() => null);
-    if (!info?.isFile()) return fail(`No existe el archivo ${path}.`);
-    if (info.size > MAX_FILE_BYTES) return fail(`El archivo ocupa más de ${MAX_FILE_BYTES / 1024 / 1024} MB.`);
+    // validamos la ruta antes de llamar a la API: solo archivos normales y visibles, nunca credenciales
+    const check = await checkUploadPath(args.ruta);
+    if (!check.ok) return fail(`create_archivo_oportunidad_crm: ${check.error}`);
+    const upload = check.file;
 
     // comprobamos la oportunidad antes de subir nada
     await fsClient.get(`/crmoportunidades/${id}`, undefined, connection);
 
     const form = new FormData();
-    form.append('files[]', new Blob([await readFile(path)]), basename(path));
+    form.append('files[]', new Blob([await readFile(upload.path)]), upload.name);
     const uploaded = await fsClient.postMultipart<{ files?: Row[] }>('/uploadFiles', form, connection);
     const file = uploaded?.files?.[0];
     if (!file || file.idfile === undefined) {

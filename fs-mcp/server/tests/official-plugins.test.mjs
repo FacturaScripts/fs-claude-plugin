@@ -400,6 +400,24 @@ test('create_archivo_oportunidad_crm rechaza rutas relativas sin llamar a la API
   assert.equal(fs.peticiones.length, 0);
 });
 
+test('create_archivo_oportunidad_crm no lee archivos ocultos ni llama a la API', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const dir = mkdtempSync(join(tmpdir(), 'fs-mcp-archivo-'));
+  mkdirSync(join(dir, '.ssh'));
+  const ruta = join(dir, '.ssh', 'config');
+  writeFileSync(ruta, 'secreto');
+  try {
+    const resultado = await handleOfficialPluginTool('create_archivo_oportunidad_crm', { connection: 'pega', id: 6, ruta });
+    assert.ok(resultado.isError);
+    assert.match(resultado.content[0].text, /oculto/);
+    assert.equal(fs.peticiones.length, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 /**
  * Nombre del recurso de la API para una clase de modelo, con la misma regla que
  * APIModel::pluralize() del core.

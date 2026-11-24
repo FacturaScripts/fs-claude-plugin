@@ -3240,8 +3240,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path3) {
-      let input = path3;
+    function removeDotSegments(path4) {
+      let input = path4;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3440,8 +3440,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path3, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path3 && path3 !== "/" ? path3 : void 0;
+        const [path4, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path4 && path4 !== "/" ? path4 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -15663,11 +15663,11 @@ var require_mime_types = __commonJS({
       }
       return exts[0];
     }
-    function lookup(path3) {
-      if (!path3 || typeof path3 !== "string") {
+    function lookup(path4) {
+      if (!path4 || typeof path4 !== "string") {
         return false;
       }
-      var extension2 = extname("x." + path3).toLowerCase().substr(1);
+      var extension2 = extname("x." + path4).toLowerCase().substr(1);
       if (!extension2) {
         return false;
       }
@@ -16772,7 +16772,7 @@ var require_form_data = __commonJS({
     "use strict";
     var CombinedStream = require_combined_stream();
     var util3 = __require("util");
-    var path3 = __require("path");
+    var path4 = __require("path");
     var http3 = __require("http");
     var https3 = __require("https");
     var parseUrl2 = __require("url").parse;
@@ -16900,11 +16900,11 @@ var require_form_data = __commonJS({
     FormData3.prototype._getContentDisposition = function(value, options) {
       var filename;
       if (typeof options.filepath === "string") {
-        filename = path3.normalize(options.filepath).replace(/\\/g, "/");
+        filename = path4.normalize(options.filepath).replace(/\\/g, "/");
       } else if (options.filename || value && (value.name || value.path)) {
-        filename = path3.basename(options.filename || value && (value.name || value.path));
+        filename = path4.basename(options.filename || value && (value.name || value.path));
       } else if (value && value.readable && hasOwn(value, "httpVersion")) {
-        filename = path3.basename(value.client._httpMessage.path || "");
+        filename = path4.basename(value.client._httpMessage.path || "");
       }
       if (filename) {
         return 'filename="' + filename + '"';
@@ -50937,10 +50937,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path3) {
-  if (!path3)
+function getElementAtPath(obj, path4) {
+  if (!path4)
     return obj;
-  return path3.reduce((acc, key) => acc?.[key], obj);
+  return path4.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -51260,11 +51260,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path3, issues) {
+function prefixIssues(path4, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path3);
+    iss.path.unshift(path4);
     return iss;
   });
 }
@@ -58731,9 +58731,9 @@ function isVisitable(thing) {
 function removeBrackets(key) {
   return utils_default.endsWith(key, "[]") ? key.slice(0, -2) : key;
 }
-function renderKey(path3, key, dots) {
-  if (!path3) return key;
-  return path3.concat(key).map(function each(token, i) {
+function renderKey(path4, key, dots) {
+  if (!path4) return key;
+  return path4.concat(key).map(function each(token, i) {
     token = removeBrackets(token);
     return !dots && i ? "[" + token + "]" : token;
   }).join(dots ? "." : "");
@@ -58786,13 +58786,13 @@ function toFormData(obj, formData, options) {
     }
     return value;
   }
-  function defaultVisitor(value, key, path3) {
+  function defaultVisitor(value, key, path4) {
     let arr = value;
     if (utils_default.isReactNative(formData) && utils_default.isReactNativeBlob(value)) {
-      formData.append(renderKey(path3, key, dots), convertValue(value));
+      formData.append(renderKey(path4, key, dots), convertValue(value));
       return false;
     }
-    if (value && !path3 && typeof value === "object") {
+    if (value && !path4 && typeof value === "object") {
       if (utils_default.endsWith(key, "{}")) {
         key = metaTokens ? key : key.slice(0, -2);
         value = JSON.stringify(value);
@@ -58811,7 +58811,7 @@ function toFormData(obj, formData, options) {
     if (isVisitable(value)) {
       return true;
     }
-    formData.append(renderKey(path3, key, dots), convertValue(value));
+    formData.append(renderKey(path4, key, dots), convertValue(value));
     return false;
   }
   const stack = [];
@@ -58820,16 +58820,16 @@ function toFormData(obj, formData, options) {
     convertValue,
     isVisitable
   });
-  function build(value, path3) {
+  function build(value, path4) {
     if (utils_default.isUndefined(value)) return;
     if (stack.indexOf(value) !== -1) {
-      throw Error("Circular reference detected in " + path3.join("."));
+      throw Error("Circular reference detected in " + path4.join("."));
     }
     stack.push(value);
     utils_default.forEach(value, function each(el, key) {
-      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key) ? key.trim() : key, path3, exposedHelpers);
+      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key) ? key.trim() : key, path4, exposedHelpers);
       if (result === true) {
-        build(el, path3 ? path3.concat(key) : [key]);
+        build(el, path4 ? path4.concat(key) : [key]);
       }
     });
     stack.pop();
@@ -59041,7 +59041,7 @@ var platform_default = {
 // node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams(), {
-    visitor: function(value, key, path3, helpers) {
+    visitor: function(value, key, path4, helpers) {
       if (platform_default.isNode && utils_default.isBuffer(value)) {
         this.append(key, value.toString("base64"));
         return false;
@@ -59071,11 +59071,11 @@ function arrayToObject(arr) {
   return obj;
 }
 function formDataToJSON(formData) {
-  function buildPath(path3, value, target, index) {
-    let name = path3[index++];
+  function buildPath(path4, value, target, index) {
+    let name = path4[index++];
     if (name === "__proto__") return true;
     const isNumericKey = Number.isFinite(+name);
-    const isLast = index >= path3.length;
+    const isLast = index >= path4.length;
     name = !name && utils_default.isArray(target) ? target.length : name;
     if (isLast) {
       if (utils_default.hasOwnProp(target, name)) {
@@ -59088,7 +59088,7 @@ function formDataToJSON(formData) {
     if (!target[name] || !utils_default.isObject(target[name])) {
       target[name] = [];
     }
-    const result = buildPath(path3, value, target[name], index);
+    const result = buildPath(path4, value, target[name], index);
     if (result && utils_default.isArray(target[name])) {
       target[name] = arrayToObject(target[name]);
     }
@@ -60642,9 +60642,9 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config2) {
       auth = urlUsername + ":" + urlPassword;
     }
     auth && headers.delete("authorization");
-    let path3;
+    let path4;
     try {
-      path3 = buildURL(
+      path4 = buildURL(
         parsed.pathname + parsed.search,
         config2.params,
         config2.paramsSerializer
@@ -60662,7 +60662,7 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config2) {
       false
     );
     const options = {
-      path: path3,
+      path: path4,
       method,
       headers: headers.toJSON(),
       agents: { http: config2.httpAgent, https: config2.httpsAgent },
@@ -60911,14 +60911,14 @@ var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? /* @__PUR
 var cookies_default = platform_default.hasStandardBrowserEnv ? (
   // Standard browser envs support document.cookie
   {
-    write(name, value, expires, path3, domain, secure, sameSite) {
+    write(name, value, expires, path4, domain, secure, sameSite) {
       if (typeof document === "undefined") return;
       const cookie = [`${name}=${encodeURIComponent(value)}`];
       if (utils_default.isNumber(expires)) {
         cookie.push(`expires=${new Date(expires).toUTCString()}`);
       }
-      if (utils_default.isString(path3)) {
-        cookie.push(`path=${path3}`);
+      if (utils_default.isString(path4)) {
+        cookie.push(`path=${path4}`);
       }
       if (utils_default.isString(domain)) {
         cookie.push(`domain=${domain}`);
@@ -62239,14 +62239,14 @@ var ALL_API_FIELDS_TO_HIDE = [...new Set(Object.values(API_FIELDS_TO_HIDE).flat(
 function fieldsToHide(response) {
   const sentPath = response.request?.path;
   const basePath = new URL(response.config.baseURL ?? "", "http://localhost").pathname.replace(/\/+$/, "");
-  let path3 = "";
+  let path4 = "";
   if (typeof sentPath === "string") {
-    path3 = /^[a-z][a-z\d+.-]*:\/\//i.test(sentPath) ? new URL(sentPath).pathname : sentPath.split("?")[0] ?? "";
+    path4 = /^[a-z][a-z\d+.-]*:\/\//i.test(sentPath) ? new URL(sentPath).pathname : sentPath.split("?")[0] ?? "";
   }
-  if (!path3.startsWith(`${basePath}/`)) {
+  if (!path4.startsWith(`${basePath}/`)) {
     return ALL_API_FIELDS_TO_HIDE;
   }
-  const segment = path3.slice(basePath.length + 1).split("/")[0] ?? "";
+  const segment = path4.slice(basePath.length + 1).split("/")[0] ?? "";
   if (/[%;]/.test(segment)) {
     return ALL_API_FIELDS_TO_HIDE;
   }
@@ -72237,8 +72237,8 @@ function listSchemaResources() {
 }
 function readSchemaResource(uri) {
   if (!uri.startsWith(`${SCHEMA_SCHEME}://`)) return null;
-  const path3 = uri.slice(SCHEMA_SCHEME.length + 3);
-  if (path3 === "models") {
+  const path4 = uri.slice(SCHEMA_SCHEME.length + 3);
+  if (path4 === "models") {
     const index = getAllModelMetadata().map((m) => ({
       name: m.name,
       table: m.table,
@@ -72255,7 +72255,7 @@ function readSchemaResource(uri) {
       text: JSON.stringify({ models: index }, null, 2)
     };
   }
-  const modelMatch = path3.match(/^model\/([a-z_][a-z0-9_]*)(\.md)?$/);
+  const modelMatch = path4.match(/^model\/([a-z_][a-z0-9_]*)(\.md)?$/);
   if (modelMatch && modelMatch[1]) {
     const name = modelMatch[1];
     const meta = getModelMetadata(name);
@@ -72271,7 +72271,7 @@ function readSchemaResource(uri) {
       text: JSON.stringify(meta, null, 2)
     };
   }
-  const relMatch = path3.match(/^relations\/([a-z_][a-z0-9_]*)$/);
+  const relMatch = path4.match(/^relations\/([a-z_][a-z0-9_]*)$/);
   if (relMatch && relMatch[1]) {
     const name = relMatch[1];
     const meta = getModelMetadata(name);
@@ -75854,10 +75854,80 @@ var RESOURCES = [
 ];
 
 // src/plugins/crm/tools.ts
-import { readFile, stat } from "node:fs/promises";
-import { basename, isAbsolute } from "node:path";
+import { readFile } from "node:fs/promises";
+
+// src/plugins/shared/upload.ts
+import { realpath, stat } from "node:fs/promises";
+import os2 from "node:os";
+import path3 from "node:path";
+var DEFAULT_MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+var SYSTEM_DIRS = ["/etc", "/private/etc", "/proc", "/sys", "/dev", "/root"];
+var HOME_DIRS = [
+  "Library/Keychains",
+  "Library/Cookies",
+  "Library/Application Support",
+  "Library/Containers",
+  "Library/Group Containers",
+  "AppData"
+];
+var SENSITIVE_EXTENSIONS = /* @__PURE__ */ new Set([".pem", ".key", ".p12", ".pfx", ".jks", ".keystore", ".kdbx", ".ppk", ".gpg", ".asc"]);
+var SSH_KEY_PREFIX = "id_";
+function comparable(value) {
+  const normalized = path3.resolve(value);
+  return process.platform === "darwin" || process.platform === "win32" ? normalized.toLowerCase() : normalized;
+}
+function isInside(child, parent) {
+  const relative = path3.relative(comparable(parent), comparable(child));
+  return relative === "" || !relative.startsWith("..") && !path3.isAbsolute(relative);
+}
+async function realOrSelf(value) {
+  return realpath(value).catch(() => path3.resolve(value));
+}
+function blockedReason(target, home, protectedFiles) {
+  if (protectedFiles.some((file) => comparable(file) === comparable(target))) {
+    return "es el archivo de configuraci\xF3n de fs-mcp, que contiene los tokens de las conexiones";
+  }
+  const segments = path3.resolve(target).split(path3.sep).filter((segment) => segment !== "");
+  if (segments.some((segment) => segment.startsWith("."))) {
+    return "est\xE1 oculto o dentro de una carpeta oculta (por ejemplo .ssh, .aws o .env), donde suele haber credenciales";
+  }
+  const dirs = [...SYSTEM_DIRS, ...HOME_DIRS.map((dir2) => path3.join(home, dir2))];
+  const dir = dirs.find((candidate) => isInside(target, candidate));
+  if (dir) return `est\xE1 dentro de ${dir}, una carpeta del sistema o de datos de aplicaciones`;
+  const name = path3.basename(target).toLowerCase();
+  if (SENSITIVE_EXTENSIONS.has(path3.extname(name)) || name.startsWith(SSH_KEY_PREFIX)) {
+    return "parece una clave, un certificado o un almac\xE9n de contrase\xF1as";
+  }
+  return null;
+}
+async function checkUploadPath(raw, options = {}) {
+  const value = typeof raw === "string" ? raw.trim() : "";
+  if (value === "" || !path3.isAbsolute(value)) {
+    return { ok: false, error: "indica la ruta absoluta del archivo." };
+  }
+  const home = await realOrSelf(options.home ?? os2.homedir());
+  const maxBytes = options.maxBytes ?? DEFAULT_MAX_UPLOAD_BYTES;
+  const configFiles = [path3.join(home, CONFIG_FILE_NAME), path3.join(home, LEGACY_CONFIG_FILE_NAME)];
+  const envFile = process.env.FS_CONNECTIONS_FILE;
+  if (envFile && path3.isAbsolute(envFile)) configFiles.push(envFile);
+  const protectedFiles = await Promise.all(configFiles.map(realOrSelf));
+  const given = path3.resolve(value);
+  const real = await realpath(given).catch(() => null);
+  if (!real) return { ok: false, error: `no existe el archivo ${value}.` };
+  for (const target of /* @__PURE__ */ new Set([given, real])) {
+    const reason = blockedReason(target, home, [...configFiles, ...protectedFiles]);
+    if (reason) return { ok: false, error: `no se sube ${value} porque ${reason}.` };
+  }
+  const info = await stat(real).catch(() => null);
+  if (!info?.isFile()) return { ok: false, error: `${value} no es un archivo normal.` };
+  if (info.size > maxBytes) {
+    return { ok: false, error: `el archivo ocupa m\xE1s de ${Math.round(maxBytes / 1024 / 1024)} MB.` };
+  }
+  return { ok: true, file: { path: real, name: path3.basename(given), size: info.size } };
+}
+
+// src/plugins/crm/tools.ts
 var OPPORTUNITY_MODEL = "CrmOportunidad";
-var MAX_FILE_BYTES = 25 * 1024 * 1024;
 var NOTES_LIMIT = 50;
 var LINE_ITEM = {
   type: "object",
@@ -75943,7 +76013,7 @@ var CRM_TOOLS = [
   },
   {
     name: "create_archivo_oportunidad_crm",
-    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (m\xE1ximo 25 MB). Confirma con el usuario la ruta del archivo antes de subirlo.",
+    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (m\xE1ximo 25 MB). Confirma con el usuario la ruta del archivo antes de subirlo. Por seguridad rechaza los archivos y carpetas ocultos, la configuraci\xF3n de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados.",
     inputSchema: {
       type: "object",
       properties: {
@@ -76208,14 +76278,12 @@ async function setPresupuesto(args) {
 async function crearArchivo(args) {
   const connection = connectionOf(args);
   const id = pathId(args.id);
-  const path3 = typeof args.ruta === "string" ? args.ruta : "";
-  if (!isAbsolute(path3)) return fail("create_archivo_oportunidad_crm: indica la ruta absoluta del archivo.");
-  const info = await stat(path3).catch(() => null);
-  if (!info?.isFile()) return fail(`No existe el archivo ${path3}.`);
-  if (info.size > MAX_FILE_BYTES) return fail(`El archivo ocupa m\xE1s de ${MAX_FILE_BYTES / 1024 / 1024} MB.`);
+  const check2 = await checkUploadPath(args.ruta);
+  if (!check2.ok) return fail(`create_archivo_oportunidad_crm: ${check2.error}`);
+  const upload = check2.file;
   await fsClient.get(`/crmoportunidades/${id}`, void 0, connection);
   const form = new FormData();
-  form.append("files[]", new Blob([await readFile(path3)]), basename(path3));
+  form.append("files[]", new Blob([await readFile(upload.path)]), upload.name);
   const uploaded = await fsClient.postMultipart("/uploadFiles", form, connection);
   const file = uploaded?.files?.[0];
   if (!file || file.idfile === void 0) {
