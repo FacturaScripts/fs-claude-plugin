@@ -199,6 +199,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Combine with tools from modules that are registered via setRequestHandler
     return { tools: toolList };
 });
+// Las tools de conexión guardan sus argumentos en el archivo de conexiones tal
+// como llegan, así que ahí un número no vale por texto: se guardaría como número
+const CONNECTION_TOOLS = new Set(['add_connection', 'set_default_connection']);
+function connectionArgsAsText(toolName, schema, input) {
+    if (!CONNECTION_TOOLS.has(toolName))
+        return null;
+    for (const [name, value] of Object.entries(input ?? {})) {
+        const property = schema.properties?.[name];
+        if (property?.type === 'string' && typeof value === 'number') {
+            return `el argumento "${name}" va como texto, entre comillas`;
+        }
+    }
+    return null;
+}
 /**
  * Call tool handler
  */
@@ -208,7 +222,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Los handlers no validan sus argumentos: se rechaza lo que no case con el
     // inputSchema antes de llamarlos
     const tool = tools.get(toolName);
-    const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) : null;
+    const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) ?? connectionArgsAsText(toolName, tool.inputSchema, toolInput) : null;
     if (invalid) {
         return {
             content: [{ type: 'text', text: `Argumentos no válidos para ${toolName}: ${invalid}` }],
@@ -219,6 +233,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         switch (toolName) {
             case 'add_connection': {
                 const { key, name, url, token, type, version, rejectUnauthorized, setAsDefault, overwrite } = toolInput;
+                // La validación acepta "1" y "0" como booleanos, y "0" es verdadero en JS:
+                // solo true y "1" cuentan como verdadero
+                const isTrue = (value) => value === true || value === '1';
+                const makeDefault = isTrue(setAsDefault);
+                const replace = isTrue(overwrite);
                 connectionManager.addConnection(key, {
                     name,
                     url,
@@ -226,19 +245,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     // Solo se guarda el tipo si no es el valor por defecto, para no alterar las conexiones api.
                     ...(type && type !== 'api' ? { type } : {}),
                     ...(version ? { version } : {}),
-                    ...(typeof rejectUnauthorized === 'boolean' ? { rejectUnauthorized } : {}),
-                }, overwrite === true);
+                    ...(rejectUnauthorized !== undefined ? { rejectUnauthorized: isTrue(rejectUnauthorized) } : {}),
+                }, replace);
                 // Al sustituir una conexión existente, las instancias de axios cacheadas quedarían obsoletas.
                 fsClient.clearCache();
                 forjaClient.clearCache();
-                if (setAsDefault) {
+                if (makeDefault) {
                     connectionManager.setDefault(key);
                 }
                 return {
                     content: [
                         {
                             type: 'text',
-                            text: `Connection "${name}" (${key}, type ${type ?? 'api'}, ${connectionManager.getConnection(key).url}) ${overwrite ? 'saved' : 'added'} successfully${setAsDefault ? ' and set as default' : ''}`,
+                            text: `Connection "${name}" (${key}, type ${type ?? 'api'}, ${connectionManager.getConnection(key).url}) ${replace ? 'saved' : 'added'} successfully${makeDefault ? ' and set as default' : ''}`,
                         },
                     ],
                 };

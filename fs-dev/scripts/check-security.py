@@ -44,6 +44,7 @@ solo informa: nunca modifica el plugin.
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import os
 import re
@@ -137,7 +138,11 @@ CATEGORY_TITLES = {
 URL_PATTERN = re.compile(r'''(?:https?:)?//([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+)(?::\d+)?''', re.I)
 SCHEME_URL_PATTERN = re.compile(r'''https?://([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9-]+)+)''', re.I)
 FUNCTION_PATTERN = re.compile(r'\bfunction\s+(\w+)\s*\(')
-PHP_CLASS_PATTERN = re.compile(r'^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|trait|interface|enum)\s+\w+', re.M)
+# [^\S\n] y no \s: con re.M, «^\s*» cruza los saltos y se reintenta desde cada línea, y
+# en una plantilla con mucho HTML (que queda en blanco) la búsqueda se vuelve cuadrática.
+# Por lo mismo, como mucho tres modificadores (PHP no admite repetirlos): su «\s+»
+# también cruza saltos, y «final readonly» repetido en muchas líneas lo dispararía
+PHP_CLASS_PATTERN = re.compile(r'^[^\S\n]*(?:(?:abstract|final|readonly)\s+){0,3}(?:class|trait|interface|enum)\s+\w+', re.M)
 LONG_ENCODED_PATTERN = re.compile(r'[A-Za-z0-9+/]{300,}={0,2}')
 HEX_ESCAPES_PATTERN = re.compile(r'(?:\\x[0-9a-fA-F]{2}){20,}')
 # Guarda que impide ejecutar un script salvo desde la línea de comandos.
@@ -161,8 +166,17 @@ class Source:
     code: str
     minified: bool = False
     line_starts: list[int] = field(default_factory=list)
+    # Lo calcula execution_context una sola vez: dónde termina cada «function x(» y su nombre.
+    functions: tuple[list[int], list[str]] | None = None
+    # Los calculan variable_value y assigned_host una vez por patrón: las asignaciones a
+    # una variable en todo el archivo, con la posición donde termina cada una.
+    assignments: dict[str, tuple[list[int], list]] = field(default_factory=dict)
     # Lo calcula is_standalone_script una sola vez: recorre el archivo entero.
     standalone: bool | None = None
+    # Los calculan interpolates e include_expression_end una sola vez, por el
+    # mismo motivo: se consultan por cada include.
+    interpolations: list[tuple[int, int]] | None = None
+    expression_stops: tuple[list[int], list[int], dict[int, list[int]]] | None = None
 
     def line_of(self, offset: int) -> int:
         """Devuelve el número de línea (desde 1) de una posición del archivo."""
@@ -305,11 +319,19 @@ FIXED_INCLUDE_PATH = re.compile(
     r'(?:\s*\.\s*(?:DIRECTORY_SEPARATOR|' + PATH_LITERAL + r'))*)'
     r'\s*(?(open)\)\s*)(?:;|\?>)'
 )
+# Lo que sigue a ${ dentro de una cadena y PHP lee como nombre de variable
+INTERPOLATED_NAME = re.compile(r'[A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*(?=[\[}])')
 # Envoltura de stream, con el mismo criterio que PHP: '://' o 'data:'. Se busca en
 # cualquier punto porque la ruta concatenada no incluye __DIR__ ni FS_FOLDER.
 STREAM_WRAPPER = re.compile(r'://|data:', re.I)
 # En un binario, <?= sale por azar; <?php, no.
 BINARY_PHP_TAG = re.compile(rb'<\?php\b', re.I)
+
+
+# Lo único que puede cerrar un heredoc en una línea: tras espacios o tabuladores, el nombre
+# entero que empieza ahí. «No ASCII» va como [^\x00-\x7f], que acepta lo mismo que la clase
+# hasta \U0010ffff de la etiqueta de apertura
+HEREDOC_CLOSER = re.compile(r'^[ \t]*((?:[A-Za-z_]|[^\x00-\x7f])(?:[A-Za-z0-9_]|[^\x00-\x7f])*)', re.M)
 
 
 def blank(segment: str) -> str:
@@ -326,13 +348,30 @@ def strip_php(content: str) -> tuple[str, str]:
     las cadenas para que ``'...'`` siga reconociéndose como un literal, y trata
     los atributos ``#[...]`` como código. Las comillas invertidas se conservan
     porque en PHP ejecutan un comando.
+
+    Dentro de las comillas dobles, las invertidas y el heredoc, PHP ejecuta como
+    código lo que va entre ``{$`` … ``}`` y ``${`` … ``}``. Ese tramo se conserva
+    en el código, con sus propias cadenas y comentarios, y la cadena se corta a
+    su alrededor: la llave (o el dólar de ``${``) y la llave de cierre pasan a
+    ser delimitadores. Así ``"a{$x}b"`` queda ``" "$x" "``, con la misma longitud.
     """
     text: list[str] = []
     code: list[str] = []
     length = len(content)
     index = 0
     in_php = False
-    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_]\w*)\1\r?\n')
+    # La etiqueta puede llevar bytes 0x80-0xff, como un nombre de variable
+    heredoc = re.compile(r'<<<[ \t]*(["\']?)([A-Za-z_\x80-\U0010ffff][\w\x80-\U0010ffff]*)\1\r?\n')
+    # Modos abiertos dentro de la isla de PHP, del exterior al interior: ('cadena', delimitador,
+    # inicio) para comillas dobles o invertidas, ('heredoc', cierre) y ('codigo', llaves abiertas) para
+    # el código de una interpolación
+    stack: list[tuple[str, object]] = []
+    # Cierres posibles de un heredoc, calculados en una pasada al ver el primero: cada
+    # etiqueta → sus principios de línea en orden. Una etiqueta cierra si no la sigue otro
+    # carácter de nombre, como en PHP, así que en cada línea sólo puede cerrar el nombre
+    # entero que empieza tras los espacios. Cada apertura busca su cierre con bisect, sin
+    # volver a recorrer el archivo; el cuerpo lo comprueba en su propia línea
+    closers_by_label: dict[str, list[int]] | None = None
 
     while index < length:
         if not in_php:
@@ -350,6 +389,57 @@ def strip_php(content: str) -> tuple[str, str]:
 
         char = content[index]
         pair = content[index:index + 2]
+
+        if stack and stack[-1][0] != 'codigo':
+            kind, value = stack[-1][:2]
+            delimiter = value if kind == 'cadena' else "'"
+            # El heredoc sólo cierra a principio de línea y fuera de una interpolación
+            closing = HEREDOC_CLOSER.match(content, index) if kind == 'heredoc' and content[index - 1] == '\n' else None
+            if closing and closing.group(1) == value:
+                chunk = closing.group(0)
+                text.append(chunk)
+                code.append(blank(chunk[:-1]) + "'")
+                stack.pop()
+                index = closing.end()
+                continue
+            if char == '\\':
+                chunk = content[index:index + 2]
+                text.append(chunk)
+                code.append(blank(chunk))
+                index += len(chunk)
+                continue
+            if kind == 'cadena' and char == value:
+                text.append(char)
+                code.append(char)
+                stack.pop()
+                index += 1
+                continue
+            if pair in ('{$', '${'):
+                text.append(pair[0])
+                code.append(delimiter)
+                index += 1
+                if pair == '${':
+                    # ${nombre} y ${nombre[…]} son la variable $nombre; ${expresión}, su valor
+                    text.append('{')
+                    code.append('$' if INTERPOLATED_NAME.match(content, index + 1) else ' ')
+                    index += 1
+                stack.append(('codigo', 0))
+                continue
+            text.append(char)
+            code.append(blank(char))
+            index += 1
+            continue
+
+        if stack and char in '{}':
+            depth = stack[-1][1]
+            if char == '}' and depth == 0:
+                stack.pop()
+                kind, value = stack[-1][:2]
+                text.append(char)
+                code.append(value if kind == 'cadena' else "'")
+                index += 1
+                continue
+            stack[-1] = ('codigo', depth + (1 if char == '{' else -1))
 
         if pair == '?>':
             text.append(pair)
@@ -378,7 +468,14 @@ def strip_php(content: str) -> tuple[str, str]:
             index = end
             continue
 
-        if char in ('"', "'", '`'):
+        if char in ('"', '`'):
+            text.append(char)
+            code.append(char)
+            stack.append(('cadena', char, index))
+            index += 1
+            continue
+
+        if char == "'":
             end = index + 1
             while end < length and content[end] != char:
                 end += 2 if content[end] == '\\' else 1
@@ -390,21 +487,42 @@ def strip_php(content: str) -> tuple[str, str]:
             continue
 
         match = heredoc.match(content, index) if pair == '<<' else None
+        # Sin cierre no es un heredoc y lo que sigue se lee como código
+        found = None
         if match:
-            closing = re.compile(r'^[ \t]*' + re.escape(match.group(2)) + r'\b', re.M)
-            found = closing.search(content, match.end())
-            end = length if found is None else found.end()
+            if closers_by_label is None:
+                closers_by_label = {}
+                for line in HEREDOC_CLOSER.finditer(content):
+                    closers_by_label.setdefault(line.group(1), []).append(line.start())
+            label = match.group(2)
+            starts = closers_by_label.get(label, [])
+            position = bisect.bisect_left(starts, match.end())
+            found = HEREDOC_CLOSER.match(content, starts[position]) if position < len(starts) else None
+        if found and match.group(1) == "'":
+            # El nowdoc no interpola
+            end = found.end()
             literal = content[index:end]
             text.append(literal)
-            code.append("'" + blank(literal[1:-1]) + "'" if len(literal) >= 2 else literal)
+            code.append("'" + blank(literal[1:-1]) + "'")
             index = end
+            continue
+        if found:
+            chunk = match.group(0)
+            text.append(chunk)
+            code.append("'" + blank(chunk[1:]))
+            stack.append(('heredoc', label))
+            index = match.end()
             continue
 
         text.append(char)
         code.append(char)
         index += 1
 
-    return ''.join(text), ''.join(code)
+    stripped = ''.join(code)
+    # Una cadena sin cerrar llega al final del archivo, y su último carácter hace de delimitador
+    if len(stack) == 1 and stack[0][0] == 'cadena' and length - stack[0][2] >= 2:
+        stripped = stripped[:-1] + stack[0][1]
+    return ''.join(text), stripped
 
 
 def strip_js(content: str) -> tuple[str, str]:
@@ -619,7 +737,8 @@ def load_source(path: Path, plugin_dir: Path) -> Source | None:
         if data is None or not unknown_has_php(path, data):
             return None
         language = 'php'
-        raw = data.decode('utf-8', errors='replace')
+        # Como read_text, que lee con saltos universales: PHP también toma «\r» como salto
+        raw = data.decode('utf-8', errors='replace').replace('\r\n', '\n').replace('\r', '\n')
     else:
         raw = read_text(path)
         if raw is None:
@@ -667,8 +786,13 @@ def execution_context(source: Source, offset: int, public_file: bool) -> str:
     if source.language == 'twig':
         return 'plantilla renderizada en el navegador del usuario'
 
-    functions = FUNCTION_PATTERN.findall(source.code[:offset])
-    current = functions[-1] if functions else ''
+    if source.functions is None:
+        found = list(FUNCTION_PATTERN.finditer(source.code))
+        source.functions = ([match.end() for match in found], [match.group(1) for match in found])
+    ends, names = source.functions
+    # La última función cuya cabecera termina antes de la posición
+    before = bisect.bisect_right(ends, offset)
+    current = names[before - 1] if before else ''
 
     if source.relative == 'Init.php':
         return {
@@ -702,11 +826,26 @@ def call_argument(source: Source, match: re.Match) -> str:
     return source.first_argument(match.end() - 1) if match.group(0).endswith('(') else ''
 
 
+def assignments(source: Source, pattern: re.Pattern) -> tuple[list[int], list]:
+    """Devuelve las coincidencias del patrón en todo el texto y dónde termina cada una.
+
+    Se calculan una vez por archivo y patrón: buscarlas desde el principio en cada
+    hallazgo hacía que un archivo con miles de hallazgos tardase minutos.
+    """
+    if pattern.pattern not in source.assignments:
+        found = list(pattern.finditer(source.text))
+        source.assignments[pattern.pattern] = ([match.end() for match in found], found)
+    return source.assignments[pattern.pattern]
+
+
 def variable_value(source: Source, variable: str, before: int) -> str:
     """Devuelve la expresión asignada por última vez a una variable antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'\s*\.?=(?!=)\s*([^;]{1,400});')
-    values = [found.group(1) for found in pattern.finditer(source.text, 0, before)]
-    return ' '.join(values[-3:])
+    ends, found = assignments(source, pattern)
+    # Las que terminan antes de la posición, como un finditer que acabase en ella:
+    # cada una acaba en «;», así que recortar el texto no acorta ninguna
+    count = bisect.bisect_right(ends, before)
+    return ' '.join(match.group(1) for match in found[max(count - 3, 0):count])
 
 
 def is_standalone_script(source: Source) -> bool:
@@ -837,6 +976,68 @@ def decode_check(source: Source, match: re.Match) -> tuple[bool, list[str], str 
     return True, [], None
 
 
+def interpolates(source: Source, start: int, end: int) -> bool:
+    """Indica si alguna cadena entre ``start`` y ``end`` interpola una variable.
+
+    Interpolan las comillas dobles y el heredoc; las comillas simples y el
+    nowdoc no. ``code`` conserva los delimitadores de cada cadena con el
+    contenido en blanco, así que sirve para localizarlas en ``text``. Un tramo
+    ``{$…}`` o ``${…}`` queda en ``code`` como código, y la cadena acaba en su
+    llave o en su dólar: eso también es interpolar. Las cadenas que interpolan
+    se buscan una vez por archivo.
+    """
+    if source.interpolations is None:
+        source.interpolations = []
+        for literal in re.finditer(r'''(["'])\s*\1''', source.code):
+            text = source.text[literal.start():literal.end()]
+            if source.text[literal.end() - 1:literal.end() + 1] in ('{$', '${'):
+                source.interpolations.append(literal.span())
+                continue
+            if not (text.startswith('"') or re.match(r'<<<[ \t]*(?:"|[A-Za-z_\x80-\U0010ffff])', text)):
+                continue
+            # Un «$» precedido de un número impar de barras está escapado. Un nombre
+            # de variable empieza por letra ASCII, «_» o un byte 0x80-0xff (en el
+            # texto ya decodificado, cualquier carácter no ASCII)
+            if re.search(r'(?<!\\)(?:\\\\)*\$[A-Za-z_{\x80-\U0010ffff]', text):
+                source.interpolations.append(literal.span())
+    # Las cadenas no se solapan: si la primera desde «start» no acaba antes de
+    # «end», tampoco las siguientes
+    index = bisect.bisect_left(source.interpolations, (start,))
+    return index < len(source.interpolations) and source.interpolations[index][1] <= end
+
+
+def include_expression_end(source: Source, start: int, end: int) -> int:
+    """Devuelve dónde acaba la expresión de un ``include`` que empieza en ``start``.
+
+    Acaba al final de la sentencia (``end``) o en una coma o un cierre de
+    paréntesis, corchete o llave que no abrió ella: ``(include $a) + [...]``.
+    Las comas y los cierres se agrupan una vez por archivo según la profundidad
+    a la que están, y la expresión acaba en el primero de su misma profundidad.
+    """
+    if source.expression_stops is None:
+        brackets: list[int] = []
+        depths: list[int] = []
+        stops: dict[int, list[int]] = {}
+        depth = 0
+        for found in re.finditer(r'[()\[\]{},]', source.code):
+            char = found.group()
+            if char in '([{':
+                depth += 1
+            else:
+                stops.setdefault(depth, []).append(found.start())
+                if char != ',':
+                    depth -= 1
+            brackets.append(found.start())
+            depths.append(depth)
+        source.expression_stops = (brackets, depths, stops)
+    brackets, depths, stops = source.expression_stops
+    before = bisect.bisect_left(brackets, start)
+    positions = stops.get(depths[before - 1] if before else 0, [])
+    index = bisect.bisect_left(positions, start)
+    end = min(end, len(source.code))
+    return positions[index] if index < len(positions) and positions[index] < end else end
+
+
 def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:
     """Descarta los ``include`` de rutas fijas, como el autoload del propio plugin.
 
@@ -845,9 +1046,17 @@ def dynamic_include(source: Source, match: re.Match) -> tuple[bool, list[str], s
     permite incluir cualquier archivo.
     """
     end = source.code.find(';', match.end())
-    statement = source.code[match.end():end if end != -1 else match.end() + 200]
+    end = end if end != -1 else match.end() + 200
+    # Un «?>» también acaba la sentencia: lo que sigue es HTML u otra isla de PHP
+    close = source.code.find('?>', match.end(), end)
+    end = end if close == -1 else close
+    statement = source.code[match.end():end]
     rest = statement.lstrip(' (\t')
-    if re.search(r'\$\w', statement):
+    # Antes que la variable concatenada: la de un tramo {$…} también está en el código
+    if interpolates(source, match.end(), include_expression_end(source, match.end(), end)):
+        return True, ['la ruta interpola una variable en la cadena'], None
+    # El mismo nombre de variable que en interpolates, y ${...}
+    if re.search(r'\$[A-Za-z_{\x80-\U0010ffff]', statement):
         if re.match(r"(__DIR__|dirname\s*\(|FS_FOLDER|['\"])", rest):
             return True, ['la ruta parte de un directorio fijo pero concatena una variable'], None
         return True, ['la ruta del archivo incluido se calcula en tiempo de ejecución'], None
@@ -962,9 +1171,29 @@ def url_argument(source: Source, match: re.Match) -> tuple[bool, list[str], str 
 def assigned_host(source: Source, variable: str, before: int) -> str | None:
     """Busca la última asignación de la variable a una URL literal antes de la posición."""
     pattern = re.compile(re.escape(variable) + r'''\s*=\s*['"](https?://[^'"\s]+)''')
-    hosts = [SCHEME_URL_PATTERN.match(found.group(1)) for found in pattern.finditer(source.text, 0, before)]
-    hosts = [host.group(1).lower() for host in hosts if host and host.group(1).lower() not in IGNORED_HOSTS]
-    return hosts[-1] if hosts else None
+    ends, found = assignments(source, pattern)
+    # Como en variable_value, las que terminan antes de la posición. La URL no acaba en
+    # un delimitador, así que la posición de la llamada puede caer dentro de ella cuando
+    # la «asignación» está en realidad en HTML o entre comillas invertidas
+    # («$h='https://x<?=file_get_contents($h)?>»). Un finditer recortado la daba por
+    # asignada y atribuía ese destino falso; aquí no cuenta, y gana la anterior
+    count = bisect.bisect_right(ends, before)
+    key = pattern.pattern + ' hosts'
+    if key not in source.assignments:
+        # El último host válido entre las n primeras asignaciones, para cada n
+        last: list[str | None] = [None]
+        for match in found:
+            last.append(url_host(match) or last[-1])
+        source.assignments[key] = (ends, last)
+    return source.assignments[key][1][count]
+
+
+def url_host(match: re.Match) -> str | None:
+    """Devuelve el host de la URL capturada, o None si no tiene o se ignora."""
+    host = SCHEME_URL_PATTERN.match(match.group(1))
+    if host and host.group(1).lower() not in IGNORED_HOSTS:
+        return host.group(1).lower()
+    return None
 
 
 def script_src(source: Source, match: re.Match) -> tuple[bool, list[str], str | None]:

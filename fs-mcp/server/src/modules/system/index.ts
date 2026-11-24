@@ -5,7 +5,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 
 export const systemTools: Tool[] = [
@@ -425,12 +425,12 @@ export async function handleSystemTool(
 
       case 'update_user': {
         const { connection: _conn, nick, ...data } = args;
-        result = await fsClient.put(`/users/${pathId(nick)}`, data, connection);
+        result = await fsClient.put(`/users/${pathCode(nick, 'nick')}`, data, connection);
         break;
       }
 
       case 'delete_user': {
-        result = await fsClient.delete(`/users/${pathId(args.nick)}`, connection);
+        result = await fsClient.delete(`/users/${pathCode(args.nick, 'nick')}`, connection);
         break;
       }
 
@@ -442,12 +442,12 @@ export async function handleSystemTool(
 
       case 'update_role': {
         const { connection: _conn, codrole, ...data } = args;
-        result = await fsClient.put(`/roles/${pathId(codrole)}`, data, connection);
+        result = await fsClient.put(`/roles/${pathCode(codrole, 'codrole')}`, data, connection);
         break;
       }
 
       case 'delete_role': {
-        result = await fsClient.delete(`/roles/${pathId(args.codrole)}`, connection);
+        result = await fsClient.delete(`/roles/${pathCode(args.codrole, 'codrole')}`, connection);
         break;
       }
 

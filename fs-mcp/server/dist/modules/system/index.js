@@ -3,7 +3,7 @@
  * Provides tools for accessing system logs, tasks, and events
  */
 import { fsClient } from '../../fs/client.js';
-import { pathId } from '../../utils/pathId.js';
+import { pathCode, pathId } from '../../utils/pathId.js';
 import { dateRangeFilters } from '../../metadata/dateRange.js';
 export const systemTools = [
     {
@@ -415,11 +415,11 @@ export async function handleSystemTool(name, args) {
             }
             case 'update_user': {
                 const { connection: _conn, nick, ...data } = args;
-                result = await fsClient.put(`/users/${pathId(nick)}`, data, connection);
+                result = await fsClient.put(`/users/${pathCode(nick, 'nick')}`, data, connection);
                 break;
             }
             case 'delete_user': {
-                result = await fsClient.delete(`/users/${pathId(args.nick)}`, connection);
+                result = await fsClient.delete(`/users/${pathCode(args.nick, 'nick')}`, connection);
                 break;
             }
             case 'create_role': {
@@ -429,11 +429,11 @@ export async function handleSystemTool(name, args) {
             }
             case 'update_role': {
                 const { connection: _conn, codrole, ...data } = args;
-                result = await fsClient.put(`/roles/${pathId(codrole)}`, data, connection);
+                result = await fsClient.put(`/roles/${pathCode(codrole, 'codrole')}`, data, connection);
                 break;
             }
             case 'delete_role': {
-                result = await fsClient.delete(`/roles/${pathId(args.codrole)}`, connection);
+                result = await fsClient.delete(`/roles/${pathCode(args.codrole, 'codrole')}`, connection);
                 break;
             }
             case 'create_roleaccess': {
