@@ -13,7 +13,7 @@ import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const managerUrl = pathToFileURL(
-  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'dist', 'connection-manager.js')
+  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'build', 'connection-manager.js')
 ).href;
 
 // Con la umask habitual un archivo nuevo saldría 0644, legible por todas las cuentas

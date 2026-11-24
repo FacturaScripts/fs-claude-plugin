@@ -18,7 +18,7 @@ const borrar = usarConexiones({
   default: 'pega',
   connections: { pega: { name: 'Pega', url: fs.url, token: 't' } },
 });
-const { handleAnalyticsTool } = await import('../dist/modules/analytics/index.js');
+const { handleAnalyticsTool } = await import('../build/modules/analytics/index.js');
 
 test.after(async () => {
   await fs.cerrar();

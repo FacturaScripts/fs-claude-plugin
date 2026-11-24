@@ -3,7 +3,7 @@
  * descripción asignada. Útil para detectar huecos de documentación.
  *
  * Uso:
- *   node dist/scripts/list-undocumented.js
+ *   node build/scripts/list-undocumented.js
  */
 
 import { writeFile } from 'node:fs/promises';

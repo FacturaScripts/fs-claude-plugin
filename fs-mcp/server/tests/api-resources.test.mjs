@@ -12,9 +12,9 @@ const borrar = usarConexiones({
   default: 'pega',
   connections: { pega: { name: 'Pega', url: fs.url, token: 't' } },
 });
-const { handleCoreBusinessTool } = await import('../dist/modules/core-business/index.js');
-const { handleSalesOrdersTool } = await import('../dist/modules/sales-orders/index.js');
-const { handlePurchasingTool } = await import('../dist/modules/purchasing/index.js');
+const { handleCoreBusinessTool } = await import('../build/modules/core-business/index.js');
+const { handleSalesOrdersTool } = await import('../build/modules/sales-orders/index.js');
+const { handlePurchasingTool } = await import('../build/modules/purchasing/index.js');
 
 test.after(async () => {
   await fs.cerrar();

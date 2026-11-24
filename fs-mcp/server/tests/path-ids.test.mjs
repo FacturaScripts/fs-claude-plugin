@@ -60,7 +60,7 @@ test.after(async () => {
 async function recorrer(valor, valorNumber = valor) {
   const resultados = [];
   for (const [modulo, registrar, manejar] of modulos) {
-    const m = await import(`../dist/modules/${modulo}/index.js`);
+    const m = await import(`../build/modules/${modulo}/index.js`);
     const tools = new Map();
     await m[registrar](tools);
     for (const [nombre, tool] of tools) {

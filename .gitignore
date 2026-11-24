@@ -11,4 +11,9 @@ __pycache__/
 
 fs-mcp/server/node_modules/
 fs-mcp/server/*.tsbuildinfo
-# dist/ se incluye intencionalmente en el repo para evitar necesitar Node.js en el cliente
+# Salida de tsc (módulos sueltos para los tests y los scripts de desarrollo).
+fs-mcp/server/build/
+# De dist/ solo se distribuye el bundle de esbuild, que lleva dentro las dependencias:
+# el cliente no necesita Node.js tooling ni node_modules para arrancar el servidor.
+fs-mcp/server/dist/*
+!fs-mcp/server/dist/index.js

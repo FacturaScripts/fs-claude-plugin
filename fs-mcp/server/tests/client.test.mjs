@@ -15,8 +15,8 @@ const borrar = usarConexiones({
     b: { name: 'B', url: fsB.url, token: 'token-b' },
   },
 });
-const { connectionManager } = await import('../dist/connection-manager.js');
-const { fsClient } = await import('../dist/fs/client.js');
+const { connectionManager } = await import('../build/connection-manager.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await fsA.cerrar();

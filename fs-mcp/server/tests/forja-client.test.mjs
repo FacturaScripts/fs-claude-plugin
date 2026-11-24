@@ -15,7 +15,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const distDirectory = path.join(serverDirectory, 'dist');
+const buildDirectory = path.join(serverDirectory, 'build');
 const TOKEN = 'token-de-prueba';
 const ZIP_BYTES = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0xff, 0x10, 0x20]);
 
@@ -25,11 +25,11 @@ let tempDirectory;
 let server;
 /** @type {Array<{method: string, url: string, headers: http.IncomingHttpHeaders, body: Buffer}>} */
 const requests = [];
-/** @type {import('../dist/fs/forja-client.js')} */
+/** @type {import('../build/fs/forja-client.js')} */
 let forjaModule;
-/** @type {import('../dist/modules/forja/index.js')} */
+/** @type {import('../build/modules/forja/index.js')} */
 let toolsModule;
-/** @type {import('../dist/fs/client.js')} */
+/** @type {import('../build/fs/client.js')} */
 let apiModule;
 
 /**
@@ -259,9 +259,9 @@ before(async () => {
   }));
   process.env.FS_CONNECTIONS_FILE = connectionsFile;
 
-  forjaModule = await import(pathToFileURL(path.join(distDirectory, 'fs', 'forja-client.js')).href);
-  toolsModule = await import(pathToFileURL(path.join(distDirectory, 'modules', 'forja', 'index.js')).href);
-  apiModule = await import(pathToFileURL(path.join(distDirectory, 'fs', 'client.js')).href);
+  forjaModule = await import(pathToFileURL(path.join(buildDirectory, 'fs', 'forja-client.js')).href);
+  toolsModule = await import(pathToFileURL(path.join(buildDirectory, 'modules', 'forja', 'index.js')).href);
+  apiModule = await import(pathToFileURL(path.join(buildDirectory, 'fs', 'client.js')).href);
 });
 
 after(async () => {
@@ -867,7 +867,7 @@ test('forja_publish_doc_page rechaza páginas cortas, sin título, fuera de Doc 
 });
 
 test('sitePath deja relativa al sitio la URL de una publicación y no toca lo que no es http(s)', async () => {
-  const { sitePath } = await import(pathToFileURL(path.join(distDirectory, 'modules', 'forja', 'doc-page.js')).href);
+  const { sitePath } = await import(pathToFileURL(path.join(buildDirectory, 'modules', 'forja', 'doc-page.js')).href);
   assert.equal(sitePath('https://facturascripts.com/publicaciones/mi-pagina'), '/publicaciones/mi-pagina');
   assert.equal(sitePath('https://forja.localhost/publicaciones/x?lang=es'), '/publicaciones/x?lang=es');
   assert.equal(sitePath('/publicaciones/ya-relativa'), '/publicaciones/ya-relativa');

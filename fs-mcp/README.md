@@ -12,6 +12,8 @@ Plugin para Claude Code y Codex que proporciona un servidor [MCP (Model Context 
 
 El manifiesto utiliza un lanzador portable: toma `CLAUDE_PLUGIN_ROOT` en Claude Code y el directorio de trabajo del plugin en Codex, por lo que no necesita rutas absolutas específicas de cada instalación.
 
+El servidor se distribuye ya empaquetado en un único archivo, `server/dist/index.js`, que lleva dentro sus dependencias: para usar el plugin no hace falta `npm install`. Para desarrollarlo, `node_modules` no se versiona: ejecuta `npm ci` en `fs-mcp/server` antes del primer `npm run build`. La compilación deja los módulos sueltos de `tsc` en `build/` (los usan los tests y los scripts de mantenimiento) y el bundle de esbuild en `dist/index.js`, el único archivo de `dist/` que se sube al repositorio.
+
 ---
 
 ## Índice
@@ -568,7 +570,7 @@ Ejemplos de uso habituales:
 
 ### Scripts auxiliares de mantenimiento
 
-En `fs-mcp/server/src/scripts/`, tras compilar (`npm run build`) se ejecutan con `node dist/scripts/<nombre>.js`:
+En `fs-mcp/server/src/scripts/`, tras compilar (`npm run build`) se ejecutan con `node build/scripts/<nombre>.js`:
 
 | Script | Descripción |
 |---|---|
@@ -582,6 +584,6 @@ Comparar un modelo concreto desde la línea de comandos:
 
 ```bash
 cd fs-mcp/server
-node dist/scripts/compare-model.js --model=cliente \
+node build/scripts/compare-model.js --model=cliente \
   --source=/Users/yo/facturascripts --type=core
 ```

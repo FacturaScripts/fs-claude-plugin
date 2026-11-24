@@ -15,7 +15,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { arrancarFsDePega } from './fake-fs.mjs';
 
-const { validateToolInput } = await import('../dist/utils/validateInput.js');
+const { validateToolInput } = await import('../build/utils/validateInput.js');
 
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const api = await arrancarFsDePega((req) => (req.method === 'GET' ? [{ idproducto: 5, referencia: 'R1' }] : { ok: 'hecho' }));

@@ -12,7 +12,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const distDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+const buildDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'build');
 
 let tempDirectory;
 let connectionsFile;
@@ -29,7 +29,7 @@ before(async () => {
   }));
   process.env.FS_CONNECTIONS_FILE = connectionsFile;
 
-  managerModule = await import(pathToFileURL(path.join(distDirectory, 'connection-manager.js')).href);
+  managerModule = await import(pathToFileURL(path.join(buildDirectory, 'connection-manager.js')).href);
 });
 
 after(async () => {

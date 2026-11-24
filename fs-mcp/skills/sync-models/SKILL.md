@@ -59,8 +59,11 @@ Lo primero que debes hacer es **familiarizarte con el estado actual del MCP** si
 Comandos clave que usarás:
 
 ```bash
+# Instalar las dependencias de desarrollo (una vez; node_modules no se versiona)
+npm ci
+
 # Comparar un modelo del registry con su fuente y obtener un diff JSON
-node dist/scripts/compare-model.js --model=<NOMBRE> --source=<RUTA> --type=<core|private>
+node build/scripts/compare-model.js --model=<NOMBRE> --source=<RUTA> --type=<core|private>
 
 # Regenerar metadata
 npm run generate:metadata -- --fs-path=<ruta>                 # CORE
@@ -70,8 +73,8 @@ npm run generate:metadata -- --manifest=<ruta_manifest>       # PRIVATE
 npm run build
 
 # Tests + chequeo de descripciones
-node dist/scripts/test-metadata.js
-node dist/scripts/dump-all-descriptions.js
+node build/scripts/test-metadata.js
+node build/scripts/dump-all-descriptions.js
 ```
 
 ---
@@ -97,7 +100,7 @@ Ejecuta:
 ```bash
 cd <plugin>/server
 npm run build > /dev/null   # Asegura que el script está actualizado
-node dist/scripts/compare-model.js --model=<nombre> --source=<ruta> --type=<core|private>
+node build/scripts/compare-model.js --model=<nombre> --source=<ruta> --type=<core|private>
 ```
 
 Lee la salida JSON. Tiene esta forma (campos relevantes):
@@ -165,8 +168,8 @@ Reporta `Sin cambios detectados` y termina (no toques nada). Aun así, si la ski
 
 3. Verificación:
    ```bash
-   node dist/scripts/test-metadata.js
-   node dist/scripts/dump-all-descriptions.js
+   node build/scripts/test-metadata.js
+   node build/scripts/dump-all-descriptions.js
    ```
    - Los tests deben pasar (64/64 al menos).
    - No deben quedar descripciones genéricas tipo "Referencia a X.Y." (`0 (0.0%)`).
@@ -205,7 +208,7 @@ Cuando el usuario pida algo como *"revisa todos los modelos del core con la vers
 1. Confirma la fuente (ruta local de FacturaScripts o URL de GitHub) y prepárala (Paso 0).
 2. Lista los modelos del core con:
    ```bash
-   node -e "const { modelMetadata } = require('./dist/metadata/index.js'); console.log(Object.keys(modelMetadata).join('\n'));"
+   node -e "const { modelMetadata } = require('./build/metadata/index.js'); console.log(Object.keys(modelMetadata).join('\n'));"
    ```
    o leyendo `MODEL_CATALOG` en `generate-metadata.ts`.
 3. Por cada modelo: ejecuta `compare-model.js`. Acumula los resultados.
@@ -247,8 +250,8 @@ Si dudas en una descripción, **pregunta al usuario** mejor que inventar.
 Tras cualquier ejecución de la skill, antes de dar por terminado:
 
 1. `npm run build` ha terminado sin errores.
-2. `node dist/scripts/test-metadata.js` → 64/64 (o más) tests pasan.
-3. `node dist/scripts/dump-all-descriptions.js` → 0 descripciones genéricas.
+2. `node build/scripts/test-metadata.js` → 64/64 (o más) tests pasan.
+3. `node build/scripts/dump-all-descriptions.js` → 0 descripciones genéricas.
 4. Si se ha modificado un modelo concreto, llama a `describe_model` por JSON-RPC para que el usuario lo vea con sus propios ojos.
 5. Reporta al usuario:
    - Modelos procesados (con conteo de added/removed/changed por cada uno).
@@ -271,7 +274,7 @@ Tras cualquier ejecución de la skill, antes de dar por terminado:
 
 ```
 1. Preparar fuente (ruta local o git clone)
-2. node dist/scripts/compare-model.js --model=X --source=Y --type=Z
+2. node build/scripts/compare-model.js --model=X --source=Y --type=Z
 3. Decidir: NUEVO | EXISTENTE_CON_CAMBIOS | SIN_CAMBIOS
 4. Editar:
      - CORE → MODEL_CATALOG + descriptions-overrides.json
@@ -283,8 +286,8 @@ Tras cualquier ejecución de la skill, antes de dar por terminado:
               npm run build
      - PRIVATE → npm run generate:metadata -- --manifest=<ruta/manifest.json>
 6. Verificar:
-     - node dist/scripts/test-metadata.js
-     - node dist/scripts/dump-all-descriptions.js
+     - node build/scripts/test-metadata.js
+     - node build/scripts/dump-all-descriptions.js
 7. Reportar al usuario
 ```
 

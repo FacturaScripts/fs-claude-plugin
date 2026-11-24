@@ -282,7 +282,7 @@ describe('generate-metadata en modo plugin', () => {
             models: [{ name: 'thing', outputDir: 'things', table: 'things', endpoint: '/things', description: 'Cosa.' }],
         }),
     );
-    execFileSync('node', [join(serverRoot, 'dist', 'scripts', 'generate-metadata.js'), `--manifest=${manifest}`], {
+    execFileSync('node', [join(serverRoot, 'build', 'scripts', 'generate-metadata.js'), `--manifest=${manifest}`], {
         stdio: 'ignore',
     });
 

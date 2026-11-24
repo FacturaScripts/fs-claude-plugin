@@ -23,7 +23,7 @@ const borrar = usarConexiones({
     pega: { name: 'Pega', url: `http://127.0.0.1:${instalacion.address().port}`, token: 'token-secreto' },
   },
 });
-const { fsClient } = await import('../dist/fs/client.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await ajeno.cerrar();
