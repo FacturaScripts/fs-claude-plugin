@@ -1,0 +1,111 @@
+{
+    "servicio_at": {
+        "asignado": "Nick del usuario de FacturaScripts asignado para gestionar este servicio.",
+        "codagente": "Código del agente comercial asociado al servicio.",
+        "codalmacen": "Almacén desde el que se gestiona el servicio. Determina la empresa implícitamente.",
+        "codcliente": "Código del cliente al que pertenece el servicio.",
+        "codigo": "Código alfanumérico único del servicio, generado a partir del patrón configurado (por defecto SER-{NUM}).",
+        "descripcion": "Descripción detallada del problema o solicitud de asistencia técnica.",
+        "editable": "Indica si el servicio puede modificarse. Viene determinado por el estado activo.",
+        "fecha": "Fecha de apertura del servicio (por defecto la fecha actual).",
+        "hora": "Hora de apertura del servicio.",
+        "idempresa": "Empresa propietaria del servicio. Se infiere automáticamente del almacén si se omite.",
+        "idestado": "Estado del servicio. Define si el servicio es editable y a quién se asigna automáticamente.",
+        "idmaquina": "Primera máquina o equipo implicado en el servicio.",
+        "idmaquina2": "Segunda máquina o equipo implicado en el servicio.",
+        "idmaquina3": "Tercera máquina o equipo implicado en el servicio.",
+        "idmaquina4": "Cuarta máquina o equipo implicado en el servicio.",
+        "idprioridad": "Prioridad del servicio (urgente, normal, baja, etc.), definida en la tabla de prioridades.",
+        "idservicio": "Identificador interno autoincremental del servicio SAT.",
+        "idtipo": "Tipo de servicio (reparación, instalación, mantenimiento, etc.), definido en la tabla de tipos.",
+        "material": "Descripción del material o repuesto utilizado en el servicio.",
+        "neto": "Importe neto total del servicio, calculado automáticamente como suma de precio × cantidad de los trabajos.",
+        "nick": "Nick del usuario de FacturaScripts que creó o gestiona el servicio.",
+        "observaciones": "Notas internas o indicaciones adicionales sobre el servicio.",
+        "solucion": "Descripción de la solución o resolución aplicada al servicio.",
+        "telefono1": "Primer teléfono de contacto. Se rellena automáticamente con el del cliente si el servicio es editable.",
+        "telefono2": "Segundo teléfono de contacto.",
+        "idproyecto": "Proyecto al que pertenece el servicio (columna que añade el plugin Proyectos, si está activo)."
+    },
+    "trabajo_at": {
+        "cantidad": "Número de unidades del producto o tiempo empleado en el trabajo (por defecto 1).",
+        "codagente": "Código del agente o técnico que realiza el trabajo.",
+        "descripcion": "Descripción de la acción técnica realizada. Se rellena automáticamente desde el producto si se indica referencia.",
+        "estado": "Estado de facturación del trabajo: 0 sin acción, 1 hacer factura, 2 facturado, 3 hacer albarán, 4 albarán hecho, 5 hacer presupuesto, 6 presupuesto hecho, -1 descontar stock.",
+        "fechafin": "Fecha en la que finalizó el trabajo.",
+        "fechainicio": "Fecha en la que comenzó el trabajo (por defecto la fecha actual).",
+        "horafin": "Hora de finalización del trabajo.",
+        "horainicio": "Hora de inicio del trabajo (por defecto la hora actual).",
+        "idservicio": "Identificador del servicio SAT al que pertenece este trabajo.",
+        "idtrabajo": "Identificador interno autoincremental del trabajo SAT.",
+        "nick": "Nick del usuario de FacturaScripts que registró o realiza el trabajo.",
+        "observaciones": "Notas adicionales sobre el trabajo realizado.",
+        "precio": "Precio unitario del trabajo o producto. Se calcula automáticamente desde la tarifa del cliente si se indica referencia.",
+        "referencia": "Referencia del producto o variante utilizado en el trabajo. Al asignarla se rellena automáticamente el precio y la descripción."
+    },
+    "estado_at": {
+        "id": "Identificador del estado.",
+        "nombre": "Nombre del estado.",
+        "color": "Color con el que se muestra el estado en los listados.",
+        "editable": "Si los servicios en este estado se pueden modificar. Un estado no editable equivale a un servicio cerrado.",
+        "predeterminado": "Estado que reciben los servicios nuevos. Solo puede haber uno.",
+        "asignado": "Usuario al que se asigna automáticamente el servicio al pasar a este estado.",
+        "notificaragente": "Enviar un email al agente del servicio cuando pasa a este estado.",
+        "notificarasignado": "Enviar un email al usuario asignado cuando el servicio pasa a este estado.",
+        "notificarcliente": "Enviar un email al cliente cuando el servicio pasa a este estado.",
+        "notificarusuario": "Enviar un email al usuario creador cuando el servicio pasa a este estado."
+    },
+    "prioridad_at": {
+        "id": "Identificador de la prioridad.",
+        "nombre": "Nombre de la prioridad.",
+        "predeterminado": "Prioridad que reciben los servicios nuevos."
+    },
+    "tipo_at": {
+        "id": "Identificador del tipo de servicio.",
+        "name": "Nombre del tipo de servicio.",
+        "default": "Tipo que reciben los servicios nuevos. Solo puede haber uno."
+    },
+    "maquina_at": {
+        "idmaquina": "Identificador de la máquina.",
+        "nombre": "Nombre o modelo de la máquina.",
+        "descripcion": "Descripción de la máquina.",
+        "numserie": "Número de serie de la máquina.",
+        "referencia": "Referencia del producto del catálogo que corresponde a la máquina.",
+        "codcliente": "Cliente propietario de la máquina.",
+        "codfabricante": "Fabricante de la máquina.",
+        "codagente": "Agente asociado a la máquina.",
+        "fecha": "Fecha de alta de la máquina.",
+        "activo": "Si la máquina sigue en uso. Las inactivas se conservan para el historial."
+    },
+    "categoria_at": {
+        "id": "Identificador de la categoría de verificaciones.",
+        "name": "Nombre de la categoría de verificaciones."
+    },
+    "check_at": {
+        "id": "Identificador de la comprobación.",
+        "idcategory": "Categoría de verificaciones a la que pertenece.",
+        "name": "Texto de la comprobación.",
+        "priority": "Orden de la comprobación dentro de su categoría."
+    },
+    "servicio_categoria_at": {
+        "id": "Identificador de la asignación.",
+        "idcategory": "Categoría de verificaciones asignada.",
+        "idservice": "Servicio SAT al que se asigna la categoría."
+    },
+    "servicio_check_at": {
+        "id": "Identificador de la verificación del servicio.",
+        "idcheck": "Comprobación de la checklist.",
+        "idservice": "Servicio SAT al que pertenece la verificación.",
+        "checked": "Si la comprobación está hecha.",
+        "completed": "Fecha y hora en que se marcó como hecha. Se rellena sola al marcarla."
+    },
+    "servicio_at_log": {
+        "id": "Identificador de la entrada del historial.",
+        "idservicio": "Servicio SAT al que se refiere la entrada.",
+        "message": "Texto del cambio registrado.",
+        "context": "Datos del registro en el momento del cambio, en JSON.",
+        "nick": "Usuario que hizo el cambio.",
+        "ip": "Dirección IP desde la que se hizo el cambio.",
+        "creationdate": "Fecha y hora del cambio."
+    }
+}

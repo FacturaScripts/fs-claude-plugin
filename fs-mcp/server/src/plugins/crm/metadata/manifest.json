@@ -1,0 +1,79 @@
+{
+    "moduleName": "CRM",
+    "pluginName": "CRM",
+    "format": "ts",
+    "outputBase": ".",
+    "descriptionsOverridesPath": "descriptions.json",
+    "models": [
+        {
+            "name": "crm_oportunidad",
+            "table": "crm_oportunidades",
+            "endpoint": "/crmoportunidades",
+            "editView": "EditCrmOportunidad",
+            "description": "Oportunidad de negocio del CRM: posible venta a un contacto con estado, interés, fuente, usuario asignado, agente, importe aproximado y, cuando se presupuesta, el presupuesto de cliente vinculado con su neto."
+        },
+        {
+            "name": "crm_oportunidad_estado",
+            "table": "crm_oportunidades_estados",
+            "endpoint": "/crmoportunidadestados",
+            "editView": "EditCrmOportunidadEstado",
+            "description": "Estado de las oportunidades del CRM (nueva, en negociación, ganada, perdida...). Decide si la oportunidad sigue abierta (editable) y si cuenta como rechazada; su orden es el del embudo de ventas."
+        },
+        {
+            "name": "crm_nota",
+            "table": "crm_notas",
+            "endpoint": "/crmnotas",
+            "editView": "EditCrmNota",
+            "description": "Nota del CRM sobre un contacto, una oportunidad o un documento, con fecha, autor, interés y un aviso opcional (fecha y hora) que se notifica por email."
+        },
+        {
+            "name": "crm_fuente",
+            "table": "crm_fuentes2",
+            "endpoint": "/crmfuentes",
+            "editView": "EditCrmFuente",
+            "description": "Fuente de captación de contactos del CRM (web, feria, recomendación...), con el número de contactos que vienen de ella."
+        },
+        {
+            "name": "crm_interes",
+            "table": "crm_intereses",
+            "endpoint": "/crminteres",
+            "editView": "EditCrmInteres",
+            "description": "Interés del CRM: producto, servicio o tema por el que se interesan los contactos, con el número de contactos interesados."
+        },
+        {
+            "name": "crm_interes_contacto",
+            "table": "crm_intereses_contactos",
+            "endpoint": "/crminterescontactos",
+            "editView": "EditCrmInteresContacto",
+            "description": "Interés asignado a un contacto del CRM. Se crea también al guardar una nota u oportunidad con interés."
+        },
+        {
+            "name": "crm_lista",
+            "table": "crm_listas",
+            "endpoint": "/crmlistas",
+            "editView": "EditCrmLista",
+            "description": "Lista de contactos del CRM, usada para segmentar y para las campañas de email, con su número de contactos."
+        },
+        {
+            "name": "crm_lista_contacto",
+            "table": "crm_listas_contactos",
+            "endpoint": "/crmlistacontactos",
+            "editView": "EditCrmListaContacto",
+            "description": "Pertenencia de un contacto a una lista del CRM."
+        },
+        {
+            "name": "crm_position",
+            "table": "crm_positions",
+            "endpoint": "/crmpositions",
+            "editView": "EditCrmPosition",
+            "description": "Cargo del catálogo del CRM (gerente, comprador, técnico...). Son las opciones que se sugieren en el campo cargo de los contactos."
+        },
+        {
+            "name": "crm_campaign",
+            "table": "crm_campaigns",
+            "endpoint": "/crmcampaignes",
+            "editView": "EditCrmCampaign",
+            "description": "Campaña de email del CRM, con asunto, contenido, estado, días y horas de envío y estadísticas de emails enviados y abiertos."
+        }
+    ]
+}

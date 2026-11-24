@@ -1,0 +1,58 @@
+{
+    "moduleName": "Proyectos",
+    "pluginName": "Proyectos",
+    "format": "ts",
+    "outputBase": ".",
+    "descriptionsOverridesPath": "descriptions.json",
+    "models": [
+        {
+            "name": "proyecto",
+            "table": "proyectos",
+            "endpoint": "/proyectos",
+            "editView": "EditProyecto",
+            "description": "Proyecto del plugin Proyectos: trabajo para un cliente con estado, fechas, responsable, usuarios, tareas, notas y los documentos de compra y venta vinculados, con sus totales de ventas, compras y pendiente de facturar."
+        },
+        {
+            "name": "tarea_proyecto",
+            "table": "tareas",
+            "endpoint": "/tareaproyectos",
+            "editView": "EditTareaProyecto",
+            "description": "Tarea de un proyecto, con fase, usuario asignado, fechas de inicio, fin y completado. Al cambiar de fase puede cambiar el estado del proyecto."
+        },
+        {
+            "name": "fase_tarea",
+            "table": "tareas_fases",
+            "endpoint": "/fasetareas",
+            "editView": "EditFaseTarea",
+            "description": "Fase de las tareas de proyecto (pendiente, en proceso, completada...). Su tipo marca las tareas completadas, canceladas o en proceso, y puede llevar asociado el estado al que pasa el proyecto."
+        },
+        {
+            "name": "estado_proyecto",
+            "table": "proyectos_estados",
+            "endpoint": "/estadoproyectos",
+            "editView": "EditEstadoProyecto",
+            "description": "Estado de los proyectos (abierto, en curso, terminado...). Decide si el proyecto es editable; uno es el predeterminado de los proyectos nuevos."
+        },
+        {
+            "name": "nota_proyecto",
+            "table": "proyectos_notas",
+            "endpoint": "/notaproyectos",
+            "editView": "EditNotaProyecto",
+            "description": "Nota de un proyecto o de una de sus tareas, con autor y fecha."
+        },
+        {
+            "name": "user_proyecto",
+            "table": "proyectos_users",
+            "endpoint": "/userproyectos",
+            "editView": "EditUserProyecto",
+            "description": "Usuario con acceso a un proyecto. Da acceso a los proyectos privados y a los de otras empresas."
+        },
+        {
+            "name": "stock_proyecto",
+            "table": "proyectos_stocks",
+            "endpoint": "/stockproyectos",
+            "editView": "ListStockProyecto",
+            "description": "Stock de un producto dentro de un proyecto: cantidad, reservada, pendiente de recibir y disponible, calculado a partir de los documentos del proyecto."
+        }
+    ]
+}

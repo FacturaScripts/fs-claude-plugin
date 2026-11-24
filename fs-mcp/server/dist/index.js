@@ -16843,12 +16843,12 @@ var require_form_data = __commonJS({
         if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
           callback(null, value.end + 1 - (value.start ? value.start : 0));
         } else {
-          fs3.stat(value.path, function(err, stat) {
+          fs3.stat(value.path, function(err, stat2) {
             if (err) {
               callback(err);
               return;
             }
-            var fileSize = stat.size - (value.start ? value.start : 0);
+            var fileSize = stat2.size - (value.start ? value.start : 0);
             callback(null, fileSize);
           });
         }
@@ -62287,9 +62287,35 @@ function hideApiFields(fields, data) {
   }
   return hideFieldsInRecord(data, fields);
 }
+var MAX_CONCURRENT_REQUESTS = 4;
 var FacturaScriptsClient = class {
   defaultConnectionKey;
   axiosInstances = /* @__PURE__ */ new Map();
+  /** Peticiones en curso y en espera por conexión. */
+  slots = /* @__PURE__ */ new Map();
+  /**
+   * Ejecuta una petición respetando el máximo de peticiones simultáneas de su conexión.
+   */
+  async limited(connectionKey, run) {
+    const key = connectionKey || this.defaultConnectionKey || "";
+    let slot = this.slots.get(key);
+    if (!slot) {
+      slot = { active: 0, waiting: [] };
+      this.slots.set(key, slot);
+    }
+    if (slot.active >= MAX_CONCURRENT_REQUESTS) {
+      await new Promise((resolve) => slot.waiting.push(resolve));
+    } else {
+      slot.active += 1;
+    }
+    try {
+      return await run();
+    } finally {
+      const next = slot.waiting.shift();
+      if (next) next();
+      else slot.active -= 1;
+    }
+  }
   constructor(connectionKey) {
     this.defaultConnectionKey = connectionKey;
   }
@@ -62376,9 +62402,9 @@ var FacturaScriptsClient = class {
   async get(endpoint, params, connectionKey) {
     try {
       const instance = this.getAxiosInstance(connectionKey);
-      const response = await instance.get(endpoint, {
+      const response = await this.limited(connectionKey, () => instance.get(endpoint, {
         params: toApiQueryParams(params)
-      });
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error2) {
       throw new Error(
@@ -62394,9 +62420,28 @@ var FacturaScriptsClient = class {
     try {
       const instance = this.getAxiosInstance(connectionKey);
       const formData = this.toFormData(data);
-      const response = await instance.post(endpoint, formData, {
+      const response = await this.limited(connectionKey, () => instance.post(endpoint, formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      });
+      }));
+      return hideApiFields(fieldsToHide(response), response.data);
+    } catch (error2) {
+      throw new Error(
+        `POST ${endpoint}: ${error2 instanceof Error ? error2.message : String(error2)}`
+      );
+    }
+  }
+  /**
+   * Realiza una petición POST multipart/form-data a la API de FacturaScripts,
+   * para los recursos que reciben archivos (/uploadFiles, /attachedfiles).
+   * axios pone la cabecera Content-Type con su boundary a partir del FormData.
+   */
+  async postMultipart(endpoint, form, connectionKey) {
+    try {
+      const instance = this.getAxiosInstance(connectionKey);
+      const response = await this.limited(connectionKey, () => instance.post(endpoint, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        maxBodyLength: Infinity
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error2) {
       throw new Error(
@@ -62413,9 +62458,9 @@ var FacturaScriptsClient = class {
     try {
       const instance = this.getAxiosInstance(connectionKey);
       const formData = this.toFormData(data);
-      const response = await instance.put(endpoint, formData, {
+      const response = await this.limited(connectionKey, () => instance.put(endpoint, formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      });
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error2) {
       throw new Error(
@@ -62430,7 +62475,7 @@ var FacturaScriptsClient = class {
   async delete(endpoint, connectionKey) {
     try {
       const instance = this.getAxiosInstance(connectionKey);
-      const response = await instance.delete(endpoint);
+      const response = await this.limited(connectionKey, () => instance.delete(endpoint));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error2) {
       throw new Error(
@@ -62494,7 +62539,13 @@ async function bootstrapCoreMetadata() {
 }
 
 // src/metadata/enrich.ts
+var explicitToolModels = /* @__PURE__ */ new Map();
+function registerToolModel(toolName, modelName) {
+  explicitToolModels.set(toolName, modelName);
+}
 function resolveModelFromToolName(toolName) {
+  const explicit = explicitToolModels.get(toolName);
+  if (explicit !== void 0) return getModelMetadata(explicit);
   const match = toolName.match(/^(get|create|update|delete)_(.+)$/);
   if (!match) return void 0;
   const verb = match[1];
@@ -62553,7 +62604,7 @@ function enrichTool(tool, stats) {
   }
   return touched;
 }
-function enrichAllTools(tools2) {
+function enrichAllTools(tools5) {
   const stats = {
     toolsProcessed: 0,
     toolsEnriched: 0,
@@ -62561,7 +62612,7 @@ function enrichAllTools(tools2) {
     maxLengthsAdded: 0,
     enumsAdded: 0
   };
-  for (const tool of tools2.values()) {
+  for (const tool of tools5.values()) {
     stats.toolsProcessed += 1;
     if (enrichTool(tool, stats)) {
       stats.toolsEnriched += 1;
@@ -62596,9 +62647,9 @@ function dateRangeFilters(toolName, args) {
   }
   return out;
 }
-function addDateRangeParams(tools2, soloEstas) {
+function addDateRangeParams(tools5, soloEstas) {
   let a\u00F1adidos = 0;
-  for (const tool of tools2.values()) {
+  for (const tool of tools5.values()) {
     if (soloEstas && !soloEstas.has(tool.name)) continue;
     const columnas = dateColumnsForTool(tool.name);
     if (columnas.length === 0) continue;
@@ -63138,9 +63189,9 @@ var accountingWriteTools = [
     }
   }
 ];
-async function registerAccountingTools(tools2) {
-  accountingTools.forEach((tool) => tools2.set(tool.name, tool));
-  accountingWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerAccountingTools(tools5) {
+  accountingTools.forEach((tool) => tools5.set(tool.name, tool));
+  accountingWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleAccountingTool(name, args) {
   const input = args;
@@ -64792,9 +64843,9 @@ var coreBusinessWriteTools = [
     }
   }
 ];
-async function registerCoreBusinessTools(tools2) {
-  coreBusinessTools.forEach((tool) => tools2.set(tool.name, tool));
-  coreBusinessWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerCoreBusinessTools(tools5) {
+  coreBusinessTools.forEach((tool) => tools5.set(tool.name, tool));
+  coreBusinessWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleCoreBusinessTool(name, args) {
   const input = args;
@@ -66052,9 +66103,9 @@ var salesOrdersWriteTools = [
     }
   }
 ];
-async function registerSalesOrdersTools(tools2) {
-  salesOrdersTools.forEach((tool) => tools2.set(tool.name, tool));
-  salesOrdersWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerSalesOrdersTools(tools5) {
+  salesOrdersTools.forEach((tool) => tools5.set(tool.name, tool));
+  salesOrdersWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleSalesOrdersTool(name, args) {
   const input = args;
@@ -67056,9 +67107,9 @@ var purchasingWriteTools = [
     }
   }
 ];
-async function registerPurchasingTools(tools2) {
-  purchasingTools.forEach((tool) => tools2.set(tool.name, tool));
-  purchasingWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerPurchasingTools(tools5) {
+  purchasingTools.forEach((tool) => tools5.set(tool.name, tool));
+  purchasingWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handlePurchasingTool(name, args) {
   const input = args;
@@ -67705,9 +67756,9 @@ var financeWriteTools = [
     }
   }
 ];
-async function registerFinanceTools(tools2) {
-  financeTools.forEach((tool) => tools2.set(tool.name, tool));
-  financeWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerFinanceTools(tools5) {
+  financeTools.forEach((tool) => tools5.set(tool.name, tool));
+  financeWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleFinanceTool(name, args) {
   const input = args;
@@ -68509,9 +68560,9 @@ var configurationWriteTools = [
     }
   }
 ];
-async function registerConfigurationTools(tools2) {
-  configurationTools.forEach((tool) => tools2.set(tool.name, tool));
-  configurationWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerConfigurationTools(tools5) {
+  configurationTools.forEach((tool) => tools5.set(tool.name, tool));
+  configurationWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleConfigurationTool(name, args) {
   const connection = args.connection || void 0;
@@ -69033,9 +69084,9 @@ var geographicWriteTools = [
     }
   }
 ];
-async function registerGeographicTools(tools2) {
-  geographicTools.forEach((tool) => tools2.set(tool.name, tool));
-  geographicWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerGeographicTools(tools5) {
+  geographicTools.forEach((tool) => tools5.set(tool.name, tool));
+  geographicWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleGeographicTool(name, args) {
   const connection = args.connection || void 0;
@@ -69313,9 +69364,9 @@ var communicationWriteTools = [
     }
   }
 ];
-async function registerCommunicationTools(tools2) {
-  communicationTools.forEach((tool) => tools2.set(tool.name, tool));
-  communicationWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerCommunicationTools(tools5) {
+  communicationTools.forEach((tool) => tools5.set(tool.name, tool));
+  communicationWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleCommunicationTool(name, args) {
   const connection = args.connection || void 0;
@@ -69710,9 +69761,9 @@ var systemWriteTools = [
     }
   }
 ];
-async function registerSystemTools(tools2) {
-  systemTools.forEach((tool) => tools2.set(tool.name, tool));
-  systemWriteTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerSystemTools(tools5) {
+  systemTools.forEach((tool) => tools5.set(tool.name, tool));
+  systemWriteTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleSystemTool(name, args) {
   const connection = args.connection || void 0;
@@ -71574,9 +71625,9 @@ var analyticsTools = [
     }
   }
 ];
-async function registerAnalyticsTools(tools2) {
-  analyticsTools.forEach((tool) => tools2.set(tool.name, tool));
-  extendedAnalyticsTools.forEach((tool) => tools2.set(tool.name, tool));
+async function registerAnalyticsTools(tools5) {
+  analyticsTools.forEach((tool) => tools5.set(tool.name, tool));
+  extendedAnalyticsTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleAnalyticsTool(name, args) {
   const input = args;
@@ -72401,9 +72452,9 @@ function buildSchemaTools() {
     }
   ];
 }
-async function registerSchemaTools(tools2) {
+async function registerSchemaTools(tools5) {
   for (const tool of buildSchemaTools()) {
-    tools2.set(tool.name, tool);
+    tools5.set(tool.name, tool);
   }
 }
 async function handleSchemaTool(name, input) {
@@ -72677,6 +72728,9586 @@ function isValidModelMetadata(value) {
   return typeof v["name"] === "string" && typeof v["table"] === "string" && typeof v["endpoint"] === "string" && typeof v["primaryKey"] === "string" && typeof v["description"] === "string" && typeof v["source"] === "string" && Array.isArray(v["columns"]) && Array.isArray(v["relations"]) && typeof v["generatedFrom"] === "object" && v["generatedFrom"] !== null;
 }
 
+// src/plugins/shared/query.ts
+var FIELD_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+var ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+var MAX_REPORT_RECORDS = 2e4;
+function parseFilterString(filter2) {
+  const result = {};
+  if (typeof filter2 !== "string" || filter2.trim() === "") return result;
+  for (const part of filter2.split(",")) {
+    const segment = part.trim();
+    if (segment === "") continue;
+    const pos = segment.indexOf(":");
+    const field = (pos === -1 ? segment : segment.slice(0, pos)).trim();
+    const value = pos === -1 ? "" : segment.slice(pos + 1).trim();
+    if (!FIELD_NAME.test(field)) {
+      throw new Error(`Filtro no v\xE1lido: \xAB${segment}\xBB. Usa \xABcampo:valor\xBB separados por comas.`);
+    }
+    if (value === "" && !/_(null|notnull)$/.test(field)) {
+      throw new Error(`Filtro sin valor: \xAB${segment}\xBB. Usa \xABcampo:valor\xBB.`);
+    }
+    result[field] = value === "" ? "1" : value;
+  }
+  return result;
+}
+function parseOrder(order) {
+  const result = {};
+  if (typeof order !== "string" || order.trim() === "") return result;
+  for (const part of order.split(",")) {
+    const segment = part.trim();
+    if (segment === "") continue;
+    const [field = "", direction = "asc"] = segment.split(":").map((s) => s.trim());
+    const dir = direction.toUpperCase();
+    if (!FIELD_NAME.test(field) || dir !== "ASC" && dir !== "DESC") {
+      throw new Error(`Orden no v\xE1lido: \xAB${segment}\xBB. Usa \xABcampo:asc\xBB o \xABcampo:desc\xBB.`);
+    }
+    result[`sort[${field}]`] = dir;
+  }
+  return result;
+}
+async function fetchAll(endpoint, params, connection) {
+  const rows = await fetchAllPaginated(endpoint, params, connection, { maxRecords: MAX_REPORT_RECORDS + 1 });
+  const truncated = rows.length > MAX_REPORT_RECORDS;
+  return { rows: truncated ? rows.slice(0, MAX_REPORT_RECORDS) : rows, truncated };
+}
+function isTrue(value) {
+  return value === true || value === 1 || value === "1" || value === "t" || value === "true";
+}
+function num2(value) {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+function round2(value) {
+  return Math.round(value * 100) / 100;
+}
+function isoDate(value) {
+  if (value === null || value === void 0 || value === "") return null;
+  const date3 = parseFsDate(value);
+  return Number.isNaN(date3.getTime()) ? null : toIsoDate(date3);
+}
+function todayIso() {
+  return toIsoDate(/* @__PURE__ */ new Date());
+}
+function daysBetween(a, b) {
+  const start = parseFsDate(a);
+  const end = parseFsDate(b);
+  return Math.round((end.getTime() - start.getTime()) / 864e5);
+}
+function optionalIsoDate(value, name) {
+  if (value === void 0 || value === null || value === "") return void 0;
+  if (typeof value !== "string" || !ISO_DATE.test(value) || isoDate(value) !== value) {
+    throw new Error(`El par\xE1metro ${name} debe ser una fecha v\xE1lida en formato YYYY-MM-DD.`);
+  }
+  return value;
+}
+function accumulate(map, key, init, apply) {
+  let group = map.get(key);
+  if (group === void 0) {
+    group = init();
+    map.set(key, group);
+  }
+  apply(group);
+}
+function groupKey(value) {
+  return value === null || value === void 0 || value === "" ? "(sin asignar)" : String(value);
+}
+async function fetchCatalog(endpoint, key, connection) {
+  const map = /* @__PURE__ */ new Map();
+  try {
+    const { rows } = await fetchAll(endpoint, {}, connection);
+    for (const row of rows) map.set(String(row[key]), row);
+  } catch {
+  }
+  return map;
+}
+async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+function findByName(rows, field, text) {
+  const normalize = (value) => String(value ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+  const wanted = normalize(text);
+  const exact = rows.filter((row) => normalize(row[field]) === wanted);
+  if (exact.length === 1) return exact[0];
+  const partial2 = rows.filter((row) => normalize(row[field]).includes(wanted));
+  if (exact.length === 0 && partial2.length === 1) return partial2[0];
+  const names = rows.map((row) => String(row[field])).join(", ");
+  if (exact.length > 1 || partial2.length > 1) {
+    throw new Error(`\xAB${text}\xBB coincide con varios registros; indica el id. Disponibles: ${names}`);
+  }
+  throw new Error(`No hay ninguno llamado \xAB${text}\xBB. Disponibles: ${names}`);
+}
+var MAX_IDS_ONE_BY_ONE = 100;
+async function fetchByIds(endpoint, key, ids, connection) {
+  const unique = [...new Set(ids.filter((id) => id !== null && id !== void 0 && id !== "").map(String))];
+  if (unique.length > MAX_IDS_ONE_BY_ONE) return fetchCatalog(endpoint, key, connection);
+  const rows = await mapLimit(unique, 8, async (id) => {
+    try {
+      return await fsClient.get(`${endpoint}/${pathId(id)}`, void 0, connection);
+    } catch {
+      return null;
+    }
+  });
+  const map = /* @__PURE__ */ new Map();
+  rows.forEach((row, i) => {
+    if (row && typeof row === "object" && !Array.isArray(row)) map.set(unique[i], row);
+  });
+  return map;
+}
+function connectionOf(args) {
+  return typeof args.connection === "string" && args.connection !== "" ? args.connection : void 0;
+}
+async function getOrNull(endpoint, id, connection) {
+  if (id === null || id === void 0 || id === "") return null;
+  try {
+    const row = await fsClient.get(`${endpoint}/${pathId(id)}`, void 0, connection);
+    return row && typeof row === "object" && !Array.isArray(row) ? row : null;
+  } catch {
+    return null;
+  }
+}
+
+// src/plugins/shared/result.ts
+function ok(data) {
+  return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+}
+function fail(message) {
+  return { content: [{ type: "text", text: message }], isError: true };
+}
+function isMissingResource(message) {
+  if (!message.includes("HTTP 404")) return false;
+  return /api resource|recurso de api|api-resource-invalid/i.test(message);
+}
+function failFromError(plugin, tool, error2) {
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  if (isMissingResource(message)) {
+    return fail(
+      `Error en ${tool}: ${message}
+La instalaci\xF3n no expone este recurso: comprueba que el plugin ${plugin} est\xE1 instalado y activo en ella y que la clave de API tiene acceso a sus recursos.`
+    );
+  }
+  return fail(`Error en ${tool}: ${message}`);
+}
+
+// src/plugins/shared/resource.ts
+var CONNECTION_PROPERTY = {
+  type: "string",
+  description: "Clave de la conexi\xF3n a usar (opcional: usa la conexi\xF3n por defecto)"
+};
+var DEFAULT_LIMIT = 50;
+function jsonType(column) {
+  if (column?.tsType === "number") return "number";
+  if (column?.tsType === "boolean") return "boolean";
+  return "string";
+}
+function columnDescription(column, name) {
+  const base = column?.description ?? column?.label ?? name;
+  if (column?.tsType === "date") return `${base} (YYYY-MM-DD)`;
+  if (column?.tsType === "time") return `${base} (HH:MM:SS)`;
+  return base;
+}
+function columnOf(meta, name) {
+  return meta.columns.find((c) => c.name === name);
+}
+function fieldProperties(def, names, descriptions = {}) {
+  const properties = {};
+  for (const name of names) {
+    const column = columnOf(def.meta, name);
+    properties[name] = {
+      type: jsonType(column),
+      description: descriptions[name] ?? columnDescription(column, name)
+    };
+  }
+  return properties;
+}
+function primaryKeyType(def) {
+  return jsonType(columnOf(def.meta, def.meta.primaryKey));
+}
+function buildResourceTools(def) {
+  const tools5 = [];
+  const pk = def.meta.primaryKey;
+  const writable = def.fields.filter((f) => f !== pk);
+  if (def.list) {
+    const likeProps = {};
+    for (const name of def.list.like ?? []) {
+      likeProps[`${name}_like`] = {
+        type: "string",
+        description: `Buscar registros cuyo ${name} contenga este texto (sin distinguir may\xFAsculas)`
+      };
+    }
+    tools5.push({
+      name: def.list.tool,
+      description: def.list.description,
+      inputSchema: {
+        type: "object",
+        properties: {
+          connection: CONNECTION_PROPERTY,
+          limit: { type: "number", description: `N\xFAmero m\xE1ximo de registros (por defecto ${DEFAULT_LIMIT})` },
+          offset: { type: "number", description: "Registros a saltar, para paginar (por defecto 0)" },
+          ...fieldProperties(def, def.list.filters),
+          ...likeProps,
+          filter: {
+            type: "string",
+            description: 'Filtros adicionales \xABcampo:valor\xBB separados por comas. El campo admite los sufijos _gt, _gte, _lt, _lte, _neq, _like, _null y _notnull. Ej.: "neto_gt:100,asignado_null:1"'
+          },
+          order: {
+            type: "string",
+            description: `Orden \xABcampo:asc\xBB o \xABcampo:desc\xBB, varios separados por comas` + (def.list.defaultOrder ? ` (por defecto ${def.list.defaultOrder})` : "")
+          }
+        },
+        required: []
+      }
+    });
+  }
+  if (def.create) {
+    tools5.push({
+      name: def.create.tool,
+      description: def.create.description,
+      inputSchema: {
+        type: "object",
+        properties: {
+          connection: CONNECTION_PROPERTY,
+          ...fieldProperties(def, writable, def.fieldDescriptions)
+        },
+        required: def.create.required ?? []
+      }
+    });
+  }
+  if (def.update) {
+    tools5.push({
+      name: def.update.tool,
+      description: def.update.description,
+      inputSchema: {
+        type: "object",
+        properties: {
+          connection: CONNECTION_PROPERTY,
+          [pk]: { type: primaryKeyType(def), description: `Identificador (${pk}) del registro a modificar` },
+          ...fieldProperties(def, writable, def.fieldDescriptions),
+          clear_fields: {
+            type: "array",
+            items: { type: "string" },
+            description: 'Campos a vaciar (dejar sin valor), por ejemplo ["asignado"]'
+          }
+        },
+        required: [pk]
+      }
+    });
+  }
+  if (def.delete) {
+    tools5.push({
+      name: def.delete.tool,
+      description: def.delete.description,
+      inputSchema: {
+        type: "object",
+        properties: {
+          connection: CONNECTION_PROPERTY,
+          [pk]: { type: primaryKeyType(def), description: `Identificador (${pk}) del registro a eliminar` }
+        },
+        required: [pk]
+      }
+    });
+  }
+  return tools5;
+}
+function resourceToolModels(def) {
+  const map = {};
+  for (const tool of [def.list?.tool, def.create?.tool, def.update?.tool, def.delete?.tool]) {
+    if (tool) map[tool] = def.meta.name;
+  }
+  return map;
+}
+function pickFields(def, args) {
+  const data = {};
+  for (const name of def.fields) {
+    if (name === def.meta.primaryKey) continue;
+    if (args[name] !== void 0 && args[name] !== null) data[name] = args[name];
+  }
+  return data;
+}
+function listParams(def, tool, args) {
+  const params = {};
+  for (const name of def.list?.filters ?? []) {
+    if (args[name] !== void 0 && args[name] !== null && args[name] !== "") params[name] = args[name];
+  }
+  for (const name of def.list?.like ?? []) {
+    const value = args[`${name}_like`];
+    if (typeof value === "string" && value !== "") params[`${name}_like`] = value;
+  }
+  Object.assign(params, parseFilterString(args.filter), dateRangeFilters(tool, args));
+  return params;
+}
+async function handleResourceTool(def, name, args) {
+  const connection = typeof args.connection === "string" && args.connection !== "" ? args.connection : void 0;
+  const endpoint = def.meta.endpoint;
+  const pk = def.meta.primaryKey;
+  if (name === def.list?.tool) {
+    const limit = typeof args.limit === "number" && args.limit > 0 ? args.limit : DEFAULT_LIMIT;
+    const offset = typeof args.offset === "number" && args.offset > 0 ? args.offset : 0;
+    const order = parseOrder(args.order ?? def.list.defaultOrder);
+    const params = { ...listParams(def, name, args), ...order, limit, offset };
+    return ok(await fsClient.get(endpoint, params, connection));
+  }
+  if (name === def.create?.tool) {
+    const data = pickFields(def, args);
+    if (Object.keys(data).length === 0) {
+      return fail(`${name}: indica al menos un campo del registro.`);
+    }
+    return ok(await fsClient.post(endpoint, { ...def.create.defaults, ...data }, connection));
+  }
+  if (name === def.update?.tool) {
+    const id = pathId(args[pk]);
+    const data = pickFields(def, args);
+    const clear = Array.isArray(args.clear_fields) ? args.clear_fields : [];
+    for (const field of clear) {
+      if (typeof field !== "string" || !def.fields.includes(field) || field === pk) {
+        return fail(`${name}: no se puede vaciar el campo \xAB${String(field)}\xBB.`);
+      }
+      data[field] = "null";
+    }
+    if (Object.keys(data).length === 0) {
+      return fail(`${name}: indica al menos un campo a modificar.`);
+    }
+    return ok(await fsClient.put(`${endpoint}/${id}`, data, connection));
+  }
+  if (name === def.delete?.tool) {
+    const id = pathId(args[pk]);
+    return ok(await fsClient.delete(`${endpoint}/${id}`, connection));
+  }
+  return null;
+}
+
+// src/plugins/crm/metadata/models/crm_campaign.ts
+var crmCampaignMetadata = {
+  "name": "crm_campaign",
+  "table": "crm_campaigns",
+  "endpoint": "/crmcampaignes",
+  "primaryKey": "id",
+  "description": "Campa\xF1a de email del CRM, con asunto, contenido, estado, d\xEDas y horas de env\xEDo y estad\xEDsticas de emails enviados y abiertos.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "content",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Contenido del email",
+      "maxLength": 5e3,
+      "description": "Contenido HTML de los emails.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "creation_date",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha creaci\xF3n",
+      "description": "Fecha y hora de alta.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador de la campa\xF1a.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "last_nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "\xDAltimo usuario",
+      "maxLength": 50,
+      "description": "Usuario que la modific\xF3 por \xFAltima vez.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "last_update",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "\xDAltima modificaci\xF3n",
+      "description": "Fecha y hora de la \xFAltima modificaci\xF3n.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre interno de la campa\xF1a.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario que cre\xF3 la campa\xF1a.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "num_emails",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Emails",
+      "description": "Emails que tiene que enviar la campa\xF1a.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3"
+        }
+      ]
+    },
+    {
+      "name": "num_sent",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Enviado",
+      "description": "Emails ya enviados.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3"
+        }
+      ]
+    },
+    {
+      "name": "num_opened",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "num_opened",
+      "default": 0,
+      "description": "Emails abiertos por los destinatarios.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.3"
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Estado",
+      "default": 0,
+      "description": "Estado de la campa\xF1a.",
+      "widget": "select",
+      "enumValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3"
+        }
+      ]
+    },
+    {
+      "name": "send_end_hour",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Hora fin",
+      "description": "Hora hasta la que se env\xEDa.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.21"
+        }
+      ]
+    },
+    {
+      "name": "send_friday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Viernes",
+      "default": false,
+      "description": "Enviar los viernes.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_monday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Lunes",
+      "default": false,
+      "description": "Enviar los lunes.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_saturday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "S\xE1bado",
+      "default": false,
+      "description": "Enviar los s\xE1bados.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_start_hour",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Hora de inicio",
+      "description": "Hora a partir de la que se env\xEDa.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.21"
+        }
+      ]
+    },
+    {
+      "name": "send_sunday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Domingo",
+      "default": false,
+      "description": "Enviar los domingos.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_thursday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Jueves",
+      "default": false,
+      "description": "Enviar los jueves.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_tuesday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Martes",
+      "default": false,
+      "description": "Enviar los martes.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "send_wednesday",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Mi\xE9rcoles",
+      "default": false,
+      "description": "Enviar los mi\xE9rcoles.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.41"
+        }
+      ]
+    },
+    {
+      "name": "subject",
+      "sqlType": "character varying(200)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Asunto del email",
+      "maxLength": 200,
+      "description": "Asunto de los emails.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "unsubscribe_link",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Incluir enlace de baja",
+      "default": true,
+      "description": "Si los emails incluyen el enlace para darse de baja.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "unreleased": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "last_nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "crm_campaigns_emails",
+      "targetTable": "crm_campaigns_emails",
+      "localColumn": "id",
+      "remoteColumn": "id_campaign"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "2.9"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  },
+  "retiredColumns": [
+    {
+      "name": "completed",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Completado",
+      "default": false,
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9",
+          "until": "2.9"
+        }
+      ]
+    }
+  ]
+};
+var crm_campaign_default = crmCampaignMetadata;
+
+// src/plugins/crm/metadata/models/crm_fuente.ts
+var crmFuenteMetadata = {
+  "name": "crm_fuente",
+  "table": "crm_fuentes2",
+  "endpoint": "/crmfuentes",
+  "primaryKey": "id",
+  "description": "Fuente de captaci\xF3n de contactos del CRM (web, feria, recomendaci\xF3n...), con el n\xFAmero de contactos que vienen de ella.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n de la fuente.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha de alta.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la fuente.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre de la fuente.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "numcontactos",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Contactos",
+      "description": "N\xFAmero de contactos que vienen de esta fuente.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_fuente_default = crmFuenteMetadata;
+
+// src/plugins/crm/metadata/models/crm_interes.ts
+var crmInteresMetadata = {
+  "name": "crm_interes",
+  "table": "crm_intereses",
+  "endpoint": "/crminteres",
+  "primaryKey": "id",
+  "description": "Inter\xE9s del CRM: producto, servicio o tema por el que se interesan los contactos, con el n\xFAmero de contactos interesados.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n del inter\xE9s.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha de alta.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador del inter\xE9s.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre del inter\xE9s.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "numcontactos",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Contactos",
+      "description": "N\xFAmero de contactos con este inter\xE9s.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "crm_interes_contacto",
+      "targetTable": "crm_intereses_contactos",
+      "localColumn": "id",
+      "remoteColumn": "idinteres"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "crm_nota",
+      "targetTable": "crm_notas",
+      "localColumn": "id",
+      "remoteColumn": "idinteres"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "crm_oportunidad",
+      "targetTable": "crm_oportunidades",
+      "localColumn": "id",
+      "remoteColumn": "idinteres"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_interes_default = crmInteresMetadata;
+
+// src/plugins/crm/metadata/models/crm_interes_contacto.ts
+var crmInteresContactoMetadata = {
+  "name": "crm_interes_contacto",
+  "table": "crm_intereses_contactos",
+  "endpoint": "/crminterescontactos",
+  "primaryKey": "id",
+  "description": "Inter\xE9s asignado a un contacto del CRM. Se crea tambi\xE9n al guardar una nota u oportunidad con inter\xE9s.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha en que se asign\xF3 el inter\xE9s.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la asignaci\xF3n.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcontacto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Contacto",
+      "description": "Contacto interesado.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "contactos",
+        "column": "idcontacto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idinteres",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Inter\xE9s",
+      "description": "Inter\xE9s del contacto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_intereses",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "contacto",
+      "targetTable": "contactos",
+      "localColumn": "idcontacto",
+      "remoteColumn": "idcontacto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_interes",
+      "targetTable": "crm_intereses",
+      "localColumn": "idinteres",
+      "remoteColumn": "id"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_interes_contacto_default = crmInteresContactoMetadata;
+
+// src/plugins/crm/metadata/models/crm_lista.ts
+var crmListaMetadata = {
+  "name": "crm_lista",
+  "table": "crm_listas",
+  "endpoint": "/crmlistas",
+  "primaryKey": "id",
+  "description": "Lista de contactos del CRM, usada para segmentar y para las campa\xF1as de email, con su n\xFAmero de contactos.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha de alta.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la lista.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre de la lista.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "numcontactos",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Contactos",
+      "description": "N\xFAmero de contactos de la lista.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "crm_lista_contacto",
+      "targetTable": "crm_listas_contactos",
+      "localColumn": "id",
+      "remoteColumn": "idlista"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_lista_default = crmListaMetadata;
+
+// src/plugins/crm/metadata/models/crm_lista_contacto.ts
+var crmListaContactoMetadata = {
+  "name": "crm_lista_contacto",
+  "table": "crm_listas_contactos",
+  "endpoint": "/crmlistacontactos",
+  "primaryKey": "id",
+  "description": "Pertenencia de un contacto a una lista del CRM.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha en que se a\xF1adi\xF3 el contacto.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la pertenencia.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcontacto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Contacto",
+      "description": "Contacto de la lista.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "contactos",
+        "column": "idcontacto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idlista",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Lista",
+      "description": "Lista.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_listas",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "contacto",
+      "targetTable": "contactos",
+      "localColumn": "idcontacto",
+      "remoteColumn": "idcontacto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_lista",
+      "targetTable": "crm_listas",
+      "localColumn": "idlista",
+      "remoteColumn": "id"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_lista_contacto_default = crmListaContactoMetadata;
+
+// src/plugins/crm/metadata/models/crm_nota.ts
+var crmNotaMetadata = {
+  "name": "crm_nota",
+  "table": "crm_notas",
+  "endpoint": "/crmnotas",
+  "primaryKey": "id",
+  "description": "Nota del CRM sobre un contacto, una oportunidad o un documento, con fecha, autor, inter\xE9s y un aviso opcional (fecha y hora) que se notifica por email.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "automatica",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "automatica",
+      "description": "Si la nota la gener\xF3 el sistema (por ejemplo, al enviar un documento por email).",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "documento",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "documento",
+      "maxLength": 30,
+      "description": "C\xF3digo del documento al que se refiere la nota.",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha de la nota.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechaaviso",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha de aviso",
+      "description": "Fecha del aviso: ese d\xEDa se env\xEDa un recordatorio por email al autor (o a todos si paratodos).",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha_notificado",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha notificaci\xF3n",
+      "description": "Fecha y hora en que se envi\xF3 el aviso. Se vac\xEDa al cambiar la fecha de aviso.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.1"
+        }
+      ]
+    },
+    {
+      "name": "hora",
+      "sqlType": "time without time zone",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Hora",
+      "description": "Hora de la nota.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la nota.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcontacto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Contacto",
+      "description": "Contacto al que se refiere la nota.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "contactos",
+        "column": "idcontacto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "iddocumento",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Documento",
+      "description": "Id del documento al que se refiere la nota.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idinteres",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Inter\xE9s",
+      "description": "Inter\xE9s relacionado. Se a\xF1ade tambi\xE9n a los intereses del contacto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_intereses",
+        "column": "id",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idoportunidad",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Oportunidad",
+      "description": "Oportunidad a la que pertenece la nota.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_oportunidades",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Autor de la nota.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "notice_hour",
+      "sqlType": "time",
+      "tsType": "time",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Hora de aviso",
+      "description": "Hora a partir de la que se env\xEDa el aviso.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "observaciones",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Observaciones",
+      "description": "Texto de la nota.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "paratodos",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Para todos",
+      "description": "Si el aviso se env\xEDa a todos los usuarios y no solo al autor.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "1.4"
+        }
+      ]
+    },
+    {
+      "name": "tipodocumento",
+      "sqlType": "character varying(25)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Tipo",
+      "maxLength": 25,
+      "description": "Clase del documento al que se refiere la nota (ej. PresupuestoCliente).",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "contacto",
+      "targetTable": "contactos",
+      "localColumn": "idcontacto",
+      "remoteColumn": "idcontacto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_interes",
+      "targetTable": "crm_intereses",
+      "localColumn": "idinteres",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_oportunidad",
+      "targetTable": "crm_oportunidades",
+      "localColumn": "idoportunidad",
+      "remoteColumn": "id"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  },
+  "retiredColumns": [
+    {
+      "name": "avisar",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "avisar",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true,
+          "until": "2"
+        }
+      ]
+    }
+  ]
+};
+var crm_nota_default = crmNotaMetadata;
+
+// src/plugins/crm/metadata/models/crm_oportunidad.ts
+var crmOportunidadMetadata = {
+  "name": "crm_oportunidad",
+  "table": "crm_oportunidades",
+  "endpoint": "/crmoportunidades",
+  "primaryKey": "id",
+  "description": "Oportunidad de negocio del CRM: posible venta a un contacto con estado, inter\xE9s, fuente, usuario asignado, agente, importe aproximado y, cuando se presupuesta, el presupuesto de cliente vinculado con su neto.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "precio_aprox",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Precio aproximado",
+      "description": "Importe aproximado estimado de la venta, antes de presupuestarla.",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.5"
+        }
+      ]
+    },
+    {
+      "name": "asignado",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Asignado",
+      "maxLength": 50,
+      "description": "Usuario asignado para gestionar la oportunidad. Recibe un email al asign\xE1rsela.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "1.6"
+        }
+      ]
+    },
+    {
+      "name": "codagente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Agente",
+      "maxLength": 10,
+      "description": "Agente comercial de la oportunidad. Si se omite, el del contacto.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "coddivisa",
+      "sqlType": "character varying(3)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "coddivisa",
+      "maxLength": 3,
+      "description": "Divisa del presupuesto vinculado.",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n de la oportunidad: qu\xE9 quiere el contacto.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Editable",
+      "description": "Si la oportunidad sigue abierta. Lo fija el estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha de alta de la oportunidad.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechamod",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "\xDAltima modificaci\xF3n",
+      "description": "Fecha y hora de la \xFAltima modificaci\xF3n.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha_cierre",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha cierre",
+      "description": "Fecha en que la oportunidad pas\xF3 a un estado cerrado (no editable).",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "hora",
+      "sqlType": "time without time zone",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Hora",
+      "description": "Hora de alta de la oportunidad.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "N\xFAmero de la oportunidad.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcontacto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Contacto",
+      "description": "Contacto al que se quiere vender. Su cliente asociado es el del presupuesto.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "contactos",
+        "column": "idcontacto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idestado",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Estado",
+      "description": "Estado de la oportunidad. Al cambiarlo se actualizan editable y rechazado y, si el estado la cierra, la fecha de cierre.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_oportunidades_estados",
+        "column": "id",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idfuente",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "idfuente",
+      "description": "Fuente por la que lleg\xF3 la oportunidad.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idinteres",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Inter\xE9s",
+      "description": "Inter\xE9s del contacto en esta oportunidad. Se a\xF1ade tambi\xE9n a los intereses del contacto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "crm_intereses",
+        "column": "id",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idpresupuesto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "idpresupuesto",
+      "description": "Presupuesto de cliente vinculado a la oportunidad.",
+      "widget": "number",
+      "foreignKey": {
+        "table": "presupuestoscli",
+        "column": "idpresupuesto",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "neto",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "neto",
+      "description": "Neto del presupuesto vinculado, en su divisa. Se actualiza al guardar el presupuesto.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "netoeuros",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "netoeuros",
+      "description": "Neto del presupuesto vinculado convertido a la divisa principal.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario que cre\xF3 la oportunidad.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "observaciones",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Observaciones",
+      "description": "Observaciones internas.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "rechazado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "rechazado",
+      "description": "Si la oportunidad se ha perdido o rechazado. Lo fija el estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "tasaconv",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "tasaconv",
+      "description": "Tasa de conversi\xF3n de la divisa del presupuesto vinculado.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "asignado",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "contacto",
+      "targetTable": "contactos",
+      "localColumn": "idcontacto",
+      "remoteColumn": "idcontacto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_oportunidad_estado",
+      "targetTable": "crm_oportunidades_estados",
+      "localColumn": "idestado",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_interes",
+      "targetTable": "crm_intereses",
+      "localColumn": "idinteres",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "presupuesto_cliente",
+      "targetTable": "presupuestoscli",
+      "localColumn": "idpresupuesto",
+      "remoteColumn": "idpresupuesto"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "crm_nota",
+      "targetTable": "crm_notas",
+      "localColumn": "id",
+      "remoteColumn": "idoportunidad"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  },
+  "retiredColumns": [
+    {
+      "name": "approximate_price",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "approximate_price",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4",
+          "until": "2.4"
+        }
+      ]
+    }
+  ]
+};
+var crm_oportunidad_default = crmOportunidadMetadata;
+
+// src/plugins/crm/metadata/models/crm_oportunidad_estado.ts
+var crmOportunidadEstadoMetadata = {
+  "name": "crm_oportunidad_estado",
+  "table": "crm_oportunidades_estados",
+  "endpoint": "/crmoportunidadestados",
+  "primaryKey": "id",
+  "description": "Estado de las oportunidades del CRM (nueva, en negociaci\xF3n, ganada, perdida...). Decide si la oportunidad sigue abierta (editable) y si cuenta como rechazada; su orden es el del embudo de ventas.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "color",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Color",
+      "maxLength": 10,
+      "description": "Color con el que se muestra.",
+      "widget": "select",
+      "enumValues": [
+        "primary",
+        "secondary",
+        "success",
+        "danger",
+        "warning",
+        "info",
+        "light",
+        "dark"
+      ],
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "1.6"
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Editable",
+      "description": "Si las oportunidades en este estado siguen abiertas. false equivale a cerrada (ganada o perdida).",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "icon",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Icono",
+      "maxLength": 50,
+      "description": "Icono con el que se muestra.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "orden",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Orden",
+      "description": "Posici\xF3n del estado en el embudo de ventas.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "predeterminado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Estado de las oportunidades nuevas.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "rechazado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Rechazado",
+      "description": "Si las oportunidades en este estado cuentan como perdidas o rechazadas.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "tab",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Mostrar pesta\xF1a",
+      "default": true,
+      "description": "Si el estado tiene su propia pesta\xF1a en el listado de oportunidades.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "1.6"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "crm_oportunidad",
+      "targetTable": "crm_oportunidades",
+      "localColumn": "id",
+      "remoteColumn": "idestado"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_oportunidad_estado_default = crmOportunidadEstadoMetadata;
+
+// src/plugins/crm/metadata/models/crm_position.ts
+var crmPositionMetadata = {
+  "name": "crm_position",
+  "table": "crm_positions",
+  "endpoint": "/crmpositions",
+  "primaryKey": "id",
+  "description": "Cargo del cat\xE1logo del CRM (gerente, comprador, t\xE9cnico...). Son las opciones que se sugieren en el campo cargo de los contactos.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "creation_date",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "creation_date",
+      "description": "Fecha y hora de alta.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador del cargo.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "last_nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "last_nick",
+      "maxLength": 50,
+      "description": "Usuario que lo modific\xF3 por \xFAltima vez.",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "last_update",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "last_update",
+      "description": "Fecha y hora de la \xFAltima modificaci\xF3n.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre del cargo.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario que cre\xF3 el cargo.",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.4"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "last_nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "2.4"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:56:34.504Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_position_default = crmPositionMetadata;
+
+// src/plugins/crm/metadata/index.ts
+var models = [
+  crm_campaign_default,
+  crm_fuente_default,
+  crm_interes_default,
+  crm_interes_contacto_default,
+  crm_lista_default,
+  crm_lista_contacto_default,
+  crm_nota_default,
+  crm_oportunidad_default,
+  crm_oportunidad_estado_default,
+  crm_position_default
+];
+
+// src/plugins/crm/resources.ts
+var PLUGIN = "CRM";
+function metaOf(name) {
+  const meta = models.find((m) => m.name === name);
+  if (!meta) throw new Error(`Falta la metadata del modelo ${name} del plugin ${PLUGIN}.`);
+  return meta;
+}
+var oportunidad = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_oportunidad"),
+  fields: [
+    "idcontacto",
+    "idestado",
+    "descripcion",
+    "observaciones",
+    "precio_aprox",
+    "idinteres",
+    "idfuente",
+    "asignado",
+    "codagente",
+    "nick",
+    "fecha",
+    "hora"
+  ],
+  fieldDescriptions: {
+    idestado: "Estado de la oportunidad. Si se omite, el predeterminado. Para cambiarlo por nombre usa set_estado_oportunidad_crm",
+    codagente: "Agente comercial. Si se omite, el del contacto (si no tiene, queda sin agente: la API no tiene usuario de sesi\xF3n)",
+    asignado: "Usuario asignado (nick). Recibe un email al asign\xE1rsela",
+    nick: "Usuario que registra la oportunidad (nick)",
+    precio_aprox: "Importe aproximado estimado de la venta, mientras no tenga presupuesto",
+    fecha: "Fecha de alta (YYYY-MM-DD). Por defecto, hoy"
+  },
+  list: {
+    tool: "get_oportunidades_crm",
+    description: "Lista oportunidades de negocio del CRM con filtros y paginaci\xF3n. editable=true son las abiertas; rechazado=true, las perdidas; cerradas y no rechazadas, las ganadas. neto/netoeuros es el del presupuesto vinculado y precio_aprox la estimaci\xF3n previa. Para ver una completa usa get_oportunidad_crm.",
+    filters: [
+      "idcontacto",
+      "idestado",
+      "editable",
+      "rechazado",
+      "idinteres",
+      "idfuente",
+      "asignado",
+      "codagente",
+      "nick",
+      "idpresupuesto"
+    ],
+    like: ["descripcion", "observaciones"],
+    defaultOrder: "fecha:desc,id:desc"
+  },
+  create: {
+    tool: "create_oportunidad_crm",
+    description: "Crea una oportunidad de negocio para un contacto. El estado predeterminado, la fecha y la hora se ponen solos, y el agente se toma del contacto si se omite. El inter\xE9s se a\xF1ade tambi\xE9n al contacto. Notifica por email al asignado y al agente.",
+    required: ["idcontacto"]
+  },
+  update: {
+    tool: "update_oportunidad_crm",
+    description: "Modifica una oportunidad; solo cambian los campos enviados. Al cambiar el estado se actualizan abierta, rechazada y la fecha de cierre. Para el presupuesto usa create_presupuesto_oportunidad_crm o set_presupuesto_oportunidad_crm."
+  },
+  delete: {
+    tool: "delete_oportunidad_crm",
+    description: "Elimina una oportunidad y sus notas. El presupuesto vinculado se conserva. Irreversible."
+  }
+};
+var estadoOportunidad = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_oportunidad_estado"),
+  fields: ["nombre", "orden", "editable", "rechazado", "predeterminado", "color", "icon", "tab"],
+  fieldDescriptions: {
+    editable: "Si las oportunidades en este estado siguen abiertas (false: cerrada, ganada o perdida). Por defecto true",
+    rechazado: "Si las oportunidades en este estado cuentan como perdidas. Por defecto false",
+    predeterminado: "Estado de las oportunidades nuevas. Desmarca el anterior con update_estado_oportunidad_crm: el plugin no lo hace solo",
+    orden: "Posici\xF3n en el embudo de ventas (por defecto 100)"
+  },
+  list: {
+    tool: "get_estados_oportunidad_crm",
+    description: "Lista los estados de las oportunidades del CRM en el orden del embudo: si son abiertos (editable), si cuentan como perdidos (rechazado) y cu\xE1l es el predeterminado.",
+    filters: ["editable", "rechazado", "predeterminado"],
+    like: ["nombre"],
+    defaultOrder: "orden:asc,id:asc"
+  },
+  create: { tool: "create_estado_oportunidad_crm", description: "Crea un estado de oportunidades del CRM.", required: ["nombre"] },
+  update: { tool: "update_estado_oportunidad_crm", description: "Modifica un estado de oportunidades del CRM." },
+  delete: {
+    tool: "delete_estado_oportunidad_crm",
+    description: "Elimina un estado de oportunidades; las oportunidades que lo ten\xEDan quedan sin estado. Irreversible."
+  }
+};
+var nota = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_nota"),
+  fields: [
+    "idcontacto",
+    "idoportunidad",
+    "idinteres",
+    "observaciones",
+    "nick",
+    "fecha",
+    "hora",
+    "fechaaviso",
+    "notice_hour",
+    "paratodos",
+    "tipodocumento",
+    "iddocumento",
+    "documento"
+  ],
+  fieldDescriptions: {
+    nick: "Autor de la nota (nick). Ind\xEDcalo siempre: la API no tiene usuario de sesi\xF3n y sin autor el aviso no llega a nadie",
+    fechaaviso: "Fecha del recordatorio (YYYY-MM-DD): ese d\xEDa se avisa por email al autor, o a todos con paratodos",
+    notice_hour: "Hora del recordatorio (HH:MM:SS)",
+    idoportunidad: "Oportunidad de la nota. Avisa por email al creador, al asignado y al agente de la oportunidad",
+    tipodocumento: "Clase del documento al que se refiere la nota (ej. PresupuestoCliente, FacturaCliente)",
+    fecha: "Fecha de la nota (YYYY-MM-DD). Por defecto, hoy"
+  },
+  list: {
+    tool: "get_notas_crm",
+    description: "Lista notas del CRM de contactos, oportunidades o documentos, de la m\xE1s reciente a la m\xE1s antigua. Para los recordatorios pendientes usa get_avisos_crm.",
+    filters: ["idcontacto", "idoportunidad", "idinteres", "nick", "tipodocumento", "iddocumento", "automatica", "paratodos"],
+    like: ["observaciones"],
+    defaultOrder: "fecha:desc,hora:desc,id:desc"
+  },
+  create: {
+    tool: "create_nota_crm",
+    description: "A\xF1ade una nota a un contacto, a una oportunidad (indica tambi\xE9n su idcontacto) o a un documento, con un recordatorio opcional (fechaaviso y notice_hour).",
+    required: ["observaciones"]
+  },
+  update: { tool: "update_nota_crm", description: "Modifica una nota del CRM. Cambiar la fecha de aviso vuelve a programar el recordatorio." },
+  delete: { tool: "delete_nota_crm", description: "Elimina una nota del CRM. Irreversible." }
+};
+var fuente = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_fuente"),
+  fields: ["nombre", "descripcion"],
+  list: {
+    tool: "get_fuentes_crm",
+    description: "Lista las fuentes de captaci\xF3n de contactos del CRM con su n\xFAmero de contactos.",
+    filters: [],
+    like: ["nombre"],
+    defaultOrder: "nombre:asc"
+  },
+  create: { tool: "create_fuente_crm", description: "Crea una fuente de captaci\xF3n de contactos.", required: ["nombre"] },
+  update: { tool: "update_fuente_crm", description: "Modifica una fuente de captaci\xF3n (y recalcula su n\xFAmero de contactos)." },
+  delete: { tool: "delete_fuente_crm", description: "Elimina una fuente; sus contactos quedan sin fuente. Irreversible." }
+};
+var interes = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_interes"),
+  fields: ["nombre", "descripcion"],
+  list: {
+    tool: "get_intereses_crm",
+    description: "Lista los intereses del CRM con su n\xFAmero de contactos interesados.",
+    filters: [],
+    like: ["nombre"],
+    defaultOrder: "nombre:asc"
+  },
+  create: { tool: "create_interes_crm", description: "Crea un inter\xE9s del CRM.", required: ["nombre"] },
+  update: { tool: "update_interes_crm", description: "Modifica un inter\xE9s (y recalcula su n\xFAmero de contactos)." },
+  delete: {
+    tool: "delete_interes_crm",
+    description: "Elimina un inter\xE9s y su asignaci\xF3n a los contactos; las notas y oportunidades quedan sin inter\xE9s. Irreversible."
+  }
+};
+var interesContacto = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_interes_contacto"),
+  fields: ["idcontacto", "idinteres"],
+  list: {
+    tool: "get_intereses_contacto_crm",
+    description: "Lista los intereses asignados a los contactos (filtra por idcontacto o por idinteres).",
+    filters: ["idcontacto", "idinteres"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_interes_contacto_crm",
+    description: "Asigna un inter\xE9s a un contacto y actualiza el n\xFAmero de contactos del inter\xE9s.",
+    required: ["idcontacto", "idinteres"]
+  },
+  delete: {
+    tool: "delete_interes_contacto_crm",
+    description: "Quita un inter\xE9s de un contacto (por el id de la asignaci\xF3n)."
+  }
+};
+var lista = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_lista"),
+  fields: ["nombre"],
+  list: {
+    tool: "get_listas_crm",
+    description: "Lista las listas de contactos del CRM con su n\xFAmero de contactos.",
+    filters: [],
+    like: ["nombre"],
+    defaultOrder: "nombre:asc"
+  },
+  create: { tool: "create_lista_crm", description: "Crea una lista de contactos.", required: ["nombre"] },
+  update: { tool: "update_lista_crm", description: "Cambia el nombre de una lista de contactos." },
+  delete: { tool: "delete_lista_crm", description: "Elimina una lista de contactos (los contactos se conservan). Irreversible." }
+};
+var listaContacto = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_lista_contacto"),
+  fields: ["idlista", "idcontacto"],
+  list: {
+    tool: "get_contactos_lista_crm",
+    description: "Lista qu\xE9 contactos pertenecen a qu\xE9 listas (filtra por idlista o por idcontacto).",
+    filters: ["idlista", "idcontacto"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_contacto_lista_crm",
+    description: "A\xF1ade un contacto a una lista. Un contacto solo puede estar una vez en cada lista.",
+    required: ["idlista", "idcontacto"]
+  },
+  delete: {
+    tool: "delete_contacto_lista_crm",
+    description: "Quita un contacto de una lista (por el id de la pertenencia)."
+  }
+};
+var cargo = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_position"),
+  fields: ["name"],
+  list: {
+    tool: "get_cargos_crm",
+    description: "Lista el cat\xE1logo de cargos del CRM (campo name). Son las opciones que se sugieren para el campo cargo de los contactos, que se cambia con update_contacto.",
+    filters: [],
+    like: ["name"],
+    defaultOrder: "name:asc"
+  },
+  create: { tool: "create_cargo_crm", description: "A\xF1ade un cargo al cat\xE1logo del CRM.", required: ["name"] },
+  update: { tool: "update_cargo_crm", description: "Cambia el nombre de un cargo del cat\xE1logo (no cambia el cargo de los contactos)." },
+  delete: { tool: "delete_cargo_crm", description: "Elimina un cargo del cat\xE1logo (los contactos conservan su texto)." }
+};
+var campana = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_campaign"),
+  fields: [],
+  list: {
+    tool: "get_campanas_crm",
+    description: "Lista las campa\xF1as de email del CRM con su estado (0 borrador, 1 enviando, 2 enviada) y sus estad\xEDsticas: emails a enviar, enviados y abiertos. Solo lectura: se preparan y env\xEDan desde FacturaScripts.",
+    filters: ["status", "nick"],
+    like: ["name", "subject"],
+    defaultOrder: "creation_date:desc,id:desc"
+  }
+};
+var RESOURCES = [
+  oportunidad,
+  estadoOportunidad,
+  nota,
+  fuente,
+  interes,
+  interesContacto,
+  lista,
+  listaContacto,
+  cargo,
+  campana
+];
+
+// src/plugins/crm/tools.ts
+import { readFile, stat } from "node:fs/promises";
+import { basename, isAbsolute } from "node:path";
+var OPPORTUNITY_MODEL = "CrmOportunidad";
+var MAX_FILE_BYTES = 25 * 1024 * 1024;
+var NOTES_LIMIT = 50;
+var LINE_ITEM = {
+  type: "object",
+  properties: {
+    referencia: { type: "string", description: "Referencia del producto" },
+    descripcion: { type: "string", description: "Descripci\xF3n" },
+    cantidad: { type: "number", description: "Cantidad" },
+    pvpunitario: { type: "number", description: "Precio unitario sin impuestos" },
+    dtopor: { type: "number", description: "Descuento en porcentaje" },
+    codimpuesto: { type: "string", description: "C\xF3digo de impuesto" }
+  }
+};
+var CRM_TOOLS = [
+  {
+    name: "get_oportunidad_crm",
+    description: "Ficha completa de una oportunidad del CRM: datos con su estado, contacto (y su cliente), inter\xE9s y fuente, el presupuesto vinculado, sus notas y sus archivos adjuntos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "set_estado_oportunidad_crm",
+    description: 'Cambia el estado de una oportunidad indicando el id o el nombre del estado (ej. "Ganada"). El estado decide si queda abierta o cerrada y si cuenta como perdida; al cerrarla se guarda la fecha de cierre.',
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" },
+        idestado: { type: "number", description: "Id del nuevo estado" },
+        estado: { type: "string", description: "Nombre del nuevo estado, si no se indica idestado" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "create_presupuesto_oportunidad_crm",
+    description: "Convierte una oportunidad en presupuesto: crea un presupuesto de cliente para el cliente del contacto (con el agente de la oportunidad y las l\xEDneas indicadas) y lo vincula a la oportunidad, que pasa a tomar su neto. El contacto tiene que tener un cliente asociado; si no, cr\xE9alo o as\xEDgnale uno con update_contacto.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" },
+        lineas: { type: "array", items: LINE_ITEM, description: "L\xEDneas del presupuesto (opcional: sin l\xEDneas se crea vac\xEDo)" },
+        fecha: { type: "string", description: "Fecha del presupuesto (YYYY-MM-DD). Por defecto, hoy" },
+        codserie: { type: "string", description: "Serie del presupuesto" },
+        codalmacen: { type: "string", description: "Almac\xE9n del presupuesto" },
+        finoferta: { type: "string", description: "Fecha de fin de validez (YYYY-MM-DD)" },
+        observaciones: { type: "string", description: "Observaciones del presupuesto" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "set_presupuesto_oportunidad_crm",
+    description: "Vincula una oportunidad a un presupuesto de cliente que ya existe (y toma su neto), o la desvincula. Un presupuesto solo puede estar vinculado a una oportunidad.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" },
+        idpresupuesto: { type: "number", description: "Presupuesto de cliente a vincular" },
+        desvincular: { type: "boolean", description: "true para quitar el presupuesto vinculado" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "get_archivos_oportunidad_crm",
+    description: "Archivos adjuntos de una oportunidad del CRM, con su nombre, tipo, tama\xF1o y enlaces de descarga.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "create_archivo_oportunidad_crm",
+    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (m\xE1ximo 25 MB). Confirma con el usuario la ruta del archivo antes de subirlo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "N\xFAmero (id) de la oportunidad" },
+        ruta: { type: "string", description: "Ruta absoluta del archivo en este equipo" },
+        observaciones: { type: "string", description: "Observaciones del adjunto" },
+        nick: { type: "string", description: "Usuario que adjunta el archivo (nick)" }
+      },
+      required: ["id", "ruta"]
+    }
+  },
+  {
+    name: "delete_archivo_oportunidad_crm",
+    description: "Quita un archivo adjunto de una oportunidad (por el id de la relaci\xF3n que devuelve get_archivos_oportunidad_crm). Con borrar_archivo=true borra tambi\xE9n el archivo si nada m\xE1s lo usa. Irreversible.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idrelacion: { type: "number", description: "Id de la relaci\xF3n del archivo con la oportunidad" },
+        borrar_archivo: { type: "boolean", description: "Borrar tambi\xE9n el archivo de FacturaScripts si no est\xE1 adjunto a nada m\xE1s" }
+      },
+      required: ["idrelacion"]
+    }
+  },
+  {
+    name: "get_contacto_crm",
+    description: "Ficha CRM de un contacto: sus datos (con la fuente y el cliente asociado), intereses, listas, oportunidades con su estado e importe y \xFAltimas notas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idcontacto: { type: "number", description: "Id del contacto" }
+      },
+      required: ["idcontacto"]
+    }
+  },
+  {
+    name: "get_informe_oportunidades_crm",
+    description: "Informe de oportunidades del CRM (por fecha de alta): abiertas, ganadas y perdidas, tasa de conversi\xF3n, importe (neto del presupuesto o, si no hay, el aproximado), d\xEDas medios hasta el cierre y desglose por estado en el orden del embudo, inter\xE9s, fuente, usuario asignado, agente y mes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        fecha_desde: { type: "string", description: "Desde esta fecha de alta incluida (YYYY-MM-DD)" },
+        fecha_hasta: { type: "string", description: "Hasta esta fecha de alta incluida (YYYY-MM-DD)" },
+        asignado: { type: "string", description: "Solo las asignadas a este usuario (nick)" },
+        codagente: { type: "string", description: "Solo las de este agente" },
+        idinteres: { type: "number", description: "Solo las de este inter\xE9s" },
+        idfuente: { type: "number", description: "Solo las de esta fuente" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_avisos_crm",
+    description: "Recordatorios de las notas del CRM (fecha de aviso) entre dos fechas: por defecto los vencidos sin notificar y los de los pr\xF3ximos 7 d\xEDas, con su contacto y oportunidad.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        fecha_desde: { type: "string", description: "Desde esta fecha de aviso (YYYY-MM-DD). Por defecto, sin l\xEDmite" },
+        fecha_hasta: { type: "string", description: "Hasta esta fecha de aviso (YYYY-MM-DD). Por defecto, dentro de 7 d\xEDas" },
+        nick: { type: "string", description: "Solo las notas de este usuario" },
+        incluir_notificados: { type: "boolean", description: "Incluir los avisos ya enviados (por defecto no)" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_oportunidades_crm_sin_actividad",
+    description: "Oportunidades abiertas sin actividad (ni cambios ni notas) en los \xFAltimos d\xEDas indicados, de la m\xE1s olvidada a la m\xE1s reciente, para hacer seguimiento.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        dias: { type: "number", description: "D\xEDas sin actividad (por defecto 30)" },
+        asignado: { type: "string", description: "Solo las asignadas a este usuario (nick)" },
+        codagente: { type: "string", description: "Solo las de este agente" }
+      },
+      required: []
+    }
+  }
+];
+function opportunityValue(row) {
+  if (row.idpresupuesto !== null && row.idpresupuesto !== void 0 && row.idpresupuesto !== "") {
+    return num2(row.netoeuros) || num2(row.neto);
+  }
+  return num2(row.precio_aprox);
+}
+function opportunityStage(row) {
+  if (isTrue(row.editable)) return "abierta";
+  return isTrue(row.rechazado) ? "perdida" : "ganada";
+}
+function contactName(contact) {
+  if (!contact) return null;
+  const name = [contact.nombre, contact.apellidos].filter((p) => typeof p === "string" && p !== "").join(" ");
+  return name || (typeof contact.empresa === "string" && contact.empresa !== "" ? contact.empresa : null);
+}
+function estimationAmounts(estimation) {
+  const rate = num2(estimation.tasaconv);
+  return {
+    idpresupuesto: estimation.idpresupuesto,
+    coddivisa: estimation.coddivisa,
+    neto: num2(estimation.neto),
+    netoeuros: rate === 0 ? 0 : Math.round(num2(estimation.neto) / rate * 1e5) / 1e5,
+    tasaconv: rate || 1
+  };
+}
+async function opportunityFiles(id, connection) {
+  const { rows } = await fetchAll("/attachedfilerelations", { model: OPPORTUNITY_MODEL, modelid: id }, connection);
+  const files = await fetchByIds("/attachedfiles", "idfile", rows.map((row) => row.idfile), connection);
+  return rows.map((relation) => {
+    const file = files.get(String(relation.idfile));
+    return {
+      idrelacion: relation.id,
+      idfile: relation.idfile,
+      filename: file?.filename ?? null,
+      mimetype: file?.mimetype ?? null,
+      size: file?.size ?? null,
+      date: file?.date ?? null,
+      observations: relation.observations ?? null,
+      nick: relation.nick ?? null,
+      download: file?.download ?? null
+    };
+  });
+}
+async function oportunidadDetalle(args) {
+  const connection = connectionOf(args);
+  const opportunity = await fsClient.get(`/crmoportunidades/${pathId(args.id)}`, void 0, connection);
+  const [status, contact, interest, source, estimation, notes, files] = await Promise.all([
+    getOrNull("/crmoportunidadestados", opportunity.idestado, connection),
+    getOrNull("/contactos", opportunity.idcontacto, connection),
+    getOrNull("/crminteres", opportunity.idinteres, connection),
+    getOrNull("/crmfuentes", opportunity.idfuente, connection),
+    getOrNull("/presupuestoclientes", opportunity.idpresupuesto, connection),
+    fsClient.get("/crmnotas", { idoportunidad: opportunity.id, "sort[fecha]": "DESC", "sort[hora]": "DESC", limit: NOTES_LIMIT }, connection).catch(() => []),
+    opportunityFiles(opportunity.id, connection).catch(() => [])
+  ]);
+  return ok({
+    oportunidad: {
+      ...opportunity,
+      situacion: opportunityStage(opportunity),
+      importe: round2(opportunityValue(opportunity)),
+      estado_nombre: status?.nombre ?? null,
+      interes_nombre: interest?.nombre ?? null,
+      fuente_nombre: source?.nombre ?? null
+    },
+    contacto: contact ? {
+      idcontacto: contact.idcontacto,
+      nombre: contactName(contact),
+      empresa: contact.empresa ?? null,
+      cargo: contact.cargo ?? null,
+      email: contact.email ?? null,
+      telefono1: contact.telefono1 ?? null,
+      codcliente: contact.codcliente ?? null
+    } : null,
+    presupuesto: estimation ? {
+      idpresupuesto: estimation.idpresupuesto,
+      codigo: estimation.codigo,
+      fecha: estimation.fecha,
+      codcliente: estimation.codcliente,
+      neto: estimation.neto,
+      total: estimation.total,
+      coddivisa: estimation.coddivisa,
+      editable: estimation.editable,
+      idestado: estimation.idestado
+    } : null,
+    notas: Array.isArray(notes) ? notes : [],
+    archivos: files
+  });
+}
+async function setEstadoOportunidad(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  let status;
+  if (args.idestado === void 0 || args.idestado === null || args.idestado === "") {
+    if (typeof args.estado !== "string" || args.estado.trim() === "") {
+      return fail("set_estado_oportunidad_crm: indica idestado o el nombre del estado.");
+    }
+    const { rows } = await fetchAll("/crmoportunidadestados", {}, connection);
+    status = findByName(rows, "nombre", args.estado);
+  } else {
+    status = await getOrNull("/crmoportunidadestados", args.idestado, connection);
+    if (!status) return fail(`set_estado_oportunidad_crm: no existe el estado ${String(args.idestado)}.`);
+  }
+  const result = await fsClient.put(`/crmoportunidades/${id}`, { idestado: status.id }, connection);
+  return ok({
+    estado: { id: status.id, nombre: status.nombre, editable: status.editable, rechazado: status.rechazado },
+    resultado: result
+  });
+}
+async function crearPresupuesto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  const opportunity = await fsClient.get(`/crmoportunidades/${id}`, void 0, connection);
+  if (opportunity.idpresupuesto !== null && opportunity.idpresupuesto !== void 0 && opportunity.idpresupuesto !== "") {
+    return fail(`La oportunidad ${id} ya tiene el presupuesto ${String(opportunity.idpresupuesto)} vinculado.`);
+  }
+  const contact = await getOrNull("/contactos", opportunity.idcontacto, connection);
+  if (!contact) return fail(`La oportunidad ${id} no tiene un contacto v\xE1lido.`);
+  if (typeof contact.codcliente !== "string" || contact.codcliente === "") {
+    return fail(
+      `El contacto ${String(contact.idcontacto)} (${contactName(contact) ?? "sin nombre"}) no tiene un cliente asociado: crea el cliente o as\xEDgnaselo con update_contacto (codcliente) y vuelve a intentarlo.`
+    );
+  }
+  const body = { codcliente: contact.codcliente, lineas: JSON.stringify(Array.isArray(args.lineas) ? args.lineas : []) };
+  if (typeof opportunity.codagente === "string" && opportunity.codagente !== "") body.codagente = opportunity.codagente;
+  for (const field of ["fecha", "codserie", "codalmacen", "finoferta", "observaciones"]) {
+    if (typeof args[field] === "string" && args[field] !== "") body[field] = args[field];
+  }
+  const created = await fsClient.post("/crearPresupuestoCliente", body, connection);
+  const estimation = created?.doc;
+  if (!estimation || estimation.idpresupuesto === void 0) {
+    return fail(`No se ha podido crear el presupuesto: ${JSON.stringify(created)}`);
+  }
+  try {
+    await fsClient.put(`/crmoportunidades/${id}`, estimationAmounts(estimation), connection);
+  } catch (error2) {
+    return fail(
+      `Se ha creado el presupuesto ${String(estimation.codigo)} (id ${String(estimation.idpresupuesto)}) pero no se ha podido vincular a la oportunidad: ${error2 instanceof Error ? error2.message : String(error2)}. Vinc\xFAlalo con set_presupuesto_oportunidad_crm.`
+    );
+  }
+  return ok({
+    oportunidad: Number(id),
+    presupuesto: {
+      idpresupuesto: estimation.idpresupuesto,
+      codigo: estimation.codigo,
+      codcliente: estimation.codcliente,
+      neto: estimation.neto,
+      total: estimation.total
+    }
+  });
+}
+async function setPresupuesto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  const opportunity = await fsClient.get(`/crmoportunidades/${id}`, void 0, connection);
+  if (isTrue(args.desvincular)) {
+    const result2 = await fsClient.put(
+      `/crmoportunidades/${id}`,
+      { idpresupuesto: "null", neto: 0, netoeuros: 0, tasaconv: 1 },
+      connection
+    );
+    return ok(result2);
+  }
+  if (args.idpresupuesto === void 0 || args.idpresupuesto === null || args.idpresupuesto === "") {
+    return fail("set_presupuesto_oportunidad_crm: indica idpresupuesto o desvincular=true.");
+  }
+  if (opportunity.idpresupuesto !== null && opportunity.idpresupuesto !== void 0 && opportunity.idpresupuesto !== "") {
+    return fail(`La oportunidad ${id} ya tiene el presupuesto ${String(opportunity.idpresupuesto)} vinculado: desvinc\xFAlalo antes.`);
+  }
+  const estimation = await getOrNull("/presupuestoclientes", args.idpresupuesto, connection);
+  if (!estimation) return fail(`No existe el presupuesto de cliente ${String(args.idpresupuesto)}.`);
+  const others = await fsClient.get("/crmoportunidades", { idpresupuesto: estimation.idpresupuesto, limit: 1 }, connection);
+  if (Array.isArray(others) && others.length > 0) {
+    return fail(`El presupuesto ${String(estimation.codigo)} ya est\xE1 vinculado a la oportunidad ${String(others[0]?.id)}.`);
+  }
+  const result = await fsClient.put(`/crmoportunidades/${id}`, estimationAmounts(estimation), connection);
+  return ok(result);
+}
+async function crearArchivo(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  const path3 = typeof args.ruta === "string" ? args.ruta : "";
+  if (!isAbsolute(path3)) return fail("create_archivo_oportunidad_crm: indica la ruta absoluta del archivo.");
+  const info = await stat(path3).catch(() => null);
+  if (!info?.isFile()) return fail(`No existe el archivo ${path3}.`);
+  if (info.size > MAX_FILE_BYTES) return fail(`El archivo ocupa m\xE1s de ${MAX_FILE_BYTES / 1024 / 1024} MB.`);
+  await fsClient.get(`/crmoportunidades/${id}`, void 0, connection);
+  const form = new FormData();
+  form.append("files[]", new Blob([await readFile(path3)]), basename(path3));
+  const uploaded = await fsClient.postMultipart("/uploadFiles", form, connection);
+  const file = uploaded?.files?.[0];
+  if (!file || file.idfile === void 0) {
+    return fail(`FacturaScripts no ha aceptado el archivo: ${JSON.stringify(uploaded)}`);
+  }
+  const relation = { idfile: file.idfile, model: OPPORTUNITY_MODEL, modelid: Number(id) };
+  if (typeof args.observaciones === "string" && args.observaciones !== "") relation.observations = args.observaciones;
+  if (typeof args.nick === "string" && args.nick !== "") relation.nick = args.nick;
+  const result = await fsClient.post("/attachedfilerelations", relation, connection);
+  return ok({ archivo: { idfile: file.idfile, filename: file.filename, size: file.size, mimetype: file.mimetype }, relacion: result });
+}
+async function borrarArchivo(args) {
+  const connection = connectionOf(args);
+  const relation = await fsClient.get(`/attachedfilerelations/${pathId(args.idrelacion)}`, void 0, connection);
+  if (relation.model !== OPPORTUNITY_MODEL) {
+    return fail(`La relaci\xF3n ${String(args.idrelacion)} no es de una oportunidad del CRM (es de ${String(relation.model)}).`);
+  }
+  const result = await fsClient.delete(`/attachedfilerelations/${pathId(relation.id)}`, connection);
+  let fileDeleted = false;
+  if (isTrue(args.borrar_archivo)) {
+    const others = await fsClient.get("/attachedfilerelations", { idfile: relation.idfile, limit: 1 }, connection);
+    if (Array.isArray(others) && others.length === 0) {
+      await fsClient.delete(`/attachedfiles/${pathId(relation.idfile)}`, connection);
+      fileDeleted = true;
+    }
+  }
+  return ok({ relacion: result, archivo_borrado: fileDeleted });
+}
+async function archivosOportunidad(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  return ok({ oportunidad: Number(id), archivos: await opportunityFiles(id, connection) });
+}
+async function contactoDetalle(args) {
+  const connection = connectionOf(args);
+  const contact = await fsClient.get(`/contactos/${pathId(args.idcontacto)}`, void 0, connection);
+  const id = contact.idcontacto;
+  const [source, customer, interests, lists, opportunities, statuses, notes] = await Promise.all([
+    getOrNull("/crmfuentes", contact.idfuente, connection),
+    getOrNull("/clientes", contact.codcliente, connection),
+    fetchAll("/crminterescontactos", { idcontacto: id }, connection).then((r) => r.rows).catch(() => []),
+    fetchAll("/crmlistacontactos", { idcontacto: id }, connection).then((r) => r.rows).catch(() => []),
+    fetchAll("/crmoportunidades", { idcontacto: id, "sort[fecha]": "DESC" }, connection).then((r) => r.rows),
+    fetchCatalog("/crmoportunidadestados", "id", connection),
+    fsClient.get("/crmnotas", { idcontacto: id, "sort[fecha]": "DESC", "sort[hora]": "DESC", limit: NOTES_LIMIT }, connection).catch(() => [])
+  ]);
+  const [interestNames, listNames] = await Promise.all([
+    fetchByIds("/crminteres", "id", interests.map((row) => row.idinteres), connection),
+    fetchByIds("/crmlistas", "id", lists.map((row) => row.idlista), connection)
+  ]);
+  const opportunityRows = opportunities.map((row) => ({
+    id: row.id,
+    fecha: row.fecha,
+    descripcion: row.descripcion ?? null,
+    estado: statuses.get(String(row.idestado))?.nombre ?? null,
+    situacion: opportunityStage(row),
+    importe: round2(opportunityValue(row)),
+    idpresupuesto: row.idpresupuesto ?? null,
+    asignado: row.asignado ?? null
+  }));
+  return ok({
+    contacto: {
+      ...contact,
+      nombre_completo: contactName(contact),
+      fuente_nombre: source?.nombre ?? null,
+      cliente_nombre: customer?.nombre ?? null
+    },
+    intereses: interests.map((row) => ({ id: row.id, idinteres: row.idinteres, nombre: interestNames.get(String(row.idinteres))?.nombre ?? null, fecha: row.fecha })),
+    listas: lists.map((row) => ({ id: row.id, idlista: row.idlista, nombre: listNames.get(String(row.idlista))?.nombre ?? null, fecha: row.fecha })),
+    resumen_oportunidades: {
+      total: opportunityRows.length,
+      abiertas: opportunityRows.filter((row) => row.situacion === "abierta").length,
+      ganadas: opportunityRows.filter((row) => row.situacion === "ganada").length,
+      perdidas: opportunityRows.filter((row) => row.situacion === "perdida").length,
+      importe_ganado: round2(opportunityRows.filter((row) => row.situacion === "ganada").reduce((sum, row) => sum + row.importe, 0))
+    },
+    oportunidades: opportunityRows,
+    notas: Array.isArray(notes) ? notes : []
+  });
+}
+async function informeOportunidades(args) {
+  const connection = connectionOf(args);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const params = {};
+  if (desde) params.fecha_gte = desde;
+  if (hasta) params.fecha_lte = hasta;
+  for (const field of ["asignado", "codagente", "idinteres", "idfuente"]) {
+    if (args[field] !== void 0 && args[field] !== "") params[field] = args[field];
+  }
+  const [{ rows, truncated }, statuses, interests, sources] = await Promise.all([
+    fetchAll("/crmoportunidades", params, connection),
+    fetchCatalog("/crmoportunidadestados", "id", connection),
+    fetchCatalog("/crminteres", "id", connection),
+    fetchCatalog("/crmfuentes", "id", connection)
+  ]);
+  const init = () => ({ oportunidades: 0, abiertas: 0, ganadas: 0, perdidas: 0, importe: 0, importe_ganado: 0 });
+  const groups = {
+    estado: /* @__PURE__ */ new Map(),
+    interes: /* @__PURE__ */ new Map(),
+    fuente: /* @__PURE__ */ new Map(),
+    asignado: /* @__PURE__ */ new Map(),
+    agente: /* @__PURE__ */ new Map(),
+    mes: /* @__PURE__ */ new Map()
+  };
+  const totals = init();
+  let closeDays = 0;
+  let closedCount = 0;
+  for (const row of rows) {
+    const stage = opportunityStage(row);
+    const value = opportunityValue(row);
+    const add = (g) => {
+      g.oportunidades += 1;
+      g.importe += value;
+      if (stage === "abierta") g.abiertas += 1;
+      else if (stage === "ganada") {
+        g.ganadas += 1;
+        g.importe_ganado += value;
+      } else g.perdidas += 1;
+    };
+    add(totals);
+    const statusName = statuses.get(String(row.idestado))?.nombre;
+    accumulate(groups.estado, statusName ? String(statusName) : groupKey(row.idestado), init, add);
+    const interestName = interests.get(String(row.idinteres))?.nombre;
+    accumulate(groups.interes, interestName ? String(interestName) : groupKey(row.idinteres), init, add);
+    const sourceName2 = sources.get(String(row.idfuente))?.nombre;
+    accumulate(groups.fuente, sourceName2 ? String(sourceName2) : groupKey(row.idfuente), init, add);
+    accumulate(groups.asignado, groupKey(row.asignado), init, add);
+    accumulate(groups.agente, groupKey(row.codagente), init, add);
+    accumulate(groups.mes, (isoDate(row.fecha) ?? "(sin fecha)").slice(0, 7), init, add);
+    const start = isoDate(row.fecha);
+    const end = isoDate(row.fecha_cierre);
+    if (stage !== "abierta" && start && end) {
+      closeDays += daysBetween(start, end);
+      closedCount += 1;
+    }
+  }
+  const format = (g) => ({
+    ...g,
+    importe: round2(g.importe),
+    importe_ganado: round2(g.importe_ganado),
+    conversion_pct: g.ganadas + g.perdidas > 0 ? round2(g.ganadas / (g.ganadas + g.perdidas) * 100) : null
+  });
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...format(g) })).sort((a, b) => num2(b.oportunidades) - num2(a.oportunidades));
+  const order = new Map([...statuses.values()].map((s) => [String(s.nombre), num2(s.orden)]));
+  const funnel = toList(groups.estado, "estado").sort((a, b) => (order.get(String(a.estado)) ?? Number.MAX_SAFE_INTEGER) - (order.get(String(b.estado)) ?? Number.MAX_SAFE_INTEGER));
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s oportunidades de las que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    resumen: {
+      ...format(totals),
+      dias_medios_hasta_cierre: closedCount > 0 ? round2(closeDays / closedCount) : null,
+      nota: "importe: neto del presupuesto vinculado en divisa principal o, si no hay, el importe aproximado. conversion_pct: ganadas / (ganadas + perdidas)."
+    },
+    embudo_por_estado: funnel,
+    por_interes: toList(groups.interes, "interes"),
+    por_fuente: toList(groups.fuente, "fuente"),
+    por_asignado: toList(groups.asignado, "asignado"),
+    por_agente: toList(groups.agente, "codagente"),
+    por_mes: toList(groups.mes, "mes").sort((a, b) => String(a.mes).localeCompare(String(b.mes)))
+  });
+}
+async function avisos(args) {
+  const connection = connectionOf(args);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const today = todayIso();
+  const defaultUntil = /* @__PURE__ */ new Date();
+  defaultUntil.setDate(defaultUntil.getDate() + 7);
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta") ?? isoDate(defaultUntil) ?? today;
+  const params = { fechaaviso_notnull: 1, fechaaviso_lte: hasta, "sort[fechaaviso]": "ASC", "sort[notice_hour]": "ASC" };
+  if (desde) params.fechaaviso_gte = desde;
+  if (typeof args.nick === "string" && args.nick !== "") params.nick = args.nick;
+  if (!isTrue(args.incluir_notificados)) params.fecha_notificado_null = 1;
+  const { rows, truncated } = await fetchAll("/crmnotas", params, connection);
+  const contacts = await fetchByIds("/contactos", "idcontacto", rows.map((row) => row.idcontacto), connection);
+  const items = rows.map((row) => {
+    const date3 = isoDate(row.fechaaviso);
+    return {
+      id: row.id,
+      fechaaviso: date3,
+      notice_hour: row.notice_hour ?? null,
+      vencido: date3 !== null && date3 < today,
+      notificado: row.fecha_notificado ?? null,
+      nick: row.nick ?? null,
+      paratodos: isTrue(row.paratodos),
+      idcontacto: row.idcontacto ?? null,
+      contacto: contactName(contacts.get(String(row.idcontacto)) ?? null),
+      idoportunidad: row.idoportunidad ?? null,
+      observaciones: typeof row.observaciones === "string" ? row.observaciones.slice(0, 300) : null
+    };
+  });
+  return ok({
+    hasta,
+    ...truncated ? { aviso: "Hay m\xE1s avisos de los que se han le\xEDdo: acota las fechas." } : {},
+    resumen: {
+      avisos: items.length,
+      vencidos: items.filter((item) => item.vencido).length,
+      hoy: items.filter((item) => item.fechaaviso === today).length
+    },
+    avisos: items
+  });
+}
+async function sinActividad(args) {
+  const connection = connectionOf(args);
+  const days = typeof args.dias === "number" && args.dias > 0 ? Math.floor(args.dias) : 30;
+  const today = todayIso();
+  const cutoffDate = /* @__PURE__ */ new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoff = isoDate(cutoffDate) ?? today;
+  const params = { editable: true };
+  for (const field of ["asignado", "codagente"]) {
+    if (typeof args[field] === "string" && args[field] !== "") params[field] = args[field];
+  }
+  const [{ rows, truncated }, recentNotes, statuses] = await Promise.all([
+    fetchAll("/crmoportunidades", params, connection),
+    fetchAll("/crmnotas", { idoportunidad_notnull: 1, fecha_gte: cutoff }, connection),
+    fetchCatalog("/crmoportunidadestados", "id", connection)
+  ]);
+  const active = new Set(recentNotes.rows.map((note) => String(note.idoportunidad)));
+  const idle = rows.filter((row) => !active.has(String(row.id))).map((row) => {
+    const last = isoDate(row.fechamod) ?? isoDate(row.fecha);
+    return { row, last };
+  }).filter(({ last }) => last === null || last < cutoff).map(({ row, last }) => ({
+    id: row.id,
+    fecha: isoDate(row.fecha),
+    ultima_actividad: last,
+    dias_sin_actividad: last ? daysBetween(last, today) : null,
+    estado: statuses.get(String(row.idestado))?.nombre ?? null,
+    idcontacto: row.idcontacto ?? null,
+    asignado: row.asignado ?? null,
+    codagente: row.codagente ?? null,
+    importe: round2(opportunityValue(row)),
+    descripcion: typeof row.descripcion === "string" ? row.descripcion.slice(0, 200) : null
+  })).sort((a, b) => (b.dias_sin_actividad ?? 0) - (a.dias_sin_actividad ?? 0));
+  const contacts = await fetchByIds("/contactos", "idcontacto", idle.map((item) => item.idcontacto), connection);
+  return ok({
+    dias: days,
+    ...truncated ? { aviso: "Hay m\xE1s oportunidades abiertas de las que se han le\xEDdo: acota los filtros." } : {},
+    resumen: {
+      oportunidades: idle.length,
+      importe: round2(idle.reduce((sum, item) => sum + item.importe, 0))
+    },
+    oportunidades: idle.map((item) => ({ ...item, contacto: contactName(contacts.get(String(item.idcontacto)) ?? null) }))
+  });
+}
+async function handleCrmTool(name, args) {
+  switch (name) {
+    case "get_oportunidad_crm":
+      return oportunidadDetalle(args);
+    case "set_estado_oportunidad_crm":
+      return setEstadoOportunidad(args);
+    case "create_presupuesto_oportunidad_crm":
+      return crearPresupuesto(args);
+    case "set_presupuesto_oportunidad_crm":
+      return setPresupuesto(args);
+    case "get_archivos_oportunidad_crm":
+      return archivosOportunidad(args);
+    case "create_archivo_oportunidad_crm":
+      return crearArchivo(args);
+    case "delete_archivo_oportunidad_crm":
+      return borrarArchivo(args);
+    case "get_contacto_crm":
+      return contactoDetalle(args);
+    case "get_informe_oportunidades_crm":
+      return informeOportunidades(args);
+    case "get_avisos_crm":
+      return avisos(args);
+    case "get_oportunidades_crm_sin_actividad":
+      return sinActividad(args);
+    default:
+      return null;
+  }
+}
+
+// src/plugins/crm/index.ts
+var tools = [...RESOURCES.flatMap(buildResourceTools), ...CRM_TOOLS];
+var toolNames = new Set(tools.map((tool) => tool.name));
+var crmPlugin = {
+  name: PLUGIN,
+  description: "Oportunidades, notas, archivos, presupuestos, fuentes, intereses, listas e informes",
+  models,
+  tools,
+  toolModels: Object.assign({}, ...RESOURCES.map(resourceToolModels)),
+  async handleTool(name, args) {
+    if (!toolNames.has(name)) return null;
+    try {
+      for (const def of RESOURCES) {
+        const result = await handleResourceTool(def, name, args);
+        if (result) return result;
+      }
+      return await handleCrmTool(name, args);
+    } catch (error2) {
+      return failFromError(PLUGIN, name, error2);
+    }
+  }
+};
+
+// src/plugins/proyectos/metadata/models/estado_proyecto.ts
+var estadoProyectoMetadata = {
+  "name": "estado_proyecto",
+  "table": "proyectos_estados",
+  "endpoint": "/estadoproyectos",
+  "primaryKey": "idestado",
+  "description": "Estado de los proyectos (abierto, en curso, terminado...). Decide si el proyecto es editable; uno es el predeterminado de los proyectos nuevos.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "color",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Color",
+      "maxLength": 10,
+      "description": "Color con el que se muestra el estado.",
+      "widget": "select",
+      "enumValues": [
+        "primary",
+        "secondary",
+        "success",
+        "danger",
+        "warning",
+        "info",
+        "light",
+        "dark"
+      ],
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "3.92"
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Editable",
+      "description": "Si los proyectos en este estado se pueden modificar. Un estado no editable equivale a un proyecto cerrado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idestado",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "predeterminado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Estado que reciben los proyectos nuevos. Solo puede haber uno.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "proyecto",
+      "targetTable": "proyectos",
+      "localColumn": "idestado",
+      "remoteColumn": "idestado"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "fase_tarea",
+      "targetTable": "tareas_fases",
+      "localColumn": "idestado",
+      "remoteColumn": "idestado"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var estado_proyecto_default = estadoProyectoMetadata;
+
+// src/plugins/proyectos/metadata/models/fase_tarea.ts
+var faseTareaMetadata = {
+  "name": "fase_tarea",
+  "table": "tareas_fases",
+  "endpoint": "/fasetareas",
+  "primaryKey": "idfase",
+  "description": "Fase de las tareas de proyecto (pendiente, en proceso, completada...). Su tipo marca las tareas completadas, canceladas o en proceso, y puede llevar asociado el estado al que pasa el proyecto.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "idestado",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Estado",
+      "description": "Estado al que pasa el proyecto cuando una tarea entra en esta fase (con tipo, cuando todas las tareas del proyecto est\xE1n en ella).",
+      "widget": "select",
+      "foreignKey": {
+        "table": "proyectos_estados",
+        "column": "idestado",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idfase",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la fase.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre de la fase.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "predeterminado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Fase que reciben las tareas nuevas. Solo puede haber una.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "tipo",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Tipo",
+      "description": "Tipo de fase: 0 completada, 1 cancelada, 2 en proceso, vac\xEDo sin tipo. Cada tipo solo puede estar en una fase.",
+      "widget": "select",
+      "enumValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "estado_proyecto",
+      "targetTable": "proyectos_estados",
+      "localColumn": "idestado",
+      "remoteColumn": "idestado"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "tarea_proyecto",
+      "targetTable": "tareas",
+      "localColumn": "idfase",
+      "remoteColumn": "idfase"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.7"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var fase_tarea_default = faseTareaMetadata;
+
+// src/plugins/proyectos/metadata/models/nota_proyecto.ts
+var notaProyectoMetadata = {
+  "name": "nota_proyecto",
+  "table": "proyectos_notas",
+  "endpoint": "/notaproyectos",
+  "primaryKey": "idnota",
+  "description": "Nota de un proyecto o de una de sus tareas, con autor y fecha.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Descripci\xF3n",
+      "description": "Texto de la nota.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha y hora de la nota.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Proyecto",
+      "description": "Proyecto al que pertenece la nota.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "proyectos",
+        "column": "idproyecto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    },
+    {
+      "name": "idtarea",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Tarea",
+      "description": "Tarea del proyecto a la que se refiere la nota (opcional).",
+      "widget": "select",
+      "foreignKey": {
+        "table": "tareas",
+        "column": "idtarea",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    },
+    {
+      "name": "idnota",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la nota.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Autor de la nota.",
+      "widget": "text",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "1.21"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "tarea_proyecto",
+      "targetTable": "tareas",
+      "localColumn": "idtarea",
+      "remoteColumn": "idtarea"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "proyecto",
+      "targetTable": "proyectos",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "1.21"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var nota_proyecto_default = notaProyectoMetadata;
+
+// src/plugins/proyectos/metadata/models/proyecto.ts
+var proyectoMetadata = {
+  "name": "proyecto",
+  "table": "proyectos",
+  "endpoint": "/proyectos",
+  "primaryKey": "idproyecto",
+  "description": "Proyecto del plugin Proyectos: trabajo para un cliente con estado, fechas, responsable, usuarios, tareas, notas y los documentos de compra y venta vinculados, con sus totales de ventas, compras y pendiente de facturar.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "codcliente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Cliente",
+      "maxLength": 10,
+      "description": "Cliente para el que se hace el proyecto.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "clientes",
+        "column": "codcliente",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n del proyecto.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Editable",
+      "description": "Si el proyecto se puede modificar. Lo fija el estado: un proyecto no editable est\xE1 cerrado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha de alta del proyecto.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechafin",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha fin",
+      "description": "Fecha prevista o real de fin.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechainicio",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha inicio",
+      "description": "Fecha prevista o real de inicio.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idempresa",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Empresa",
+      "description": "Empresa del proyecto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "empresas",
+        "column": "idempresa",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idestado",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Estado",
+      "description": "Estado del proyecto. Decide si es editable.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "proyectos_estados",
+        "column": "idestado",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador del proyecto.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Administrador",
+      "maxLength": 50,
+      "description": "Usuario responsable o creador del proyecto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre del proyecto. Si se deja vac\xEDo se genera con el patr\xF3n de c\xF3digo configurado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "numdocs",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "numdocs",
+      "default": 0,
+      "description": "N\xFAmero de documentos de compra y venta vinculados al proyecto.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "unreleased": true
+        }
+      ]
+    },
+    {
+      "name": "privado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Privado",
+      "description": "Si es privado: solo lo ven su responsable, los administradores y los usuarios a\xF1adidos al proyecto.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "totalcompras",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Total compras",
+      "default": 0,
+      "description": "Total de las compras del proyecto (facturas, albaranes y pedidos de proveedor sin duplicar los ya servidos).",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "2.2"
+        }
+      ]
+    },
+    {
+      "name": "totalpendientefacturar",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Pendiente facturar",
+      "default": 0,
+      "description": "Neto de presupuestos, pedidos y albaranes de cliente del proyecto todav\xEDa sin facturar.",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "3.4"
+        }
+      ]
+    },
+    {
+      "name": "totalventas",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Total ventas",
+      "default": 0,
+      "description": "Total de las ventas del proyecto (facturas, albaranes, pedidos y presupuestos de cliente sin duplicar los ya servidos).",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "2.2"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "cliente",
+      "targetTable": "clientes",
+      "localColumn": "codcliente",
+      "remoteColumn": "codcliente"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "empresa",
+      "targetTable": "empresas",
+      "localColumn": "idempresa",
+      "remoteColumn": "idempresa"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "estado_proyecto",
+      "targetTable": "proyectos_estados",
+      "localColumn": "idestado",
+      "remoteColumn": "idestado"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "nota_proyecto",
+      "targetTable": "proyectos_notas",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "stock_proyecto",
+      "targetTable": "proyectos_stocks",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "user_proyecto",
+      "targetTable": "proyectos_users",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "tarea_proyecto",
+      "targetTable": "tareas",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.1",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  },
+  "retiredColumns": [
+    {
+      "name": "codalmacen",
+      "sqlType": "character varying(4)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "codalmacen",
+      "maxLength": 4,
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.1",
+          "sinceFirstTag": true,
+          "until": "0.5"
+        }
+      ]
+    }
+  ]
+};
+var proyecto_default = proyectoMetadata;
+
+// src/plugins/proyectos/metadata/models/stock_proyecto.ts
+var stockProyectoMetadata = {
+  "name": "stock_proyecto",
+  "table": "proyectos_stocks",
+  "endpoint": "/stockproyectos",
+  "primaryKey": "id",
+  "description": "Stock de un producto dentro de un proyecto: cantidad, reservada, pendiente de recibir y disponible, calculado a partir de los documentos del proyecto.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "cantidad",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Cantidad",
+      "default": 0,
+      "description": "Cantidad en stock del proyecto.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "disponible",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Disponible",
+      "default": 0,
+      "description": "Cantidad disponible: cantidad menos reservada.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador del registro de stock.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idproducto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Producto",
+      "description": "Producto.",
+      "widget": "text",
+      "foreignKey": {
+        "table": "productos",
+        "column": "idproducto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Proyecto",
+      "description": "Proyecto al que pertenece el stock.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "proyectos",
+        "column": "idproyecto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "pterecibir",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Pendiente recepci\xF3n",
+      "default": 0,
+      "description": "Cantidad pendiente de recibir por pedidos de proveedor del proyecto.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "referencia",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Referencia",
+      "maxLength": 30,
+      "description": "Referencia de la variante del producto.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "reservada",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Reservado",
+      "default": 0,
+      "description": "Cantidad reservada por pedidos de cliente del proyecto.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "producto",
+      "targetTable": "productos",
+      "localColumn": "idproducto",
+      "remoteColumn": "idproducto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "proyecto",
+      "targetTable": "proyectos",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.7"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var stock_proyecto_default = stockProyectoMetadata;
+
+// src/plugins/proyectos/metadata/models/tarea_proyecto.ts
+var tareaProyectoMetadata = {
+  "name": "tarea_proyecto",
+  "table": "tareas",
+  "endpoint": "/tareaproyectos",
+  "primaryKey": "idtarea",
+  "description": "Tarea de un proyecto, con fase, usuario asignado, fechas de inicio, fin y completado. Al cambiar de fase puede cambiar el estado del proyecto.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "cantidad",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Cantidad",
+      "description": "Cantidad o unidades de la tarea (por ejemplo, horas estimadas).",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n de la tarea.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha de alta de la tarea.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "fechacompletado",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Fecha de completado",
+      "description": "Fecha y hora en que la tarea pas\xF3 a una fase de tipo completada. Se rellena sola.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "unreleased": true
+        }
+      ]
+    },
+    {
+      "name": "fechafin",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha fin",
+      "description": "Fecha l\xEDmite o de fin. Una tarea abierta con fecha fin pasada est\xE1 vencida.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "fechainicio",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha inicio",
+      "description": "Fecha de inicio prevista o real.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idfase",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Fase",
+      "description": "Fase de la tarea. Al cambiarla puede cambiar el estado del proyecto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "tareas_fases",
+        "column": "idfase",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Proyecto",
+      "description": "Proyecto al que pertenece la tarea.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "proyectos",
+        "column": "idproyecto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "idtarea",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la tarea.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "T\xEDtulo",
+      "maxLength": 100,
+      "description": "Nombre de la tarea.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.7"
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario asignado a la tarea. Recibe un email al asign\xE1rsela y al cambiar de fase.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "unreleased": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "proyecto",
+      "targetTable": "proyectos",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "fase_tarea",
+      "targetTable": "tareas_fases",
+      "localColumn": "idfase",
+      "remoteColumn": "idfase"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "nota_proyecto",
+      "targetTable": "proyectos_notas",
+      "localColumn": "idtarea",
+      "remoteColumn": "idtarea"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.7"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var tarea_proyecto_default = tareaProyectoMetadata;
+
+// src/plugins/proyectos/metadata/models/user_proyecto.ts
+var userProyectoMetadata = {
+  "name": "user_proyecto",
+  "table": "proyectos_users",
+  "endpoint": "/userproyectos",
+  "primaryKey": "id",
+  "description": "Usuario con acceso a un proyecto. Da acceso a los proyectos privados y a los de otras empresas.",
+  "source": "plugin:Proyectos",
+  "columns": [
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "fecha",
+      "description": "Fecha en que se a\xF1adi\xF3 el usuario.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.3"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la asignaci\xF3n.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.3"
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Proyecto",
+      "description": "Proyecto al que tiene acceso el usuario.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "proyectos",
+        "column": "idproyecto",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.3"
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario con acceso al proyecto.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "0.3"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "proyecto",
+      "targetTable": "proyectos",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Proyectos",
+      "since": "0.3"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T12:34:05.273Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Proyectos@bfa7881",
+    "versions": {
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var user_proyecto_default = userProyectoMetadata;
+
+// src/plugins/proyectos/metadata/index.ts
+var models2 = [
+  estado_proyecto_default,
+  fase_tarea_default,
+  nota_proyecto_default,
+  proyecto_default,
+  stock_proyecto_default,
+  tarea_proyecto_default,
+  user_proyecto_default
+];
+
+// src/plugins/proyectos/resources.ts
+var PLUGIN2 = "Proyectos";
+function metaOf2(name) {
+  const meta = models2.find((m) => m.name === name);
+  if (!meta) throw new Error(`Falta la metadata del modelo ${name} del plugin ${PLUGIN2}.`);
+  return meta;
+}
+var PHASE_TYPE = { 0: "completada", 1: "cancelada", 2: "en proceso" };
+var PHASE_COMPLETED = 0;
+var PHASE_CANCELED = 1;
+var proyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("proyecto"),
+  fields: ["nombre", "descripcion", "codcliente", "fecha", "fechainicio", "fechafin", "idempresa", "idestado", "nick", "privado"],
+  fieldDescriptions: {
+    nombre: "Nombre del proyecto. Si se omite se genera con el patr\xF3n de c\xF3digo configurado en Proyectos",
+    idestado: "Estado del proyecto. Si se omite, el predeterminado. Decide si el proyecto es editable",
+    idempresa: "Empresa del proyecto. Por defecto, la empresa predeterminada",
+    fecha: "Fecha de alta (YYYY-MM-DD). Por defecto, hoy",
+    nick: "Usuario responsable del proyecto",
+    privado: "true para que solo lo vean su responsable, los administradores y los usuarios a\xF1adidos"
+  },
+  list: {
+    tool: "get_proyectos",
+    description: "Lista proyectos del plugin Proyectos con filtros y paginaci\xF3n. editable=true son los proyectos abiertos. Incluye los totales de ventas, compras y pendiente de facturar de sus documentos. Para ver un proyecto completo (tareas, usuarios, notas, documentos) usa get_proyecto.",
+    filters: ["codcliente", "idestado", "idempresa", "nick", "editable", "privado"],
+    like: ["nombre", "descripcion"],
+    defaultOrder: "fecha:desc,idproyecto:desc"
+  },
+  create: {
+    tool: "create_proyecto",
+    description: "Crea un proyecto. El estado, la fecha y la empresa se rellenan solos si se omiten, y el nombre se genera con el patr\xF3n configurado. Consulta los estados con get_estados_proyecto."
+  },
+  update: {
+    tool: "update_proyecto",
+    description: "Modifica un proyecto; solo cambian los campos enviados. Para cambiar solo el estado (por nombre o id) usa set_estado_proyecto. Los totales se calculan a partir de los documentos y no se editan."
+  },
+  delete: {
+    tool: "delete_proyecto",
+    description: "Elimina un proyecto con sus tareas, notas, usuarios y stock. Los documentos vinculados se conservan. Irreversible: confirma antes con el usuario."
+  }
+};
+var tareaProyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("tarea_proyecto"),
+  fields: ["idproyecto", "nombre", "descripcion", "cantidad", "fecha", "fechainicio", "fechafin", "idfase", "nick"],
+  fieldDescriptions: {
+    idfase: "Fase de la tarea. Si se omite, la predeterminada. Cambiarla puede cambiar el estado del proyecto",
+    cantidad: "Cantidad de la tarea (por ejemplo, horas estimadas). Por defecto 1",
+    nick: "Usuario asignado. Recibe un email al asign\xE1rsela y cuando la tarea cambia de fase",
+    fechafin: "Fecha l\xEDmite (YYYY-MM-DD). Con ella se detectan las tareas vencidas"
+  },
+  list: {
+    tool: "get_tareas_proyecto",
+    description: "Lista tareas de proyectos con filtros y paginaci\xF3n. Las fases se consultan con get_fases_tarea. Para las tareas vencidas usa get_tareas_proyecto_vencidas.",
+    filters: ["idproyecto", "idfase", "nick"],
+    like: ["nombre", "descripcion"],
+    defaultOrder: "idproyecto:asc,idtarea:asc"
+  },
+  create: {
+    tool: "create_tarea_proyecto",
+    description: "Crea una tarea en un proyecto. Si se asigna a un usuario, se le notifica por email. La fase predeterminada se aplica si se omite idfase.",
+    required: ["idproyecto", "nombre"],
+    defaults: { cantidad: 1 }
+  },
+  update: {
+    tool: "update_tarea_proyecto",
+    description: "Modifica una tarea de proyecto. Al cambiar de fase se guarda la fecha de completado (si la fase es de tipo completada) y el proyecto puede cambiar de estado. Para cambiar solo la fase por nombre usa set_fase_tarea_proyecto."
+  },
+  delete: { tool: "delete_tarea_proyecto", description: "Elimina una tarea de proyecto y sus notas. Irreversible." }
+};
+var faseTarea = {
+  plugin: PLUGIN2,
+  meta: metaOf2("fase_tarea"),
+  fields: ["nombre", "predeterminado", "tipo", "idestado"],
+  fieldDescriptions: {
+    tipo: "Tipo de fase: 0 completada, 1 cancelada, 2 en proceso. Cada tipo solo puede estar en una fase: asignarlo lo quita de la fase que lo tuviera",
+    idestado: "Estado al que pasa el proyecto cuando una tarea entra en esta fase (con tipo: cuando todas sus tareas est\xE1n completadas o canceladas)",
+    predeterminado: "Fase de las tareas nuevas. Marcarla quita la marca a la anterior"
+  },
+  list: {
+    tool: "get_fases_tarea",
+    description: "Lista las fases de las tareas de proyecto: su tipo (0 completada, 1 cancelada, 2 en proceso), la predeterminada y el estado de proyecto asociado.",
+    filters: ["tipo", "predeterminado", "idestado"],
+    defaultOrder: "idfase:asc"
+  },
+  create: { tool: "create_fase_tarea", description: "Crea una fase de tareas de proyecto.", required: ["nombre"] },
+  update: { tool: "update_fase_tarea", description: "Modifica una fase de tareas de proyecto." },
+  delete: {
+    tool: "delete_fase_tarea",
+    description: "Elimina una fase de tareas. No se puede borrar la predeterminada ni una que tenga tareas."
+  }
+};
+var estadoProyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("estado_proyecto"),
+  fields: ["nombre", "color", "editable", "predeterminado"],
+  fieldDescriptions: {
+    predeterminado: "Estado de los proyectos nuevos. Marcarlo quita la marca al anterior",
+    editable: "Si los proyectos en este estado se pueden modificar (false equivale a proyecto cerrado)"
+  },
+  list: {
+    tool: "get_estados_proyecto",
+    description: "Lista los estados de proyecto: si son editables (abiertos) o no (cerrados) y cu\xE1l es el predeterminado.",
+    filters: ["editable", "predeterminado"],
+    like: ["nombre"],
+    defaultOrder: "idestado:asc"
+  },
+  create: { tool: "create_estado_proyecto", description: "Crea un estado de proyecto.", required: ["nombre"] },
+  update: { tool: "update_estado_proyecto", description: "Modifica un estado de proyecto." },
+  delete: {
+    tool: "delete_estado_proyecto",
+    description: "Elimina un estado de proyecto. No se puede borrar el predeterminado ni uno con proyectos."
+  }
+};
+var notaProyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("nota_proyecto"),
+  fields: ["idproyecto", "idtarea", "descripcion", "nick"],
+  fieldDescriptions: {
+    nick: "Autor de la nota (nick de un usuario). Obligatorio: la API no tiene usuario de sesi\xF3n",
+    idtarea: "Tarea del proyecto a la que se refiere la nota (opcional)"
+  },
+  list: {
+    tool: "get_notas_proyecto",
+    description: "Lista las notas de los proyectos y de sus tareas, de la m\xE1s reciente a la m\xE1s antigua.",
+    filters: ["idproyecto", "idtarea", "nick"],
+    like: ["descripcion"],
+    defaultOrder: "fecha:desc,idnota:desc"
+  },
+  create: {
+    tool: "create_nota_proyecto",
+    description: "A\xF1ade una nota a un proyecto o a una de sus tareas.",
+    required: ["idproyecto", "descripcion", "nick"]
+  },
+  update: { tool: "update_nota_proyecto", description: "Modifica una nota de proyecto." },
+  delete: { tool: "delete_nota_proyecto", description: "Elimina una nota de proyecto. Irreversible." }
+};
+var userProyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("user_proyecto"),
+  fields: ["idproyecto", "nick"],
+  list: {
+    tool: "get_usuarios_proyecto",
+    description: "Lista los usuarios a\xF1adidos a los proyectos (con acceso aunque el proyecto sea privado).",
+    filters: ["idproyecto", "nick"],
+    defaultOrder: "idproyecto:asc,nick:asc"
+  },
+  create: {
+    tool: "create_usuario_proyecto",
+    description: "A\xF1ade un usuario a un proyecto para darle acceso (tambi\xE9n a los proyectos privados).",
+    required: ["idproyecto", "nick"]
+  },
+  delete: { tool: "delete_usuario_proyecto", description: "Quita un usuario de un proyecto (por el id de la asignaci\xF3n)." }
+};
+var stockProyecto = {
+  plugin: PLUGIN2,
+  meta: metaOf2("stock_proyecto"),
+  fields: [],
+  list: {
+    tool: "get_stock_proyecto",
+    description: "Stock de productos de los proyectos: cantidad, reservada, pendiente de recibir y disponible. Lo calcula el plugin a partir de los documentos del proyecto; no se edita directamente.",
+    filters: ["idproyecto", "referencia", "idproducto"],
+    defaultOrder: "idproyecto:asc,referencia:asc"
+  }
+};
+var RESOURCES2 = [
+  proyecto,
+  tareaProyecto,
+  faseTarea,
+  estadoProyecto,
+  notaProyecto,
+  userProyecto,
+  stockProyecto
+];
+
+// src/plugins/proyectos/tools.ts
+var DOCUMENTS = [
+  { tipo: "presupuesto_cliente", endpoint: "/presupuestoclientes", id: "idpresupuesto", lado: "venta" },
+  { tipo: "pedido_cliente", endpoint: "/pedidoclientes", id: "idpedido", lado: "venta" },
+  { tipo: "albaran_cliente", endpoint: "/albaranclientes", id: "idalbaran", lado: "venta" },
+  { tipo: "factura_cliente", endpoint: "/facturaclientes", id: "idfactura", lado: "venta" },
+  { tipo: "presupuesto_proveedor", endpoint: "/presupuestoproveedores", id: "idpresupuesto", lado: "compra" },
+  { tipo: "pedido_proveedor", endpoint: "/pedidoproveedores", id: "idpedido", lado: "compra" },
+  { tipo: "albaran_proveedor", endpoint: "/albaranproveedores", id: "idalbaran", lado: "compra" },
+  { tipo: "factura_proveedor", endpoint: "/facturaproveedores", id: "idfactura", lado: "compra" }
+];
+var DOCUMENT_TYPES = DOCUMENTS.map((doc) => doc.tipo);
+var dateRangeProps = {
+  fecha_desde: { type: "string", description: "Desde esta fecha de alta incluida (YYYY-MM-DD)" },
+  fecha_hasta: { type: "string", description: "Hasta esta fecha de alta incluida (YYYY-MM-DD)" }
+};
+var projectFilterProps = {
+  codcliente: { type: "string", description: "Solo los proyectos de este cliente" },
+  idestado: { type: "number", description: "Solo los proyectos en este estado" },
+  nick: { type: "string", description: "Solo los proyectos de este responsable" },
+  idempresa: { type: "number", description: "Solo los proyectos de esta empresa" },
+  editable: { type: "boolean", description: "true solo abiertos, false solo cerrados" }
+};
+var PROYECTOS_TOOLS = [
+  {
+    name: "get_proyecto",
+    description: "Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, margen y pendiente de facturar, sus tareas con la fase y si est\xE1n vencidas (y el resumen por fase), los usuarios, las \xFAltimas notas, el stock, el resumen de documentos de compra y venta por tipo y los servicios SAT vinculados (si el plugin Servicios est\xE1 activo).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        notas: { type: "number", description: "Notas a incluir (por defecto 20, 0 para ninguna)" }
+      },
+      required: ["idproyecto"]
+    }
+  },
+  {
+    name: "get_documentos_proyecto",
+    description: "Documentos de venta (presupuestos, pedidos, albaranes y facturas de cliente) y de compra (de proveedor) vinculados a un proyecto, con su c\xF3digo, fecha, tercero, neto y total.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        tipo: {
+          type: "string",
+          enum: [...DOCUMENT_TYPES, "ventas", "compras", "todos"],
+          description: "Tipo de documento, ventas, compras o todos (por defecto todos)"
+        }
+      },
+      required: ["idproyecto"]
+    }
+  },
+  {
+    name: "set_proyecto_documento",
+    description: "Vincula un documento de compra o venta a un proyecto, o lo desvincula. FacturaScripts recalcula los totales del proyecto al guardar el documento.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        tipo: { type: "string", enum: DOCUMENT_TYPES, description: "Tipo de documento" },
+        id: { type: "number", description: "Id del documento (idfactura, idalbaran, idpedido o idpresupuesto)" },
+        idproyecto: { type: "number", description: "Proyecto al que vincularlo" },
+        desvincular: { type: "boolean", description: "true para quitar el documento de su proyecto" }
+      },
+      required: ["tipo", "id"]
+    }
+  },
+  {
+    name: "set_estado_proyecto",
+    description: "Cambia el estado de un proyecto indicando el id o el nombre del estado. El estado decide si el proyecto queda abierto (editable) o cerrado.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        idestado: { type: "number", description: "Id del nuevo estado" },
+        estado: { type: "string", description: "Nombre del nuevo estado, si no se indica idestado" }
+      },
+      required: ["idproyecto"]
+    }
+  },
+  {
+    name: "set_fase_tarea_proyecto",
+    description: 'Cambia la fase de una tarea de proyecto indicando el id o el nombre de la fase (ej. "Completada"). Guarda la fecha de completado, notifica al usuario asignado y puede cambiar el estado del proyecto.',
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idtarea: { type: "number", description: "Id de la tarea" },
+        idfase: { type: "number", description: "Id de la nueva fase" },
+        fase: { type: "string", description: "Nombre de la nueva fase, si no se indica idfase" }
+      },
+      required: ["idtarea"]
+    }
+  },
+  {
+    name: "get_informe_proyectos",
+    description: "Informe de proyectos (por fecha de alta): total, abiertos y cerrados, ventas, compras, margen y pendiente de facturar, con desglose por estado, cliente, responsable y mes, y los proyectos con m\xE1s ventas, m\xE1s margen y margen negativo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        ...dateRangeProps,
+        ...projectFilterProps,
+        top: { type: "number", description: "Proyectos de cada ranking (por defecto 10)" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_rentabilidad_proyectos",
+    description: "Rentabilidad por proyecto: ventas, compras, margen (ventas \u2212 compras), margen sobre ventas en % y pendiente de facturar, ordenados por el criterio indicado, con los totales.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        ...dateRangeProps,
+        ...projectFilterProps,
+        orden: {
+          type: "string",
+          enum: ["margen", "margen_pct", "ventas", "compras", "pendiente"],
+          description: "Criterio de orden descendente (por defecto margen)"
+        },
+        solo_con_movimientos: { type: "boolean", description: "Omitir los proyectos sin ventas ni compras" },
+        limit: { type: "number", description: "Proyectos a listar (por defecto 50); los totales cuentan todos" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_informe_tareas_proyecto",
+    description: "Informe de tareas de proyecto: total, abiertas, completadas, canceladas y vencidas; desglose por fase, por usuario (carga de trabajo) y por proyecto; d\xEDas medios hasta completarlas y tareas completadas en el periodo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        ...dateRangeProps,
+        idproyecto: { type: "number", description: "Solo las tareas de este proyecto" },
+        nick: { type: "string", description: "Solo las tareas de este usuario" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_tareas_proyecto_vencidas",
+    description: "Tareas de proyecto vencidas: con fecha fin anterior a la fecha de referencia (hoy por defecto) y que no est\xE1n completadas ni canceladas, de mayor a menor retraso, con su proyecto, fase y usuario.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Solo las tareas de este proyecto" },
+        nick: { type: "string", description: "Solo las tareas de este usuario" },
+        fecha_referencia: { type: "string", description: "Fecha con la que comparar (YYYY-MM-DD). Por defecto, hoy" },
+        limit: { type: "number", description: "Tareas a listar (por defecto 100); los totales cuentan todas" }
+      },
+      required: []
+    }
+  }
+];
+function phaseType(phases, idfase) {
+  const tipo = phases.get(String(idfase))?.tipo;
+  return tipo === null || tipo === void 0 || tipo === "" ? null : num2(tipo);
+}
+function isClosedTask(phases, task) {
+  const tipo = phaseType(phases, task.idfase);
+  return tipo === PHASE_COMPLETED || tipo === PHASE_CANCELED;
+}
+function overdueDays(phases, task, reference) {
+  const end = isoDate(task.fechafin);
+  if (!end || end >= reference || isClosedTask(phases, task)) return null;
+  return daysBetween(end, reference);
+}
+function projectParams(args) {
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const params = {};
+  if (desde) params.fecha_gte = desde;
+  if (hasta) params.fecha_lte = hasta;
+  for (const field of Object.keys(projectFilterProps)) {
+    if (args[field] !== void 0 && args[field] !== null && args[field] !== "") params[field] = args[field];
+  }
+  return { params, desde, hasta };
+}
+function economics(project) {
+  const ventas = num2(project.totalventas);
+  const compras = num2(project.totalcompras);
+  return {
+    ventas: round2(ventas),
+    compras: round2(compras),
+    margen: round2(ventas - compras),
+    margen_pct: ventas !== 0 ? round2((ventas - compras) / ventas * 100) : null,
+    pendiente: round2(num2(project.totalpendientefacturar))
+  };
+}
+async function proyectoDetalle(args) {
+  const connection = connectionOf(args);
+  const project = await fsClient.get(`/proyectos/${pathId(args.idproyecto)}`, void 0, connection);
+  const id = project.idproyecto;
+  const notesLimit = typeof args.notas === "number" && args.notas >= 0 ? args.notas : 20;
+  const today = todayIso();
+  const [status, customer, tasks, phases, users, notes, stock, documents, services] = await Promise.all([
+    getOrNull("/estadoproyectos", project.idestado, connection),
+    getOrNull("/clientes", project.codcliente, connection),
+    fetchAll("/tareaproyectos", { idproyecto: id, "sort[idtarea]": "ASC" }, connection),
+    fetchCatalog("/fasetareas", "idfase", connection),
+    fetchAll("/userproyectos", { idproyecto: id }, connection).catch(() => ({ rows: [], truncated: false })),
+    notesLimit === 0 ? Promise.resolve([]) : fsClient.get("/notaproyectos", { idproyecto: id, "sort[fecha]": "DESC", "sort[idnota]": "DESC", limit: notesLimit }, connection).catch(() => []),
+    fetchAll("/stockproyectos", { idproyecto: id }, connection).catch(() => ({ rows: [], truncated: false })),
+    Promise.all(
+      DOCUMENTS.map(async (doc) => {
+        try {
+          const { rows } = await fetchAll(doc.endpoint, { idproyecto: id }, connection);
+          return {
+            tipo: doc.tipo,
+            lado: doc.lado,
+            documentos: rows.length,
+            neto: round2(rows.reduce((sum, row) => sum + num2(row.neto), 0)),
+            total: round2(rows.reduce((sum, row) => sum + num2(row.total), 0))
+          };
+        } catch {
+          return { tipo: doc.tipo, lado: doc.lado, documentos: null, neto: null, total: null };
+        }
+      })
+    ),
+    // si el plugin Servicios no está activo el recurso no existe y no se muestran
+    fetchAll("/servicioates", { idproyecto: id }, connection).then((r) => r.rows).catch(() => null)
+  ]);
+  const byPhase = /* @__PURE__ */ new Map();
+  const taskRows = tasks.rows.map((task) => {
+    const phase = phases.get(String(task.idfase));
+    const tipo = phaseType(phases, task.idfase);
+    const late = overdueDays(phases, task, today);
+    const phaseName = phase ? String(phase.nombre) : groupKey(task.idfase);
+    byPhase.set(phaseName, (byPhase.get(phaseName) ?? 0) + 1);
+    return {
+      ...task,
+      fase_nombre: phase?.nombre ?? null,
+      fase_tipo: tipo === null ? null : PHASE_TYPE[tipo] ?? String(tipo),
+      vencida: late !== null,
+      dias_retraso: late
+    };
+  });
+  return ok({
+    proyecto: {
+      ...project,
+      estado_nombre: status?.nombre ?? null,
+      cliente_nombre: customer?.nombre ?? null,
+      abierto: isTrue(project.editable)
+    },
+    economia: {
+      ...economics(project),
+      nota: "Ventas y compras son los totales que calcula el plugin sin duplicar documentos ya servidos o facturados."
+    },
+    resumen_tareas: {
+      tareas: taskRows.length,
+      abiertas: taskRows.filter((task) => !isClosedTask(phases, task)).length,
+      vencidas: taskRows.filter((task) => task.vencida).length,
+      por_fase: Object.fromEntries(byPhase)
+    },
+    tareas: taskRows,
+    usuarios: users.rows,
+    notas: notes,
+    stock: { referencias: stock.rows.length, registros: stock.rows.slice(0, 100) },
+    documentos: documents,
+    ...services !== null ? {
+      servicios_sat: services.map((row) => ({
+        idservicio: row.idservicio,
+        codigo: row.codigo,
+        fecha: row.fecha,
+        abierto: isTrue(row.editable),
+        neto: num2(row.neto)
+      }))
+    } : {}
+  });
+}
+async function documentosProyecto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idproyecto);
+  const tipo = typeof args.tipo === "string" && args.tipo !== "" ? args.tipo : "todos";
+  const selected = DOCUMENTS.filter((doc) => tipo === "todos" || doc.tipo === tipo || tipo === "ventas" && doc.lado === "venta" || tipo === "compras" && doc.lado === "compra");
+  if (selected.length === 0) {
+    return fail(`get_documentos_proyecto: tipo no v\xE1lido. Usa ${[...DOCUMENT_TYPES, "ventas", "compras", "todos"].join(", ")}.`);
+  }
+  const result = {};
+  await Promise.all(selected.map(async (doc) => {
+    try {
+      const { rows } = await fetchAll(doc.endpoint, { idproyecto: id, "sort[fecha]": "DESC" }, connection);
+      result[doc.tipo] = {
+        documentos: rows.length,
+        neto: round2(rows.reduce((sum, row) => sum + num2(row.neto), 0)),
+        total: round2(rows.reduce((sum, row) => sum + num2(row.total), 0)),
+        registros: rows.map((row) => ({
+          [doc.id]: row[doc.id],
+          codigo: row.codigo,
+          fecha: row.fecha,
+          ...doc.lado === "venta" ? { codcliente: row.codcliente, nombre: row.nombrecliente } : { codproveedor: row.codproveedor, nombre: row.nombre },
+          neto: row.neto,
+          total: row.total,
+          editable: row.editable,
+          ...row.pagada !== void 0 ? { pagada: row.pagada } : {}
+        }))
+      };
+    } catch (error2) {
+      result[doc.tipo] = { error: error2 instanceof Error ? error2.message : String(error2) };
+    }
+  }));
+  return ok({ idproyecto: Number(id), documentos: result });
+}
+async function setProyectoDocumento(args) {
+  const connection = connectionOf(args);
+  const doc = DOCUMENTS.find((d) => d.tipo === args.tipo);
+  if (!doc) return fail(`set_proyecto_documento: tipo no v\xE1lido. Usa ${DOCUMENT_TYPES.join(", ")}.`);
+  const unlink = isTrue(args.desvincular);
+  if (!unlink && (args.idproyecto === void 0 || args.idproyecto === null || args.idproyecto === "")) {
+    return fail("set_proyecto_documento: indica idproyecto o desvincular=true.");
+  }
+  if (!unlink) {
+    await fsClient.get(`/proyectos/${pathId(args.idproyecto)}`, void 0, connection);
+  }
+  const result = await fsClient.put(
+    `${doc.endpoint}/${pathId(args.id)}`,
+    { idproyecto: unlink ? "null" : args.idproyecto },
+    connection
+  );
+  return ok(result);
+}
+async function setEstadoProyecto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idproyecto);
+  let status;
+  if (args.idestado === void 0 || args.idestado === null || args.idestado === "") {
+    if (typeof args.estado !== "string" || args.estado.trim() === "") {
+      return fail("set_estado_proyecto: indica idestado o el nombre del estado.");
+    }
+    const { rows } = await fetchAll("/estadoproyectos", {}, connection);
+    status = findByName(rows, "nombre", args.estado);
+  } else {
+    status = await getOrNull("/estadoproyectos", args.idestado, connection);
+    if (!status) return fail(`set_estado_proyecto: no existe el estado ${String(args.idestado)}.`);
+  }
+  const result = await fsClient.put(`/proyectos/${id}`, { idestado: status.idestado }, connection);
+  return ok({ estado: { idestado: status.idestado, nombre: status.nombre, editable: status.editable }, resultado: result });
+}
+async function setFaseTarea(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idtarea);
+  let phase;
+  if (args.idfase === void 0 || args.idfase === null || args.idfase === "") {
+    if (typeof args.fase !== "string" || args.fase.trim() === "") {
+      return fail("set_fase_tarea_proyecto: indica idfase o el nombre de la fase.");
+    }
+    const { rows } = await fetchAll("/fasetareas", {}, connection);
+    phase = findByName(rows, "nombre", args.fase);
+  } else {
+    phase = await getOrNull("/fasetareas", args.idfase, connection);
+    if (!phase) return fail(`set_fase_tarea_proyecto: no existe la fase ${String(args.idfase)}.`);
+  }
+  const result = await fsClient.put(`/tareaproyectos/${id}`, { idfase: phase.idfase }, connection);
+  const tipo = phase.tipo === null || phase.tipo === void 0 || phase.tipo === "" ? null : num2(phase.tipo);
+  return ok({
+    fase: { idfase: phase.idfase, nombre: phase.nombre, tipo: tipo === null ? null : PHASE_TYPE[tipo] ?? tipo },
+    resultado: result
+  });
+}
+async function informeProyectos(args) {
+  const connection = connectionOf(args);
+  const { params, desde, hasta } = projectParams(args);
+  const top = typeof args.top === "number" && args.top > 0 ? Math.floor(args.top) : 10;
+  const [{ rows, truncated }, statuses] = await Promise.all([
+    fetchAll("/proyectos", params, connection),
+    fetchCatalog("/estadoproyectos", "idestado", connection)
+  ]);
+  const init = () => ({ proyectos: 0, abiertos: 0, ventas: 0, compras: 0, margen: 0, pendiente: 0 });
+  const groups = {
+    estado: /* @__PURE__ */ new Map(),
+    cliente: /* @__PURE__ */ new Map(),
+    responsable: /* @__PURE__ */ new Map(),
+    mes: /* @__PURE__ */ new Map()
+  };
+  const totals = init();
+  const items = rows.map((row) => {
+    const eco = economics(row);
+    const isOpen = isTrue(row.editable);
+    const add = (g) => {
+      g.proyectos += 1;
+      if (isOpen) g.abiertos += 1;
+      g.ventas += eco.ventas;
+      g.compras += eco.compras;
+      g.margen += eco.margen;
+      g.pendiente += eco.pendiente;
+    };
+    add(totals);
+    const statusName = statuses.get(String(row.idestado))?.nombre;
+    accumulate(groups.estado, statusName ? String(statusName) : groupKey(row.idestado), init, add);
+    accumulate(groups.cliente, groupKey(row.codcliente), init, add);
+    accumulate(groups.responsable, groupKey(row.nick), init, add);
+    accumulate(groups.mes, (isoDate(row.fecha) ?? "(sin fecha)").slice(0, 7), init, add);
+    return { idproyecto: row.idproyecto, nombre: row.nombre, codcliente: row.codcliente ?? null, abierto: isOpen, ...eco };
+  });
+  const round = (g) => ({
+    ...g,
+    ventas: round2(g.ventas),
+    compras: round2(g.compras),
+    margen: round2(g.margen),
+    pendiente: round2(g.pendiente)
+  });
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...round(g) })).sort((a, b) => num2(b.ventas) - num2(a.ventas));
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s proyectos de los que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    resumen: { ...round(totals), cerrados: totals.proyectos - totals.abiertos },
+    por_estado: toList(groups.estado, "estado"),
+    por_cliente: toList(groups.cliente, "codcliente").slice(0, top),
+    por_responsable: toList(groups.responsable, "nick"),
+    por_mes: toList(groups.mes, "mes").sort((a, b) => String(a.mes).localeCompare(String(b.mes))),
+    top_ventas: [...items].sort((a, b) => b.ventas - a.ventas).slice(0, top),
+    top_margen: [...items].sort((a, b) => b.margen - a.margen).slice(0, top),
+    margen_negativo: items.filter((item) => item.margen < 0).sort((a, b) => a.margen - b.margen)
+  });
+}
+async function rentabilidadProyectos(args) {
+  const connection = connectionOf(args);
+  const { params, desde, hasta } = projectParams(args);
+  const limit = typeof args.limit === "number" && args.limit > 0 ? Math.floor(args.limit) : 50;
+  const order = typeof args.orden === "string" && args.orden !== "" ? args.orden : "margen";
+  if (!["margen", "margen_pct", "ventas", "compras", "pendiente"].includes(order)) {
+    return fail("get_rentabilidad_proyectos: orden debe ser margen, margen_pct, ventas, compras o pendiente.");
+  }
+  const [{ rows, truncated }, statuses] = await Promise.all([
+    fetchAll("/proyectos", params, connection),
+    fetchCatalog("/estadoproyectos", "idestado", connection)
+  ]);
+  const items = rows.map((row) => ({
+    idproyecto: row.idproyecto,
+    nombre: row.nombre,
+    codcliente: row.codcliente ?? null,
+    fecha: isoDate(row.fecha),
+    estado: statuses.get(String(row.idestado))?.nombre ?? null,
+    abierto: isTrue(row.editable),
+    numdocs: num2(row.numdocs),
+    ...economics(row)
+  })).filter((item) => !isTrue(args.solo_con_movimientos) || item.ventas !== 0 || item.compras !== 0).sort((a, b) => num2(b[order]) - num2(a[order]));
+  const ventas = items.reduce((sum, item) => sum + item.ventas, 0);
+  const compras = items.reduce((sum, item) => sum + item.compras, 0);
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s proyectos de los que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    totales: {
+      proyectos: items.length,
+      ventas: round2(ventas),
+      compras: round2(compras),
+      margen: round2(ventas - compras),
+      margen_pct: ventas !== 0 ? round2((ventas - compras) / ventas * 100) : null,
+      pendiente: round2(items.reduce((sum, item) => sum + item.pendiente, 0)),
+      con_margen_negativo: items.filter((item) => item.margen < 0).length
+    },
+    proyectos: items.slice(0, limit)
+  });
+}
+async function informeTareas(args) {
+  const connection = connectionOf(args);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const today = todayIso();
+  const base = {};
+  if (args.idproyecto !== void 0 && args.idproyecto !== "") base.idproyecto = args.idproyecto;
+  if (typeof args.nick === "string" && args.nick !== "") base.nick = args.nick;
+  const params = { ...base };
+  if (desde) params.fecha_gte = desde;
+  if (hasta) params.fecha_lte = hasta;
+  const completedParams = { ...base };
+  if (desde) completedParams.fechacompletado_gte = desde;
+  if (hasta) completedParams.fechacompletado_lte = `${hasta} 23:59:59`;
+  const [{ rows, truncated }, phases, completed] = await Promise.all([
+    fetchAll("/tareaproyectos", params, connection),
+    fetchCatalog("/fasetareas", "idfase", connection),
+    desde || hasta ? fetchAll("/tareaproyectos", { ...completedParams, fechacompletado_notnull: 1 }, connection).then((r) => r.rows.length).catch(() => null) : Promise.resolve(null)
+  ]);
+  const init = () => ({ tareas: 0, abiertas: 0, vencidas: 0, completadas: 0, canceladas: 0, cantidad: 0 });
+  const byPhase = /* @__PURE__ */ new Map();
+  const byUser = /* @__PURE__ */ new Map();
+  const byProject = /* @__PURE__ */ new Map();
+  const totals = init();
+  let daysSum = 0;
+  let daysCount = 0;
+  for (const task of rows) {
+    const tipo = phaseType(phases, task.idfase);
+    const late = overdueDays(phases, task, today);
+    const add = (g) => {
+      g.tareas += 1;
+      g.cantidad += num2(task.cantidad);
+      if (tipo === PHASE_COMPLETED) g.completadas += 1;
+      else if (tipo === PHASE_CANCELED) g.canceladas += 1;
+      else g.abiertas += 1;
+      if (late !== null) g.vencidas += 1;
+    };
+    add(totals);
+    const phaseName = phases.get(String(task.idfase))?.nombre;
+    accumulate(byPhase, phaseName ? String(phaseName) : groupKey(task.idfase), init, add);
+    accumulate(byUser, groupKey(task.nick), init, add);
+    accumulate(byProject, String(task.idproyecto), init, add);
+    const start = isoDate(task.fecha);
+    const done = isoDate(task.fechacompletado);
+    if (tipo === PHASE_COMPLETED && start && done) {
+      daysSum += daysBetween(start, done);
+      daysCount += 1;
+    }
+  }
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...g })).sort((a, b) => num2(b.abiertas) - num2(a.abiertas));
+  const topProjects = toList(byProject, "idproyecto").slice(0, 20);
+  const projects = await fetchByIds("/proyectos", "idproyecto", topProjects.map((row) => row.idproyecto), connection);
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s tareas de las que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    resumen: {
+      ...totals,
+      dias_medios_hasta_completar: daysCount > 0 ? round2(daysSum / daysCount) : null,
+      ...completed !== null ? { completadas_en_periodo: completed } : {}
+    },
+    por_fase: toList(byPhase, "fase"),
+    por_usuario: toList(byUser, "nick"),
+    por_proyecto: topProjects.map((row) => ({ ...row, nombre: projects.get(String(row.idproyecto))?.nombre ?? null }))
+  });
+}
+async function tareasVencidas(args) {
+  const connection = connectionOf(args);
+  const reference = optionalIsoDate(args.fecha_referencia, "fecha_referencia") ?? todayIso();
+  const limit = typeof args.limit === "number" && args.limit > 0 ? Math.floor(args.limit) : 100;
+  const params = { fechafin_lt: reference };
+  if (args.idproyecto !== void 0 && args.idproyecto !== "") params.idproyecto = args.idproyecto;
+  if (typeof args.nick === "string" && args.nick !== "") params.nick = args.nick;
+  const [{ rows, truncated }, phases] = await Promise.all([
+    fetchAll("/tareaproyectos", params, connection),
+    fetchCatalog("/fasetareas", "idfase", connection)
+  ]);
+  const overdue = rows.map((task) => ({ task, days: overdueDays(phases, task, reference) })).filter((item) => item.days !== null);
+  const projects = await fetchByIds("/proyectos", "idproyecto", overdue.map(({ task }) => task.idproyecto), connection);
+  const late = overdue.map(({ task, days }) => ({
+    idtarea: task.idtarea,
+    nombre: task.nombre,
+    idproyecto: task.idproyecto,
+    proyecto: projects.get(String(task.idproyecto))?.nombre ?? null,
+    fase: phases.get(String(task.idfase))?.nombre ?? null,
+    nick: task.nick ?? null,
+    fechainicio: isoDate(task.fechainicio),
+    fechafin: isoDate(task.fechafin),
+    dias_retraso: days
+  })).sort((a, b) => b.dias_retraso - a.dias_retraso);
+  const byUser = /* @__PURE__ */ new Map();
+  const byProject = /* @__PURE__ */ new Map();
+  for (const task of late) {
+    byUser.set(groupKey(task.nick), (byUser.get(groupKey(task.nick)) ?? 0) + 1);
+    const project = `${task.idproyecto} ${task.proyecto ?? ""}`.trim();
+    byProject.set(project, (byProject.get(project) ?? 0) + 1);
+  }
+  return ok({
+    fecha_referencia: reference,
+    ...truncated ? { aviso: "Hay m\xE1s tareas de las que se han le\xEDdo: acota los filtros." } : {},
+    resumen: {
+      vencidas: late.length,
+      dias_medios_retraso: late.length > 0 ? round2(late.reduce((sum, t) => sum + t.dias_retraso, 0) / late.length) : 0,
+      por_usuario: Object.fromEntries(byUser),
+      por_proyecto: Object.fromEntries(byProject)
+    },
+    tareas: late.slice(0, limit)
+  });
+}
+async function handleProyectosTool(name, args) {
+  switch (name) {
+    case "get_proyecto":
+      return proyectoDetalle(args);
+    case "get_documentos_proyecto":
+      return documentosProyecto(args);
+    case "set_proyecto_documento":
+      return setProyectoDocumento(args);
+    case "set_estado_proyecto":
+      return setEstadoProyecto(args);
+    case "set_fase_tarea_proyecto":
+      return setFaseTarea(args);
+    case "get_informe_proyectos":
+      return informeProyectos(args);
+    case "get_rentabilidad_proyectos":
+      return rentabilidadProyectos(args);
+    case "get_informe_tareas_proyecto":
+      return informeTareas(args);
+    case "get_tareas_proyecto_vencidas":
+      return tareasVencidas(args);
+    default:
+      return null;
+  }
+}
+
+// src/plugins/proyectos/index.ts
+var tools2 = [...RESOURCES2.flatMap(buildResourceTools), ...PROYECTOS_TOOLS];
+var toolNames2 = new Set(tools2.map((tool) => tool.name));
+var proyectosPlugin = {
+  name: PLUGIN2,
+  description: "Proyectos, tareas, documentos vinculados, rentabilidad e informes",
+  models: models2,
+  tools: tools2,
+  toolModels: Object.assign({}, ...RESOURCES2.map(resourceToolModels)),
+  async handleTool(name, args) {
+    if (!toolNames2.has(name)) return null;
+    try {
+      for (const def of RESOURCES2) {
+        const result = await handleResourceTool(def, name, args);
+        if (result) return result;
+      }
+      return await handleProyectosTool(name, args);
+    } catch (error2) {
+      return failFromError(PLUGIN2, name, error2);
+    }
+  }
+};
+
+// src/plugins/servicios/metadata/models/categoria_at.ts
+var categoriaAtMetadata = {
+  "name": "categoria_at",
+  "table": "serviciosat_categorias",
+  "endpoint": "/categoriaates",
+  "primaryKey": "id",
+  "description": "Categor\xEDa de verificaciones (checklist) de los servicios SAT. Agrupa las comprobaciones que hay que hacer en un servicio.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la categor\xEDa de verificaciones.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Descripci\xF3n",
+      "maxLength": 100,
+      "description": "Nombre de la categor\xEDa de verificaciones.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "check_at",
+      "targetTable": "serviciosat_checks",
+      "localColumn": "id",
+      "remoteColumn": "idcategory"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_categoria_at",
+      "targetTable": "serviciosat_serviciocategorias",
+      "localColumn": "id",
+      "remoteColumn": "idcategory"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var categoria_at_default = categoriaAtMetadata;
+
+// src/plugins/servicios/metadata/models/check_at.ts
+var checkAtMetadata = {
+  "name": "check_at",
+  "table": "serviciosat_checks",
+  "endpoint": "/checkates",
+  "primaryKey": "id",
+  "description": "Comprobaci\xF3n de una categor\xEDa de verificaciones SAT. Al a\xF1adir la categor\xEDa a un servicio se crea una verificaci\xF3n pendiente por cada comprobaci\xF3n.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la comprobaci\xF3n.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcategory",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Categor\xEDa",
+      "description": "Categor\xEDa de verificaciones a la que pertenece.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_categorias",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Descripci\xF3n",
+      "maxLength": 100,
+      "description": "Texto de la comprobaci\xF3n.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "priority",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Prioridad",
+      "description": "Orden de la comprobaci\xF3n dentro de su categor\xEDa.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "categoria_at",
+      "targetTable": "serviciosat_categorias",
+      "localColumn": "idcategory",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_check_at",
+      "targetTable": "serviciosat_serviciochecks",
+      "localColumn": "id",
+      "remoteColumn": "idcheck"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var check_at_default = checkAtMetadata;
+
+// src/plugins/servicios/metadata/models/estado_at.ts
+var estadoAtMetadata = {
+  "name": "estado_at",
+  "table": "serviciosat_estados",
+  "endpoint": "/estadoates",
+  "primaryKey": "id",
+  "description": "Estado de los servicios SAT (pendiente, en curso, terminado...). Decide si el servicio es editable, a qui\xE9n se asigna y a qui\xE9n se notifica el cambio.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "asignado",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Asignado",
+      "maxLength": 50,
+      "description": "Usuario al que se asigna autom\xE1ticamente el servicio al pasar a este estado.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "color",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Color",
+      "maxLength": 10,
+      "description": "Color con el que se muestra el estado en los listados.",
+      "widget": "select",
+      "enumValues": [
+        "primary",
+        "secondary",
+        "success",
+        "danger",
+        "warning",
+        "info",
+        "light",
+        "dark"
+      ],
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Editable",
+      "description": "Si los servicios en este estado se pueden modificar. Un estado no editable equivale a un servicio cerrado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre del estado.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "notificaragente",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Notificar al agente",
+      "default": false,
+      "description": "Enviar un email al agente del servicio cuando pasa a este estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "notificarasignado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Notificar al asignado",
+      "default": false,
+      "description": "Enviar un email al usuario asignado cuando el servicio pasa a este estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "notificarcliente",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Notificar al cliente",
+      "default": false,
+      "description": "Enviar un email al cliente cuando el servicio pasa a este estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "notificarusuario",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Notificar al usuario",
+      "default": false,
+      "description": "Enviar un email al usuario creador cuando el servicio pasa a este estado.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "predeterminado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Estado que reciben los servicios nuevos. Solo puede haber uno.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "asignado",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "id",
+      "remoteColumn": "idestado"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var estado_at_default = estadoAtMetadata;
+
+// src/plugins/servicios/metadata/models/maquina_at.ts
+var maquinaAtMetadata = {
+  "name": "maquina_at",
+  "table": "serviciosat_maquinas",
+  "endpoint": "/maquinaates",
+  "primaryKey": "idmaquina",
+  "description": "M\xE1quina o equipo de un cliente sobre el que se prestan servicios SAT, con n\xFAmero de serie, fabricante y referencia de producto.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "activo",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Activo",
+      "default": true,
+      "description": "Si la m\xE1quina sigue en uso. Las inactivas se conservan para el historial.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.3"
+        }
+      ]
+    },
+    {
+      "name": "codagente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Agente",
+      "maxLength": 10,
+      "description": "Agente asociado a la m\xE1quina.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codcliente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Cliente",
+      "maxLength": 10,
+      "description": "Cliente propietario de la m\xE1quina.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "clientes",
+        "column": "codcliente",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codfabricante",
+      "sqlType": "character varying(8)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fabricante",
+      "maxLength": 8,
+      "description": "Fabricante de la m\xE1quina.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "fabricantes",
+        "column": "codfabricante",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n de la m\xE1quina.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Fecha",
+      "description": "Fecha de alta de la m\xE1quina.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idmaquina",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la m\xE1quina.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Nombre",
+      "maxLength": 100,
+      "description": "Nombre o modelo de la m\xE1quina.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "numserie",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "N\xFAmero de Serie",
+      "maxLength": 100,
+      "description": "N\xFAmero de serie de la m\xE1quina.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "referencia",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Referencia",
+      "maxLength": 30,
+      "description": "Referencia del producto del cat\xE1logo que corresponde a la m\xE1quina.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "cliente",
+      "targetTable": "clientes",
+      "localColumn": "codcliente",
+      "remoteColumn": "codcliente"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "fabricante",
+      "targetTable": "fabricantes",
+      "localColumn": "codfabricante",
+      "remoteColumn": "codfabricante"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idmaquina",
+      "remoteColumn": "idmaquina"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idmaquina",
+      "remoteColumn": "idmaquina2"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idmaquina",
+      "remoteColumn": "idmaquina3"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idmaquina",
+      "remoteColumn": "idmaquina4"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var maquina_at_default = maquinaAtMetadata;
+
+// src/plugins/servicios/metadata/models/prioridad_at.ts
+var prioridadAtMetadata = {
+  "name": "prioridad_at",
+  "table": "serviciosat_prioridades",
+  "endpoint": "/prioridadates",
+  "primaryKey": "id",
+  "description": "Prioridad de los servicios SAT (urgente, normal, baja...). Una de ellas es la predeterminada para los servicios nuevos.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador de la prioridad.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nombre",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre de la prioridad.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "predeterminado",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Prioridad que reciben los servicios nuevos.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "id",
+      "remoteColumn": "idprioridad"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var prioridad_at_default = prioridadAtMetadata;
+
+// src/plugins/servicios/metadata/models/servicio_at.ts
+var servicioAtMetadata = {
+  "name": "servicio_at",
+  "table": "serviciosat",
+  "endpoint": "/servicioates",
+  "primaryKey": "idservicio",
+  "description": "Servicio de asistencia t\xE9cnica (SAT) del plugin Servicios: una solicitud de soporte o reparaci\xF3n de un cliente, con estado, prioridad, tipo, usuario asignado, agente, hasta cuatro m\xE1quinas implicadas y los trabajos realizados.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "asignado",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Asignado",
+      "maxLength": 50,
+      "description": "Nick del usuario de FacturaScripts asignado para gestionar este servicio.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codagente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Agente",
+      "maxLength": 10,
+      "description": "C\xF3digo del agente comercial asociado al servicio.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "agentes",
+        "column": "codagente",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codalmacen",
+      "sqlType": "character varying(4)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Almac\xE9n",
+      "maxLength": 4,
+      "description": "Almac\xE9n desde el que se gestiona el servicio. Determina la empresa impl\xEDcitamente.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "almacenes",
+        "column": "codaLmacen",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codcliente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Cliente",
+      "maxLength": 10,
+      "description": "C\xF3digo del cliente al que pertenece el servicio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "clientes",
+        "column": "codcliente",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codigo",
+      "sqlType": "character varying(20)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "C\xF3digo",
+      "maxLength": 20,
+      "description": "C\xF3digo alfanum\xE9rico \xFAnico del servicio, generado a partir del patr\xF3n configurado (por defecto SER-{NUM}).",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n detallada del problema o solicitud de asistencia t\xE9cnica.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "editable",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Editable",
+      "description": "Indica si el servicio puede modificarse. Viene determinado por el estado activo.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fecha",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha de apertura del servicio (por defecto la fecha actual).",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "hora",
+      "sqlType": "time without time zone",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Hora",
+      "description": "Hora de apertura del servicio.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idempresa",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Empresa",
+      "description": "Empresa propietaria del servicio. Se infiere autom\xE1ticamente del almac\xE9n si se omite.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "empresas",
+        "column": "idempresa",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idestado",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Estado",
+      "description": "Estado del servicio. Define si el servicio es editable y a qui\xE9n se asigna autom\xE1ticamente.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "serviciosat_estados",
+        "column": "id",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idmaquina",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "M\xE1quina",
+      "description": "Primera m\xE1quina o equipo implicado en el servicio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_maquinas",
+        "column": "idmaquina",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idmaquina2",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "M\xE1quina",
+      "description": "Segunda m\xE1quina o equipo implicado en el servicio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_maquinas",
+        "column": "idmaquina",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idmaquina3",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "M\xE1quina",
+      "description": "Tercera m\xE1quina o equipo implicado en el servicio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_maquinas",
+        "column": "idmaquina",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idmaquina4",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "M\xE1quina",
+      "description": "Cuarta m\xE1quina o equipo implicado en el servicio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_maquinas",
+        "column": "idmaquina",
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idprioridad",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Prioridad",
+      "description": "Prioridad del servicio (urgente, normal, baja, etc.), definida en la tabla de prioridades.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "serviciosat_prioridades",
+        "column": "id",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idtipo",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Tipo",
+      "description": "Tipo de servicio (reparaci\xF3n, instalaci\xF3n, mantenimiento, etc.), definido en la tabla de tipos.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "serviciosat_tipos",
+        "column": "id",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idservicio",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "idservicio",
+      "description": "Identificador interno autoincremental del servicio SAT.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "material",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Material",
+      "description": "Descripci\xF3n del material o repuesto utilizado en el servicio.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Nick del usuario de FacturaScripts que cre\xF3 o gestiona el servicio.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "neto",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Neto",
+      "default": 0,
+      "description": "Importe neto total del servicio, calculado autom\xE1ticamente como suma de precio \xD7 cantidad de los trabajos.",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "observaciones",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Observaciones",
+      "description": "Notas internas o indicaciones adicionales sobre el servicio.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "solucion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Soluci\xF3n",
+      "description": "Descripci\xF3n de la soluci\xF3n o resoluci\xF3n aplicada al servicio.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "telefono1",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Tel\xE9fono",
+      "maxLength": 30,
+      "description": "Primer tel\xE9fono de contacto. Se rellena autom\xE1ticamente con el del cliente si el servicio es editable.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "telefono2",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Tel\xE9fono 2",
+      "maxLength": 30,
+      "description": "Segundo tel\xE9fono de contacto.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idproyecto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "idproyecto",
+      "description": "Proyecto al que pertenece el servicio (columna que a\xF1ade el plugin Proyectos, si est\xE1 activo).",
+      "widget": "number",
+      "foreignKey": {
+        "table": "proyectos",
+        "column": "idproyecto",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Proyectos",
+          "since": "3.4"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "agente",
+      "targetTable": "agentes",
+      "localColumn": "codagente",
+      "remoteColumn": "codagente"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "almacen",
+      "targetTable": "almacenes",
+      "localColumn": "codalmacen",
+      "remoteColumn": "codaLmacen"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "cliente",
+      "targetTable": "clientes",
+      "localColumn": "codcliente",
+      "remoteColumn": "codcliente"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "maquina_at",
+      "targetTable": "serviciosat_maquinas",
+      "localColumn": "idmaquina",
+      "remoteColumn": "idmaquina"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "maquina_at",
+      "targetTable": "serviciosat_maquinas",
+      "localColumn": "idmaquina2",
+      "remoteColumn": "idmaquina"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "maquina_at",
+      "targetTable": "serviciosat_maquinas",
+      "localColumn": "idmaquina3",
+      "remoteColumn": "idmaquina"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "maquina_at",
+      "targetTable": "serviciosat_maquinas",
+      "localColumn": "idmaquina4",
+      "remoteColumn": "idmaquina"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "empresa",
+      "targetTable": "empresas",
+      "localColumn": "idempresa",
+      "remoteColumn": "idempresa"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "estado_at",
+      "targetTable": "serviciosat_estados",
+      "localColumn": "idestado",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "asignado",
+      "remoteColumn": "nick"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "prioridad_at",
+      "targetTable": "serviciosat_prioridades",
+      "localColumn": "idprioridad",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "tipo_at",
+      "targetTable": "serviciosat_tipos",
+      "localColumn": "idtipo",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "proyectos",
+      "targetTable": "proyectos",
+      "localColumn": "idproyecto",
+      "remoteColumn": "idproyecto"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_categoria_at",
+      "targetTable": "serviciosat_serviciocategorias",
+      "localColumn": "idservicio",
+      "remoteColumn": "idservice"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_check_at",
+      "targetTable": "serviciosat_serviciochecks",
+      "localColumn": "idservicio",
+      "remoteColumn": "idservice"
+    },
+    {
+      "type": "hasMany",
+      "targetModel": "trabajo_at",
+      "targetTable": "serviciosat_trabajos",
+      "localColumn": "idservicio",
+      "remoteColumn": "idservicio"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      },
+      "plugin:Proyectos": {
+        "latest": "4.2",
+        "tags": 36
+      }
+    }
+  }
+};
+var servicio_at_default = servicioAtMetadata;
+
+// src/plugins/servicios/metadata/models/servicio_at_log.ts
+var servicioAtLogMetadata = {
+  "name": "servicio_at_log",
+  "table": "serviciosat_logs",
+  "endpoint": "/servicioatloges",
+  "primaryKey": "id",
+  "description": "Historial de un servicio SAT: alta, cambios de estado, cliente, agente, asignado y trabajos, con usuario, IP y fecha.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "context",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Contexto",
+      "description": "Datos del registro en el momento del cambio, en JSON.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "creationdate",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha",
+      "description": "Fecha y hora del cambio.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador de la entrada del historial.",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idservicio",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Servicio SAT al que se refiere la entrada.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "ip",
+      "sqlType": "character varying(40)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "IP",
+      "maxLength": 40,
+      "description": "Direcci\xF3n IP desde la que se hizo el cambio.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "message",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Mensaje",
+      "description": "Texto del cambio registrado.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Usuario que hizo el cambio.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "users",
+        "column": "nick",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "user",
+      "targetTable": "users",
+      "localColumn": "nick",
+      "remoteColumn": "nick"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var servicio_at_log_default = servicioAtLogMetadata;
+
+// src/plugins/servicios/metadata/models/servicio_categoria_at.ts
+var servicioCategoriaAtMetadata = {
+  "name": "servicio_categoria_at",
+  "table": "serviciosat_serviciocategorias",
+  "endpoint": "/serviciocategoriaates",
+  "primaryKey": "id",
+  "description": "Categor\xEDa de verificaciones asignada a un servicio SAT. Al crearla se generan las verificaciones del servicio de esa categor\xEDa.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la asignaci\xF3n.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcategory",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Categor\xEDa",
+      "description": "Categor\xEDa de verificaciones asignada.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_categorias",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idservice",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Servicio",
+      "description": "Servicio SAT al que se asigna la categor\xEDa.",
+      "widget": "text",
+      "foreignKey": {
+        "table": "serviciosat",
+        "column": "idservicio",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "categoria_at",
+      "targetTable": "serviciosat_categorias",
+      "localColumn": "idcategory",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idservice",
+      "remoteColumn": "idservicio"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var servicio_categoria_at_default = servicioCategoriaAtMetadata;
+
+// src/plugins/servicios/metadata/models/servicio_check_at.ts
+var servicioCheckAtMetadata = {
+  "name": "servicio_check_at",
+  "table": "serviciosat_serviciochecks",
+  "endpoint": "/serviciocheckates",
+  "primaryKey": "id",
+  "description": "Verificaci\xF3n de un servicio SAT: una comprobaci\xF3n de la checklist, marcada o no, con la fecha en que se complet\xF3.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "completed",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Completado",
+      "description": "Fecha y hora en que se marc\xF3 como hecha. Se rellena sola al marcarla.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador de la verificaci\xF3n del servicio.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idcheck",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "idcheck",
+      "description": "Comprobaci\xF3n de la checklist.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat_checks",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idservice",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Servicio",
+      "description": "Servicio SAT al que pertenece la verificaci\xF3n.",
+      "widget": "text",
+      "foreignKey": {
+        "table": "serviciosat",
+        "column": "idservicio",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "checked",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Comprobado",
+      "description": "Si la comprobaci\xF3n est\xE1 hecha.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "check_at",
+      "targetTable": "serviciosat_checks",
+      "localColumn": "idcheck",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idservice",
+      "remoteColumn": "idservicio"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var servicio_check_at_default = servicioCheckAtMetadata;
+
+// src/plugins/servicios/metadata/models/tipo_at.ts
+var tipoAtMetadata = {
+  "name": "tipo_at",
+  "table": "serviciosat_tipos",
+  "endpoint": "/tipoates",
+  "primaryKey": "id",
+  "description": "Tipo de servicio SAT (reparaci\xF3n, instalaci\xF3n, mantenimiento...). Uno de ellos es el predeterminado para los servicios nuevos.",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador del tipo de servicio.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "default",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Por defecto",
+      "description": "Tipo que reciben los servicios nuevos. Solo puede haber uno.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Nombre",
+      "maxLength": 50,
+      "description": "Nombre del tipo de servicio.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "hasMany",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "id",
+      "remoteColumn": "idtipo"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var tipo_at_default = tipoAtMetadata;
+
+// src/plugins/servicios/metadata/models/trabajo_at.ts
+var trabajoAtMetadata = {
+  "name": "trabajo_at",
+  "table": "serviciosat_trabajos",
+  "endpoint": "/trabajoates",
+  "primaryKey": "idtrabajo",
+  "description": "Trabajo o l\xEDnea de intervenci\xF3n de un servicio SAT: acci\xF3n t\xE9cnica o producto empleado, con cantidad, precio, fechas y horas, t\xE9cnico y estado de facturaci\xF3n (hacer factura, albar\xE1n, presupuesto...).",
+  "source": "plugin:Servicios",
+  "columns": [
+    {
+      "name": "cantidad",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Cantidad",
+      "description": "N\xFAmero de unidades del producto o tiempo empleado en el trabajo (por defecto 1).",
+      "widget": "number",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "codagente",
+      "sqlType": "character varying(10)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Agente",
+      "maxLength": 10,
+      "description": "C\xF3digo del agente o t\xE9cnico que realiza el trabajo.",
+      "widget": "select",
+      "foreignKey": {
+        "table": "agentes",
+        "column": "codagente",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "descripcion",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Descripci\xF3n",
+      "description": "Descripci\xF3n de la acci\xF3n t\xE9cnica realizada. Se rellena autom\xE1ticamente desde el producto si se indica referencia.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "estado",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Acci\xF3n",
+      "description": "Estado de facturaci\xF3n del trabajo: 0 sin acci\xF3n, 1 hacer factura, 2 facturado, 3 hacer albar\xE1n, 4 albar\xE1n hecho, 5 hacer presupuesto, 6 presupuesto hecho, -1 descontar stock.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechafin",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Hasta",
+      "description": "Fecha en la que finaliz\xF3 el trabajo.",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "fechainicio",
+      "sqlType": "date",
+      "tsType": "date",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Desde",
+      "description": "Fecha en la que comenz\xF3 el trabajo (por defecto la fecha actual).",
+      "widget": "date",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "horafin",
+      "sqlType": "time",
+      "tsType": "time",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Hora fin",
+      "description": "Hora de finalizaci\xF3n del trabajo.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "horainicio",
+      "sqlType": "time",
+      "tsType": "time",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Hora inicio",
+      "description": "Hora de inicio del trabajo (por defecto la hora actual).",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idservicio",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Servicio",
+      "description": "Identificador del servicio SAT al que pertenece este trabajo.",
+      "widget": "autocomplete",
+      "foreignKey": {
+        "table": "serviciosat",
+        "column": "idservicio",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "idtrabajo",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "C\xF3digo",
+      "description": "Identificador interno autoincremental del trabajo SAT.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "sqlType": "character varying(50)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Usuario",
+      "maxLength": 50,
+      "description": "Nick del usuario de FacturaScripts que registr\xF3 o realiza el trabajo.",
+      "widget": "select",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "observaciones",
+      "sqlType": "text",
+      "tsType": "text",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Observaciones",
+      "description": "Notas adicionales sobre el trabajo realizado.",
+      "widget": "textarea",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "precio",
+      "sqlType": "double precision",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Precio",
+      "description": "Precio unitario del trabajo o producto. Se calcula autom\xE1ticamente desde la tarifa del cliente si se indica referencia.",
+      "widget": "money",
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    },
+    {
+      "name": "referencia",
+      "sqlType": "character varying(30)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Referencia",
+      "maxLength": 30,
+      "description": "Referencia del producto o variante utilizado en el trabajo. Al asignarla se rellena autom\xE1ticamente el precio y la descripci\xF3n.",
+      "widget": "text",
+      "foreignKey": {
+        "table": "variantes",
+        "column": "referencia",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:Servicios",
+          "since": "4.11",
+          "sinceFirstTag": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "servicio_at",
+      "targetTable": "serviciosat",
+      "localColumn": "idservicio",
+      "remoteColumn": "idservicio"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "variante",
+      "targetTable": "variantes",
+      "localColumn": "referencia",
+      "remoteColumn": "referencia"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "agente",
+      "targetTable": "agentes",
+      "localColumn": "codagente",
+      "remoteColumn": "codagente"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:Servicios",
+      "since": "4.11",
+      "sinceFirstTag": true
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-24T13:08:19.225Z",
+    "facturascriptsCommit": "7aa596470",
+    "facturascriptsVersion": "plugin:Servicios@124f8a2",
+    "versions": {
+      "plugin:Servicios": {
+        "latest": "4.31",
+        "tags": 5
+      }
+    }
+  }
+};
+var trabajo_at_default = trabajoAtMetadata;
+
+// src/plugins/servicios/metadata/index.ts
+var models3 = [
+  categoria_at_default,
+  check_at_default,
+  estado_at_default,
+  maquina_at_default,
+  prioridad_at_default,
+  servicio_at_default,
+  servicio_at_log_default,
+  servicio_categoria_at_default,
+  servicio_check_at_default,
+  tipo_at_default,
+  trabajo_at_default
+];
+
+// src/plugins/servicios/resources.ts
+var PLUGIN3 = "Servicios";
+function metaOf3(name) {
+  const meta = models3.find((m) => m.name === name);
+  if (!meta) throw new Error(`Falta la metadata del modelo ${name} del plugin ${PLUGIN3}.`);
+  return meta;
+}
+var WORK_STATUS = {
+  [-1]: "descontar stock",
+  0: "sin acci\xF3n",
+  1: "hacer factura",
+  2: "facturado",
+  3: "hacer albar\xE1n",
+  4: "albar\xE1n hecho",
+  5: "hacer presupuesto",
+  6: "presupuesto hecho"
+};
+var WORK_STATUS_TEXT = "Acci\xF3n de facturaci\xF3n del trabajo: 0 sin acci\xF3n, 1 hacer factura, 2 facturado, 3 hacer albar\xE1n, 4 albar\xE1n hecho, 5 hacer presupuesto, 6 presupuesto hecho. Las acciones 0, 1 y 3 descuentan stock del almac\xE9n del servicio (salvo que el control de stock de Servicios est\xE9 desactivado). Por defecto, la acci\xF3n configurada en el plugin.";
+var servicioAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("servicio_at"),
+  fields: [
+    "codcliente",
+    "codalmacen",
+    "codagente",
+    "asignado",
+    "nick",
+    "codigo",
+    "descripcion",
+    "observaciones",
+    "solucion",
+    "material",
+    "fecha",
+    "hora",
+    "idestado",
+    "idprioridad",
+    "idtipo",
+    "idmaquina",
+    "idmaquina2",
+    "idmaquina3",
+    "idmaquina4",
+    "idempresa",
+    "telefono1",
+    "telefono2",
+    "idproyecto"
+  ],
+  fieldDescriptions: {
+    codigo: "C\xF3digo del servicio. Si se omite se genera con el patr\xF3n configurado (por defecto SER-{NUM})",
+    idestado: "Estado del servicio. Si se omite, el predeterminado. Al cambiarlo se registra en el historial y se env\xEDan las notificaciones configuradas en el estado",
+    idprioridad: "Prioridad del servicio. Si se omite, la predeterminada",
+    idtipo: "Tipo de servicio. Si se omite, el predeterminado",
+    fecha: "Fecha del servicio (YYYY-MM-DD). Por defecto, hoy",
+    hora: "Hora del servicio (HH:MM:SS). Por defecto, la actual",
+    idempresa: "Empresa. Si se omite, la del almac\xE9n",
+    telefono1: "Tel\xE9fono de contacto. Si se omite, el del cliente",
+    telefono2: "Segundo tel\xE9fono de contacto. Si se omite, el del cliente",
+    nick: "Usuario que registra el servicio",
+    idproyecto: "Proyecto al que pertenece el servicio (solo si el plugin Proyectos est\xE1 activo)"
+  },
+  list: {
+    tool: "get_servicios_at",
+    description: "Lista servicios de asistencia t\xE9cnica (SAT) del plugin Servicios con filtros y paginaci\xF3n. editable=true son los servicios abiertos (su estado permite modificarlos). neto es la suma de precio \xD7 cantidad de sus trabajos. Para ver un servicio completo (trabajos, m\xE1quinas, checklist, historial y documentos) usa get_servicio_at.",
+    filters: [
+      "codigo",
+      "codcliente",
+      "codagente",
+      "codalmacen",
+      "idempresa",
+      "idestado",
+      "idprioridad",
+      "idtipo",
+      "asignado",
+      "nick",
+      "editable",
+      "idmaquina",
+      "idproyecto"
+    ],
+    like: ["descripcion", "solucion"],
+    defaultOrder: "fecha:desc,idservicio:desc"
+  },
+  create: {
+    tool: "create_servicio_at",
+    description: "Crea un servicio SAT. El c\xF3digo, el estado, la prioridad, el tipo, la fecha, la hora, la empresa y los tel\xE9fonos se rellenan solos si se omiten. Notifica por email al asignado, al agente y al cliente seg\xFAn la configuraci\xF3n. Consulta antes los estados, prioridades y tipos con get_estados_at, get_prioridades_at y get_tipos_at.",
+    required: ["codcliente", "codalmacen"]
+  },
+  update: {
+    tool: "update_servicio_at",
+    description: "Modifica un servicio SAT; solo cambian los campos enviados. Los cambios de estado, cliente, agente, asignado o usuario quedan en el historial y pueden enviar notificaciones. Para cambiar solo el estado (por nombre o id) usa set_estado_servicio_at."
+  },
+  delete: {
+    tool: "delete_servicio_at",
+    description: "Elimina un servicio SAT junto con sus trabajos (devolviendo el stock que descontaban), checklist y categor\xEDas. Irreversible: confirma antes con el usuario."
+  }
+};
+var trabajoAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("trabajo_at"),
+  fields: [
+    "idservicio",
+    "referencia",
+    "descripcion",
+    "cantidad",
+    "precio",
+    "estado",
+    "fechainicio",
+    "horainicio",
+    "fechafin",
+    "horafin",
+    "codagente",
+    "nick",
+    "observaciones"
+  ],
+  fieldDescriptions: {
+    estado: WORK_STATUS_TEXT,
+    referencia: "Referencia del producto o servicio del cat\xE1logo. Si se indica, el precio y la descripci\xF3n vac\xEDos se toman de la tarifa del cliente",
+    precio: "Precio unitario sin impuestos. Si se omite y hay referencia, el de la tarifa del cliente",
+    cantidad: "Cantidad (unidades u horas). Por defecto 1",
+    fechainicio: "Fecha de inicio (YYYY-MM-DD). Por defecto, hoy",
+    horainicio: "Hora de inicio (HH:MM:SS). Por defecto, la actual"
+  },
+  list: {
+    tool: "get_trabajos_at",
+    description: "Lista trabajos (l\xEDneas de intervenci\xF3n) de los servicios SAT con filtros y paginaci\xF3n. El campo estado es la acci\xF3n de facturaci\xF3n: 0 sin acci\xF3n, 1 hacer factura, 2 facturado, 3 hacer albar\xE1n, 4 albar\xE1n hecho, 5 hacer presupuesto, 6 presupuesto hecho.",
+    filters: ["idservicio", "estado", "codagente", "nick", "referencia"],
+    like: ["descripcion"],
+    defaultOrder: "fechainicio:asc,horainicio:asc"
+  },
+  create: {
+    tool: "create_trabajo_at",
+    description: "A\xF1ade un trabajo a un servicio SAT. Recalcula el neto del servicio, lo anota en su historial y, seg\xFAn la acci\xF3n (estado), descuenta stock del almac\xE9n del servicio. Para facturar los trabajos m\xE1rcalos con estado 1 (o 3 albar\xE1n, 5 presupuesto) y genera el documento desde la ficha del servicio en FacturaScripts.",
+    required: ["idservicio"]
+  },
+  update: {
+    tool: "update_trabajo_at",
+    description: "Modifica un trabajo de un servicio SAT. Si cambian la cantidad, la referencia o la acci\xF3n se ajusta el stock, y se recalcula el neto del servicio."
+  },
+  delete: {
+    tool: "delete_trabajo_at",
+    description: "Elimina un trabajo de un servicio SAT, devuelve su stock y recalcula el neto del servicio. Irreversible."
+  }
+};
+var estadoAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("estado_at"),
+  fields: [
+    "nombre",
+    "color",
+    "editable",
+    "predeterminado",
+    "asignado",
+    "notificaragente",
+    "notificarasignado",
+    "notificarcliente",
+    "notificarusuario"
+  ],
+  list: {
+    tool: "get_estados_at",
+    description: "Lista los estados de los servicios SAT: si son editables (abiertos) o no (cerrados), el predeterminado, el usuario que se asigna al pasar a ese estado y a qui\xE9n se notifica.",
+    filters: ["editable", "predeterminado"],
+    like: ["nombre"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_estado_at",
+    description: "Crea un estado de servicios SAT. Marcarlo como predeterminado quita la marca al anterior.",
+    required: ["nombre"]
+  },
+  update: {
+    tool: "update_estado_at",
+    description: "Modifica un estado de servicios SAT. Marcarlo como predeterminado quita la marca al anterior."
+  },
+  delete: {
+    tool: "delete_estado_at",
+    description: "Elimina un estado de servicios SAT. No se puede si hay servicios en ese estado. Irreversible."
+  }
+};
+var prioridadAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("prioridad_at"),
+  fields: ["nombre", "predeterminado"],
+  list: {
+    tool: "get_prioridades_at",
+    description: "Lista las prioridades de los servicios SAT y cu\xE1l es la predeterminada.",
+    filters: ["predeterminado"],
+    defaultOrder: "id:asc"
+  },
+  create: { tool: "create_prioridad_at", description: "Crea una prioridad de servicios SAT.", required: ["nombre"] },
+  update: { tool: "update_prioridad_at", description: "Modifica una prioridad de servicios SAT." },
+  delete: {
+    tool: "delete_prioridad_at",
+    description: "Elimina una prioridad de servicios SAT; los servicios que la ten\xEDan quedan sin prioridad."
+  }
+};
+var tipoAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("tipo_at"),
+  fields: ["name", "default"],
+  fieldDescriptions: { default: "Tipo predeterminado de los servicios nuevos. Por defecto true: quita la marca al anterior" },
+  list: {
+    tool: "get_tipos_at",
+    description: "Lista los tipos de servicio SAT (campo name) y cu\xE1l es el predeterminado (campo default).",
+    filters: ["default"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_tipo_at",
+    description: "Crea un tipo de servicio SAT. Si no se indica default=false, pasa a ser el predeterminado.",
+    required: ["name"]
+  },
+  update: { tool: "update_tipo_at", description: "Modifica un tipo de servicio SAT." },
+  delete: {
+    tool: "delete_tipo_at",
+    description: "Elimina un tipo de servicio SAT; los servicios que lo ten\xEDan quedan sin tipo."
+  }
+};
+var maquinaAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("maquina_at"),
+  fields: ["nombre", "descripcion", "numserie", "referencia", "codcliente", "codfabricante", "codagente", "fecha", "activo"],
+  list: {
+    tool: "get_maquinas_at",
+    description: "Lista las m\xE1quinas o equipos de clientes sobre los que se prestan servicios SAT. Para ver los servicios de una m\xE1quina usa get_historial_maquina_at.",
+    filters: ["codcliente", "codfabricante", "codagente", "activo", "referencia", "numserie"],
+    like: ["nombre", "numserie", "descripcion"],
+    defaultOrder: "idmaquina:desc"
+  },
+  create: {
+    tool: "create_maquina_at",
+    description: "Da de alta una m\xE1quina o equipo de un cliente para usarla en servicios SAT (idmaquina..idmaquina4).",
+    required: ["nombre"]
+  },
+  update: { tool: "update_maquina_at", description: "Modifica una m\xE1quina de servicios SAT. Para retirarla sin perder su historial, activo=false." },
+  delete: {
+    tool: "delete_maquina_at",
+    description: "Elimina una m\xE1quina. No se puede si alg\xFAn servicio la usa (mejor marcarla activo=false). Irreversible."
+  }
+};
+var categoriaAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("categoria_at"),
+  fields: ["name"],
+  list: {
+    tool: "get_categorias_at",
+    description: "Lista las categor\xEDas de verificaciones (checklists) de los servicios SAT. Sus comprobaciones se ven con get_checks_at.",
+    filters: [],
+    like: ["name"],
+    defaultOrder: "name:asc"
+  },
+  create: { tool: "create_categoria_at", description: "Crea una categor\xEDa de verificaciones (checklist) de servicios SAT.", required: ["name"] },
+  update: { tool: "update_categoria_at", description: "Cambia el nombre de una categor\xEDa de verificaciones de servicios SAT." },
+  delete: {
+    tool: "delete_categoria_at",
+    description: "Elimina una categor\xEDa de verificaciones con sus comprobaciones y las verificaciones de los servicios. Irreversible."
+  }
+};
+var checkAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("check_at"),
+  fields: ["idcategory", "name", "priority"],
+  list: {
+    tool: "get_checks_at",
+    description: "Lista las comprobaciones de las categor\xEDas de verificaciones (checklists) de servicios SAT.",
+    filters: ["idcategory"],
+    like: ["name"],
+    defaultOrder: "idcategory:asc,priority:asc"
+  },
+  create: {
+    tool: "create_check_at",
+    description: "A\xF1ade una comprobaci\xF3n a una categor\xEDa de verificaciones. Solo aparece en los servicios a los que se asigne la categor\xEDa a partir de ahora.",
+    required: ["idcategory", "name"],
+    defaults: { priority: 0 }
+  },
+  update: { tool: "update_check_at", description: "Modifica una comprobaci\xF3n de una categor\xEDa de verificaciones." },
+  delete: { tool: "delete_check_at", description: "Elimina una comprobaci\xF3n y sus verificaciones en los servicios. Irreversible." }
+};
+var servicioCategoriaAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("servicio_categoria_at"),
+  fields: ["idservice", "idcategory"],
+  list: {
+    tool: "get_servicio_categorias_at",
+    description: "Lista las categor\xEDas de verificaciones asignadas a los servicios SAT.",
+    filters: ["idservice", "idcategory"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_servicio_categoria_at",
+    description: "Asigna una categor\xEDa de verificaciones a un servicio SAT y crea en \xE9l una verificaci\xF3n pendiente por cada comprobaci\xF3n de la categor\xEDa (se ven con get_servicio_checks_at).",
+    required: ["idservice", "idcategory"]
+  },
+  delete: {
+    tool: "delete_servicio_categoria_at",
+    description: "Quita una categor\xEDa de verificaciones de un servicio SAT (por el id de la asignaci\xF3n)."
+  }
+};
+var servicioCheckAT = {
+  plugin: PLUGIN3,
+  meta: metaOf3("servicio_check_at"),
+  fields: ["checked"],
+  fieldDescriptions: { checked: "true para marcar la comprobaci\xF3n como hecha (guarda la fecha), false para desmarcarla" },
+  list: {
+    tool: "get_servicio_checks_at",
+    description: "Lista las verificaciones (checklist) de los servicios SAT: cada comprobaci\xF3n, si est\xE1 hecha y cu\xE1ndo. Para verlas con su texto usa get_servicio_at.",
+    filters: ["idservice", "idcheck", "checked"],
+    defaultOrder: "id:asc"
+  },
+  update: {
+    tool: "update_servicio_check_at",
+    description: "Marca o desmarca una verificaci\xF3n de la checklist de un servicio SAT (por su id)."
+  }
+};
+var servicioATLog = {
+  plugin: PLUGIN3,
+  meta: metaOf3("servicio_at_log"),
+  fields: [],
+  list: {
+    tool: "get_servicio_at_logs",
+    description: "Lista el historial de los servicios SAT: altas, cambios de estado, cliente, agente, asignado y trabajos, con usuario y fecha.",
+    filters: ["idservicio", "nick"],
+    like: ["message"],
+    defaultOrder: "creationdate:desc,id:desc"
+  }
+};
+var RESOURCES3 = [
+  servicioAT,
+  trabajoAT,
+  estadoAT,
+  prioridadAT,
+  tipoAT,
+  maquinaAT,
+  categoriaAT,
+  checkAT,
+  servicioCategoriaAT,
+  servicioCheckAT,
+  servicioATLog
+];
+
+// src/plugins/servicios/tools.ts
+var CONCURRENCY = 8;
+var PENDING_ACTIONS = { factura: 1, albaran: 3, presupuesto: 5 };
+var LINKED_DOCUMENTS = [
+  { key: "presupuestos", endpoint: "/presupuestoclientes", id: "idpresupuesto" },
+  { key: "albaranes", endpoint: "/albaranclientes", id: "idalbaran" },
+  { key: "facturas", endpoint: "/facturaclientes", id: "idfactura" }
+];
+var dateRangeProps2 = {
+  fecha_desde: { type: "string", description: "Desde esta fecha incluida (YYYY-MM-DD)" },
+  fecha_hasta: { type: "string", description: "Hasta esta fecha incluida (YYYY-MM-DD)" }
+};
+var SERVICIOS_TOOLS = [
+  {
+    name: "get_servicio_at",
+    description: "Ficha completa de un servicio SAT: datos del servicio con los nombres de su estado, prioridad, tipo y cliente, sus trabajos con importes y acci\xF3n de facturaci\xF3n, las m\xE1quinas, la checklist de verificaciones, los presupuestos, albaranes y facturas generados y las \xFAltimas entradas del historial.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        codigo: { type: "string", description: "C\xF3digo del servicio (ej. SER-000123), si no se conoce el id" },
+        historial: { type: "number", description: "Entradas del historial a incluir (por defecto 20, 0 para ninguna)" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "set_estado_servicio_at",
+    description: "Cambia el estado de un servicio SAT indicando el id o el nombre del estado. El estado decide si el servicio queda abierto (editable) o cerrado, puede asignarlo a un usuario y enviar notificaciones; el cambio queda en el historial.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        idestado: { type: "number", description: "Id del nuevo estado" },
+        estado: { type: "string", description: 'Nombre del nuevo estado, si no se indica idestado (ej. "Terminado")' }
+      },
+      required: ["idservicio"]
+    }
+  },
+  {
+    name: "get_historial_maquina_at",
+    description: "Historial de una m\xE1quina: sus datos y todos los servicios SAT en los que aparece (como m\xE1quina 1 a 4), del m\xE1s reciente al m\xE1s antiguo, con su estado e importe.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idmaquina: { type: "number", description: "Id de la m\xE1quina" }
+      },
+      required: ["idmaquina"]
+    }
+  },
+  {
+    name: "get_informe_servicios_at",
+    description: "Informe de servicios SAT de un periodo (por fecha del servicio): total, abiertos y cerrados, importe neto, y desglose por estado, prioridad, tipo, usuario asignado, agente, mes y principales clientes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        ...dateRangeProps2,
+        codcliente: { type: "string", description: "Solo los servicios de este cliente" },
+        codagente: { type: "string", description: "Solo los servicios de este agente" },
+        asignado: { type: "string", description: "Solo los servicios asignados a este usuario (nick)" },
+        codalmacen: { type: "string", description: "Solo los servicios de este almac\xE9n" },
+        idempresa: { type: "number", description: "Solo los servicios de esta empresa" },
+        idtipo: { type: "number", description: "Solo los servicios de este tipo" },
+        top: { type: "number", description: "Clientes a mostrar en el ranking (por defecto 10)" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_servicios_at_pendientes",
+    description: "Servicios SAT abiertos (estado editable) ordenados de m\xE1s antiguo a m\xE1s reciente, con los d\xEDas que llevan abiertos, estado, prioridad, asignado e importe, y el recuento por usuario asignado y por estado.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        asignado: { type: "string", description: "Solo los asignados a este usuario (nick)" },
+        codagente: { type: "string", description: "Solo los de este agente" },
+        codcliente: { type: "string", description: "Solo los de este cliente" },
+        idestado: { type: "number", description: "Solo los de este estado" },
+        idprioridad: { type: "number", description: "Solo los de esta prioridad" },
+        dias_minimos: { type: "number", description: "Solo los que llevan abiertos al menos estos d\xEDas" },
+        limit: { type: "number", description: "Servicios a listar (por defecto 50); los totales cuentan todos" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_trabajos_at_pendientes",
+    description: "Trabajos de servicios SAT marcados para facturar, hacer albar\xE1n o hacer presupuesto que a\xFAn no se han generado, agrupados por servicio, con el importe (precio \xD7 cantidad, sin impuestos) por acci\xF3n y por cliente. Los documentos se generan desde la ficha del servicio en FacturaScripts.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        accion: {
+          type: "string",
+          enum: ["factura", "albaran", "presupuesto", "todas"],
+          description: "Acci\xF3n pendiente a consultar (por defecto todas)"
+        },
+        codcliente: { type: "string", description: "Solo los servicios de este cliente" },
+        idservicio: { type: "number", description: "Solo los trabajos de este servicio" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_horas_trabajos_at",
+    description: "Horas trabajadas en los servicios SAT en un periodo (por fecha de inicio del trabajo), calculadas con las fechas y horas de inicio y fin de cada trabajo, por usuario y por agente, con su importe. Los trabajos sin hora de fin se cuentan aparte.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        ...dateRangeProps2,
+        nick: { type: "string", description: "Solo los trabajos de este usuario" },
+        codagente: { type: "string", description: "Solo los trabajos de este agente" },
+        idservicio: { type: "number", description: "Solo los trabajos de este servicio" }
+      },
+      required: []
+    }
+  }
+];
+async function loadService(args, connection) {
+  if (args.idservicio !== void 0 && args.idservicio !== null && args.idservicio !== "") {
+    return fsClient.get(`/servicioates/${pathId(args.idservicio)}`, void 0, connection);
+  }
+  if (typeof args.codigo === "string" && args.codigo !== "") {
+    const rows = await fsClient.get("/servicioates", { codigo: args.codigo, limit: 2 }, connection);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error(`No existe ning\xFAn servicio con c\xF3digo \xAB${args.codigo}\xBB.`);
+    }
+    return rows[0];
+  }
+  throw new Error("Indica idservicio o codigo.");
+}
+function workAmount(work) {
+  return num2(work.precio) * num2(work.cantidad);
+}
+function nameIn(catalog, id, field = "nombre") {
+  const row = catalog.get(String(id));
+  return row ? String(row[field] ?? "") : null;
+}
+async function servicioDetalle(args) {
+  const connection = connectionOf(args);
+  const service = await loadService(args, connection);
+  const id = service.idservicio;
+  const historyLimit = typeof args.historial === "number" && args.historial >= 0 ? args.historial : 20;
+  const machineIds = [service.idmaquina, service.idmaquina2, service.idmaquina3, service.idmaquina4].filter((value) => value !== null && value !== void 0 && value !== "");
+  const [works, status, priority, type, customer, machines, checks, checkCatalog, categories, categoryCatalog, history, documents] = await Promise.all([
+    fetchAll("/trabajoates", { idservicio: id, "sort[fechainicio]": "ASC", "sort[horainicio]": "ASC" }, connection),
+    getOrNull("/estadoates", service.idestado, connection),
+    getOrNull("/prioridadates", service.idprioridad, connection),
+    getOrNull("/tipoates", service.idtipo, connection),
+    getOrNull("/clientes", service.codcliente, connection),
+    mapLimit(machineIds, CONCURRENCY, (machineId) => getOrNull("/maquinaates", machineId, connection)),
+    fetchAll("/serviciocheckates", { idservice: id }, connection).catch(() => ({ rows: [], truncated: false })),
+    fetchCatalog("/checkates", "id", connection),
+    fetchAll("/serviciocategoriaates", { idservice: id }, connection).catch(() => ({ rows: [], truncated: false })),
+    fetchCatalog("/categoriaates", "id", connection),
+    historyLimit === 0 ? Promise.resolve([]) : fsClient.get(servicioATLog.meta.endpoint, { idservicio: id, "sort[creationdate]": "DESC", "sort[id]": "DESC", limit: historyLimit }, connection).catch(() => []),
+    Promise.all(
+      LINKED_DOCUMENTS.map(async (doc) => {
+        try {
+          const rows = await fsClient.get(doc.endpoint, { idservicio: id, limit: 50 }, connection);
+          return [doc.key, (Array.isArray(rows) ? rows : []).map((row) => ({
+            [doc.id]: row[doc.id],
+            codigo: row.codigo,
+            fecha: row.fecha,
+            neto: row.neto,
+            total: row.total,
+            ...row.pagada !== void 0 ? { pagada: row.pagada } : {},
+            editable: row.editable
+          }))];
+        } catch {
+          return [doc.key, []];
+        }
+      })
+    )
+  ]);
+  const byAction = /* @__PURE__ */ new Map();
+  const workRows = works.rows.map((work) => {
+    const amount = workAmount(work);
+    const action = WORK_STATUS[num2(work.estado)] ?? String(work.estado);
+    accumulate(byAction, action, () => ({ trabajos: 0, importe: 0 }), (g) => {
+      g.trabajos += 1;
+      g.importe += amount;
+    });
+    return { ...work, accion: action, importe: round2(amount) };
+  });
+  const verificaciones = checks.rows.map((check2) => {
+    const definition = checkCatalog.get(String(check2.idcheck));
+    return {
+      id: check2.id,
+      idcheck: check2.idcheck,
+      comprobacion: definition?.name ?? null,
+      categoria: definition ? nameIn(categoryCatalog, definition.idcategory, "name") : null,
+      checked: isTrue(check2.checked),
+      completed: check2.completed ?? null
+    };
+  });
+  const done = verificaciones.filter((v) => v.checked).length;
+  return ok({
+    servicio: {
+      ...service,
+      estado_nombre: status?.nombre ?? null,
+      prioridad_nombre: priority?.nombre ?? null,
+      tipo_nombre: type?.name ?? null,
+      cliente_nombre: customer?.nombre ?? null
+    },
+    resumen_trabajos: {
+      trabajos: workRows.length,
+      importe: round2(workRows.reduce((sum, work) => sum + work.importe, 0)),
+      por_accion: Object.fromEntries([...byAction].map(([key, g]) => [key, { ...g, importe: round2(g.importe) }]))
+    },
+    trabajos: workRows,
+    maquinas: machines.filter((machine) => machine !== null),
+    checklist: {
+      categorias: categories.rows.map((row) => ({
+        id: row.id,
+        idcategory: row.idcategory,
+        nombre: nameIn(categoryCatalog, row.idcategory, "name")
+      })),
+      hechas: done,
+      pendientes: verificaciones.length - done,
+      verificaciones
+    },
+    documentos: Object.fromEntries(documents),
+    historial: history
+  });
+}
+async function setEstadoServicio(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idservicio);
+  let statusId = args.idestado;
+  let status = null;
+  if (statusId === void 0 || statusId === null || statusId === "") {
+    if (typeof args.estado !== "string" || args.estado.trim() === "") {
+      return fail("set_estado_servicio_at: indica idestado o el nombre del estado.");
+    }
+    const { rows } = await fetchAll("/estadoates", {}, connection);
+    status = findByName(rows, "nombre", args.estado);
+    statusId = status.id;
+  } else {
+    status = await getOrNull("/estadoates", statusId, connection);
+    if (!status) return fail(`set_estado_servicio_at: no existe el estado ${String(statusId)}.`);
+  }
+  const result = await fsClient.put(`/servicioates/${id}`, { idestado: statusId }, connection);
+  return ok({
+    estado: { id: status.id, nombre: status.nombre, editable: status.editable, asignado: status.asignado ?? null },
+    resultado: result
+  });
+}
+async function historialMaquina(args) {
+  const connection = connectionOf(args);
+  const machine = await fsClient.get(`/maquinaates/${pathId(args.idmaquina)}`, void 0, connection);
+  const id = machine.idmaquina;
+  const [lists, statuses] = await Promise.all([
+    Promise.all(["idmaquina", "idmaquina2", "idmaquina3", "idmaquina4"].map((field) => fetchAll("/servicioates", { [field]: id }, connection))),
+    fetchCatalog("/estadoates", "id", connection)
+  ]);
+  const services = /* @__PURE__ */ new Map();
+  for (const list of lists) {
+    for (const row of list.rows) services.set(String(row.idservicio), row);
+  }
+  const rows = [...services.values()].map((row) => ({
+    idservicio: row.idservicio,
+    codigo: row.codigo,
+    fecha: isoDate(row.fecha),
+    codcliente: row.codcliente,
+    estado: nameIn(statuses, row.idestado),
+    abierto: isTrue(row.editable),
+    asignado: row.asignado ?? null,
+    neto: num2(row.neto),
+    descripcion: row.descripcion ?? null,
+    solucion: row.solucion ?? null
+  })).sort((a, b) => String(b.fecha ?? "").localeCompare(String(a.fecha ?? "")));
+  return ok({
+    maquina: machine,
+    resumen: {
+      servicios: rows.length,
+      abiertos: rows.filter((row) => row.abierto).length,
+      importe_total: round2(rows.reduce((sum, row) => sum + row.neto, 0)),
+      ultimo_servicio: rows[0]?.fecha ?? null
+    },
+    servicios: rows
+  });
+}
+async function informeServicios(args) {
+  const connection = connectionOf(args);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const top = typeof args.top === "number" && args.top > 0 ? Math.floor(args.top) : 10;
+  const params = {};
+  if (desde) params.fecha_gte = desde;
+  if (hasta) params.fecha_lte = hasta;
+  for (const field of ["codcliente", "codagente", "asignado", "codalmacen", "idempresa", "idtipo"]) {
+    if (args[field] !== void 0 && args[field] !== "") params[field] = args[field];
+  }
+  const [{ rows, truncated }, statuses, priorities, types] = await Promise.all([
+    fetchAll("/servicioates", params, connection),
+    fetchCatalog("/estadoates", "id", connection),
+    fetchCatalog("/prioridadates", "id", connection),
+    fetchCatalog("/tipoates", "id", connection)
+  ]);
+  const init = () => ({ servicios: 0, abiertos: 0, neto: 0 });
+  const groups = {
+    estado: /* @__PURE__ */ new Map(),
+    prioridad: /* @__PURE__ */ new Map(),
+    tipo: /* @__PURE__ */ new Map(),
+    asignado: /* @__PURE__ */ new Map(),
+    agente: /* @__PURE__ */ new Map(),
+    cliente: /* @__PURE__ */ new Map(),
+    mes: /* @__PURE__ */ new Map()
+  };
+  let open = 0;
+  let total = 0;
+  for (const row of rows) {
+    const isOpen = isTrue(row.editable);
+    const neto = num2(row.neto);
+    if (isOpen) open += 1;
+    total += neto;
+    const add = (g) => {
+      g.servicios += 1;
+      g.neto += neto;
+      if (isOpen) g.abiertos += 1;
+    };
+    accumulate(groups.estado, nameIn(statuses, row.idestado) ?? groupKey(row.idestado), init, add);
+    accumulate(groups.prioridad, nameIn(priorities, row.idprioridad) ?? groupKey(row.idprioridad), init, add);
+    accumulate(groups.tipo, nameIn(types, row.idtipo, "name") ?? groupKey(row.idtipo), init, add);
+    accumulate(groups.asignado, groupKey(row.asignado), init, add);
+    accumulate(groups.agente, groupKey(row.codagente), init, add);
+    accumulate(groups.cliente, groupKey(row.codcliente), init, add);
+    accumulate(groups.mes, (isoDate(row.fecha) ?? "(sin fecha)").slice(0, 7), init, add);
+  }
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...g, neto: round2(g.neto) })).sort((a, b) => num2(b.servicios) - num2(a.servicios));
+  const topClients = toList(groups.cliente, "codcliente").slice(0, top);
+  const names = await mapLimit(topClients, CONCURRENCY, (row) => row.codcliente === "(sin asignar)" ? Promise.resolve(null) : getOrNull("/clientes", row.codcliente, connection));
+  topClients.forEach((row, i) => {
+    row.nombre = names[i]?.nombre ?? null;
+  });
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s servicios de los que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    resumen: {
+      servicios: rows.length,
+      abiertos: open,
+      cerrados: rows.length - open,
+      neto_total: round2(total),
+      neto_medio: rows.length > 0 ? round2(total / rows.length) : 0
+    },
+    por_estado: toList(groups.estado, "estado"),
+    por_prioridad: toList(groups.prioridad, "prioridad"),
+    por_tipo: toList(groups.tipo, "tipo"),
+    por_asignado: toList(groups.asignado, "asignado"),
+    por_agente: toList(groups.agente, "codagente"),
+    por_mes: toList(groups.mes, "mes").sort((a, b) => String(a.mes).localeCompare(String(b.mes))),
+    top_clientes: topClients
+  });
+}
+async function serviciosPendientes(args) {
+  const connection = connectionOf(args);
+  const limit = typeof args.limit === "number" && args.limit > 0 ? Math.floor(args.limit) : 50;
+  const minDays = typeof args.dias_minimos === "number" ? args.dias_minimos : 0;
+  const params = { editable: true };
+  for (const field of ["asignado", "codagente", "codcliente", "idestado", "idprioridad"]) {
+    if (args[field] !== void 0 && args[field] !== "") params[field] = args[field];
+  }
+  const [{ rows, truncated }, statuses, priorities] = await Promise.all([
+    fetchAll("/servicioates", params, connection),
+    fetchCatalog("/estadoates", "id", connection),
+    fetchCatalog("/prioridadates", "id", connection)
+  ]);
+  const today = todayIso();
+  const pending = rows.map((row) => {
+    const fecha = isoDate(row.fecha);
+    return {
+      idservicio: row.idservicio,
+      codigo: row.codigo,
+      fecha,
+      dias_abierto: fecha ? daysBetween(fecha, today) : null,
+      codcliente: row.codcliente ?? null,
+      estado: nameIn(statuses, row.idestado),
+      prioridad: nameIn(priorities, row.idprioridad),
+      asignado: row.asignado ?? null,
+      codagente: row.codagente ?? null,
+      neto: num2(row.neto),
+      descripcion: typeof row.descripcion === "string" ? row.descripcion.slice(0, 200) : null
+    };
+  }).filter((row) => (row.dias_abierto ?? 0) >= minDays).sort((a, b) => (b.dias_abierto ?? 0) - (a.dias_abierto ?? 0));
+  const byAssigned = /* @__PURE__ */ new Map();
+  const byStatus = /* @__PURE__ */ new Map();
+  for (const row of pending) {
+    byAssigned.set(groupKey(row.asignado), (byAssigned.get(groupKey(row.asignado)) ?? 0) + 1);
+    byStatus.set(groupKey(row.estado), (byStatus.get(groupKey(row.estado)) ?? 0) + 1);
+  }
+  return ok({
+    ...truncated ? { aviso: "Hay m\xE1s servicios abiertos de los que se han le\xEDdo: acota los filtros." } : {},
+    resumen: {
+      pendientes: pending.length,
+      neto_pendiente: round2(pending.reduce((sum, row) => sum + row.neto, 0)),
+      dias_medios_abierto: pending.length > 0 ? round2(pending.reduce((sum, row) => sum + (row.dias_abierto ?? 0), 0) / pending.length) : 0,
+      por_asignado: Object.fromEntries(byAssigned),
+      por_estado: Object.fromEntries(byStatus)
+    },
+    servicios: pending.slice(0, limit)
+  });
+}
+async function trabajosPendientes(args) {
+  const connection = connectionOf(args);
+  const action = typeof args.accion === "string" && args.accion !== "" ? args.accion : "todas";
+  const actions = action === "todas" ? Object.keys(PENDING_ACTIONS) : [action];
+  if (actions.some((a) => PENDING_ACTIONS[a] === void 0)) {
+    return fail("get_trabajos_at_pendientes: accion debe ser factura, albaran, presupuesto o todas.");
+  }
+  const lists = await Promise.all(actions.map((a) => {
+    const params = { estado: PENDING_ACTIONS[a] };
+    if (args.idservicio !== void 0 && args.idservicio !== "") params.idservicio = args.idservicio;
+    return fetchAll("/trabajoates", params, connection);
+  }));
+  const works = lists.flatMap((list) => list.rows);
+  const truncated = lists.some((list) => list.truncated);
+  const serviceIds = [...new Set(works.map((work) => String(work.idservicio)))];
+  const services = await mapLimit(serviceIds, CONCURRENCY, (id) => getOrNull("/servicioates", id, connection));
+  const serviceById = new Map(serviceIds.map((id, i) => [id, services[i]]));
+  const byService = /* @__PURE__ */ new Map();
+  const byAction = /* @__PURE__ */ new Map();
+  const byClient = /* @__PURE__ */ new Map();
+  for (const work of works) {
+    const service = serviceById.get(String(work.idservicio)) ?? null;
+    if (typeof args.codcliente === "string" && args.codcliente !== "" && service?.codcliente !== args.codcliente) {
+      continue;
+    }
+    const amount = workAmount(work);
+    const actionName = WORK_STATUS[num2(work.estado)] ?? String(work.estado);
+    accumulate(byService, String(work.idservicio), () => ({
+      servicio: {
+        idservicio: work.idservicio,
+        codigo: service?.codigo ?? null,
+        fecha: service?.fecha ?? null,
+        codcliente: service?.codcliente ?? null,
+        abierto: service ? isTrue(service.editable) : null
+      },
+      trabajos: [],
+      importe: 0
+    }), (g) => {
+      g.trabajos.push({
+        idtrabajo: work.idtrabajo,
+        accion: actionName,
+        referencia: work.referencia ?? null,
+        descripcion: work.descripcion ?? null,
+        cantidad: num2(work.cantidad),
+        precio: num2(work.precio),
+        importe: round2(amount),
+        fechainicio: work.fechainicio ?? null
+      });
+      g.importe += amount;
+    });
+    accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0 }), (g) => {
+      g.trabajos += 1;
+      g.importe += amount;
+    });
+    accumulate(byClient, groupKey(service?.codcliente), () => ({ servicios: /* @__PURE__ */ new Set(), trabajos: 0, importe: 0 }), (g) => {
+      g.servicios.add(String(work.idservicio));
+      g.trabajos += 1;
+      g.importe += amount;
+    });
+  }
+  const groups = [...byService.values()].sort((a, b) => b.importe - a.importe);
+  return ok({
+    ...truncated ? { aviso: "Hay m\xE1s trabajos pendientes de los que se han le\xEDdo: acota los filtros." } : {},
+    resumen: {
+      servicios: groups.length,
+      trabajos: groups.reduce((sum, g) => sum + g.trabajos.length, 0),
+      importe: round2(groups.reduce((sum, g) => sum + g.importe, 0)),
+      por_accion: Object.fromEntries([...byAction].map(([key, g]) => [key, { ...g, importe: round2(g.importe) }])),
+      por_cliente: [...byClient].map(([codcliente, g]) => ({ codcliente, servicios: g.servicios.size, trabajos: g.trabajos, importe: round2(g.importe) })).sort((a, b) => b.importe - a.importe)
+    },
+    servicios: groups.map((g) => ({ ...g.servicio, importe: round2(g.importe), trabajos: g.trabajos }))
+  });
+}
+function instant(date3, time3) {
+  const iso = isoDate(date3);
+  if (!iso || typeof time3 !== "string" || !/^\d{1,2}:\d{2}(:\d{2})?$/.test(time3)) return null;
+  const [h = "0", m = "0", s = "0"] = time3.split(":");
+  const [y = "0", mo = "1", d = "1"] = iso.split("-");
+  return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(m), Number(s)).getTime();
+}
+async function horasTrabajos(args) {
+  const connection = connectionOf(args);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde");
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const params = {};
+  if (desde) params.fechainicio_gte = desde;
+  if (hasta) params.fechainicio_lte = hasta;
+  for (const field of ["nick", "codagente", "idservicio"]) {
+    if (args[field] !== void 0 && args[field] !== "") params[field] = args[field];
+  }
+  const { rows, truncated } = await fetchAll("/trabajoates", params, connection);
+  const init = () => ({ trabajos: 0, horas: 0, importe: 0, sin_hora_fin: 0, servicios: /* @__PURE__ */ new Set() });
+  const byUser = /* @__PURE__ */ new Map();
+  const byAgent = /* @__PURE__ */ new Map();
+  const totals = init();
+  for (const work of rows) {
+    const start = instant(work.fechainicio, work.horainicio);
+    const end = instant(work.fechafin ?? work.fechainicio, work.horafin);
+    const hours = start !== null && end !== null && end > start ? (end - start) / 36e5 : null;
+    const amount = workAmount(work);
+    const add = (g) => {
+      g.trabajos += 1;
+      g.importe += amount;
+      g.servicios.add(String(work.idservicio));
+      if (hours === null) g.sin_hora_fin += 1;
+      else g.horas += hours;
+    };
+    add(totals);
+    accumulate(byUser, groupKey(work.nick), init, add);
+    accumulate(byAgent, groupKey(work.codagente), init, add);
+  }
+  const format = (g) => ({
+    trabajos: g.trabajos,
+    servicios: g.servicios.size,
+    horas: round2(g.horas),
+    importe: round2(g.importe),
+    sin_hora_fin: g.sin_hora_fin
+  });
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...format(g) })).sort((a, b) => num2(b.horas) - num2(a.horas));
+  return ok({
+    periodo: { desde: desde ?? null, hasta: hasta ?? null },
+    ...truncated ? { aviso: "Hay m\xE1s trabajos de los que se han le\xEDdo: acota el periodo o los filtros." } : {},
+    resumen: format(totals),
+    por_usuario: toList(byUser, "nick"),
+    por_agente: toList(byAgent, "codagente")
+  });
+}
+async function handleServiciosTool(name, args) {
+  switch (name) {
+    case "get_servicio_at":
+      return servicioDetalle(args);
+    case "set_estado_servicio_at":
+      return setEstadoServicio(args);
+    case "get_historial_maquina_at":
+      return historialMaquina(args);
+    case "get_informe_servicios_at":
+      return informeServicios(args);
+    case "get_servicios_at_pendientes":
+      return serviciosPendientes(args);
+    case "get_trabajos_at_pendientes":
+      return trabajosPendientes(args);
+    case "get_horas_trabajos_at":
+      return horasTrabajos(args);
+    default:
+      return null;
+  }
+}
+
+// src/plugins/servicios/index.ts
+var tools3 = [...RESOURCES3.flatMap(buildResourceTools), ...SERVICIOS_TOOLS];
+var toolNames3 = new Set(tools3.map((tool) => tool.name));
+var serviciosPlugin = {
+  name: PLUGIN3,
+  description: "Servicios de asistencia t\xE9cnica (SAT), trabajos, m\xE1quinas, checklists e informes",
+  models: models3,
+  tools: tools3,
+  toolModels: Object.assign({}, ...RESOURCES3.map(resourceToolModels)),
+  async handleTool(name, args) {
+    if (!toolNames3.has(name)) return null;
+    try {
+      for (const def of RESOURCES3) {
+        const result = await handleResourceTool(def, name, args);
+        if (result) return result;
+      }
+      return await handleServiciosTool(name, args);
+    } catch (error2) {
+      return failFromError(PLUGIN3, name, error2);
+    }
+  }
+};
+
+// src/plugins/index.ts
+var OFFICIAL_PLUGINS = [serviciosPlugin, proyectosPlugin, crmPlugin];
+function registerOfficialPluginTools(tools5) {
+  let count = 0;
+  for (const plugin of OFFICIAL_PLUGINS) {
+    for (const meta of plugin.models) {
+      registerModelMetadata(meta);
+    }
+    for (const [tool, model] of Object.entries(plugin.toolModels)) {
+      registerToolModel(tool, model);
+    }
+    for (const tool of plugin.tools) {
+      if (tools5.has(tool.name)) {
+        console.error(`[fs-mcp] Plugin ${plugin.name}: la tool ${tool.name} ya existe y se sustituye.`);
+      }
+      tools5.set(tool.name, tool);
+      count += 1;
+    }
+    console.error(
+      `[fs-mcp] Plugin oficial ${plugin.name}: ${plugin.tools.length} tools, ${plugin.models.length} modelos.`
+    );
+  }
+  return count;
+}
+async function handleOfficialPluginTool(name, args) {
+  for (const plugin of OFFICIAL_PLUGINS) {
+    const result = await plugin.handleTool(name, args);
+    if (result) return result;
+  }
+  return null;
+}
+
 // src/utils/validateInput.ts
 var NUMERIC_STRING = /^-?\d+(\.\d+)?$/;
 var INTEGER_STRING = /^-?\d+$/;
@@ -72728,7 +82359,7 @@ function validateToolInput(schema, input) {
 }
 
 // src/index.ts
-var tools = /* @__PURE__ */ new Map();
+var tools4 = /* @__PURE__ */ new Map();
 var localModuleHandlers = [];
 var server = new Server(
   {
@@ -72785,7 +82416,7 @@ function registerConnectionTools() {
       required: ["key", "name", "url", "token"]
     }
   };
-  tools.set("add_connection", addConnectionTool);
+  tools4.set("add_connection", addConnectionTool);
   const listConnectionsTool = {
     name: "list_connections",
     description: "List all configured FacturaScripts server connections",
@@ -72795,7 +82426,7 @@ function registerConnectionTools() {
       required: []
     }
   };
-  tools.set("list_connections", listConnectionsTool);
+  tools4.set("list_connections", listConnectionsTool);
   const setDefaultConnectionTool = {
     name: "set_default_connection",
     description: "Set the default FacturaScripts server connection for subsequent requests",
@@ -72810,34 +82441,42 @@ function registerConnectionTools() {
       required: ["key"]
     }
   };
-  tools.set("set_default_connection", setDefaultConnectionTool);
+  tools4.set("set_default_connection", setDefaultConnectionTool);
 }
 async function registerAllTools() {
   const coreCount = await bootstrapCoreMetadata();
   console.error(`[fs-mcp] Modelos del core registrados: ${coreCount}`);
   registerConnectionTools();
-  await registerAccountingTools(tools);
-  await registerCoreBusinessTools(tools);
-  await registerSalesOrdersTools(tools);
-  await registerPurchasingTools(tools);
-  await registerFinanceTools(tools);
-  await registerConfigurationTools(tools);
-  await registerGeographicTools(tools);
-  await registerCommunicationTools(tools);
-  await registerSystemTools(tools);
-  await registerAnalyticsTools(tools);
-  const coreToolNames = new Set(tools.keys());
-  localModuleHandlers = await loadLocalModules(tools);
-  await registerSchemaTools(tools);
+  await registerAccountingTools(tools4);
+  await registerCoreBusinessTools(tools4);
+  await registerSalesOrdersTools(tools4);
+  await registerPurchasingTools(tools4);
+  await registerFinanceTools(tools4);
+  await registerConfigurationTools(tools4);
+  await registerGeographicTools(tools4);
+  await registerCommunicationTools(tools4);
+  await registerSystemTools(tools4);
+  await registerAnalyticsTools(tools4);
+  registerOfficialPluginTools(tools4);
+  const coreToolNames = new Set(tools4.keys());
+  const builtInTools = new Map(tools4);
+  localModuleHandlers = await loadLocalModules(tools4);
+  for (const [name, tool] of builtInTools) {
+    if (tools4.get(name) !== tool) {
+      console.error(`[fs-mcp] Un m\xF3dulo local redefine la tool ${name}; se conserva la del servidor.`);
+      tools4.set(name, tool);
+    }
+  }
+  await registerSchemaTools(tools4);
   const totalModels = getAllModelMetadata().length;
   console.error(
     `[fs-mcp] Modelos totales en el registry: ${totalModels} (core + privados).`
   );
-  const stats = enrichAllTools(tools);
+  const stats = enrichAllTools(tools4);
   console.error(
     `[fs-mcp] Tools enriquecidas: ${stats.toolsEnriched}/${stats.toolsProcessed} (+${stats.descriptionsAdded} descripciones, +${stats.maxLengthsAdded} maxLength, +${stats.enumsAdded} enums)`
   );
-  const dateRangeParams = addDateRangeParams(tools, coreToolNames);
+  const dateRangeParams = addDateRangeParams(tools4, coreToolNames);
   console.error(`[fs-mcp] Filtros de rango de fecha a\xF1adidos: ${dateRangeParams}`);
 }
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
@@ -72852,7 +82491,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   return { contents: [result] };
 });
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const toolList = Array.from(tools.values());
+  const toolList = Array.from(tools4.values());
   return { tools: toolList };
 });
 var CONNECTION_TOOLS = /* @__PURE__ */ new Set(["add_connection", "set_default_connection"]);
@@ -72869,7 +82508,7 @@ function connectionArgsAsText(toolName, schema, input) {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name;
   const toolInput = request.params.arguments;
-  const tool = tools.get(toolName);
+  const tool = tools4.get(toolName);
   const invalid = tool ? validateToolInput(tool.inputSchema, toolInput) ?? connectionArgsAsText(toolName, tool.inputSchema, toolInput) : null;
   if (invalid) {
     return {
@@ -72881,15 +82520,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     switch (toolName) {
       case "add_connection": {
         const { key, name, url: url2, token, version: version2, rejectUnauthorized, setAsDefault, overwrite } = toolInput;
-        const isTrue = (value) => value === true || value === "1";
-        const makeDefault = isTrue(setAsDefault);
-        const replace = isTrue(overwrite);
+        const isTrue2 = (value) => value === true || value === "1";
+        const makeDefault = isTrue2(setAsDefault);
+        const replace = isTrue2(overwrite);
         connectionManager.addConnection(key, {
           name,
           url: url2,
           token,
           ...version2 ? { version: version2 } : {},
-          ...rejectUnauthorized !== void 0 ? { rejectUnauthorized: isTrue(rejectUnauthorized) } : {}
+          ...rejectUnauthorized !== void 0 ? { rejectUnauthorized: isTrue2(rejectUnauthorized) } : {}
         }, replace);
         fsClient.clearCache();
         if (makeDefault) {
@@ -72950,7 +82589,7 @@ ${connectionList}${forjaNote}`
         };
       }
       default: {
-        let result = await handleAccountingTool(toolName, toolInput) ?? await handleCoreBusinessTool(toolName, toolInput) ?? await handleSalesOrdersTool(toolName, toolInput) ?? await handlePurchasingTool(toolName, toolInput) ?? await handleFinanceTool(toolName, toolInput) ?? await handleConfigurationTool(toolName, toolInput) ?? await handleGeographicTool(toolName, toolInput) ?? await handleCommunicationTool(toolName, toolInput) ?? await handleSystemTool(toolName, toolInput) ?? await handleAnalyticsTool(toolName, toolInput) ?? await handleSchemaTool(toolName, toolInput);
+        let result = await handleAccountingTool(toolName, toolInput) ?? await handleCoreBusinessTool(toolName, toolInput) ?? await handleSalesOrdersTool(toolName, toolInput) ?? await handlePurchasingTool(toolName, toolInput) ?? await handleFinanceTool(toolName, toolInput) ?? await handleConfigurationTool(toolName, toolInput) ?? await handleGeographicTool(toolName, toolInput) ?? await handleCommunicationTool(toolName, toolInput) ?? await handleSystemTool(toolName, toolInput) ?? await handleAnalyticsTool(toolName, toolInput) ?? await handleOfficialPluginTool(toolName, toolInput) ?? await handleSchemaTool(toolName, toolInput);
         if (result) {
           return result;
         }

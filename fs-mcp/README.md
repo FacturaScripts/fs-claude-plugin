@@ -22,6 +22,7 @@ El servidor se distribuye empaquetado en un único archivo, `server/dist/index.j
 - [Variables de entorno](#variables-de-entorno)
 - [Skills disponibles](#skills-disponibles)
 - [Herramientas disponibles](#herramientas-disponibles)
+- [Plugins oficiales](#plugins-oficiales)
 - [MCP Resources](#mcp-resources)
 - [Módulos locales privados](#módulos-locales-privados)
 - [Sistema de metadata de modelos](#sistema-de-metadata-de-modelos)
@@ -223,6 +224,79 @@ Las herramientas `forja_*` de la API de autor de facturascripts.com ya no forman
 
 ---
 
+## Plugins oficiales
+
+Además del core, fs-mcp incluye herramientas para algunos plugins oficiales de FacturaScripts. Funcionan con cualquier conexión: si la instalación no tiene el plugin activo, la API responde que el recurso no existe y el error lo indica.
+
+Todas siguen las mismas reglas:
+
+- Los listados (`get_*` en plural) aceptan `limit`/`offset`, filtros por los campos principales, búsquedas «contiene» (`<campo>_like`), rangos de fecha (`<fecha>_gte`/`<fecha>_lte`), un filtro genérico `filter: "campo:valor,neto_gt:100"` y `order: "fecha:desc"`.
+- Los `update_*` solo cambian los campos enviados y aceptan `clear_fields` para vaciar campos.
+- Los `set_estado_*` y `set_fase_*` aceptan el id o el nombre del estado o la fase.
+- Los informes leen todos los registros que cumplen los filtros (hasta 20 000) y avisan si hay más.
+- El servidor no lanza más de 4 peticiones simultáneas contra una misma instalación (las demás esperan turno), para no agotar los procesos PHP de hostings pequeños con las fichas e informes que leen varios recursos a la vez.
+- La API no tiene usuario de sesión: los campos de usuario (`nick`, `asignado`) hay que indicarlos cuando hacen falta.
+
+### Servicios (SAT)
+
+| Qué | Herramientas |
+|---|---|
+| Servicios | `get_servicios_at`, `get_servicio_at` (ficha completa: trabajos, máquinas, checklist, documentos e historial), `create_servicio_at`, `update_servicio_at`, `delete_servicio_at`, `set_estado_servicio_at` |
+| Trabajos | `get_trabajos_at`, `create_trabajo_at`, `update_trabajo_at`, `delete_trabajo_at` |
+| Estados, prioridades y tipos | `get_estados_at`, `get_prioridades_at`, `get_tipos_at` y sus `create_*`, `update_*` y `delete_*` |
+| Máquinas | `get_maquinas_at`, `get_historial_maquina_at`, `create_maquina_at`, `update_maquina_at`, `delete_maquina_at` |
+| Checklists | `get_categorias_at`, `get_checks_at` y sus `create_*`, `update_*` y `delete_*`; `get_servicio_categorias_at`, `create_servicio_categoria_at`, `delete_servicio_categoria_at`, `get_servicio_checks_at`, `update_servicio_check_at` |
+| Historial | `get_servicio_at_logs` |
+| Informes | `get_informe_servicios_at` (por estado, prioridad, tipo, asignado, agente, mes y cliente), `get_servicios_at_pendientes` (abiertos por antigüedad), `get_trabajos_at_pendientes` (trabajos por facturar, albaranar o presupuestar), `get_horas_trabajos_at` (horas por usuario y agente) |
+
+Los presupuestos, albaranes y facturas de un servicio no se pueden generar por la API: se marcan los trabajos con la acción (`estado` 1, 3 o 5) y el documento se genera desde la ficha del servicio en FacturaScripts.
+
+### Proyectos
+
+| Qué | Herramientas |
+|---|---|
+| Proyectos | `get_proyectos`, `get_proyecto` (ficha completa: tareas, usuarios, notas, stock, documentos y servicios SAT), `create_proyecto`, `update_proyecto`, `delete_proyecto`, `set_estado_proyecto` |
+| Tareas | `get_tareas_proyecto`, `create_tarea_proyecto`, `update_tarea_proyecto`, `delete_tarea_proyecto`, `set_fase_tarea_proyecto` |
+| Estados y fases | `get_estados_proyecto`, `get_fases_tarea` y sus `create_*`, `update_*` y `delete_*` |
+| Notas y usuarios | `get_notas_proyecto`, `create_nota_proyecto`, `update_nota_proyecto`, `delete_nota_proyecto`, `get_usuarios_proyecto`, `create_usuario_proyecto`, `delete_usuario_proyecto` |
+| Documentos y stock | `get_documentos_proyecto`, `set_proyecto_documento` (vincular o desvincular un documento de compra o venta), `get_stock_proyecto` |
+| Informes | `get_informe_proyectos` (por estado, cliente, responsable y mes), `get_rentabilidad_proyectos` (ventas, compras y margen por proyecto), `get_informe_tareas_proyecto` (por fase, usuario y proyecto), `get_tareas_proyecto_vencidas` |
+
+### CRM
+
+Los contactos son del core (`get_contactos`, `create_contacto`, `update_contacto`...); el CRM les añade la fuente (`idfuente`), los intereses y las listas.
+
+| Qué | Herramientas |
+|---|---|
+| Oportunidades | `get_oportunidades_crm`, `get_oportunidad_crm` (ficha completa: contacto, presupuesto, notas y archivos), `create_oportunidad_crm`, `update_oportunidad_crm`, `delete_oportunidad_crm`, `set_estado_oportunidad_crm` |
+| Presupuesto | `create_presupuesto_oportunidad_crm` (crea el presupuesto para el cliente del contacto y lo vincula), `set_presupuesto_oportunidad_crm` (vincular uno existente o desvincular) |
+| Archivos | `get_archivos_oportunidad_crm`, `create_archivo_oportunidad_crm` (sube un archivo local), `delete_archivo_oportunidad_crm` |
+| Estados | `get_estados_oportunidad_crm` y sus `create_*`, `update_*` y `delete_*` |
+| Notas | `get_notas_crm`, `create_nota_crm`, `update_nota_crm`, `delete_nota_crm` (de contacto, oportunidad o documento, con aviso opcional) |
+| Contactos | `get_contacto_crm` (ficha CRM: fuente, intereses, listas, oportunidades y notas) |
+| Fuentes, intereses, listas y cargos | `get_fuentes_crm`, `get_intereses_crm`, `get_listas_crm`, `get_cargos_crm` y sus `create_*`, `update_*` y `delete_*`; `get_intereses_contacto_crm`, `create_interes_contacto_crm`, `delete_interes_contacto_crm`, `get_contactos_lista_crm`, `create_contacto_lista_crm`, `delete_contacto_lista_crm` |
+| Campañas | `get_campanas_crm` (solo lectura, con estadísticas de envío y apertura) |
+| Informes | `get_informe_oportunidades_crm` (embudo por estado, conversión e importes por interés, fuente, asignado, agente y mes), `get_avisos_crm` (recordatorios de notas), `get_oportunidades_crm_sin_actividad` |
+
+### Estructura y cómo añadir otro plugin oficial
+
+Cada plugin vive en `server/src/plugins/<plugin>/`, separado de los módulos del core:
+
+| Archivo | Contenido |
+|---|---|
+| `metadata/manifest.json` | Modelos del plugin (tabla, endpoint, XMLView y descripción), con `"format": "ts"` |
+| `metadata/descriptions.json` | Descripciones de las columnas |
+| `metadata/models/*.ts`, `metadata/index.ts` | Metadata generada (no editar a mano) |
+| `resources.ts` | Un `ResourceDef` por modelo: campos escribibles, filtros y textos de sus tools CRUD |
+| `tools.ts` | Fichas, cambios de estado e informes propios del plugin |
+| `index.ts` | El `OfficialPlugin` que une todo |
+
+Lo común está en `server/src/plugins/shared/` (fábrica de tools CRUD, filtros, lectura paginada y errores). Para añadir un plugin: crea su carpeta con esos archivos, genera la metadata (ver [Regenerar la metadata](#regenerar-la-metadata)), añádelo a `OFFICIAL_PLUGINS` en `server/src/plugins/index.ts`, añade sus pruebas en `server/tests/` y compila.
+
+Un módulo local privado no puede redefinir una herramienta de un plugin oficial: si lo intenta, el servidor conserva la oficial y lo avisa en el registro de arranque.
+
+---
+
 ## MCP Resources
 
 Además de herramientas, el servidor expone los modelos como **MCP Resources** bajo el esquema `fs-schema://`. Los clientes MCP que soporten resources, incluidos Claude Code y Codex, pueden consultarlos sin que aparezcan en el listado de herramientas.
@@ -407,7 +481,7 @@ El `local-loader` valida la estructura mínima y registra los modelos válidos e
 
 ## Sistema de metadata de modelos
 
-El servidor mantiene metadata estructurada de cada modelo de FacturaScripts (los 83 del core más los que aportes desde plugins privados). Esta metadata describe cada columna con su tipo, longitud, FK y descripción funcional, y la usa Claude para generar consultas e informes complejos sin adivinar el esquema.
+El servidor mantiene metadata estructurada de cada modelo de FacturaScripts (los 83 del core, los de los [plugins oficiales](#plugins-oficiales) y los que aportes desde plugins privados). Esta metadata describe cada columna con su tipo, longitud, FK y descripción funcional, y la usa Claude para generar consultas e informes complejos sin adivinar el esquema.
 
 ### Qué se expone
 
@@ -420,6 +494,7 @@ El servidor mantiene metadata estructurada de cada modelo de FacturaScripts (los
 Las descripciones de cada columna se guardan en archivos JSON separados:
 
 - **Core** → `fs-mcp/server/src/metadata/descriptions-overrides.json` (incluido en el repositorio).
+- **Plugins oficiales** → `fs-mcp/server/src/plugins/<plugin>/metadata/descriptions.json` (incluido en el repositorio).
 - **Plugins privados** → `<outputBase>/descriptions.json` (en tu carpeta privada, no se sube a GitHub).
 
 Formato: `{ "modelo": { "campo": "descripción contextual en español" } }`. Estas descripciones tienen prioridad sobre cualquier otra fuente al regenerar la metadata.
@@ -469,6 +544,16 @@ El `manifest.json` declara qué modelos generar y dónde están sus archivos. Si
 
 Si el módulo está directamente en la raíz (sin subcarpeta de grupo), `outputBase` apunta al propio directorio de módulos (`/ruta/a/mis-modulos-fs`).
 
+**Modo PLUGIN OFICIAL** — regenera los modelos de un plugin oficial incluido en fs-mcp:
+
+```bash
+cd fs-mcp/server
+npm run generate:metadata -- --manifest=src/plugins/servicios/metadata/manifest.json --fs-path=/ruta/a/facturascripts
+npm run build
+```
+
+El manifest lleva `"format": "ts"` y no guarda rutas de ninguna máquina: el core se indica con `--fs-path`, el plugin se busca en `<fs-path>/Plugins/<pluginName>` y las demás rutas son relativas al manifest. Escribe `metadata/models/<modelo>.ts` y el agregador `metadata/index.ts`. `extensionPlugins` lista otros plugins cuyas columnas de extensión se incluyen aunque no estén activos en esa instalación (Servicios incluye la columna `idproyecto` que añade Proyectos).
+
 ### Mantener el catálogo con la skill sync-models
 
 La skill `fs-mcp:sync-models` automatiza todo el flujo de mantenimiento. Úsala cuando:
@@ -496,7 +581,7 @@ En `fs-mcp/server/src/scripts/`, tras compilar (`npm run build`) se ejecutan con
 
 | Script | Descripción |
 |---|---|
-| `generate-metadata.js` | Generador principal (modo CORE y modo PLUGIN) |
+| `generate-metadata.js` | Generador principal (modo CORE, PLUGIN y PLUGIN OFICIAL) |
 | `compare-model.js` | Compara un modelo del registry con su XML fuente y reporta diferencias en JSON |
 | `list-undocumented.js` | Lista las columnas sin descripción agrupadas por modelo |
 | `dump-all-descriptions.js` | Vuelca todas las descripciones a un JSON y reporta cuántas son genéricas |

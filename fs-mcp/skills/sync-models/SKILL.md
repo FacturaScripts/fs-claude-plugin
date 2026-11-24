@@ -1,18 +1,19 @@
 ---
 name: sync-models
-description: Sincroniza uno o varios modelos de fs-mcp con el core o plugins privados, actualiza metadata y descripciones, detecta cambios de columnas y compila cuando corresponde.
+description: Sincroniza uno o varios modelos de fs-mcp con el core, los plugins oficiales o plugins privados, actualiza metadata y descripciones, detecta cambios de columnas y compila cuando corresponde.
 ---
 
 # Sync Models — Mantenimiento de la metadata del MCP
 
 Esta skill es la herramienta de **mantenimiento** del catálogo de modelos del plugin `fs-mcp`. Úsala cuando:
 
-- Quieras añadir un **modelo nuevo** del core de FacturaScripts o de un plugin privado.
+- Quieras añadir un **modelo nuevo** del core de FacturaScripts, de un plugin oficial incluido en fs-mcp o de un plugin privado.
 - Hayas actualizado FacturaScripts (o un plugin) y quieras revisar si **algún modelo ya configurado tiene columnas nuevas, modificadas o eliminadas**.
 - Quieras hacer un **refresh masivo** de todos los modelos del catálogo y actualizar la versión registrada del core.
 
-La skill respeta la separación entre core y privados:
+La skill respeta la separación entre core, plugins oficiales y privados:
 - **Core** → modifica archivos del repo del MCP (`server/src/...`) y **compila**.
+- **Oficiales** (`official`) → plugins de FacturaScripts integrados en fs-mcp (Servicios, Proyectos...): modifica `server/src/plugins/<plugin>/metadata/` del repo del MCP y **compila**.
 - **Privados** → modifica archivos en la ruta privada del usuario (`<outputBase>/...`); **no compila** (los privados se cargan dinámicamente al arrancar el servidor).
 
 ---
@@ -22,7 +23,7 @@ La skill respeta la separación entre core y privados:
 El usuario te indicará tres datos por cada modelo:
 
 1. **Nombre del modelo** en snake_case (ej: `cliente`, `factura_cliente`, `task`).
-2. **Tipo**: `core` o `private`.
+2. **Tipo**: `core`, `official` o `private`.
 3. **Origen** (de dónde leer la fuente):
    - **Ruta local absoluta**: ej. `/Users/yo/facturascripts` o `/Users/yo/facturascripts/Plugins/Forja`.
    - **URL de GitHub**: ej. `https://github.com/NeoRazorX/facturascripts` o de un plugin.
@@ -33,6 +34,7 @@ Ejemplos de invocación habituales:
 - `Revisa los modelos cliente, producto y factura_cliente, todos en /Users/yo/facturascripts`
 - `Revisa task y publication, ambos privados, en /Users/yo/facturascripts/Plugins/Forja`
 - `Revisa task del plugin privado en https://github.com/X/Forja`
+- `Revisa los modelos del plugin oficial Servicios con /Users/yo/facturascripts`
 - `Refresca todos los modelos del core desde /Users/yo/facturascripts y actualiza la versión`
 
 Si el usuario no aporta alguno de los tres datos, **pregúntale** antes de continuar.
@@ -49,6 +51,10 @@ Lo primero que debes hacer es **familiarizarte con el estado actual del MCP** si
 | `server/src/metadata/descriptions-overrides.json` | Descripciones contextuales del core. Single source of truth (committed). |
 | `server/src/metadata/models/*.ts` | Metadata generada por modelo (CORE). No editar a mano. |
 | `server/src/metadata/index.ts` | Agregador auto-generado. |
+| `server/src/plugins/<plugin>/metadata/manifest.json` | Manifest de un plugin oficial (`"format": "ts"`, sin rutas absolutas: el core se pasa con `--fs-path`). |
+| `server/src/plugins/<plugin>/metadata/descriptions.json` | Descripciones de un plugin oficial (committed). |
+| `server/src/plugins/<plugin>/metadata/models/*.ts` e `index.ts` | Metadata generada de un plugin oficial. No editar a mano. |
+| `server/src/plugins/<plugin>/resources.ts` | Campos escribibles y filtros de las tools CRUD de cada modelo oficial. Revísalo si cambian columnas. |
 | `<outputBase>/manifest.json` | Manifest del plugin privado (declara los modelos del plugin). Siempre se llama `manifest.json`, nunca `manifest-nombre.json`. |
 | `<outputBase>/descriptions.json` | Descripciones del plugin privado. Siempre se llama `descriptions.json`, nunca `nombre-descriptions.json`. |
 | `<outputBase>/<modelo>/metadata.js` | Metadata generada del modelo privado. No editar a mano. |
@@ -62,10 +68,11 @@ Ejecútalos en `fs-mcp/server`. `node_modules` no se versiona: si no existe, eje
 
 ```bash
 # Comparar un modelo del registry con su fuente y obtener un diff JSON
-node build/scripts/compare-model.js --model=<NOMBRE> --source=<RUTA> --type=<core|private>
+node build/scripts/compare-model.js --model=<NOMBRE> --source=<RUTA> --type=<core|official|private>
 
 # Regenerar metadata
 npm run generate:metadata -- --fs-path=<ruta>                 # CORE
+npm run generate:metadata -- --manifest=src/plugins/<plugin>/metadata/manifest.json --fs-path=<ruta_fs>   # OFFICIAL
 npm run generate:metadata -- --manifest=<ruta_manifest>       # PRIVATE
 
 # Compilar (necesario tras editar código TS o regenerar core)
@@ -99,8 +106,10 @@ Ejecuta:
 ```bash
 cd <plugin>/server
 npm run build > /dev/null   # Asegura que el script está actualizado
-node build/scripts/compare-model.js --model=<nombre> --source=<ruta> --type=<core|private>
+node build/scripts/compare-model.js --model=<nombre> --source=<ruta> --type=<core|official|private>
 ```
+
+Con `official` y `private`, `--source` es la carpeta del plugin (`<ruta_fs>/Plugins/<Plugin>`).
 
 Lee la salida JSON. Tiene esta forma (campos relevantes):
 - `inRegistry` — true si el modelo ya está configurado.
@@ -120,7 +129,10 @@ Tres casos:
 1. Confirma con el usuario que quiere añadir el modelo (muéstrale `suggestedTableEntry` y la lista de `added` columnas).
 2. **Si es CORE**:
    - Edita `server/src/scripts/generate-metadata.ts`: añade una entrada al array `MODEL_CATALOG` con `name`, `table`, `endpoint`, `editView` (si lo hay) y `description`. Coloca la entrada en la categoría temática que corresponda (datos maestros, documentos, contabilidad, etc.).
-3. **Si es PRIVATE**:
+3. **Si es OFFICIAL**:
+   - Añade el modelo a `server/src/plugins/<plugin>/metadata/manifest.json` (`name`, `table`, `endpoint`, `editView`, `description`; sin `outputDir`).
+   - Declara su `ResourceDef` en `server/src/plugins/<plugin>/resources.ts` (campos escribibles, filtros y textos de sus tools) y añádelo a `RESOURCES`. Añade o amplía las pruebas en `server/tests/official-plugins.test.mjs`.
+4. **Si es PRIVATE**:
    - Determina dónde vive el módulo: ¿en la raíz del directorio de módulos o dentro de una subcarpeta de grupo?
      - **Raíz**: `outputBase` es el propio directorio de módulos, `manifest.json` y `descriptions.json` están en la raíz.
      - **Subcarpeta de grupo** (ej: `MiGrupo/`): `outputBase` es `<modules-dir>/MiGrupo/`, el manifest y descriptions están dentro de esa subcarpeta. Los archivos siempre se llaman `manifest.json` y `descriptions.json` — nunca con prefijo ni sufijo de nombre.
@@ -129,19 +141,20 @@ Tres casos:
    - Crea o actualiza `<outputBase>/<outputDir>/index.js` siguiendo el patrón de los módulos privados existentes:
      - `import <name>Metadata from './metadata.js';`
      - Exporta `registerTools`, `handleTool` y `export const modelMetadata = [<name>Metadata];`.
-4. Redacta descripciones contextuales para **todas** las columnas del modelo (incluidas las FK) y añádelas al archivo de overrides:
+5. Redacta descripciones contextuales para **todas** las columnas del modelo (incluidas las FK) y añádelas al archivo de overrides:
    - **Core** → `server/src/metadata/descriptions-overrides.json`.
+   - **Official** → `server/src/plugins/<plugin>/metadata/descriptions.json`.
    - **Private** → `<outputBase>/descriptions.json` (el de la raíz o el de la subcarpeta, según dónde viva el módulo).
 
    Las descripciones deben ser concisas, en español, orientadas a reporting y consistentes con las que ya existen en el archivo. Para FK: explica el rol funcional (no "Referencia a X.Y."). Para campos comunes (`fecha`, `total`, `idempresa`, etc.) usa la misma redacción que ya tienen otros modelos similares.
-5. Salta al Paso 3 (regenerar y verificar).
+6. Salta al Paso 3 (regenerar y verificar).
 
 #### B) Modelo EXISTENTE con cambios (`inRegistry && (added>0 || removed>0 || changed>0)`)
 
 1. Resume al usuario los cambios detectados (cuántas columnas se añaden, eliminan y cambian, con sus nombres).
 2. Si hay `removed`: pregunta al usuario si desea eliminar también las descripciones del archivo de overrides para esas columnas (lo habitual es sí, para mantenerlo limpio). Si confirma, elimina las claves del JSON.
 3. Si hay `changed`: muestra el detalle (`column`, `field`, `before`, `after`). Algunos cambios (cambio de `nullable`, `default`) no requieren modificar la descripción. Un cambio de `foreignKey` o de tipo a veces sí amerita revisar la descripción — pregunta al usuario si quiere ajustarla.
-4. Si hay `added`: redacta descripciones para esas columnas y añádelas al archivo de overrides correspondiente. Ten en cuenta el contexto del modelo donde aparecen.
+4. Si hay `added`: redacta descripciones para esas columnas y añádelas al archivo de overrides correspondiente. Ten en cuenta el contexto del modelo donde aparecen. En un modelo **official**, decide además si la columna nueva debe poder escribirse o filtrarse y actualiza su `ResourceDef` en `resources.ts`; si se elimina una columna, quítala de ahí.
 5. Salta al Paso 3.
 
 #### C) Modelo SIN cambios
@@ -158,14 +171,22 @@ Reporta `Sin cambios detectados` y termina (no toques nada). Aun así, si la ski
    ```
    El segundo `build` es importante: la regeneración escribe `.ts` nuevos y hay que recompilar para que el servidor en producción los use.
 
-2. **Si el modelo es PRIVATE**:
+2. **Si el modelo es OFFICIAL**:
+   ```bash
+   cd <plugin>/server
+   npm run generate:metadata -- --manifest=src/plugins/<plugin>/metadata/manifest.json --fs-path=<ruta_fs>
+   npm test
+   ```
+   `npm test` compila (incluido `dist/index.js`) y ejecuta las pruebas de los plugins oficiales.
+
+3. **Si el modelo es PRIVATE**:
    ```bash
    cd <plugin>/server
    npm run generate:metadata -- --manifest=<ruta_manifest>
    ```
    No hace falta `npm run build` para el módulo privado en sí, porque su `metadata.js` es JS plano que se carga dinámicamente. Sin embargo, si el `compare-model.js` lo ejecutaste antes y necesitas volver a comparar tras los cambios, sí harás falta recompilarlo (porque el script lee del registry, no del JSON).
 
-3. Verificación:
+4. Verificación:
    ```bash
    node build/scripts/test-metadata.js
    node build/scripts/dump-all-descriptions.js
@@ -174,7 +195,7 @@ Reporta `Sin cambios detectados` y termina (no toques nada). Aun así, si la ski
    - No deben quedar descripciones genéricas tipo "Referencia a X.Y." (`0 (0.0%)`).
    - El `Total columnas` debe coincidir con el esperado tras los cambios.
 
-4. Smoke test JSON-RPC opcional (recomendado para cambios grandes):
+5. Smoke test JSON-RPC opcional (recomendado para cambios grandes):
    ```bash
    printf '%s\n' \
      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' \
@@ -196,7 +217,7 @@ Si el usuario pasa una lista, hay dos formas:
 - **Cada modelo en su propia ruta**:
   - Procesa cada uno con su `--source`. Aplica la misma estrategia: edita primero todos los archivos (overrides, manifest, catálogo), regenera al final.
 
-Si la lista mezcla modelos `core` y `private`, agrupa: primero todos los core, regenera/compila core; luego los privados, regenera privado.
+Si la lista mezcla tipos, agrupa: primero todos los core, regenera/compila core; luego los oficiales de cada plugin, regenera su manifest y compila; por último los privados, regenera privado.
 
 ---
 
@@ -222,6 +243,8 @@ Cuando el usuario pida algo como *"revisa todos los modelos del core con la vers
    - El generador ya almacena el commit Git actual al regenerar (se obtiene con `git rev-parse --short HEAD` en la ruta de FS). Cuando regeneras tras el refresh masivo, ese commit pasa a quedar como `generatedFrom.facturascriptsCommit` en cada `ModelMetadata`.
    - Eso es lo que `verify_model_columns` usa para el aviso de drift. Por tanto, *regenerar* ya implica *actualizar la versión*.
    - Si el usuario quiere registrar una versión legible adicional (ej: "2026.1"), pregúntale por la cadena que quiere y, opcionalmente, podemos extender el manifest para añadirla — por ahora basta con el commit.
+
+Para refresh masivo de **oficiales**: itera los modelos de cada `server/src/plugins/<plugin>/metadata/manifest.json` con `--type=official` y la carpeta del plugin como fuente, y regenera cada manifest con `--fs-path` antes de compilar una sola vez.
 
 Para refresh masivo de **privados**: el flujo es idéntico pero iterando los modelos del `manifest.json` de cada grupo (o de la raíz). Si los módulos están en subcarpetas de grupo, usa el `manifest.json` de cada subcarpeta. Al final ejecuta `npm run generate:metadata -- --manifest=<ruta/al/manifest.json>` por cada grupo. No requiere build adicional porque los privados son JS dinámicos.
 
@@ -290,4 +313,4 @@ Tras cualquier ejecución de la skill, antes de dar por terminado:
 7. Reportar al usuario
 ```
 
-¿Listo? Indícame qué modelo o modelos quieres revisar, su tipo (core/private) y la fuente.
+¿Listo? Indícame qué modelo o modelos quieres revisar, su tipo (core/official/private) y la fuente.

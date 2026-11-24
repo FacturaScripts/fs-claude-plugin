@@ -26,13 +26,35 @@ interface EnrichStats {
 }
 
 /**
+ * Modelo de cada tool registrado de forma explícita. Lo usan los plugins
+ * oficiales (src/plugins), cuyas tools tienen nombres legibles que no siguen la
+ * convención de endpoints (`get_servicios_at` lee `/servicioates`).
+ */
+const explicitToolModels = new Map<string, string>();
+
+/**
+ * Asocia un tool al modelo de la metadata que hay detrás. Tiene prioridad sobre
+ * la deducción por nombre de `resolveModelFromToolName`.
+ *
+ * @param toolName  nombre del tool.
+ * @param modelName nombre del modelo en el registry (snake_case).
+ */
+export function registerToolModel(toolName: string, modelName: string): void {
+    explicitToolModels.set(toolName, modelName);
+}
+
+/**
  * Resuelve el modelo asociado a un tool por su nombre.
  *
- * Convenciones del MCP:
+ * Primero mira las asociaciones explícitas (`registerToolModel`) y, si no hay,
+ * aplica las convenciones del MCP:
  *   - create_X / update_X / delete_X → X es snake_case singular del modelo.
  *   - get_X → X es el endpoint REST sin barra (suele ser plural concatenado).
  */
 export function resolveModelFromToolName(toolName: string): ModelMetadata | undefined {
+    const explicit = explicitToolModels.get(toolName);
+    if (explicit !== undefined) return registryGetMeta(explicit);
+
     const match = toolName.match(/^(get|create|update|delete)_(.+)$/);
     if (!match) return undefined;
     const verb = match[1];

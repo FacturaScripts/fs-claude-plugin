@@ -30,6 +30,7 @@ import { addDateRangeParams } from './metadata/dateRange.js';
 import { enrichAllTools } from './metadata/enrich.js';
 import { bootstrapCoreMetadata, getAllModelMetadata } from './metadata/registry.js';
 import { loadLocalModules, type LocalModuleHandler } from './local-loader.js';
+import { handleOfficialPluginTool, registerOfficialPluginTools } from './plugins/index.js';
 import { validateToolInput } from './utils/validateInput.js';
 
 // Track registered tools
@@ -168,14 +169,29 @@ async function registerAllTools(): Promise<void> {
   await registerSystemTools(tools);
   await registerAnalyticsTools(tools);
 
-  // Tools del core, ANTES de cargar las locales: solo a éstas se les inyectan los
-  // filtros de rango de fecha (paso 8), porque son las únicas cuyos handlers los
-  // reenvían. Los módulos locales ya ofrecen rangos por su propio parámetro `filter`.
+  // 3b. Plugins oficiales de FacturaScripts (src/plugins): registran la metadata
+  // de sus modelos y sus tools, separados de los módulos del core.
+  registerOfficialPluginTools(tools);
+
+  // Tools del core y de los plugins oficiales, ANTES de cargar las locales: solo
+  // a éstas se les inyectan los filtros de rango de fecha (paso 8), porque son las
+  // únicas cuyos handlers los reenvían. Los módulos locales ya ofrecen rangos por
+  // su propio parámetro `filter`.
   const coreToolNames = new Set(tools.keys());
+  const builtInTools = new Map(tools);
 
   // 4. Cargar módulos locales privados: registran sus tools y, si los exponen,
   // sus modelos en el registry de metadata.
   localModuleHandlers = await loadLocalModules(tools);
+
+  // Un módulo local no puede sustituir una tool del servidor: su handler nunca se
+  // llamaría (se despacha antes a los del servidor) y el esquema no casaría.
+  for (const [name, tool] of builtInTools) {
+    if (tools.get(name) !== tool) {
+      console.error(`[fs-mcp] Un módulo local redefine la tool ${name}; se conserva la del servidor.`);
+      tools.set(name, tool);
+    }
+  }
 
   // 5. Tools del schema (describe_model, list_models, verify_model_columns):
   // se construyen DESPUÉS de cargar locales para que sus enums incluyan tanto
@@ -380,6 +396,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ?? await handleCommunicationTool(toolName, toolInput)
           ?? await handleSystemTool(toolName, toolInput)
           ?? await handleAnalyticsTool(toolName, toolInput)
+          ?? await handleOfficialPluginTool(toolName, toolInput)
           ?? await handleSchemaTool(toolName, toolInput);
 
         if (result) {

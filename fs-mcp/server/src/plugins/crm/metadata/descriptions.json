@@ -1,0 +1,119 @@
+{
+    "crm_oportunidad": {
+        "id": "Número de la oportunidad.",
+        "idcontacto": "Contacto al que se quiere vender. Su cliente asociado es el del presupuesto.",
+        "idestado": "Estado de la oportunidad. Al cambiarlo se actualizan editable y rechazado y, si el estado la cierra, la fecha de cierre.",
+        "editable": "Si la oportunidad sigue abierta. Lo fija el estado.",
+        "rechazado": "Si la oportunidad se ha perdido o rechazado. Lo fija el estado.",
+        "descripcion": "Descripción de la oportunidad: qué quiere el contacto.",
+        "observaciones": "Observaciones internas.",
+        "precio_aprox": "Importe aproximado estimado de la venta, antes de presupuestarla.",
+        "idpresupuesto": "Presupuesto de cliente vinculado a la oportunidad.",
+        "neto": "Neto del presupuesto vinculado, en su divisa. Se actualiza al guardar el presupuesto.",
+        "netoeuros": "Neto del presupuesto vinculado convertido a la divisa principal.",
+        "coddivisa": "Divisa del presupuesto vinculado.",
+        "tasaconv": "Tasa de conversión de la divisa del presupuesto vinculado.",
+        "idinteres": "Interés del contacto en esta oportunidad. Se añade también a los intereses del contacto.",
+        "idfuente": "Fuente por la que llegó la oportunidad.",
+        "asignado": "Usuario asignado para gestionar la oportunidad. Recibe un email al asignársela.",
+        "codagente": "Agente comercial de la oportunidad. Si se omite, el del contacto.",
+        "nick": "Usuario que creó la oportunidad.",
+        "fecha": "Fecha de alta de la oportunidad.",
+        "hora": "Hora de alta de la oportunidad.",
+        "fechamod": "Fecha y hora de la última modificación.",
+        "fecha_cierre": "Fecha en que la oportunidad pasó a un estado cerrado (no editable)."
+    },
+    "crm_oportunidad_estado": {
+        "id": "Identificador del estado.",
+        "nombre": "Nombre del estado.",
+        "color": "Color con el que se muestra.",
+        "icon": "Icono con el que se muestra.",
+        "orden": "Posición del estado en el embudo de ventas.",
+        "editable": "Si las oportunidades en este estado siguen abiertas. false equivale a cerrada (ganada o perdida).",
+        "rechazado": "Si las oportunidades en este estado cuentan como perdidas o rechazadas.",
+        "predeterminado": "Estado de las oportunidades nuevas.",
+        "tab": "Si el estado tiene su propia pestaña en el listado de oportunidades."
+    },
+    "crm_nota": {
+        "id": "Identificador de la nota.",
+        "observaciones": "Texto de la nota.",
+        "idcontacto": "Contacto al que se refiere la nota.",
+        "idoportunidad": "Oportunidad a la que pertenece la nota.",
+        "idinteres": "Interés relacionado. Se añade también a los intereses del contacto.",
+        "fecha": "Fecha de la nota.",
+        "hora": "Hora de la nota.",
+        "nick": "Autor de la nota.",
+        "fechaaviso": "Fecha del aviso: ese día se envía un recordatorio por email al autor (o a todos si paratodos).",
+        "notice_hour": "Hora a partir de la que se envía el aviso.",
+        "fecha_notificado": "Fecha y hora en que se envió el aviso. Se vacía al cambiar la fecha de aviso.",
+        "paratodos": "Si el aviso se envía a todos los usuarios y no solo al autor.",
+        "automatica": "Si la nota la generó el sistema (por ejemplo, al enviar un documento por email).",
+        "tipodocumento": "Clase del documento al que se refiere la nota (ej. PresupuestoCliente).",
+        "iddocumento": "Id del documento al que se refiere la nota.",
+        "documento": "Código del documento al que se refiere la nota."
+    },
+    "crm_fuente": {
+        "id": "Identificador de la fuente.",
+        "nombre": "Nombre de la fuente.",
+        "descripcion": "Descripción de la fuente.",
+        "fecha": "Fecha de alta.",
+        "numcontactos": "Número de contactos que vienen de esta fuente."
+    },
+    "crm_interes": {
+        "id": "Identificador del interés.",
+        "nombre": "Nombre del interés.",
+        "descripcion": "Descripción del interés.",
+        "fecha": "Fecha de alta.",
+        "numcontactos": "Número de contactos con este interés."
+    },
+    "crm_interes_contacto": {
+        "id": "Identificador de la asignación.",
+        "idcontacto": "Contacto interesado.",
+        "idinteres": "Interés del contacto.",
+        "fecha": "Fecha en que se asignó el interés."
+    },
+    "crm_lista": {
+        "id": "Identificador de la lista.",
+        "nombre": "Nombre de la lista.",
+        "fecha": "Fecha de alta.",
+        "numcontactos": "Número de contactos de la lista."
+    },
+    "crm_lista_contacto": {
+        "id": "Identificador de la pertenencia.",
+        "idcontacto": "Contacto de la lista.",
+        "idlista": "Lista.",
+        "fecha": "Fecha en que se añadió el contacto."
+    },
+    "crm_position": {
+        "id": "Identificador del cargo.",
+        "name": "Nombre del cargo.",
+        "creation_date": "Fecha y hora de alta.",
+        "nick": "Usuario que creó el cargo.",
+        "last_update": "Fecha y hora de la última modificación.",
+        "last_nick": "Usuario que lo modificó por última vez."
+    },
+    "crm_campaign": {
+        "id": "Identificador de la campaña.",
+        "name": "Nombre interno de la campaña.",
+        "subject": "Asunto de los emails.",
+        "content": "Contenido HTML de los emails.",
+        "status": "Estado de la campaña.",
+        "num_emails": "Emails que tiene que enviar la campaña.",
+        "num_sent": "Emails ya enviados.",
+        "num_opened": "Emails abiertos por los destinatarios.",
+        "send_start_hour": "Hora a partir de la que se envía.",
+        "send_end_hour": "Hora hasta la que se envía.",
+        "send_monday": "Enviar los lunes.",
+        "send_tuesday": "Enviar los martes.",
+        "send_wednesday": "Enviar los miércoles.",
+        "send_thursday": "Enviar los jueves.",
+        "send_friday": "Enviar los viernes.",
+        "send_saturday": "Enviar los sábados.",
+        "send_sunday": "Enviar los domingos.",
+        "unsubscribe_link": "Si los emails incluyen el enlace para darse de baja.",
+        "creation_date": "Fecha y hora de alta.",
+        "nick": "Usuario que creó la campaña.",
+        "last_update": "Fecha y hora de la última modificación.",
+        "last_nick": "Usuario que la modificó por última vez."
+    }
+}

@@ -1,0 +1,71 @@
+{
+    "proyecto": {
+        "idproyecto": "Identificador del proyecto.",
+        "nombre": "Nombre del proyecto. Si se deja vacío se genera con el patrón de código configurado.",
+        "descripcion": "Descripción del proyecto.",
+        "codcliente": "Cliente para el que se hace el proyecto.",
+        "fecha": "Fecha de alta del proyecto.",
+        "fechainicio": "Fecha prevista o real de inicio.",
+        "fechafin": "Fecha prevista o real de fin.",
+        "idempresa": "Empresa del proyecto.",
+        "idestado": "Estado del proyecto. Decide si es editable.",
+        "editable": "Si el proyecto se puede modificar. Lo fija el estado: un proyecto no editable está cerrado.",
+        "nick": "Usuario responsable o creador del proyecto.",
+        "privado": "Si es privado: solo lo ven su responsable, los administradores y los usuarios añadidos al proyecto.",
+        "numdocs": "Número de documentos de compra y venta vinculados al proyecto.",
+        "totalcompras": "Total de las compras del proyecto (facturas, albaranes y pedidos de proveedor sin duplicar los ya servidos).",
+        "totalventas": "Total de las ventas del proyecto (facturas, albaranes, pedidos y presupuestos de cliente sin duplicar los ya servidos).",
+        "totalpendientefacturar": "Neto de presupuestos, pedidos y albaranes de cliente del proyecto todavía sin facturar."
+    },
+    "tarea_proyecto": {
+        "idtarea": "Identificador de la tarea.",
+        "idproyecto": "Proyecto al que pertenece la tarea.",
+        "nombre": "Nombre de la tarea.",
+        "descripcion": "Descripción de la tarea.",
+        "cantidad": "Cantidad o unidades de la tarea (por ejemplo, horas estimadas).",
+        "fecha": "Fecha de alta de la tarea.",
+        "fechainicio": "Fecha de inicio prevista o real.",
+        "fechafin": "Fecha límite o de fin. Una tarea abierta con fecha fin pasada está vencida.",
+        "fechacompletado": "Fecha y hora en que la tarea pasó a una fase de tipo completada. Se rellena sola.",
+        "idfase": "Fase de la tarea. Al cambiarla puede cambiar el estado del proyecto.",
+        "nick": "Usuario asignado a la tarea. Recibe un email al asignársela y al cambiar de fase."
+    },
+    "fase_tarea": {
+        "idfase": "Identificador de la fase.",
+        "nombre": "Nombre de la fase.",
+        "predeterminado": "Fase que reciben las tareas nuevas. Solo puede haber una.",
+        "tipo": "Tipo de fase: 0 completada, 1 cancelada, 2 en proceso, vacío sin tipo. Cada tipo solo puede estar en una fase.",
+        "idestado": "Estado al que pasa el proyecto cuando una tarea entra en esta fase (con tipo, cuando todas las tareas del proyecto están en ella)."
+    },
+    "estado_proyecto": {
+        "idestado": "Identificador del estado.",
+        "nombre": "Nombre del estado.",
+        "color": "Color con el que se muestra el estado.",
+        "editable": "Si los proyectos en este estado se pueden modificar. Un estado no editable equivale a un proyecto cerrado.",
+        "predeterminado": "Estado que reciben los proyectos nuevos. Solo puede haber uno."
+    },
+    "nota_proyecto": {
+        "idnota": "Identificador de la nota.",
+        "idproyecto": "Proyecto al que pertenece la nota.",
+        "idtarea": "Tarea del proyecto a la que se refiere la nota (opcional).",
+        "descripcion": "Texto de la nota.",
+        "fecha": "Fecha y hora de la nota.",
+        "nick": "Autor de la nota."
+    },
+    "user_proyecto": {
+        "id": "Identificador de la asignación.",
+        "idproyecto": "Proyecto al que tiene acceso el usuario.",
+        "nick": "Usuario con acceso al proyecto.",
+        "fecha": "Fecha en que se añadió el usuario."
+    },
+    "stock_proyecto": {
+        "id": "Identificador del registro de stock.",
+        "idproyecto": "Proyecto al que pertenece el stock.",
+        "idproducto": "Producto.",
+        "referencia": "Referencia de la variante del producto.",
+        "cantidad": "Cantidad en stock del proyecto.",
+        "reservada": "Cantidad reservada por pedidos de cliente del proyecto.",
+        "pterecibir": "Cantidad pendiente de recibir por pedidos de proveedor del proyecto.",
+        "disponible": "Cantidad disponible: cantidad menos reservada."
+    }
+}

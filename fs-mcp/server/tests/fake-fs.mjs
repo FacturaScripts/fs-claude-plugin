@@ -13,17 +13,29 @@ import os from 'node:os';
 import path from 'node:path';
 
 /**
- * @param {(req: http.IncomingMessage) => unknown} [responder] Cuerpo JSON de la respuesta.
- * @returns {Promise<{url: string, peticiones: Array<{method: string, path: string, headers: http.IncomingHttpHeaders}>, cerrar: () => Promise<void>}>}
+ * El responder puede devolver el cuerpo JSON o `{ status, body }` envuelto con
+ * `respuesta()` para contestar con otro código HTTP. Cada petición registra
+ * también su cuerpo (`body`) tal como llega.
+ *
+ * @param {(req: http.IncomingMessage, body: string) => unknown} [responder] Cuerpo JSON de la respuesta.
+ * @returns {Promise<{url: string, peticiones: Array<{method: string, path: string, headers: http.IncomingHttpHeaders, body: string}>, cerrar: () => Promise<void>}>}
  */
 export async function arrancarFsDePega(responder = () => []) {
   const peticiones = [];
   const server = http.createServer((req, res) => {
-    peticiones.push({ method: req.method, path: req.url, headers: req.headers });
-    req.resume();
+    const peticion = { method: req.method, path: req.url, headers: req.headers, body: '' };
+    peticiones.push(peticion);
+    req.setEncoding('utf8');
+    req.on('data', (chunk) => (peticion.body += chunk));
     req.on('end', () => {
+      const salida = responder(req, peticion.body);
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(responder(req)));
+      if (salida && typeof salida === 'object' && salida[ES_RESPUESTA]) {
+        res.statusCode = salida.status;
+        res.end(JSON.stringify(salida.body));
+        return;
+      }
+      res.end(JSON.stringify(salida));
     });
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -33,6 +45,18 @@ export async function arrancarFsDePega(responder = () => []) {
     peticiones,
     cerrar: () => new Promise((resolve) => server.close(() => resolve())),
   };
+}
+
+const ES_RESPUESTA = Symbol('respuesta');
+
+/**
+ * Respuesta con un código HTTP distinto de 200, para el responder de arrancarFsDePega.
+ *
+ * @param {number} status Código HTTP.
+ * @param {unknown} body Cuerpo JSON.
+ */
+export function respuesta(status, body) {
+  return { [ES_RESPUESTA]: true, status, body };
 }
 
 /**

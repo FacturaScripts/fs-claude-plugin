@@ -57,6 +57,9 @@ Fuente: documentación de usuario incluida en el plugin (`references/docs/`), co
 | Tesorería y resumen | `get_cash_flow_proyectado`, `get_dashboard_resumen` (últimos N días desde hoy) |
 | Contabilidad | `get_asientos`, `get_partidas`, `get_subcuentas`, `get_ejercicios`, `get_regularizacionimpuestos` (datos en bruto; no hay herramientas de balances) |
 | Calidad de datos | `get_facturas_con_errores` |
+| Servicios SAT (plugin Servicios) | `get_informe_servicios_at` (por estado, prioridad, tipo, asignado, agente, mes y cliente), `get_servicios_at_pendientes` (abiertos por antigüedad), `get_trabajos_at_pendientes` (trabajos por facturar, albaranar o presupuestar, sin impuestos), `get_horas_trabajos_at`, `get_servicio_at` (ficha completa), `get_historial_maquina_at`, `get_servicios_at`, `get_trabajos_at` |
+| CRM (plugin CRM) | `get_informe_oportunidades_crm` (embudo, conversión e importes por estado, interés, fuente, asignado, agente y mes), `get_oportunidades_crm_sin_actividad`, `get_avisos_crm`, `get_oportunidad_crm` y `get_contacto_crm` (fichas completas), `get_oportunidades_crm`, `get_notas_crm`, `get_campanas_crm` |
+| Proyectos (plugin Proyectos) | `get_informe_proyectos` (por estado, cliente, responsable y mes), `get_rentabilidad_proyectos` (ventas, compras y margen), `get_informe_tareas_proyecto`, `get_tareas_proyecto_vencidas`, `get_proyecto` (ficha completa), `get_documentos_proyecto`, `get_proyectos`, `get_tareas_proyecto` |
 
 Consulta la descripción de cada herramienta antes de usarla y, si dudas sobre una columna, usa `describe_model`.
 

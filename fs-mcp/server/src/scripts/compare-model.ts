@@ -18,6 +18,14 @@
  *     --source=/ruta/a/Plugins/Forja \
  *     --type=private
  *
+ *   node build/scripts/compare-model.js \
+ *     --model=servicio_at \
+ *     --source=/ruta/a/Plugins/Servicios \
+ *     --type=official
+ *
+ * `official` es un plugin oficial incluido en fs-mcp (src/plugins): la fuente
+ * tiene la estructura de un plugin, como `private`.
+ *
  * Output: JSON por stdout con la estructura de comparación.
  */
 
@@ -25,6 +33,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { bootstrapCoreMetadata, getModelMetadata } from '../metadata/registry.js';
 import { loadLocalModules } from '../local-loader.js';
+import { registerOfficialPluginTools } from '../plugins/index.js';
 import type { ColumnMetadata } from '../metadata/types.js';
 
 interface SourceColumn {
@@ -45,7 +54,7 @@ interface ChangedColumn {
 
 interface CompareOutput {
     model: string;
-    type: 'core' | 'private';
+    type: 'core' | 'private' | 'official';
     sourcePath: string;
     inRegistry: boolean;
     inSource: boolean;
@@ -78,7 +87,7 @@ interface CompareOutput {
 interface Args {
     model: string;
     source: string;
-    type: 'core' | 'private';
+    type: 'core' | 'private' | 'official';
 }
 
 function parseArgs(): Args {
@@ -89,8 +98,8 @@ function parseArgs(): Args {
     }
     if (!args['model']) die('Falta --model=<nombre_modelo>');
     if (!args['source']) die('Falta --source=<ruta>');
-    if (args['type'] !== 'core' && args['type'] !== 'private') {
-        die('--type debe ser "core" o "private"');
+    if (args['type'] !== 'core' && args['type'] !== 'private' && args['type'] !== 'official') {
+        die('--type debe ser "core", "private" u "official"');
     }
     return { model: args['model'], source: args['source'], type: args['type'] };
 }
@@ -159,7 +168,7 @@ function parseTableXml(xml: string): { columns: SourceColumn[]; primaryKey: stri
 // Heurística para sugerir tableName y endpoint en modelos nuevos
 // ───────────────────────────────────────────────────────────────────────────
 
-function findTableXmlPath(sourceRoot: string, type: 'core' | 'private', modelName: string): string | undefined {
+function findTableXmlPath(sourceRoot: string, type: 'core' | 'private' | 'official', modelName: string): string | undefined {
     const tablesDir = type === 'core'
         ? join(sourceRoot, 'Core', 'Table')
         : join(sourceRoot, 'Table');
@@ -220,9 +229,10 @@ function suggestEndpoint(tableName: string): string {
 async function main(): Promise<void> {
     const args = parseArgs();
 
-    // Cargar registry: core + privados (necesario para conocer el estado actual).
+    // Cargar registry: core + plugins oficiales + privados (necesario para conocer el estado actual).
     await bootstrapCoreMetadata();
     const dummyTools = new Map();
+    registerOfficialPluginTools(dummyTools);
     await loadLocalModules(dummyTools);
 
     const currentMeta = getModelMetadata(args.model);

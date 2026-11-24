@@ -32,6 +32,21 @@
  *          ]
  *        }
  *      Por cada modelo se escribe `<outputBase>/<outputDir>/metadata.js`.
+ *
+ *   3. Modo PLUGIN OFICIAL (`"format": "ts"` en el manifest): igual que el modo
+ *      plugin, pero escribe TypeScript dentro del repo del MCP para los plugins
+ *      oficiales que incluye fs-mcp (server/src/plugins/<plugin>/metadata/).
+ *      Las rutas relativas del manifest se resuelven respecto a su carpeta, y
+ *      `fsPath` puede omitirse para pasarlo por `--fs-path` (así el manifest no
+ *      guarda rutas de ninguna máquina). `pluginPath` se deduce entonces como
+ *      `<fsPath>/Plugins/<pluginName>`.
+ *
+ *      Uso:
+ *        npm run generate:metadata -- --manifest=src/plugins/servicios/metadata/manifest.json --fs-path=/ruta/a/facturascripts
+ *
+ *      Escribe `<outputBase>/models/<modelo>.ts` y el agregador `<outputBase>/index.ts`.
+ *      `extensionPlugins` lista otros plugins cuyas columnas de extensión
+ *      (Extension/Table) se fusionan aunque no estén activos en `fsPath`.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -683,14 +698,23 @@ interface CliArgs {
 
 interface PluginManifest {
     moduleName: string;
-    fsPath: string;
-    pluginPath: string;
+    /** Ruta del core. Opcional si se pasa --fs-path. */
+    fsPath?: string;
+    /** Ruta del plugin. Opcional si se indica pluginName (se busca en <fsPath>/Plugins). */
+    pluginPath?: string;
+    /** Carpeta del plugin dentro de <fsPath>/Plugins. */
+    pluginName?: string;
     outputBase: string;
+    /** "js" (módulos privados, por defecto) o "ts" (plugins oficiales del repo). */
+    format?: 'js' | 'ts';
+    /** Plugins cuyas columnas de extensión se fusionan aunque no estén activos. */
+    extensionPlugins?: string[];
     /** Ruta opcional al archivo JSON de overrides de descripciones por modelo. */
     descriptionsOverridesPath?: string;
     models: Array<{
         name: string;
-        outputDir: string;
+        /** Carpeta de salida del modelo (solo en formato js). */
+        outputDir?: string;
         table: string;
         endpoint: string;
         editView?: string;
@@ -1001,13 +1025,13 @@ function buildRelations(
 // Escritura de archivos generados
 // ───────────────────────────────────────────────────────────────────────────
 
-function serializeMetadata(meta: ModelMetadata): string {
+function serializeMetadata(meta: ModelMetadata, typesImport = '../types.js'): string {
     const json = JSON.stringify(meta, null, 4);
     const varName = toCamelCase(meta.name) + 'Metadata';
     return `// Archivo generado automáticamente por scripts/generate-metadata.ts
 // No editar a mano: cualquier cambio se perderá al regenerar.
 
-import type { ModelMetadata } from '../types.js';
+import type { ModelMetadata } from '${typesImport}';
 
 export const ${varName}: ModelMetadata = ${json};
 
@@ -1054,6 +1078,35 @@ ${entries}
 export const modelNames: string[] = Object.keys(modelMetadata);
 
 export type { ModelMetadata, ColumnMetadata, Relation, ForeignKey, TsType, WidgetType } from './types.js';
+`;
+
+    await writeFile(join(outDir, 'index.ts'), content, 'utf8');
+}
+
+/**
+ * Escribe el agregador de la metadata de un plugin oficial: una lista con los
+ * modelos del plugin, que el servidor registra al arrancar.
+ */
+async function writePluginIndexFile(outDir: string, names: string[], moduleName: string): Promise<void> {
+    const sorted = [...names].sort();
+    const imports = sorted
+        .map((name) => `import ${toCamelCase(name)}Metadata from './models/${name}.js';`)
+        .join('\n');
+    const entries = sorted.map((name) => `    ${toCamelCase(name)}Metadata,`).join('\n');
+
+    const content = `// Archivo generado automáticamente por scripts/generate-metadata.ts
+// No editar a mano: cualquier cambio se perderá al regenerar.
+
+import type { ModelMetadata } from '../../../metadata/types.js';
+
+${imports}
+
+/**
+ * Metadata de los modelos del plugin ${moduleName}.
+ */
+export const models: ModelMetadata[] = [
+${entries}
+];
 `;
 
     await writeFile(join(outDir, 'index.ts'), content, 'utf8');
@@ -1411,9 +1464,26 @@ async function runPluginMode(args: CliArgs): Promise<void> {
 
     const raw = await readFile(manifestPath, 'utf8');
     const manifest = JSON.parse(raw) as PluginManifest;
-    validateManifest(manifest);
+    const manifestDir = dirname(manifestPath);
+    const format = manifest.format ?? 'js';
 
-    const { moduleName, fsPath, pluginPath, outputBase, models } = manifest;
+    // --fs-path tiene prioridad; las rutas relativas son respecto al manifest
+    const fsPathRaw = args.fsPath ?? manifest.fsPath;
+    if (!fsPathRaw) {
+        console.error('Error: el manifest no tiene "fsPath": pásalo con --fs-path=/ruta/a/facturascripts.');
+        process.exit(1);
+    }
+    const fsPath = resolve(manifestDir, fsPathRaw);
+    const pluginPath = manifest.pluginPath
+        ? resolve(manifestDir, manifest.pluginPath)
+        : join(fsPath, 'Plugins', manifest.pluginName ?? '');
+    const outputBase = resolve(manifestDir, manifest.outputBase);
+    const descriptionsPath = manifest.descriptionsOverridesPath
+        ? resolve(manifestDir, manifest.descriptionsOverridesPath)
+        : undefined;
+    validateManifest(manifest, format);
+
+    const { moduleName, models } = manifest;
     console.log(`[generate-metadata] moduleName=${moduleName}, fsPath=${fsPath}, pluginPath=${pluginPath}`);
 
     if (!existsSync(fsPath)) {
@@ -1436,9 +1506,26 @@ async function runPluginMode(args: CliArgs): Promise<void> {
     // (a tablas del core o de otros plugins). El propio plugin, si está
     // habilitado, conserva la misma fuente que sus modelos.
     const ownDir = realpathSync(pluginPath);
-    const contributors = await mergeEnabledPluginExtensions(allTables, fsPath, (dir) =>
-        existsSync(dir) && realpathSync(dir) === ownDir ? pluginSource : `plugin:${basename(dir)}`,
-    );
+    const sourceFor = (dir: string): Source =>
+        existsSync(dir) && realpathSync(dir) === ownDir ? pluginSource : `plugin:${basename(dir)}`;
+    const contributors = await mergeEnabledPluginExtensions(allTables, fsPath, sourceFor);
+
+    // Plugins indicados en el manifest: sus extensiones se fusionan aunque no
+    // estén activos en esta instalación (p. ej. Proyectos añade idproyecto a serviciosat)
+    for (const name of manifest.extensionPlugins ?? []) {
+        const dir = join(fsPath, 'Plugins', name);
+        if (!existsSync(dir)) {
+            console.warn(`[generate-metadata] extensionPlugins: no existe ${dir}; se omite.`);
+            continue;
+        }
+        if (contributors.some((c) => existsSync(c.dir) && realpathSync(c.dir) === realpathSync(dir))) continue;
+        const source = sourceFor(dir);
+        const n = await mergeExtensionTables(allTables, dir, source);
+        if (n > 0) {
+            contributors.push({ dir, source });
+            console.log(`[generate-metadata] Extensiones de ${name} (manifest): +${n} columna(s).`);
+        }
+    }
     const histories = loadHistories([
         { dir: fsPath, source: 'core', layout: 'core' },
         { dir: pluginPath, source: pluginSource, layout: 'plugin' },
@@ -1465,9 +1552,10 @@ async function runPluginMode(args: CliArgs): Promise<void> {
     const generatedAt = new Date().toISOString();
 
     // Overrides del plugin: archivo opcional indicado en el manifest.
-    const overrides = await loadDescriptionsOverrides(manifest.descriptionsOverridesPath);
+    const overrides = await loadDescriptionsOverrides(descriptionsPath);
 
     let okCount = 0;
+    const generatedNames: string[] = [];
     for (const m of models) {
         const generatedFrom: ModelMetadata['generatedFrom'] = { generatedAt };
         if (fsCommit) generatedFrom.facturascriptsCommit = fsCommit;
@@ -1497,20 +1585,37 @@ async function runPluginMode(args: CliArgs): Promise<void> {
             continue;
         }
 
-        const targetDir = resolve(outputBase, m.outputDir);
-        await mkdir(targetDir, { recursive: true });
-        const targetPath = join(targetDir, 'metadata.js');
-        await writeFile(targetPath, serializeMetadataAsJs(meta), 'utf8');
+        let targetPath: string;
+        if (format === 'ts') {
+            const targetDir = join(outputBase, 'models');
+            await mkdir(targetDir, { recursive: true });
+            targetPath = join(targetDir, `${m.name}.ts`);
+            await writeFile(targetPath, serializeMetadata(meta, '../../../../metadata/types.js'), 'utf8');
+            generatedNames.push(m.name);
+        } else {
+            const targetDir = resolve(outputBase, m.outputDir ?? '');
+            await mkdir(targetDir, { recursive: true });
+            targetPath = join(targetDir, 'metadata.js');
+            await writeFile(targetPath, serializeMetadataAsJs(meta), 'utf8');
+        }
         console.log(`[generate-metadata] ✓ ${m.name} (${meta.columns.length} columnas, ${meta.relations.length} relaciones) → ${targetPath}`);
         okCount += 1;
+    }
+
+    if (format === 'ts' && generatedNames.length > 0) {
+        await writePluginIndexFile(outputBase, generatedNames, moduleName);
     }
 
     reportMissedTranslations(translations);
     console.log(`[generate-metadata] Hecho. ${okCount} modelo(s) generado(s) (modo PLUGIN: ${moduleName}).`);
 }
 
-function validateManifest(m: PluginManifest): void {
-    const required: Array<keyof PluginManifest> = ['moduleName', 'fsPath', 'pluginPath', 'outputBase', 'models'];
+function validateManifest(m: PluginManifest, format: 'js' | 'ts'): void {
+    const required: Array<keyof PluginManifest> = ['moduleName', 'outputBase', 'models'];
+    if (!m.pluginPath && !m.pluginName) {
+        console.error('Error: el manifest necesita "pluginPath" o "pluginName".');
+        process.exit(1);
+    }
     for (const k of required) {
         if (m[k] === undefined || m[k] === null) {
             console.error(`Error: manifest sin campo "${k}".`);
@@ -1522,7 +1627,10 @@ function validateManifest(m: PluginManifest): void {
         process.exit(1);
     }
     for (const e of m.models) {
-        for (const k of ['name', 'outputDir', 'table', 'endpoint', 'description']) {
+        const keys = format === 'ts'
+            ? ['name', 'table', 'endpoint', 'description']
+            : ['name', 'outputDir', 'table', 'endpoint', 'description'];
+        for (const k of keys) {
             if (typeof (e as Record<string, unknown>)[k] !== 'string') {
                 console.error(`Error: entrada de modelo "${e.name ?? '?'}" sin campo string "${k}".`);
                 process.exit(1);

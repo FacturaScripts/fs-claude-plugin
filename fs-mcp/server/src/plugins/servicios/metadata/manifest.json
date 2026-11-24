@@ -1,0 +1,87 @@
+{
+    "moduleName": "Servicios",
+    "pluginName": "Servicios",
+    "format": "ts",
+    "outputBase": ".",
+    "descriptionsOverridesPath": "descriptions.json",
+    "extensionPlugins": ["Proyectos"],
+    "models": [
+        {
+            "name": "servicio_at",
+            "table": "serviciosat",
+            "endpoint": "/servicioates",
+            "editView": "EditServicioAT",
+            "description": "Servicio de asistencia técnica (SAT) del plugin Servicios: una solicitud de soporte o reparación de un cliente, con estado, prioridad, tipo, usuario asignado, agente, hasta cuatro máquinas implicadas y los trabajos realizados."
+        },
+        {
+            "name": "trabajo_at",
+            "table": "serviciosat_trabajos",
+            "endpoint": "/trabajoates",
+            "editView": "EditTrabajoAT",
+            "description": "Trabajo o línea de intervención de un servicio SAT: acción técnica o producto empleado, con cantidad, precio, fechas y horas, técnico y estado de facturación (hacer factura, albarán, presupuesto...)."
+        },
+        {
+            "name": "estado_at",
+            "table": "serviciosat_estados",
+            "endpoint": "/estadoates",
+            "editView": "EditEstadoAT",
+            "description": "Estado de los servicios SAT (pendiente, en curso, terminado...). Decide si el servicio es editable, a quién se asigna y a quién se notifica el cambio."
+        },
+        {
+            "name": "prioridad_at",
+            "table": "serviciosat_prioridades",
+            "endpoint": "/prioridadates",
+            "editView": "EditPrioridadAT",
+            "description": "Prioridad de los servicios SAT (urgente, normal, baja...). Una de ellas es la predeterminada para los servicios nuevos."
+        },
+        {
+            "name": "tipo_at",
+            "table": "serviciosat_tipos",
+            "endpoint": "/tipoates",
+            "editView": "EditTipoAT",
+            "description": "Tipo de servicio SAT (reparación, instalación, mantenimiento...). Uno de ellos es el predeterminado para los servicios nuevos."
+        },
+        {
+            "name": "maquina_at",
+            "table": "serviciosat_maquinas",
+            "endpoint": "/maquinaates",
+            "editView": "EditMaquinaAT",
+            "description": "Máquina o equipo de un cliente sobre el que se prestan servicios SAT, con número de serie, fabricante y referencia de producto."
+        },
+        {
+            "name": "categoria_at",
+            "table": "serviciosat_categorias",
+            "endpoint": "/categoriaates",
+            "editView": "EditCategoriaAT",
+            "description": "Categoría de verificaciones (checklist) de los servicios SAT. Agrupa las comprobaciones que hay que hacer en un servicio."
+        },
+        {
+            "name": "check_at",
+            "table": "serviciosat_checks",
+            "endpoint": "/checkates",
+            "editView": "EditCheckAT",
+            "description": "Comprobación de una categoría de verificaciones SAT. Al añadir la categoría a un servicio se crea una verificación pendiente por cada comprobación."
+        },
+        {
+            "name": "servicio_categoria_at",
+            "table": "serviciosat_serviciocategorias",
+            "endpoint": "/serviciocategoriaates",
+            "editView": "EditServicioCategoriaAT",
+            "description": "Categoría de verificaciones asignada a un servicio SAT. Al crearla se generan las verificaciones del servicio de esa categoría."
+        },
+        {
+            "name": "servicio_check_at",
+            "table": "serviciosat_serviciochecks",
+            "endpoint": "/serviciocheckates",
+            "editView": "EditServicioCheckAT",
+            "description": "Verificación de un servicio SAT: una comprobación de la checklist, marcada o no, con la fecha en que se completó."
+        },
+        {
+            "name": "servicio_at_log",
+            "table": "serviciosat_logs",
+            "endpoint": "/servicioatloges",
+            "editView": "EditServicioATLog",
+            "description": "Historial de un servicio SAT: alta, cambios de estado, cliente, agente, asignado y trabajos, con usuario, IP y fecha."
+        }
+    ]
+}

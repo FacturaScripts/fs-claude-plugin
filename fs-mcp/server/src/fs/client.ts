@@ -145,9 +145,44 @@ function hideApiFields<T>(fields: string[] | undefined, data: T): T {
  * Cliente HTTP para la API REST de FacturaScripts
  * Soporta múltiples conexiones y manejo de errores contextualizado
  */
+/**
+ * Peticiones simultáneas como máximo contra una misma conexión. Las fichas e
+ * informes lanzan muchas lecturas en paralelo, y una instalación con pocos
+ * procesos PHP (hostings pequeños, PHP-FPM con pm.max_children bajo) las deja
+ * en cola hasta agotar el timeout. Las que superan el límite esperan su turno.
+ */
+const MAX_CONCURRENT_REQUESTS = 4;
+
 class FacturaScriptsClient {
   private defaultConnectionKey: string | undefined;
   private axiosInstances: Map<string, { connection: ConnectionConfig; instance: AxiosInstance }> = new Map();
+  /** Peticiones en curso y en espera por conexión. */
+  private slots: Map<string, { active: number; waiting: Array<() => void> }> = new Map();
+
+  /**
+   * Ejecuta una petición respetando el máximo de peticiones simultáneas de su conexión.
+   */
+  private async limited<T>(connectionKey: string | undefined, run: () => Promise<T>): Promise<T> {
+    const key = connectionKey || this.defaultConnectionKey || '';
+    let slot = this.slots.get(key);
+    if (!slot) {
+      slot = { active: 0, waiting: [] };
+      this.slots.set(key, slot);
+    }
+    if (slot.active >= MAX_CONCURRENT_REQUESTS) {
+      await new Promise<void>((resolve) => slot!.waiting.push(resolve));
+    } else {
+      slot.active += 1;
+    }
+    try {
+      return await run();
+    } finally {
+      // el turno pasa directamente al siguiente en espera, sin liberar el hueco
+      const next = slot.waiting.shift();
+      if (next) next();
+      else slot.active -= 1;
+    }
+  }
 
   constructor(connectionKey?: string) {
     this.defaultConnectionKey = connectionKey;
@@ -266,9 +301,9 @@ class FacturaScriptsClient {
   ): Promise<T> {
     try {
       const instance = this.getAxiosInstance(connectionKey);
-      const response = await instance.get<T>(endpoint, {
+      const response = await this.limited(connectionKey, () => instance.get<T>(endpoint, {
         params: toApiQueryParams(params),
-      });
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error) {
       throw new Error(
@@ -289,9 +324,33 @@ class FacturaScriptsClient {
     try {
       const instance = this.getAxiosInstance(connectionKey);
       const formData = this.toFormData(data);
-      const response = await instance.post<T>(endpoint, formData, {
+      const response = await this.limited(connectionKey, () => instance.post<T>(endpoint, formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
+      }));
+      return hideApiFields(fieldsToHide(response), response.data);
+    } catch (error) {
+      throw new Error(
+        `POST ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  /**
+   * Realiza una petición POST multipart/form-data a la API de FacturaScripts,
+   * para los recursos que reciben archivos (/uploadFiles, /attachedfiles).
+   * axios pone la cabecera Content-Type con su boundary a partir del FormData.
+   */
+  async postMultipart<T>(
+    endpoint: string,
+    form: FormData,
+    connectionKey?: string
+  ): Promise<T> {
+    try {
+      const instance = this.getAxiosInstance(connectionKey);
+      const response = await this.limited(connectionKey, () => instance.post<T>(endpoint, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        maxBodyLength: Infinity,
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error) {
       throw new Error(
@@ -313,9 +372,9 @@ class FacturaScriptsClient {
     try {
       const instance = this.getAxiosInstance(connectionKey);
       const formData = this.toFormData(data);
-      const response = await instance.put<T>(endpoint, formData, {
+      const response = await this.limited(connectionKey, () => instance.put<T>(endpoint, formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
+      }));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error) {
       throw new Error(
@@ -334,7 +393,7 @@ class FacturaScriptsClient {
   ): Promise<T> {
     try {
       const instance = this.getAxiosInstance(connectionKey);
-      const response = await instance.delete<T>(endpoint);
+      const response = await this.limited(connectionKey, () => instance.delete<T>(endpoint));
       return hideApiFields(fieldsToHide(response), response.data);
     } catch (error) {
       throw new Error(
