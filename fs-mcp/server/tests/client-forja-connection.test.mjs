@@ -9,7 +9,7 @@ import { arrancarFsDePega, usarConexiones } from './fake-fs.mjs';
 
 const fs = await arrancarFsDePega();
 
-// Archivo de conexiones aislado antes de importar dist/: el gestor lo lee al cargarse
+// Archivo de conexiones aislado antes de importar build/: el gestor lo lee al cargarse
 const borrar = usarConexiones({
   default: 'erp',
   connections: {
@@ -17,7 +17,7 @@ const borrar = usarConexiones({
     'forja-autor': { name: 'Forja autor', url: fs.url, token: 'token-autor', type: 'forja' },
   },
 });
-const { fsClient } = await import('../dist/fs/client.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await fs.cerrar();

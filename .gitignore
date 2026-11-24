@@ -9,8 +9,18 @@ connections.json
 # Bytecode de Python generado al ejecutar los scripts o los tests.
 __pycache__/
 
+# Servidores MCP de fs-mcp y fs-forja. Cada uno se distribuye empaquetado con esbuild en un único
+# server/dist/index.js que ya lleva dentro sus dependencias: al instalar el plugin no hace falta
+# node_modules ni npm install. Para desarrollar, ejecuta `npm ci` en server/ antes del primer build.
 fs-mcp/server/node_modules/
+fs-forja/server/node_modules/
 fs-mcp/server/*.tsbuildinfo
 fs-forja/server/*.tsbuildinfo
-# El node_modules de fs-forja/server se versiona: el plugin se instala por separado y su servidor lo necesita.
-# dist/ se incluye intencionalmente en el repo para evitar necesitar Node.js en el cliente
+# Salida de tsc: módulos sueltos que usan los tests y los scripts de mantenimiento.
+fs-mcp/server/build/
+fs-forja/server/build/
+# De dist/ solo se versiona el bundle.
+fs-mcp/server/dist/*
+!fs-mcp/server/dist/index.js
+fs-forja/server/dist/*
+!fs-forja/server/dist/index.js

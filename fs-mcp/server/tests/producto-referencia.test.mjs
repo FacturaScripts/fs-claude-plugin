@@ -15,7 +15,7 @@ const borrar = usarConexiones({
   default: 'pega',
   connections: { pega: { name: 'Pega', url: fs.url, token: 't' } },
 });
-const { handleCoreBusinessTool } = await import('../dist/modules/core-business/index.js');
+const { handleCoreBusinessTool } = await import('../build/modules/core-business/index.js');
 
 test.after(async () => {
   await fs.cerrar();

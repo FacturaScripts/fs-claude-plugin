@@ -21,14 +21,14 @@ const forja = http.createServer((req, res) => {
 await new Promise((resolve) => forja.listen(0, '127.0.0.1', resolve));
 const forjaUrl = `http://127.0.0.1:${forja.address().port}`;
 
-// Archivo de conexiones aislado antes de importar dist/: el gestor lo lee al cargarse
+// Archivo de conexiones aislado antes de importar build/: el gestor lo lee al cargarse
 const borrar = usarConexiones({
   default: 'forja',
   connections: {
     forja: { name: 'Forja', url: forjaUrl, token: TOKEN, type: 'forja' },
   },
 });
-const { ForjaClient, ForjaApiError } = await import('../dist/fs/forja-client.js');
+const { ForjaClient, ForjaApiError } = await import('../build/fs/forja-client.js');
 
 /**
  * Cliente con una conexión de forja que apunta a la URL indicada.

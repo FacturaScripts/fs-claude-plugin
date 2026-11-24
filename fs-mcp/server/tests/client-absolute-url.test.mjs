@@ -18,7 +18,7 @@ const borrar = usarConexiones({
   default: 'pega',
   connections: { pega: { name: 'Pega', url: instalacion.url, token: 'token-secreto' } },
 });
-const { fsClient } = await import('../dist/fs/client.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await instalacion.cerrar();

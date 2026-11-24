@@ -10,7 +10,7 @@ import test from 'node:test';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-keys-'));
 process.env.FS_CONNECTIONS_FILE = path.join(dir, 'connections.json');
-const { connectionManager } = await import('../dist/connection-manager.js');
+const { connectionManager } = await import('../build/connection-manager.js');
 
 test.after(() => fs.rmSync(dir, { recursive: true, force: true }));
 

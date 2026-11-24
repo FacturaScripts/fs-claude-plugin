@@ -34,8 +34,8 @@ const borrar = usarConexiones({
     sub: { name: 'Subcarpeta', url: 'http://fs.invalid/sub', token: 't' },
   },
 });
-const { handleAnalyticsTool } = await import('../dist/modules/analytics/index.js');
-const { fsClient } = await import('../dist/fs/client.js');
+const { handleAnalyticsTool } = await import('../build/modules/analytics/index.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await proxy.cerrar();

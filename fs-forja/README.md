@@ -6,10 +6,12 @@ Es independiente de **fs-mcp**, que conecta con la API REST de una instalación 
 
 ## Requisitos
 
-- **Node.js ≥ 18**. El servidor es un proceso Node.js precompilado (`server/dist/index.js`) con sus dependencias incluidas.
+- **Node.js ≥ 18**. El servidor es un proceso Node.js empaquetado en un único archivo (`server/dist/index.js`) que ya lleva dentro sus dependencias: no hace falta `npm install` ni `node_modules`.
 - Acceso a la API de autor concedido por el personal de facturascripts.com y un token de autor (ver [Obtener el token](#obtener-el-token)).
 
 El manifiesto usa el mismo lanzador portable que fs-mcp: toma `CLAUDE_PLUGIN_ROOT` en Claude Code y el directorio de trabajo del plugin en Codex.
+
+Para desarrollarlo, `node_modules` no se versiona: ejecuta `npm ci` en `fs-forja/server` antes del primer `npm run build` o `npm test`. La compilación deja en `build/` los módulos sueltos de `tsc`, que usan los tests, y genera con esbuild el bundle `dist/index.js`, el único archivo de `dist/` que se sube al repositorio.
 
 ## Índice
 

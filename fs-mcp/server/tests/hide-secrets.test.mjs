@@ -65,10 +65,10 @@ const borrar = usarConexiones({
     cruda: { name: 'Cruda', url: `http://127.0.0.1:${crudo.address().port}`, token: 't' },
   },
 });
-const { handleSystemTool } = await import('../dist/modules/system/index.js');
-const { handleConfigurationTool } = await import('../dist/modules/configuration/index.js');
-const { handleAnalyticsTool } = await import('../dist/modules/analytics/index.js');
-const { fsClient } = await import('../dist/fs/client.js');
+const { handleSystemTool } = await import('../build/modules/system/index.js');
+const { handleConfigurationTool } = await import('../build/modules/configuration/index.js');
+const { handleAnalyticsTool } = await import('../build/modules/analytics/index.js');
+const { fsClient } = await import('../build/fs/client.js');
 
 test.after(async () => {
   await fs.cerrar();

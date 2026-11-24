@@ -58,7 +58,8 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
 ## fs-mcp y módulos privados
 
 - El servidor MCP debe seguir funcionando en ambos hosts desde `fs-mcp/server/dist/index.js`.
-- Si modificas TypeScript en `fs-mcp/server/src/`, ejecuta `npm run build --prefix fs-mcp/server` y conserva `dist/` sincronizado porque el plugin lo distribuye precompilado.
+- `dist/index.js` es un bundle de esbuild que lleva dentro las dependencias; es el único archivo de `dist/` que se versiona. `node_modules` y `build/` (salida de `tsc` para los tests y los scripts de mantenimiento) no se versionan: no vuelvas a subirlos ni a importar desde el bundle código que dependa de `node_modules` en tiempo de ejecución.
+- Si modificas TypeScript en `fs-mcp/server/src/`, ejecuta `npm ci --prefix fs-mcp/server` si no existe `node_modules`, después `npm run build --prefix fs-mcp/server`, y conserva `dist/index.js` sincronizado porque el plugin lo distribuye precompilado.
 - La configuración principal se lee desde `~/.fs-ai.json`; no vuelvas a documentar `${CLAUDE_PLUGIN_DATA}/connections.json` como ubicación principal.
 - La extensión privada está en `/Users/daniel89fg/Trabajos/FacturaScripts/fs-mcp-modules-private` y se carga mediante `settings.localModulesPath`.
 - No modifiques `fs-mcp-modules-private` desde este repositorio salvo petición expresa. Cuando cambie el cargador o el contrato de módulos, valida que los módulos privados siguen cargando sin revelar conexiones ni tokens.
@@ -67,9 +68,9 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
 ## fs-forja
 
 - `fs-forja` es el único plugin que trabaja con la API de autor de la forja de facturascripts.com (`/api/3/forja`): herramientas `forja_*`, sus conexiones de tipo `forja` y el zip de versiones. Las referencias a la forja en `fs-dev`, `fs-user` o `fs-mcp` deben remitir a `fs-forja`.
-- Su servidor es independiente del de fs-mcp, con su propio `package.json`, `node_modules` y `dist/` en `fs-forja/server/`, porque cada plugin se instala por separado y no puede importar código de otro.
+- Su servidor es independiente del de fs-mcp, con su propio `package.json` y su propio bundle `dist/index.js` en `fs-forja/server/`, porque cada plugin se instala por separado y no puede importar código de otro. Se compila igual que fs-mcp: `node_modules` y `build/` no se versionan.
 - Comparte `~/.fs-ai.json` con fs-mcp: fs-forja solo lee y escribe conexiones de tipo `forja`, nunca sustituye las de fs-mcp ni cambia `connections.default`, y fs-mcp rechaza crear, sustituir o marcar por defecto una conexión de tipo `forja`. Al cambiar el formato del archivo, mantén ambos gestores de conexiones coherentes.
-- Si modificas TypeScript en `fs-forja/server/src/`, ejecuta `npm test --prefix fs-forja/server` (compila y prueba) y conserva `dist/` sincronizado.
+- Si modificas TypeScript en `fs-forja/server/src/`, ejecuta `npm ci --prefix fs-forja/server` si no existe `node_modules`, después `npm test --prefix fs-forja/server` (compila y prueba), y conserva `dist/index.js` sincronizado.
 
 ## Versiones, instalación y recarga
 

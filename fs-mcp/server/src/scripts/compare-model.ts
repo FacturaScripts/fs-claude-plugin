@@ -8,12 +8,12 @@
  * Lo usa la skill `sync-models` para detectar cambios entre versiones.
  *
  * Uso:
- *   node dist/scripts/compare-model.js \
+ *   node build/scripts/compare-model.js \
  *     --model=cliente \
  *     --source=/ruta/a/facturascripts \
  *     --type=core
  *
- *   node dist/scripts/compare-model.js \
+ *   node build/scripts/compare-model.js \
  *     --model=task \
  *     --source=/ruta/a/Plugins/Forja \
  *     --type=private

@@ -37,7 +37,7 @@ export async function arrancarFsDePega(responder = () => []) {
 
 /**
  * Escribe un archivo de conexiones temporal y apunta FS_CONNECTIONS_FILE a él.
- * Hay que llamarla ANTES de importar dist/, porque el gestor de conexiones lo
+ * Hay que llamarla ANTES de importar build/, porque el gestor de conexiones lo
  * lee al cargarse.
  *
  * @param {{default: string, connections: Record<string, {name: string, url: string, token: string}>}} config

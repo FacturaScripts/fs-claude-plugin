@@ -5,7 +5,7 @@
  * metadata generada se expone correctamente como Resources y como Tool.
  *
  * Uso:
- *   node dist/scripts/test-metadata.js
+ *   node build/scripts/test-metadata.js
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
