@@ -1,6 +1,6 @@
 ---
 name: sincronizar-forja
-description: Sincroniza un plugin local con su ficha de autor en la forja de facturascripts.com mediante fs-mcp: documentación, traducciones, datos, imágenes, noticias, versiones, errores e issues.
+description: Sincroniza un plugin local con su ficha de autor en la forja de facturascripts.com mediante el plugin fs-forja: documentación, traducciones, datos, imágenes, noticias, versiones, errores e issues.
 ---
 
 # Skill: Sincronizar un plugin con la forja de facturascripts.com
@@ -12,16 +12,19 @@ errores y las issues del plugin («sube estas páginas a la web», «publica la 
 
 ## Requisitos
 
-- **fs-mcp** con una conexión de **tipo `forja`**: la URL de facturascripts.com y el token de autor. Créala con la
-  skill `fs-mcp:add-connection` (`type: "forja"`). Las herramientas `forja_*` solo usan conexiones de ese tipo; sin
-  `connection`, la primera de tipo `forja` configurada.
+- El plugin **fs-forja** activo: su servidor MCP es el que ofrece las herramientas `forja_*` (fs-mcp ya no las
+  tiene). Si no aparecen, pide al usuario que active fs-forja desde el gestor de plugins y abra una sesión nueva.
+- Una conexión de **tipo `forja`** con la URL de facturascripts.com y el token de autor. Compruébala con
+  `forja_list_connections` y, si no hay ninguna, créala con la skill `fs-forja:add-connection` (o la herramienta
+  `forja_add_connection`). Las herramientas `forja_*` solo usan conexiones de ese tipo; sin `connection`, la primera
+  configurada. Las conexiones de fs-mcp (instalaciones del ERP) no sirven para la forja.
 - **Acceso a la API de autor**: lo concede el personal de facturascripts.com en la ficha del contacto. Con el acceso,
   la pestaña **avanzado** de PortalForja permite generar el token, que solo se muestra al generarlo; al retirar el
   acceso se borra el token. Sin acceso, la forja responde 403.
 - El plugin debe **existir ya en la web**: la API no crea plugins, que se dan de alta desde la web. Admite los plugins
   de los que eres autor y los de los equipos en los que estás aceptado; los demás responden 404. Si dudas del nombre,
   consulta `forja_list_plugins`.
-- Las herramientas de fs-mcp reciben **rutas absolutas**.
+- Las herramientas de fs-forja reciben **rutas absolutas**.
 
 Todo lo que se sube se publica en la web. Antes de cada envío (`forja_publish_doc_page`, `forja_upload_*`,
 `forja_update_*`, `forja_create_publication`, `forja_set_build_status`) y de cada borrado (`forja_delete_publication`,

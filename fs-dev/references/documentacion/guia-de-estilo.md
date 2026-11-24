@@ -119,7 +119,7 @@ puede enlazar a otro plugin:
 ## Publicación
 
 - Cada página de `Doc/User` y `Doc/Dev` se publica en la web como una publicación, con `forja_publish_doc_page` de
-  fs-mcp (skill `fs-dev:sincronizar-forja`). El zip de una versión no lleva la carpeta `Doc/`. `Doc/Context/`,
+  fs-forja (skill `fs-dev:sincronizar-forja`). El zip de una versión no lleva la carpeta `Doc/`. `Doc/Context/`,
   `AGENTS.md` y `CLAUDE.md` no se publican nunca: no enlaces a ellos desde una página.
 - La web reconoce cada página por el `idpublication` que se guarda en su entrada de `Doc/forja.json` al publicarla.
   Para renombrar una página publicada cambia su `title` y vuelve a publicarla; si cambias el nombre del archivo,

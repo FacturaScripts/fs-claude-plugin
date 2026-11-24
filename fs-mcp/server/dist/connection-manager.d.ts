@@ -107,13 +107,6 @@ declare class ConnectionManager {
         isDefault: boolean;
     }>;
     /**
-     * Devuelve la clave de la primera conexión configurada de un tipo concreto.
-     * Las conexiones sin `type` se consideran de tipo `api`.
-     * @param type - Tipo de conexión buscado
-     * @returns Clave de la conexión o undefined si no hay ninguna de ese tipo
-     */
-    findFirstKeyByType(type: ConnectionType): string | undefined;
-    /**
      * Añade una conexión o, si se indica `overwrite`, sustituye la que tenga la misma clave.
      * La URL se guarda normalizada con `normalizeBaseUrl`.
      * @param key - Identificador único de la conexión

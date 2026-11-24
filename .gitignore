@@ -11,4 +11,6 @@ __pycache__/
 
 fs-mcp/server/node_modules/
 fs-mcp/server/*.tsbuildinfo
+fs-forja/server/*.tsbuildinfo
+# El node_modules de fs-forja/server se versiona: el plugin se instala por separado y su servidor lo necesita.
 # dist/ se incluye intencionalmente en el repo para evitar necesitar Node.js en el cliente

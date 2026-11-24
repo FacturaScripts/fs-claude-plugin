@@ -351,15 +351,6 @@ class ConnectionManager {
         }));
     }
     /**
-     * Devuelve la clave de la primera conexión configurada de un tipo concreto.
-     * Las conexiones sin `type` se consideran de tipo `api`.
-     * @param type - Tipo de conexión buscado
-     * @returns Clave de la conexión o undefined si no hay ninguna de ese tipo
-     */
-    findFirstKeyByType(type) {
-        return Object.entries(this.config.connections).find(([, config]) => (config.type ?? "api") === type)?.[0];
-    }
-    /**
      * Añade una conexión o, si se indica `overwrite`, sustituye la que tenga la misma clave.
      * La URL se guarda normalizada con `normalizeBaseUrl`.
      * @param key - Identificador único de la conexión
@@ -380,8 +371,13 @@ class ConnectionManager {
         if (!config.name || !config.url || !config.token) {
             throw new Error("La configuración debe incluir: name, url y token");
         }
-        if (config.type !== undefined && config.type !== "api" && config.type !== "forja") {
-            throw new Error(`Tipo de conexión no válido: "${String(config.type)}". Usa "api" o "forja".`);
+        // Las conexiones de tipo forja (API de autor de facturascripts.com) son del plugin fs-forja
+        if (config.type === "forja") {
+            throw new Error("Las conexiones de tipo forja las gestiona el plugin fs-forja: añádela con su herramienta " +
+                "forja_add_connection o con la skill fs-forja:add-connection.");
+        }
+        if (config.type !== undefined && config.type !== "api") {
+            throw new Error(`Tipo de conexión no válido: "${String(config.type)}". fs-mcp solo admite "api".`);
         }
         // Se guarda antes de aplicarlo: si no se puede guardar, la sesión sigue
         // con la configuración anterior en vez de usar una que no consta en el archivo
@@ -391,6 +387,11 @@ class ConnectionManager {
             // (otro proceso la añadió, o el archivo no se pudo leer al arrancar y se corrigió después). Sólo cuentan
             // las claves propias del mapa: "toString" no es una conexión existente aunque lo herede de Object.prototype.
             const existing = Object.hasOwn(current.connections, key) ? current.connections[key] : undefined;
+            if (existing && existing.type === "forja") {
+                // Una conexión de tipo forja es de fs-forja: fs-mcp nunca la sustituye, ni con overwrite
+                throw new Error(`Ya existe una conexión de tipo forja con la clave "${key}" (${existing.name}, ${existing.url}), ` +
+                    "que gestiona el plugin fs-forja. Usa otra clave.");
+            }
             if (existing && !overwrite) {
                 throw new Error(`Ya existe una conexión con la clave "${key}" (${existing.name}, tipo ${existing.type ?? "api"}, ${existing.url}). ` +
                     "Usa otra clave o indica overwrite: true para sustituirla.");
@@ -415,6 +416,10 @@ class ConnectionManager {
         this.config = this.saveConnections((current) => {
             if (!Object.hasOwn(current.connections, key)) {
                 throw new Error(`No se puede establecer como predeterminada: conexión "${key}" no existe`);
+            }
+            if (current.connections[key]?.type === "forja") {
+                throw new Error(`No se puede establecer como predeterminada: "${key}" es una conexión de tipo forja, del plugin fs-forja. ` +
+                    "La conexión por defecto debe ser de tipo api.");
             }
             return { ...current, default: key };
         });

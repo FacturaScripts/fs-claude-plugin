@@ -1,6 +1,6 @@
 # Instrucciones del proyecto para Claude Code y Codex
 
-Este repositorio distribuye los plugins `fs-dev`, `fs-user` y `fs-mcp` de FacturaScripts. Aunque el repositorio conserva el nombre `fs-claude-plugin`, el código debe funcionar tanto en Claude Code como en Codex.
+Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forja` de FacturaScripts. Aunque el repositorio conserva el nombre `fs-claude-plugin`, el código debe funcionar tanto en Claude Code como en Codex.
 
 ## Reglas generales
 
@@ -20,7 +20,7 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user` y `fs-mcp` de Factur
 ## Arquitectura compartida
 
 - Mantén un único marketplace y un único código fuente para ambos hosts. No crees un plugin paralelo para Codex salvo que una limitación técnica demostrada haga imposible compartir la implementación y el usuario acepte la separación.
-- Conserva los identificadores `fs-dev`, `fs-user`, `fs-mcp` y el marketplace `fs-claude-plugin`.
+- Conserva los identificadores `fs-dev`, `fs-user`, `fs-mcp`, `fs-forja` y el marketplace `fs-claude-plugin`.
 - Conserva `~/.fs-claude.json` como configuración compartida por retrocompatibilidad.
 - La matriz actual de compatibilidad está en [`COMPATIBILITY.md`](COMPATIBILITY.md). Actualízala únicamente cuando cambien capacidades, limitaciones o el flujo de recarga.
 
@@ -62,6 +62,14 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user` y `fs-mcp` de Factur
 - La configuración principal se lee desde `~/.fs-claude.json`; no vuelvas a documentar `${CLAUDE_PLUGIN_DATA}/connections.json` como ubicación principal.
 - La extensión privada está en `/Users/daniel89fg/Trabajos/FacturaScripts/fs-mcp-modules-private` y se carga mediante `settings.localModulesPath`.
 - No modifiques `fs-mcp-modules-private` desde este repositorio salvo petición expresa. Cuando cambie el cargador o el contrato de módulos, valida que los módulos privados siguen cargando sin revelar conexiones ni tokens.
+- fs-mcp solo trabaja con la API REST de las instalaciones del ERP (conexiones de tipo `api`). No vuelvas a añadirle herramientas ni conexiones de la forja: son de `fs-forja`.
+
+## fs-forja
+
+- `fs-forja` es el único plugin que trabaja con la API de autor de la forja de facturascripts.com (`/api/3/forja`): herramientas `forja_*`, sus conexiones de tipo `forja` y el zip de versiones. Las referencias a la forja en `fs-dev`, `fs-user` o `fs-mcp` deben remitir a `fs-forja`.
+- Su servidor es independiente del de fs-mcp, con su propio `package.json`, `node_modules` y `dist/` en `fs-forja/server/`, porque cada plugin se instala por separado y no puede importar código de otro.
+- Comparte `~/.fs-claude.json` con fs-mcp: fs-forja solo lee y escribe conexiones de tipo `forja`, nunca sustituye las de fs-mcp ni cambia `connections.default`, y fs-mcp rechaza crear, sustituir o marcar por defecto una conexión de tipo `forja`. Al cambiar el formato del archivo, mantén ambos gestores de conexiones coherentes.
+- Si modificas TypeScript en `fs-forja/server/src/`, ejecuta `npm test --prefix fs-forja/server` (compila y prueba) y conserva `dist/` sincronizado.
 
 ## Versiones, instalación y recarga
 
@@ -81,16 +89,19 @@ python3 -m py_compile fs-dev/scripts/*.py fs-dev/tests/*.py
 bash -n fs-dev/scripts/*.sh fs-user/scripts/*.sh
 jq empty .claude-plugin/marketplace.json \
   fs-dev/.claude-plugin/plugin.json fs-user/.claude-plugin/plugin.json \
-  fs-mcp/.claude-plugin/plugin.json fs-dev/hooks/hooks.json fs-user/hooks/hooks.json
+  fs-mcp/.claude-plugin/plugin.json fs-forja/.claude-plugin/plugin.json \
+  fs-dev/hooks/hooks.json fs-user/hooks/hooks.json
 claude plugin validate fs-dev --strict
 claude plugin validate fs-user --strict
 claude plugin validate fs-mcp --strict
+claude plugin validate fs-forja --strict
 claude plugin validate . --strict
-npm run build --prefix fs-mcp/server
+npm test --prefix fs-mcp/server
+npm test --prefix fs-forja/server
 git diff --check
 ```
 
-- Ejecuta solamente las comprobaciones aplicables; por ejemplo, no recompiles `fs-mcp` si no ha cambiado su fuente o artefactos.
+- Ejecuta solamente las comprobaciones aplicables; por ejemplo, no recompiles `fs-mcp` ni `fs-forja` si no ha cambiado su fuente o artefactos.
 - Si una herramienta de validación no está disponible, no instales dependencias globales sin autorización. Usa una alternativa local segura e informa de la limitación.
 - Tras modificar el empaquetado, verifica los inventarios instalados: Claude Code debe descubrir sus agentes nativos y Codex debe descubrir las skills y el MCP.
 - Antes de terminar, confirma con `git diff --cached --quiet` que no se ha preparado ningún cambio por accidente y comunica claramente si hace falta abrir un hilo nuevo o revisar hooks.

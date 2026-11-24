@@ -23,7 +23,7 @@ entre comillas.
 - Script de capturas: `scripts/doc-screenshots.py`.
 - Estructura de `Doc/` y validación de `Doc/forja.json`: `scripts/create-doc-structure.py` y la skill
   `fs-dev:crear-documentacion`, que describe todos los campos de `forja.json`.
-- Publicación de la página en la web: `forja_publish_doc_page` de fs-mcp y la skill `fs-dev:sincronizar-forja`.
+- Publicación de la página en la web: `forja_publish_doc_page` del plugin fs-forja y la skill `fs-dev:sincronizar-forja`.
 - Páginas publicadas para copiar el tono: `fs-user/references/docs/` (uso) y `references/docs/` de fs-dev
   (programación).
 
@@ -122,7 +122,7 @@ entre comillas.
 10. **Valida** con `create-doc-structure.py <raíz> --check` (comprueba `forja.json`: tipos, `parent` con `.md`,
     `controllers` sin espacios). Comprueba que el cuerpo tiene al menos 300 caracteres (la forja rechaza los más
     cortos), que las imágenes y los enlaces a otras páginas existen, que no hay títulos repetidos y que no sobran
-    imágenes sin enlazar. No publiques la página: se publica con `forja_publish_doc_page` de fs-mcp (skill
+    imágenes sin enlazar. No publiques la página: se publica con `forja_publish_doc_page` de fs-forja (skill
     `fs-dev:sincronizar-forja`) cuando el usuario lo pida; si hay conexión de tipo forja, `dry_run: true` comprueba
     además los datos, las imágenes y los enlaces sin enviar nada.
 11. **Informa** de la página creada, las imágenes, los registros de la instalación que se han usado, cualquier

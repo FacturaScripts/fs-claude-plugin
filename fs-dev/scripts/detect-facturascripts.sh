@@ -55,6 +55,7 @@ if [ "$found" = true ]; then
 Estás trabajando en FacturaScripts ERP o uno de sus plugins.
 - Usa SIEMPRE las skills del plugin fs-dev para tareas de programación y, cuando estén disponibles, sus agentes o perfiles especializados.
 - Usa SIEMPRE el plugin fs-mcp para obtener datos de una instancia de FacturaScripts.
+- Usa el plugin fs-forja (herramientas `forja_*`) para gestionar en la forja de facturascripts.com los plugins publicados: versiones, documentación, traducciones, noticias, errores e issues. fs-mcp no trabaja con la forja.
 - TRADUCCIONES: añade claves de traducción ÚNICAMENTE al archivo `Translation/es_ES.json`. Nunca modifiques otros archivos de idioma (en_EN.json, ca_ES.json, de_DE.json, etc.).
 - DOCUMENTACIÓN: el core y cada plugin de `Plugins/<Plugin>/` pueden tener su propio árbol de documentación: `AGENTS.md` (qué es y sus reglas) y `Doc/` (`User`, `Dev`, `Context` con su índice `README.md`, `Assets` y `forja.json`). Antes de cambiar el core o un plugin, lee su `AGENTS.md` y el índice `Doc/Context/README.md` si existen, y abre solo lo que necesites; si un cambio del core afecta a un plugin, mira también la documentación de ese plugin. Actualiza esa documentación en el mismo trabajo que cambia el código; para crear o completar la estructura usa la skill `fs-dev:crear-documentacion` y, para escribir una página de `Doc/User` o `Doc/Dev`, `fs-dev:docs-writer`.
 EOF

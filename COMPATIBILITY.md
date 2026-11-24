@@ -12,8 +12,9 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 | Cambio de directorio | Requiere sesión nueva; `CwdChanged` no añade su salida al contexto | Requiere hilo nuevo; el evento no existe | Solo `SessionStart` |
 | Idioma de las respuestas | `UserPromptSubmit` con `additionalContext` | `UserPromptSubmit` con `additionalContext` | `fs-dev/scripts/language-reminder.py` |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
-| Servidor MCP | Raíz mediante `CLAUDE_PLUGIN_ROOT` | Raíz mediante el directorio de trabajo del plugin | Lanzador portable definido en `fs-mcp/.claude-plugin/plugin.json` |
+| Servidores MCP | Raíz mediante `CLAUDE_PLUGIN_ROOT` | Raíz mediante el directorio de trabajo del plugin | Lanzador portable definido en `fs-mcp/.claude-plugin/plugin.json` y `fs-forja/.claude-plugin/plugin.json` |
 | Módulos privados | `settings.localModulesPath` | `settings.localModulesPath` | `~/.fs-claude.json` |
+| Conexiones | `connections` de `~/.fs-claude.json` | `connections` de `~/.fs-claude.json` | fs-mcp usa las de tipo `api` y fs-forja, las de tipo `forja` |
 
 ## Automatización de ediciones
 
@@ -74,4 +75,4 @@ Fuentes: <https://learn.chatgpt.com/docs/agent-configuration/subagents> y <https
 
 El nombre `~/.fs-claude.json` se conserva por retrocompatibilidad, aunque el archivo se comparte entre Claude Code y Codex.
 
-El lanzador MCP usa `CLAUDE_PLUGIN_ROOT` cuando Claude Code la exporta y, en su ausencia, el directorio de trabajo que Codex resuelve respecto a la raíz instalada del plugin. Esto evita rutas absolutas y permite distribuir el mismo manifiesto en ambos hosts.
+Los lanzadores MCP de fs-mcp y fs-forja usan `CLAUDE_PLUGIN_ROOT` cuando Claude Code la exporta y, en su ausencia, el directorio de trabajo que Codex resuelve respecto a la raíz instalada del plugin. Esto evita rutas absolutas y permite distribuir el mismo manifiesto en ambos hosts.

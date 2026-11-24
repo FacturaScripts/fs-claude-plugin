@@ -54,10 +54,9 @@ test('no sustituye una conexión existente salvo con overwrite', async () => {
   // misma clave que la conexión api existente: falla y la conexión anterior queda intacta
   assert.throws(
     () => connectionManager.addConnection('forja', {
-      name: 'Forja autor',
-      url: 'https://forja.host/api/3/forja',
-      token: 'token-autor',
-      type: 'forja',
+      name: 'Otra API',
+      url: 'https://otra.host/api/3',
+      token: 'token-otro',
     }),
     /Ya existe una conexión con la clave "forja".*overwrite: true/
   );
@@ -65,14 +64,12 @@ test('no sustituye una conexión existente salvo con overwrite', async () => {
   assert.equal(connectionManager.getConnection('forja').type, undefined);
 
   // con otra clave se añade, con la URL normalizada
-  connectionManager.addConnection('forja-autor', {
-    name: 'Forja autor',
-    url: 'https://forja.host/api/3/forja/',
-    token: 'token-autor',
-    type: 'forja',
+  connectionManager.addConnection('erp', {
+    name: 'ERP',
+    url: 'https://erp.example.com/api/3/',
+    token: 'token-erp',
   });
-  assert.equal(connectionManager.getConnection('forja-autor').url, 'https://forja.host');
-  assert.equal(connectionManager.findFirstKeyByType('forja'), 'forja-autor');
+  assert.equal(connectionManager.getConnection('erp').url, 'https://erp.example.com');
 
   // con overwrite se sustituye
   connectionManager.addConnection('forja', {
@@ -83,9 +80,41 @@ test('no sustituye una conexión existente salvo con overwrite', async () => {
   assert.equal(connectionManager.getConnection('forja').token, 'token-nuevo');
 
   const saved = JSON.parse(await readFile(connectionsFile, 'utf-8'));
-  assert.equal(saved.connections['forja-autor'].url, 'https://forja.host');
+  assert.equal(saved.connections.erp.url, 'https://erp.example.com');
   assert.equal(saved.connections.forja.url, 'https://facturascripts.com');
   assert.equal(saved.default, 'forja');
+});
+
+test('las conexiones de tipo forja son de fs-forja: no las añade, no las sustituye ni las hace predeterminadas', async () => {
+  const { connectionManager } = managerModule;
+
+  assert.throws(
+    () => connectionManager.addConnection('forja-nueva', {
+      name: 'Forja autor',
+      url: 'https://forja.host',
+      token: 'token-autor',
+      type: 'forja',
+    }),
+    /plugin fs-forja/
+  );
+
+  // fs-forja ha guardado una conexión de tipo forja en el archivo compartido
+  const saved = JSON.parse(await readFile(connectionsFile, 'utf-8'));
+  saved.connections['forja-autor'] = { name: 'Forja autor', url: 'https://forja.host', token: 'token-autor', type: 'forja' };
+  await writeFile(connectionsFile, JSON.stringify(saved));
+
+  for (const overwrite of [false, true]) {
+    assert.throws(
+      () => connectionManager.addConnection('forja-autor', { name: 'API', url: 'https://api.host', token: 't' }, overwrite),
+      /conexión de tipo forja con la clave "forja-autor".*fs-forja/
+    );
+  }
+  assert.throws(() => connectionManager.setDefault('forja-autor'), /tipo forja, del plugin fs-forja/);
+
+  const after = JSON.parse(await readFile(connectionsFile, 'utf-8'));
+  assert.equal(after.connections['forja-autor'].token, 'token-autor');
+  assert.equal(after.default, 'forja');
+  assert.equal(after.connections['forja-nueva'], undefined);
 });
 
 test('no sustituye sin overwrite una conexión que otro proceso añadió al archivo', async () => {

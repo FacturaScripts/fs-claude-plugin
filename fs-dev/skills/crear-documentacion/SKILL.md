@@ -103,7 +103,7 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 ## Publicación en la forja
 
 - Cada página de `Doc/User` y `Doc/Dev` es una **publicación** de la forja (de tipo `user` o `dev`). La forja **no
-  importa** la carpeta `Doc/` del zip de una versión: `forja_build_zip` de fs-mcp la deja fuera del zip, y las páginas
+  importa** la carpeta `Doc/` del zip de una versión: `forja_build_zip` del plugin fs-forja la deja fuera del zip, y las páginas
   se publican una a una con `forja_publish_doc_page`, siguiendo la skill `fs-dev:sincronizar-forja`.
 - `forja_publish_doc_page` envía los datos de la entrada de `forja.json`, sube las imágenes de `Doc/Assets` que enlaza
   la página y las coloca en su sitio, cambia los enlaces a otras páginas publicadas por su ruta en la web

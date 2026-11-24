@@ -7,7 +7,8 @@
  * Tipos de conexión admitidos.
  *
  * - `api`: API REST estándar de FacturaScripts (`/api/3`), autenticada con la cabecera `Token`.
- * - `forja`: API de autor de facturascripts.com (`/api/3/forja`), autenticada con `X-Forja-Token`.
+ * - `forja`: API de autor de facturascripts.com (`/api/3/forja`). Estas conexiones comparten el archivo
+ *   `~/.fs-claude.json`, pero las gestiona y usa el plugin fs-forja: fs-mcp no las crea ni las usa.
  */
 export type ConnectionType = 'api' | 'forja';
 
@@ -19,7 +20,7 @@ export interface ConnectionConfig {
   name: string;
   /** URL base de la instalación, sin `/api/3`. */
   url: string;
-  /** Token de la API estándar o token de autor de Forja, según `type`. */
+  /** Token de la API estándar (o token de autor en las conexiones de tipo forja, que son de fs-forja). */
   token: string;
   /** Tipo de conexión; si se omite se trata como `api`. */
   type?: ConnectionType;

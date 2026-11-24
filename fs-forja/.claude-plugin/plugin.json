@@ -1,0 +1,43 @@
+{
+  "name": "fs-forja",
+  "version": "1.0.0",
+  "description": "Servidor MCP de la forja de facturascripts.com para Claude Code y Codex: gestiona tus plugins publicados con la API de autor.",
+  "author": {
+    "name": "Daniel Fernández Giménez",
+    "email": "contacto@danielfg.es",
+    "url": "https://danielfg.es"
+  },
+  "license": "MIT",
+  "keywords": [
+    "FacturaScripts",
+    "FS",
+    "MCP",
+    "Forja",
+    "plugins",
+    "publicación",
+    "traducciones",
+    "documentación"
+  ],
+  "skills": "./skills/",
+  "mcpServers": {
+    "forja": {
+      "command": "node",
+      "args": [
+        "-e",
+        "const fs = require('node:fs'); const path = require('node:path'); const { pathToFileURL } = require('node:url'); let root = process.env.CLAUDE_PLUGIN_ROOT; if (!root || !path.isAbsolute(root)) { let name; try { name = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.claude-plugin', 'plugin.json'), 'utf8')).name; } catch {} if (name !== 'fs-forja') { console.error('[fs-forja] No se arranca el servidor: falta CLAUDE_PLUGIN_ROOT (o no es una ruta absoluta) y el directorio de trabajo no es la raíz del plugin fs-forja.'); process.exit(1); } root = process.cwd(); } import(pathToFileURL(path.join(root, 'server/dist/index.js')).href);"
+      ],
+      "cwd": ".",
+      "env": {
+        "FS_CONNECTIONS_FILE": "${FS_CONNECTIONS_FILE}"
+      }
+    }
+  },
+  "userConfig": {
+    "FS_CONNECTIONS_FILE": {
+      "title": "Ruta del archivo de conexiones (override)",
+      "description": "Solo necesario si quieres usar una ruta distinta a ~/.fs-claude.json. Normalmente déjalo vacío.",
+      "type": "string",
+      "sensitive": false
+    }
+  }
+}

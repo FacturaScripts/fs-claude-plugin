@@ -50,8 +50,8 @@ Cuando el usuario pide toda la documentación de un plugin (varias páginas), t�
 
 1. **Inventario.** Pantallas, acciones y configuración del plugin (controladores, XMLView, `Init.php`,
    `Translation/es_ES.json`), las páginas que ya hay en `Doc/User`, `Doc/Dev` y `Doc/forja.json` y las **publicadas**
-   en la web: léelas de la forja con `forja_list_publications` (tipos `user` y `dev`) y `forja_get_publication` de
-   fs-mcp (la skill `fs-dev:sincronizar-forja` explica cómo), o de la web del plugin si no hay acceso.
+   en la web: léelas de la forja con `forja_list_publications` (tipos `user` y `dev`) y `forja_get_publication` del
+   plugin fs-forja (la skill `fs-dev:sincronizar-forja` explica cómo), o de la web del plugin si no hay acceso.
 2. **Índice.** Diseña el árbol de páginas y propónselo al usuario antes de escribir:
 
    | Archivo | `title` | `parent` | `ordernum` | `permalink` |

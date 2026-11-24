@@ -24,10 +24,7 @@ import { registerCommunicationTools, handleCommunicationTool } from './modules/c
 import { registerSystemTools, handleSystemTool } from './modules/system/index.js';
 import { registerAnalyticsTools, handleAnalyticsTool } from './modules/analytics/index.js';
 import { registerSchemaTools, handleSchemaTool } from './modules/schema/index.js';
-import { registerForjaTools, handleForjaTool } from './modules/forja/index.js';
 import { fsClient } from './fs/client.js';
-import { forjaClient } from './fs/forja-client.js';
-import type { ConnectionType } from './types/facturascripts.js';
 import { listSchemaResources, readSchemaResource } from './resources/schema-resources.js';
 import { addDateRangeParams } from './metadata/dateRange.js';
 import { enrichAllTools } from './metadata/enrich.js';
@@ -65,8 +62,8 @@ function registerConnectionTools(): void {
   const addConnectionTool: Tool = {
     name: 'add_connection',
     description:
-      'Add a new FacturaScripts server connection. Use this to connect to a FacturaScripts instance. ' +
-      'Use type "forja" for an author token of the facturascripts.com Forja API (forja_* tools).',
+      'Add a new FacturaScripts server connection. Use this to connect to a FacturaScripts instance (REST API /api/3). ' +
+      'Author tokens of the facturascripts.com Forja API are not managed here: use the fs-forja plugin (forja_add_connection).',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -82,18 +79,11 @@ function registerConnectionTools(): void {
           type: 'string',
           description:
             'Base URL of the FacturaScripts instance (e.g., https://facturascripts.example.com). ' +
-            'A trailing /api/3 or /api/3/forja is removed',
+            'A trailing /api/3 is removed',
         },
         token: {
           type: 'string',
-          description: 'API token for authentication (for type "forja", the author token from the "advanced" tab of PortalForja)',
-        },
-        type: {
-          type: 'string',
-          enum: ['api', 'forja'],
-          description:
-            'Connection type: "api" (default) for the standard REST API /api/3, ' +
-            '"forja" for the plugin author API /api/3/forja used by the forja_* tools',
+          description: 'API token for authentication',
         },
         rejectUnauthorized: {
           type: 'boolean',
@@ -177,7 +167,6 @@ async function registerAllTools(): Promise<void> {
   await registerCommunicationTools(tools);
   await registerSystemTools(tools);
   await registerAnalyticsTools(tools);
-  await registerForjaTools(tools);
 
   // Tools del core, ANTES de cargar las locales: solo a éstas se les inyectan los
   // filtros de rango de fecha (paso 8), porque son las únicas cuyos handlers los
@@ -279,12 +268,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (toolName) {
       case 'add_connection': {
-        const { key, name, url, token, type, version, rejectUnauthorized, setAsDefault, overwrite } = toolInput as {
+        const { key, name, url, token, version, rejectUnauthorized, setAsDefault, overwrite } = toolInput as {
           key: string;
           name: string;
           url: string;
           token: string;
-          type?: ConnectionType;
           version?: string;
           rejectUnauthorized?: boolean | '1' | '0';
           setAsDefault?: boolean | '1' | '0';
@@ -300,15 +288,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           name,
           url,
           token,
-          // Solo se guarda el tipo si no es el valor por defecto, para no alterar las conexiones api.
-          ...(type && type !== 'api' ? { type } : {}),
           ...(version ? { version } : {}),
           ...(rejectUnauthorized !== undefined ? { rejectUnauthorized: isTrue(rejectUnauthorized) } : {}),
         }, replace);
 
         // Al sustituir una conexión existente, las instancias de axios cacheadas quedarían obsoletas.
         fsClient.clearCache();
-        forjaClient.clearCache();
 
         if (makeDefault) {
           connectionManager.setDefault(key);
@@ -318,7 +303,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text' as const,
-              text: `Connection "${name}" (${key}, type ${type ?? 'api'}, ${connectionManager.getConnection(key).url}) ${
+              text: `Connection "${name}" (${key}, ${connectionManager.getConnection(key).url}) ${
                 replace ? 'saved' : 'added'
               } successfully${
                 makeDefault ? ' and set as default' : ''
@@ -329,14 +314,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'list_connections': {
-        const connections = connectionManager.listConnections();
+        // Las conexiones de tipo forja comparten el archivo, pero son del plugin fs-forja
+        const allConnections = connectionManager.listConnections();
+        const connections = allConnections.filter((conn) => conn.type === 'api');
+        const forjaCount = allConnections.length - connections.length;
+        const forjaNote = forjaCount > 0
+          ? `\n\n${forjaCount} connection(s) of type forja in the same file are managed by the fs-forja plugin (forja_list_connections).`
+          : '';
 
         if (connections.length === 0) {
           return {
             content: [
               {
                 type: 'text' as const,
-                text: 'No connections configured. Use add_connection to add one.',
+                text: `No connections configured. Use add_connection to add one.${forjaNote}`,
               },
             ],
           };
@@ -345,7 +336,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const connectionList = connections
           .map((conn) => {
             const isDefault = conn.isDefault ? ' (default)' : '';
-            return `- ${conn.name} (${conn.key}) [${conn.type}]: ${conn.url}${isDefault}`;
+            return `- ${conn.name} (${conn.key}): ${conn.url}${isDefault}`;
           })
           .join('\n');
 
@@ -353,7 +344,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text' as const,
-              text: `Configured connections:\n${connectionList}`,
+              text: `Configured connections:\n${connectionList}${forjaNote}`,
             },
           ],
         };
@@ -389,7 +380,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           ?? await handleCommunicationTool(toolName, toolInput)
           ?? await handleSystemTool(toolName, toolInput)
           ?? await handleAnalyticsTool(toolName, toolInput)
-          ?? await handleForjaTool(toolName, toolInput)
           ?? await handleSchemaTool(toolName, toolInput);
 
         if (result) {

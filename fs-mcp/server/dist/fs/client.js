@@ -154,8 +154,8 @@ class FacturaScriptsClient {
         // Las conexiones de tipo forja usan otra API (/api/3/forja) y otra autenticación.
         if (connection.type === "forja") {
             throw new Error(`La conexión "${resolvedKey}" es de tipo forja (API de autor de facturascripts.com) ` +
-                "y no sirve para la API REST /api/3. Usa las herramientas forja_* con ella " +
-                "o indica una conexión de tipo api en el parámetro connection.");
+                "y no sirve para la API REST /api/3: la usan las herramientas forja_* del plugin fs-forja. " +
+                "Indica una conexión de tipo api en el parámetro connection.");
         }
         // La caché se indexa por la conexión ya resuelta y se descarta si su
         // configuración cambió: así un cambio de conexión por defecto o de token

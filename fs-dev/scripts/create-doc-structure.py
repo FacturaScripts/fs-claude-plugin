@@ -13,7 +13,7 @@ Ticketbai y Verifactu):
   documentación.
 - ``Doc/forja.json``: datos de cada página de ``User`` y ``Dev`` (título, página
   padre, orden, icono, controladores donde se muestra...) para publicarlas en la
-  forja de facturascripts.com con ``forja_publish_doc_page`` de fs-mcp, que
+  forja de facturascripts.com con ``forja_publish_doc_page`` de fs-forja, que
   guarda en ella el id de cada publicación y sus imágenes subidas.
 - ``AGENTS.md``: descripción breve y enlace a ``Doc/``; ``CLAUDE.md`` solo lo
   importa con ``@AGENTS.md``.
@@ -181,7 +181,7 @@ decisiones) y dice qué archivo abrir para cada tema; no hace falta leerlo todo.
   publicada la página), `parent` (nombre de archivo de la página padre, con `.md`), `ordernum`, `youtubeid`,
   `imageurl`, `icon`, `color`, `keywords` y `controllers` (máx. 300 caracteres cada uno; `controllers`, separados por
   comas sin espacios) y `visibility` (`true` o `false`, sin comillas). Al publicar una página, `forja_publish_doc_page`
-  de fs-mcp añade `idpublication` y `assets` (las imágenes ya subidas): se versionan con la página.
+  de fs-forja añade `idpublication` y `assets` (las imágenes ya subidas): se versionan con la página.
 - `CLAUDE.md` solo importa este archivo (`@AGENTS.md`). Las instrucciones locales que no se versionan van en
   `CLAUDE.local.md` (Claude Code) o `AGENTS.override.md` (Codex).
 """
