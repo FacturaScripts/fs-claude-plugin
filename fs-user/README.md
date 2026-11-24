@@ -25,6 +25,11 @@ En Claude Code invoca una skill con `/fs-user:<nombre>`, por ejemplo `/fs-user:a
 | `fs-user:analizar-ventas` | Informe ejecutivo de las ventas de un periodo: cifras clave, comparativas, mejores clientes y productos, y tendencias |
 | `fs-user:clientes-morosos` | Clientes con recibos vencidos sin cobrar, priorizados por antigüedad e importe, con los próximos vencimientos |
 | `fs-user:stock-bajo` | Variantes con stock disponible por debajo de su mínimo en cada almacén, con la cantidad que conviene reponer |
+| `fs-user:pendiente-facturar` | Lo vendido o trabajado que aún no se ha facturado: albaranes, pedidos y, con los plugins Servicios y Proyectos, trabajos SAT y proyectos |
+| `fs-user:pipeline-crm` | Embudo de oportunidades del plugin CRM: conversión por fuente, interés y comercial, oportunidades olvidadas y avisos |
+| `fs-user:rentabilidad-proyectos` | Ventas, compras, margen y pendiente de facturar de los proyectos (plugin Proyectos), con alertas de pérdidas y retrasos |
+| `fs-user:estado-sat` | Servicio técnico (plugin Servicios): servicios abiertos por antigüedad, carga y horas por técnico, trabajos por facturar y máquinas reincidentes |
+| `fs-user:agenda-equipo` | Agenda por persona o de todo el equipo: avisos del CRM, tareas de proyecto, servicios SAT asignados y presupuestos que vencen |
 | `fs-user:crear-informe` | Informe a medida: ventas por familia, agente o serie, clientes, compras, inventario, tesorería o documentos pendientes |
 | `fs-user:reporting-analyst` | Análisis puntual de cualquier pregunta de negocio con los datos del ERP |
 

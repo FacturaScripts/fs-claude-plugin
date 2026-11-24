@@ -1,11 +1,11 @@
 ---
 name: crear-informe
-description: "Crea en FacturaScripts, mediante fs-mcp, un informe a medida con los cortes, filtros y periodo que pida el usuario: ventas por familia, agente o serie, clientes, compras, inventario, tesorería o pendientes."
+description: "Crea en FacturaScripts, mediante fs-mcp, un informe a medida con los cortes, filtros y periodo que pida el usuario: ventas por familia, agente o serie, clientes, compras, inventario, tesorería, pendientes, o datos de los plugins CRM, Proyectos y Servicios."
 ---
 
 # Informe personalizado
 
-Diseña y genera un informe a partir de la petición del usuario con datos reales de la instancia. Si la petición encaja con una skill específica, úsala en su lugar: [`analizar-ventas`](../analizar-ventas/SKILL.md) para un resumen de ventas, [`clientes-morosos`](../clientes-morosos/SKILL.md) para deuda vencida y [`stock-bajo`](../stock-bajo/SKILL.md) para reposición.
+Diseña y genera un informe a partir de la petición del usuario con datos reales de la instancia. Si la petición encaja con una skill específica, úsala en su lugar: [`analizar-ventas`](../analizar-ventas/SKILL.md) para un resumen de ventas, [`clientes-morosos`](../clientes-morosos/SKILL.md) para deuda vencida, [`stock-bajo`](../stock-bajo/SKILL.md) para reposición, [`pendiente-facturar`](../pendiente-facturar/SKILL.md) para lo entregado o trabajado sin facturar, [`pipeline-crm`](../pipeline-crm/SKILL.md) para el embudo de oportunidades, [`rentabilidad-proyectos`](../rentabilidad-proyectos/SKILL.md) para el margen y avance de los proyectos, [`estado-sat`](../estado-sat/SKILL.md) para el servicio técnico y [`agenda-equipo`](../agenda-equipo/SKILL.md) para los pendientes de cada persona.
 
 Antes de empezar, lee completo el perfil [`../../agents/reporting-analyst.md`](../../agents/reporting-analyst.md): sus reglas de conexión, paginación, fechas y bases de cálculo, y su catálogo de herramientas, son obligatorios en esta skill. Si en Codex delegas el análisis en un subagente, sigue las indicaciones de [`reporting-analyst`](../reporting-analyst/SKILL.md).
 
@@ -39,6 +39,11 @@ Antes de consultar datos, confirma en una frase el diseño del informe: columnas
 | Inventario | `get_valoracion_inventario`, `get_rotacion_stock`, `get_stock_muerto`, `get_productos_sobrestock`, `get_productos_no_vendidos`, `get_stocks` | La valoración usa el coste de la variante |
 | Resumen para dirección | `get_dashboard_resumen` | Últimos N días desde hoy, con comparativa |
 | Calidad de los datos | `get_facturas_con_errores` | Facturas con total 0 o incoherencias |
+| Oportunidades del CRM (plugin CRM) | `get_informe_oportunidades_crm`, `get_oportunidades_crm_sin_actividad`, `get_avisos_crm`, `get_oportunidades_crm` | Por fecha de alta; importes sin impuestos; conversión = ganadas / (ganadas + perdidas) |
+| Proyectos (plugin Proyectos) | `get_informe_proyectos`, `get_rentabilidad_proyectos`, `get_informe_tareas_proyecto`, `get_tareas_proyecto_vencidas` | Por fecha de alta; ventas y compras con impuestos, pendiente de facturar sin impuestos |
+| Servicio técnico (plugin Servicios) | `get_informe_servicios_at`, `get_servicios_at_pendientes`, `get_horas_trabajos_at`, `get_trabajos_at_pendientes` | Importes sin impuestos; sin fecha de cierre no hay tiempos de resolución |
+
+Las herramientas de los plugins solo funcionan si el plugin está activo en la instalación; si no lo está, devuelven un error que lo indica: explícalo al usuario en lugar de dar el informe vacío.
 
 Si ninguna herramienta analítica encaja, construye el informe con las herramientas genéricas `get_*` del modelo correspondiente y sus filtros, y explica cómo lo has calculado.
 
@@ -66,3 +71,6 @@ Dilo antes de empezar y ofrece la alternativa:
 - "Cobros y pagos previstos para las próximas ocho semanas": `get_cash_flow_proyectado` con `dias = 56`.
 - "Productos con stock que no se venden desde hace seis meses": `get_stock_muerto` con `dias = 180`.
 - "Facturas vendidas por debajo de coste este ejercicio": `get_facturas_margen_negativo`.
+- "Oportunidades ganadas por fuente en 2026": `get_informe_oportunidades_crm` con `fecha_desde` y `fecha_hasta` del año, sección `por_fuente`.
+- "Horas trabajadas por cada técnico el mes pasado": `get_horas_trabajos_at` con las fechas del mes.
+- "Proyectos abiertos del cliente X ordenados por pendiente de facturar": `get_rentabilidad_proyectos` con `codcliente`, `editable = true` y `orden = pendiente`.

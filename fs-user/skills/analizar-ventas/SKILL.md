@@ -39,7 +39,8 @@ Antes de empezar, lee completo el perfil [`../../agents/reporting-analyst.md`](.
    - Indica los clientes con mayor beneficio a partir del paso 3.
    - Si el periodo coincide con un ejercicio, añade las facturas vendidas por debajo de coste con `get_facturas_margen_negativo`.
    - Advierte que el beneficio depende del precio de coste registrado en los productos: si los costes están vacíos o desactualizados, el margen no es fiable.
-8. **Ventas aún sin facturar** (opcional). Si `get_albaranes_pendientes_facturar` devuelve albaranes del periodo, menciónalos como ventas entregadas pendientes de facturar.
+8. **Ventas aún sin facturar** (opcional). Si `get_albaranes_pendientes_facturar` devuelve albaranes del periodo, menciónalos como ventas entregadas pendientes de facturar. Para un repaso completo de lo pendiente, remite a [`pendiente-facturar`](../pendiente-facturar/SKILL.md).
+9. **Actividad comercial** (opcional, solo si el plugin CRM está activo). Llama a `get_informe_oportunidades_crm` con las mismas fechas: oportunidades nuevas, ganadas y perdidas, conversión e importe ganado (sin impuestos). Si devuelve un error de plugin no activo, omite este paso sin mencionarlo en el informe. Para un análisis completo del embudo, remite a [`pipeline-crm`](../pipeline-crm/SKILL.md).
 
 ## Informe
 
@@ -50,8 +51,9 @@ Usa el formato de informe del perfil con estas secciones:
 3. **Productos más vendidos:** tabla con referencia, descripción, cantidad, importe sin impuestos y porcentaje sobre las ventas de productos.
 4. **Rentabilidad:** beneficio, margen y alertas de margen negativo, si se ha pedido.
 5. **Tendencia:** evolución mensual y estacionalidad, si procede.
-6. **Recomendaciones:** basadas en los datos, como concentración de ventas en pocos clientes, caídas frente al periodo anterior o márgenes bajos.
-7. **Notas sobre los datos:** base de cada importe, número de registros analizados y limitaciones.
+6. **Actividad comercial:** resumen del CRM del paso 9, si se ha hecho.
+7. **Recomendaciones:** basadas en los datos, como concentración de ventas en pocos clientes, caídas frente al periodo anterior o márgenes bajos.
+8. **Notas sobre los datos:** base de cada importe, número de registros analizados y limitaciones.
 
 ## Referencias para el usuario
 

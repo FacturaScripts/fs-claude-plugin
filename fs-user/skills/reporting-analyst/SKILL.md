@@ -7,7 +7,7 @@ description: "Analiza datos reales de una instancia de FacturaScripts mediante f
 
 Usa como instrucciones de especialidad el perfil [`../../agents/reporting-analyst.md`](../../agents/reporting-analyst.md) y léelo completo antes de consultar datos. Contiene las reglas de conexión, paginación, fechas y bases de cálculo, y el catálogo de herramientas de `fs-mcp`.
 
-Para informes predefinidos usa la skill específica: [`analizar-ventas`](../analizar-ventas/SKILL.md), [`clientes-morosos`](../clientes-morosos/SKILL.md), [`stock-bajo`](../stock-bajo/SKILL.md) o [`crear-informe`](../crear-informe/SKILL.md).
+Para informes predefinidos usa la skill específica: [`analizar-ventas`](../analizar-ventas/SKILL.md), [`clientes-morosos`](../clientes-morosos/SKILL.md), [`stock-bajo`](../stock-bajo/SKILL.md), [`pendiente-facturar`](../pendiente-facturar/SKILL.md), [`pipeline-crm`](../pipeline-crm/SKILL.md), [`rentabilidad-proyectos`](../rentabilidad-proyectos/SKILL.md), [`estado-sat`](../estado-sat/SKILL.md), [`agenda-equipo`](../agenda-equipo/SKILL.md) o [`crear-informe`](../crear-informe/SKILL.md).
 
 ## Ejecución portable
 
