@@ -299,7 +299,7 @@ export const forjaTools = [
         name: 'forja_publish_doc_page',
         description: 'Forja: publica una página local de Doc/User o Doc/Dev como publicación de uno de tus plugins (user o dev), o la actualiza si ya se ' +
             'publicó. Toma título, orden, icono, controladores y página padre de Doc/forja.json; sube las imágenes locales que enlaza y las ' +
-            'coloca en su sitio; cambia los enlaces a otras páginas ya publicadas por su URL, y guarda en forja.json el idpublication y las ' +
+            'coloca en su sitio; cambia los enlaces a otras páginas ya publicadas por su ruta en la web (/publicaciones/...), y guarda en forja.json el idpublication y las ' +
             'imágenes subidas. Publica antes las páginas padre. Con dry_run solo dice qué haría',
         inputSchema: {
             type: 'object',

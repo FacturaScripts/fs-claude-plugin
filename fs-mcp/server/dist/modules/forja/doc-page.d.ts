@@ -9,7 +9,8 @@
  * - Las imágenes locales que enlaza (normalmente de Doc/Assets) se suben con la publicación. Forja las añade al
  *   final del texto, así que después se colocan en su sitio con una segunda petición. Su URL y su hash se guardan
  *   en la entrada de forja.json (`assets`) para no volver a subirlas mientras no cambien.
- * - Los enlaces a otras páginas de Doc se cambian por la URL de su publicación, si ya está publicada.
+ * - Los enlaces a otras páginas de Doc se cambian por la ruta de su publicación en la web, relativa al sitio
+ *   (`/publicaciones/...`, como los enlaces que se escriben en la web), si ya está publicada.
  * - El id de la publicación se guarda en la entrada de forja.json (`idpublication`) para actualizarla después.
  */
 /** Secciones de Doc que se publican y el tipo de publicación de cada una. */
@@ -157,6 +158,15 @@ export declare function resolveLinks(location: DocPageLocation, refs: string[]):
     links: DocLink[];
     warnings: string[];
 };
+/**
+ * Ruta relativa al sitio de una URL de la forja (`https://facturascripts.com/publicaciones/x` →
+ * `/publicaciones/x`), como los enlaces que se escriben en la web: así no dependen del dominio. Lo que no es una URL
+ * http(s) se devuelve tal cual.
+ *
+ * @param url - URL pública de una publicación
+ * @returns Ruta con su query, sin el origen
+ */
+export declare function sitePath(url: string): string;
 /**
  * Busca una imagen ya subida con el mismo archivo y el mismo contenido, primero en la página y después en las demás
  * páginas de forja.json.

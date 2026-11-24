@@ -808,7 +808,8 @@ test('forja_publish_doc_page crea la página con sus datos de forja.json y coloc
   assert.equal(docPublications.get(guide.id).fields.idparent, String(created.id));
   assert.match(guideBody, /!\[Paso 1\]\(https:\/\/forja\.test\/MyFiles\/2026\/11\/\d+_forja_paso_1\.png\?myft=t\)/);
   assert.match(guideBody, new RegExp(`!\\[Otra vez\\]\\(${forjaJson.User['inicio.md'].assets['Assets/inicio.png'].url.replace(/[.?]/g, '\\$&')}\\)`));
-  assert.match(guideBody, new RegExp(`\\[inicio\\]\\(https://forja\\.test/publication/${created.id}\\)`));
+  // los enlaces van relativos al sitio, como los que se escriben en la web
+  assert.match(guideBody, new RegExp(`\\[inicio\\]\\(/publication/${created.id}\\)`));
 
   // al volver a publicar el inicio, la guía ya está publicada: se enlaza y no se sube ninguna imagen
   const again = JSON.parse((await toolsModule.handleForjaTool('forja_publish_doc_page', {
@@ -819,7 +820,7 @@ test('forja_publish_doc_page crea la página con sus datos de forja.json y coloc
   assert.deepEqual(again.images.upload, []);
   assert.equal(uploadedImages, uploadsBefore + 1);
   assert.equal(requests.at(-1).method, 'PATCH');
-  assert.match(docPublications.get(created.id).body, new RegExp(`\\[la guía\\]\\(https://forja\\.test/publication/${guide.id}#pasos\\)`));
+  assert.match(docPublications.get(created.id).body, new RegExp(`\\[la guía\\]\\(/publication/${guide.id}#pasos\\)`));
 
   // si la imagen cambia, se vuelve a subir
   await writeFile(path.join(pluginPath, 'Doc/Assets/inicio.png'), 'png-nueva');
@@ -863,4 +864,12 @@ test('forja_publish_doc_page rechaza páginas cortas, sin título, fuera de Doc 
   const stale = await toolsModule.handleForjaTool('forja_publish_doc_page', { plugin: 'DocPlugin', plugin_path: pluginPath, page: 'User/sin-titulo.md' });
   assert.equal(stale.isError, true);
   assert.match(stale.content[0].text, /ya no existe en la forja/);
+});
+
+test('sitePath deja relativa al sitio la URL de una publicación y no toca lo que no es http(s)', async () => {
+  const { sitePath } = await import(pathToFileURL(path.join(distDirectory, 'modules', 'forja', 'doc-page.js')).href);
+  assert.equal(sitePath('https://facturascripts.com/publicaciones/mi-pagina'), '/publicaciones/mi-pagina');
+  assert.equal(sitePath('https://forja.localhost/publicaciones/x?lang=es'), '/publicaciones/x?lang=es');
+  assert.equal(sitePath('/publicaciones/ya-relativa'), '/publicaciones/ya-relativa');
+  assert.equal(sitePath('mailto:hola@example.com'), 'mailto:hola@example.com');
 });

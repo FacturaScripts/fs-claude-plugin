@@ -53,7 +53,8 @@ Qué hace `forja_publish_doc_page`:
   web.
 - Sube las imágenes locales que enlaza la página (normalmente `../Assets/...`) y las coloca en su sitio. Una imagen
   que ya se subió (por esta página o por otra) y no ha cambiado se reutiliza.
-- Cambia los enlaces a otras páginas de `Doc/User` o `Doc/Dev` que ya tienen publicación por su URL en la web.
+- Cambia los enlaces a otras páginas de `Doc/User` o `Doc/Dev` que ya tienen publicación por su ruta en la web,
+  relativa al sitio (`/publicaciones/...`), como los enlaces que se escriben en la web.
 - Guarda en la entrada de la página el `idpublication` y las imágenes subidas (`assets`). **Haz commit de
   `Doc/forja.json`** junto con las páginas: sin `idpublication`, la siguiente vez se crearía una publicación nueva.
 - Rechaza, sin enviar nada, una página sin `title`, con menos de 300 caracteres de cuerpo, con imágenes que no existen

@@ -9,7 +9,8 @@
  * - Las imágenes locales que enlaza (normalmente de Doc/Assets) se suben con la publicación. Forja las añade al
  *   final del texto, así que después se colocan en su sitio con una segunda petición. Su URL y su hash se guardan
  *   en la entrada de forja.json (`assets`) para no volver a subirlas mientras no cambien.
- * - Los enlaces a otras páginas de Doc se cambian por la URL de su publicación, si ya está publicada.
+ * - Los enlaces a otras páginas de Doc se cambian por la ruta de su publicación en la web, relativa al sitio
+ *   (`/publicaciones/...`, como los enlaces que se escriben en la web), si ya está publicada.
  * - El id de la publicación se guarda en la entrada de forja.json (`idpublication`) para actualizarla después.
  */
 import { createHash } from 'crypto';
@@ -228,6 +229,26 @@ export function resolveLinks(location, refs) {
     return { links, warnings };
 }
 /**
+ * Ruta relativa al sitio de una URL de la forja (`https://facturascripts.com/publicaciones/x` →
+ * `/publicaciones/x`), como los enlaces que se escriben en la web: así no dependen del dominio. Lo que no es una URL
+ * http(s) se devuelve tal cual.
+ *
+ * @param url - URL pública de una publicación
+ * @returns Ruta con su query, sin el origen
+ */
+export function sitePath(url) {
+    try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return url;
+        }
+        return `${parsed.pathname}${parsed.search}`;
+    }
+    catch {
+        return url;
+    }
+}
+/**
  * Decodifica una ruta escrita con %20 y similares; si no es válida, la devuelve tal cual.
  *
  * @param ref - Ruta
@@ -281,7 +302,7 @@ export async function publishDocPage(options) {
     if (body.trim().length < MIN_BODY_LENGTH) {
         throw new Error(`${pageName} tiene ${body.trim().length} caracteres y Forja exige al menos ${MIN_BODY_LENGTH}: únela a otra página`);
     }
-    // Publicaciones ya existentes del plugin: para validar los ids de forja.json y obtener la URL de los enlaces.
+    // Publicaciones ya existentes del plugin: para validar los ids de forja.json y obtener la ruta de los enlaces.
     const list = await forjaClient.get(`${options.pluginEndpoint}/publications`, undefined, options.connection);
     const published = new Map();
     for (const publication of list.publications ?? []) {
@@ -324,7 +345,7 @@ export async function publishDocPage(options) {
         const targetId = forjaJson[link.section]?.[link.page]?.idpublication;
         const url = targetId !== undefined ? published.get(Number(targetId)) : undefined;
         if (url) {
-            linkUrls.set(link.ref, url);
+            linkUrls.set(link.ref, sitePath(url));
         }
         else {
             unresolved.push(`${link.section}/${link.page}`);
