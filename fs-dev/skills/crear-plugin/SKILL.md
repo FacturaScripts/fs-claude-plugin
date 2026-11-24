@@ -122,6 +122,7 @@ partir de la descripción del Paso 1.
 - El namespace siempre es `FacturaScripts\Plugins\NombrePlugin`, y cada clase lleva el namespace de su carpeta.
 - Nunca modifiques archivos de `Core/` ni `Dinamic/`.
 - Activa el plugin desde Administrador → Plugins tras crearlo; el botón **Reconstruir** limpia la caché y regenera `Dinamic/`.
+- Para publicarlo en facturascripts.com, dalo de alta desde la web (la API de autor no crea plugins) con el mismo `name` que el `facturascripts.ini`; después, la skill `fs-dev:sincronizar-forja` sube sus versiones, su documentación y sus traducciones.
 
 
 ## Para más información

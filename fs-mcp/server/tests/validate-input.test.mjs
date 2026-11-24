@@ -204,6 +204,31 @@ for (const [setAsDefault, esperado] of [['0', false], [false, false], ['1', true
   });
 }
 
+for (const [overwrite, esperado] of [['0', false], [false, false], ['1', true], [true, true]]) {
+  test(`add_connection con overwrite ${JSON.stringify(overwrite)} ${esperado ? 'sustituye' : 'no sustituye'} una conexión existente`, async () => {
+    const key = `repetida-${String(overwrite)}`;
+    const archivo = path.join(home, 'connections.json');
+    await llamar('add_connection', { key, name: 'Original', url: 'http://127.0.0.1:9', token: 'original' });
+    const { result } = await llamar('add_connection', { key, name: 'Nueva', url: 'http://127.0.0.1:9', token: 'nuevo', overwrite });
+    const guardado = JSON.parse(fs.readFileSync(archivo, 'utf8'));
+    assert.equal(result.isError === true, !esperado);
+    assert.equal(guardado.connections[key].token, esperado ? 'nuevo' : 'original');
+    if (esperado) {
+      assert.match(result.content[0].text, / saved successfully/);
+    }
+  });
+}
+
+for (const [rejectUnauthorized, esperado] of [['0', false], [false, false], ['1', true], [true, true]]) {
+  test(`add_connection guarda rejectUnauthorized ${JSON.stringify(rejectUnauthorized)} como ${esperado}`, async () => {
+    const key = `tls-${String(rejectUnauthorized)}`;
+    const { result } = await llamar('add_connection', { key, name: 'TLS', url: 'http://127.0.0.1:9', token: 't', rejectUnauthorized });
+    assert.notEqual(result.isError, true);
+    const guardado = JSON.parse(fs.readFileSync(path.join(home, 'connections.json'), 'utf8'));
+    assert.equal(guardado.connections[key].rejectUnauthorized, esperado);
+  });
+}
+
 test('en una propiedad string se acepta un número finito, pero no NaN, Infinity ni un booleano', () => {
   const esquema = { properties: { codpostal: { type: 'string' } } };
   assert.equal(validateToolInput(esquema, { codpostal: 28001 }), null);

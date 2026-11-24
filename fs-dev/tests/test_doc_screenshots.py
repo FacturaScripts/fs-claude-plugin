@@ -52,6 +52,34 @@ TEST_PAGE = """<!doctype html>
 """
 
 
+# Página de prueba con falsos positivos: ejercicios y plugins con columna «Nombre», la empresa en la barra, el enlace
+# de ayuda, un botón que abre un modal, un alert() y varias tarjetas para recortar juntas.
+FALSE_POSITIVES_PAGE = """<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Tablero de FS</title>
+<style>body { font-family: sans-serif; margin: 20px; } .tarjeta { width: 200px; height: 60px; margin: 10px; }</style></head>
+<body>
+<nav class="navbar"><a class="navbar-brand" href="#"><span>FS</span></a>
+    <a id="menuIconHelp" href="#"><span>Ayuda de FacturaScripts</span></a></nav>
+<p class="emisor">Emisor: EMPRESA REAL SL (B12345674)</p>
+<table id="ejercicios">
+    <thead><tr><th>Código</th><th>Nombre</th><th>Estado</th></tr></thead>
+    <tbody><tr><td>2026</td><td>2026</td><td>Abierto</td></tr></tbody>
+</table>
+<p class="fecha">Fecha de alta: 01-01-2026</p>
+<table id="plugins">
+    <thead><tr><th>Nombre</th><th>Versión</th></tr></thead>
+    <tbody><tr><td>FiscalES</td><td>0.2</td></tr></tbody>
+</table>
+<p class="version">FiscalES v0.2</p>
+<button type="button" id="modal" data-bs-toggle="modal" onclick="document.getElementById('ventana').hidden = false">Enviar</button>
+<div id="ventana" hidden>Ventana abierta</div>
+<button type="button" id="aviso" onclick="alert('Faltan datos de 612 345 678')">Comprobar</button>
+<div class="tarjeta" style="background:#ddd">Uno</div>
+<div class="tarjeta" style="background:#ccc">Dos</div>
+</body></html>
+"""
+
+
 def run_main(*args: str) -> tuple[int, dict]:
     """Ejecuta el script en el mismo proceso y devuelve el código de salida y el JSON que imprime."""
     output = io.StringIO()
@@ -122,6 +150,12 @@ class ValidateScenarioTest(unittest.TestCase):
         self.assertTrue(any('redact.replace' in e for e in errors))
         self.assertTrue(any('redact.auto' in e for e in errors))
 
+    def test_validates_new_keys(self):
+        self.assertEqual([], SHOTS.validate_scenario(self.scenario(clip_all=True, redact={'company': 'Mi Empresa'})))
+        errors = SHOTS.validate_scenario(self.scenario(clip_all='si', redact={'company': ''}))
+        self.assertTrue(any('«clip_all»' in e for e in errors))
+        self.assertTrue(any('redact.company' in e for e in errors))
+
     def test_check_option_reports_errors(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'escenario.json'
@@ -174,6 +208,10 @@ class PatternsTest(unittest.TestCase):
         self.assertEqual('name', next(c for r, c in fields if r.search('nombrecliente')))
         self.assertFalse(any(r.search('codigo') for r, _ in fields))
         self.assertEqual('name', next(c for r, c in headers if r.search('Cliente')))
+        self.assertFalse(any(r.search('Nombre') for r, _ in headers))
+        self.assertFalse(any(r.search('nombre') for r, _ in fields))
+        self.assertTrue(any(re.search(r, 'Nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_HEADER_RULES))
+        self.assertTrue(any(re.search(r, 'nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_FIELD_RULES))
         self.assertEqual('nif', next(c for r, c in headers if r.search('CIF/NIF')))
         self.assertFalse(any(r.search('Total') for r, _ in headers))
 
@@ -208,6 +246,25 @@ class HelpersTest(unittest.TestCase):
         self.assertEqual(SHOTS.AUTO_BLUR + ['.firma'], merged['blur'])
         self.assertEqual([], SHOTS.merge_redact({'auto': False}, None)['blur'])
 
+    def test_mask_sensitive(self):
+        masked = SHOTS.mask_sensitive('Llama al 612 345 678 o escribe a ana@correo.es')
+        self.assertNotIn('612 345 678', masked)
+        self.assertNotIn('ana@correo.es', masked)
+        self.assertTrue(masked.startswith('Llama al 61'))
+
+    def test_output_dir_relative_to_project_root(self):
+        with tempfile.TemporaryDirectory() as folder:
+            plugin = Path(folder).resolve() / 'MiPlugin'
+            (plugin / 'Doc/Assets/pagina').mkdir(parents=True)
+            (plugin / 'facturascripts.ini').write_text('name = MiPlugin\n', encoding='utf-8')
+            scenario = plugin / 'Doc/Assets/pagina/capturas.json'
+            self.assertEqual(plugin, SHOTS.project_root(scenario.parent))
+            self.assertEqual(plugin / 'Doc/Assets/pagina', SHOTS.resolve_output_dir('Doc/Assets/pagina', scenario, None))
+            self.assertEqual(Path(folder).resolve() / 'x', SHOTS.resolve_output_dir('x', scenario, folder))
+            self.assertEqual(Path('/tmp/abs').resolve(), SHOTS.resolve_output_dir('/tmp/abs', scenario, None))
+            outside = Path(folder).resolve() / 'escenario.json'
+            self.assertEqual(Path.cwd() / 'y', SHOTS.resolve_output_dir('y', outside, None))
+
     def test_png_size(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'a.png'
@@ -216,6 +273,56 @@ class HelpersTest(unittest.TestCase):
             path.write_bytes(b'no es un png')
             with self.assertRaises(SHOTS.ScreenshotError):
                 SHOTS.png_size(path)
+
+
+class FakeLoginBrowser:
+    """Navegador simulado: el formulario de acceso sigue a la vista hasta el intento indicado."""
+
+    timeout = 1
+
+    def __init__(self, succeed_at: int, message: str = 'Petición no válida'):
+        self.succeed_at = succeed_at
+        self.message = message
+        self.submits = 0
+
+    def navigate(self, url: str) -> None:
+        pass
+
+    def wait_event(self, method: str, timeout: float) -> bool:
+        return True
+
+    def settle(self) -> None:
+        pass
+
+    def evaluate(self, expression: str):
+        if 'f.submit()' in expression:
+            self.submits += 1
+            return True
+        if expression.startswith('!!'):
+            return self.submits < self.succeed_at
+        return self.message
+
+
+class LoginTest(unittest.TestCase):
+    """Reintentos del inicio de sesión."""
+
+    def test_retries_intermittent_failures(self):
+        browser = FakeLoginBrowser(succeed_at=2)
+        SHOTS.login(browser, 'https://fs.localhost/', ('demo', 'clave'), pause=0)
+        self.assertEqual(2, browser.submits)
+
+    def test_gives_up_after_the_attempts(self):
+        browser = FakeLoginBrowser(succeed_at=99)
+        with self.assertRaises(SHOTS.ScreenshotError) as context:
+            SHOTS.login(browser, 'https://fs.localhost/', ('demo', 'clave'), pause=0)
+        self.assertEqual(SHOTS.LOGIN_ATTEMPTS, browser.submits)
+        self.assertIn('Petición no válida', str(context.exception))
+
+    def test_does_not_retry_wrong_password(self):
+        browser = FakeLoginBrowser(succeed_at=99, message='El usuario o la contraseña son incorrectos')
+        with self.assertRaises(SHOTS.ScreenshotError):
+            SHOTS.login(browser, 'https://fs.localhost/', ('demo', 'mala'), pause=0)
+        self.assertEqual(1, browser.submits)
 
 
 @unittest.skipUnless(chrome_available(), 'No hay Chrome ni Chromium instalado.')
@@ -316,6 +423,43 @@ class BrowserTest(unittest.TestCase):
         code, report = self.run_scenario(scenario)
         self.assertEqual(0, code, report)
         self.assertTrue((self.folder / 'recorte' / 'tabla.png').is_file())
+
+
+    def test_false_positives_modal_alert_and_clip_all(self):
+        (self.folder / 'falsos.html').write_text(FALSE_POSITIVES_PAGE, encoding='utf-8')
+        url = (self.folder / 'falsos.html').as_uri()
+        scenario = {
+            'base_url': url,
+            'output_dir': str(self.folder / 'falsos'),
+            'redact': {'replace': {'EMPRESA REAL SL (B12345674)': 'Empresa Ejemplo SL (B00000000)'}},
+            'captures': [
+                {'name': '01-pagina', 'url': url, 'full_page': True},
+                {'name': '02-modal', 'steps': [{'click': '#modal'}, {'click': '#aviso'}], 'clip': '#ventana'},
+                {'name': '03-tarjetas', 'clip': '.tarjeta', 'clip_all': True, 'margin': 0},
+                {'name': '04-tarjeta', 'clip': '.tarjeta', 'margin': 0},
+            ],
+        }
+        code, report = self.run_scenario(scenario)
+        self.assertEqual(0, code, report)
+        first, second, cards, card = report['captures']
+        fakes = {item['fake']: item['category'] for item in first['anonymized']}
+        self.assertEqual('manual', fakes.get('Empresa Ejemplo SL (B00000000)'))
+        self.assertNotIn('nif', fakes.values(), 'el NIF de «replace» no debe enmascararse antes')
+        self.assertEqual('empresa', fakes.get('Mi Empresa'))
+        self.assertFalse(any(f.startswith('Cliente Ejemplo') for f in fakes), fakes)
+        self.assertEqual([{'type': 'alert', 'message': 'Faltan datos de 61********', 'accepted': True}], second['dialogs'])
+        self.assertGreater(cards['height'], card['height'] * 2)
+
+    def test_confirm_is_dismissed_without_allow_change(self):
+        page = self.folder / 'confirmar.html'
+        page.write_text('<html><body><button type="button" id="b" onclick="document.title = confirm(\'¿Seguro?\') ? \'si\' : \'no\'">'
+                        'Comprobar</button></body></html>', encoding='utf-8')
+        scenario = {'base_url': page.as_uri(), 'captures': [{'name': 'c', 'url': page.as_uri(), 'steps': [{'click': '#b'}]}]}
+        code, report = self.run_scenario(scenario, '--scan')
+        self.assertEqual(0, code, report)
+        capture = report['captures'][0]
+        self.assertEqual('no', capture['title'])
+        self.assertEqual([{'type': 'confirm', 'message': '¿Seguro?', 'accepted': False}], capture['dialogs'])
 
 
 if __name__ == '__main__':

@@ -66,6 +66,7 @@ Las skills se activan solas cuando la petición encaja con su descripción. Para
 |---|---|
 | `fs-dev:docs-expert` | Responde preguntas de programación consultando la documentación oficial de FacturaScripts |
 | `fs-dev:docs-writer` | Escribe una página de documentación de uso (`Doc/User`) o de programación (`Doc/Dev`) con capturas anotadas y anonimizadas, y la registra en `Doc/forja.json` |
+| `fs-dev:sincronizar-forja` | Sincroniza un plugin con su ficha de autor en facturascripts.com mediante las herramientas `forja_*` de fs-mcp: documentación de `Doc/`, traducciones, datos, imágenes, noticias, versiones, errores e issues |
 | `fs-dev:analizar-bug` | Analiza y corrige bugs en plugins: comportamiento incorrecto, errores inesperados, datos incorrectos |
 | `fs-dev:testing-expert` | Tests PHPUnit, PHPStan, CS-Check, depuración y control de calidad |
 | `fs-dev:depurar-y-testear` | Guía para depurar con modo debug (FS_DEBUG), logs con Tools::log() y PHPUnit |
