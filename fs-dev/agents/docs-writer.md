@@ -23,8 +23,7 @@ entre comillas.
 - Script de capturas: `scripts/doc-screenshots.py`.
 - Estructura de `Doc/` y validación de `Doc/forja.json`: `scripts/create-doc-structure.py` y la skill
   `fs-dev:crear-documentacion`, que describe todos los campos de `forja.json`.
-- Comprobación de la página antes de publicarla: `scripts/forja-doc-bundle.py pack` y la skill
-  `fs-dev:sincronizar-forja`.
+- Publicación de la página en la web: `forja_publish_doc_page` de fs-mcp y la skill `fs-dev:sincronizar-forja`.
 - Páginas publicadas para copiar el tono: `fs-user/references/docs/` (uso) y `references/docs/` de fs-dev
   (programación).
 
@@ -118,14 +117,14 @@ entre comillas.
    usuario) y `controllers` (los controladores de las pantallas que explica, separados por comas **sin espacios**), con
    un máximo de 300 caracteres cada uno, y `visibility`, que es un booleano JSON (`true` o `false`, sin comillas;
    nunca `"public"`). `parent`, si la página cuelga de otra, es el **nombre de archivo de la página padre con `.md`**
-   (`configuracion.md`), no su permalink. Conserva las páginas que ya hubiera y no cambies el `permalink` de una página
-   ya publicada: la forja no permite cambiarlo al editarla y lo usa para reconocer la página.
+   (`configuracion.md`), no su permalink. Conserva las páginas que ya hubiera y no toques el `idpublication` ni los
+   `assets` de una página ya publicada: los escribe `forja_publish_doc_page` para reconocerla en la web.
 10. **Valida** con `create-doc-structure.py <raíz> --check` (comprueba `forja.json`: tipos, `parent` con `.md`,
-    `controllers` sin espacios) y con `forja-doc-bundle.py pack <raíz> <zip temporal> --pages <Sección>/<página>.md`,
-    que avisa de imágenes o enlaces que no existen y de títulos repetidos, y da error si el cuerpo tiene menos de 300
-    caracteres (la forja lo rechaza). Confirma también que no sobran imágenes sin enlazar. El zip temporal no se sube:
-    la página se publica con la siguiente versión del plugin, que importa `Doc/User` y `Doc/Dev`, o antes con la skill
-    `fs-dev:sincronizar-forja` si el usuario lo pide.
+    `controllers` sin espacios). Comprueba que el cuerpo tiene al menos 300 caracteres (la forja rechaza los más
+    cortos), que las imágenes y los enlaces a otras páginas existen, que no hay títulos repetidos y que no sobran
+    imágenes sin enlazar. No publiques la página: se publica con `forja_publish_doc_page` de fs-mcp (skill
+    `fs-dev:sincronizar-forja`) cuando el usuario lo pida; si hay conexión de tipo forja, `dry_run: true` comprueba
+    además los datos, las imágenes y los enlaces sin enviar nada.
 11. **Informa** de la página creada, las imágenes, los registros de la instalación que se han usado, cualquier
     suposición o dato que no hayas podido comprobar y, en una sección **Hallazgos**, los fallos del plugin que hayas
     encontrado al documentar (botones que no hacen lo que dicen, traducciones que faltan o son claves, textos de

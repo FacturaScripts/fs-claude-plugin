@@ -118,13 +118,11 @@ puede enlazar a otro plugin:
 
 ## Publicación
 
-- Las páginas de `Doc/User` y `Doc/Dev` se publican solas al subir una versión del plugin o del core que traiga su
-  `Doc/`: la web importa esas carpetas con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan, y
-  después quita la carpeta `Doc/` entera del zip que se descarga. `Doc/Context/`, `AGENTS.md` y `CLAUDE.md` no se
-  publican nunca: no enlaces a ellos desde una página.
-- La web reconoce cada página por su ruta (`User/x.md`) y, si no la encuentra, por su `permalink`. Para renombrar una
-  página publicada cambia su `title`, no su `permalink`. Las páginas de la web que no vienen en el paquete no se
-  tocan.
-- Para corregir lo publicado sin esperar a una versión, o para traer a `Doc/` lo que se editó en la web, usa la skill
-  `fs-dev:sincronizar-forja`. Antes de subir, `forja-doc-bundle.py pack` comprueba la longitud, los enlaces, las
-  imágenes y los títulos repetidos.
+- Cada página de `Doc/User` y `Doc/Dev` se publica en la web como una publicación, con `forja_publish_doc_page` de
+  fs-mcp (skill `fs-dev:sincronizar-forja`). El zip de una versión no lleva la carpeta `Doc/`. `Doc/Context/`,
+  `AGENTS.md` y `CLAUDE.md` no se publican nunca: no enlaces a ellos desde una página.
+- La web reconoce cada página por el `idpublication` que se guarda en su entrada de `Doc/forja.json` al publicarla.
+  Para renombrar una página publicada cambia su `title` y vuelve a publicarla; si cambias el nombre del archivo,
+  mueve también su entrada de `forja.json` con su `idpublication`.
+- Las imágenes van con rutas relativas a `Doc/Assets` (`../Assets/captura.png`) y los enlaces entre páginas, con rutas
+  relativas a su `.md`: al publicar se cambian por sus URL en la web.

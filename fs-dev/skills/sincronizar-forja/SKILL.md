@@ -1,171 +1,120 @@
 ---
 name: sincronizar-forja
-description: Sincroniza un plugin local con su ficha de autor en la forja de facturascripts.com mediante fs-mcp: alta del plugin, documentación, traducciones, datos, imágenes, noticias y nuevas versiones.
+description: Sincroniza un plugin local con su ficha de autor en la forja de facturascripts.com mediante fs-mcp: documentación, traducciones, datos, imágenes, noticias, versiones, errores e issues.
 ---
 
 # Skill: Sincronizar un plugin con la forja de facturascripts.com
 
-Úsala cuando el autor de un plugin quiera darlo de alta en facturascripts.com, bajar o subir su documentación, sus
-traducciones, los datos o las imágenes de la ficha, publicar una noticia o subir una versión nueva («crea el plugin en
-la forja», «baja la documentación de la web», «sube estas páginas», «publica la versión 2.1», «actualiza la
-descripción del plugin»).
+Úsala cuando el autor de un plugin (o un miembro de su equipo) quiera publicar su documentación, subir o bajar sus
+traducciones, cambiar los datos o las imágenes de la ficha, publicar una noticia o una versión nueva, o consultar los
+errores y las issues del plugin («sube estas páginas a la web», «publica la versión 2.1», «pon estable la 2.0»,
+«actualiza la descripción del plugin», «qué errores tiene el plugin»).
 
 ## Requisitos
 
 - **fs-mcp** con una conexión de **tipo `forja`**: la URL de facturascripts.com y el token de autor. Créala con la
   skill `fs-mcp:add-connection` (`type: "forja"`). Las herramientas `forja_*` solo usan conexiones de ese tipo; sin
   `connection`, la primera de tipo `forja` configurada.
-- El **acuerdo de proveedor vigente** en facturascripts.com: la API de autor solo admite los plugins de los que eres
-  autor. Si dudas del nombre del plugin, consulta `forja_list_plugins` o `forja_get_plugin`.
-- Las herramientas de fs-mcp reciben **rutas absolutas**. Guarda los zip temporales fuera del repositorio del plugin
-  (en la carpeta temporal de la sesión), para no versionarlos por error.
+- **Acceso a la API de autor**: lo concede el personal de facturascripts.com en la ficha del contacto. Con el acceso,
+  la pestaña **avanzado** de PortalForja permite generar el token, que solo se muestra al generarlo; al retirar el
+  acceso se borra el token. Sin acceso, la forja responde 403.
+- El plugin debe **existir ya en la web**: la API no crea plugins, que se dan de alta desde la web. Admite los plugins
+  de los que eres autor y los de los equipos en los que estás aceptado; los demás responden 404. Si dudas del nombre,
+  consulta `forja_list_plugins`.
+- Las herramientas de fs-mcp reciben **rutas absolutas**.
 
-Todo lo que se sube se publica en la web. Antes de cada subida (`forja_create_plugin`, `forja_upload_*`,
-`forja_update_*`, `forja_create_publication`) y de cada borrado (`forja_delete_translations`,
+Todo lo que se sube se publica en la web. Antes de cada envío (`forja_publish_doc_page`, `forja_upload_*`,
+`forja_update_*`, `forja_create_publication`, `forja_set_build_status`) y de cada borrado (`forja_delete_publication`,
 `forja_delete_plugin_image`), resume al usuario qué se va a enviar o borrar y espera su confirmación.
-
-## El script del paquete de documentación
-
-fs-mcp solo transporta el zip de documentación; colocarlo en el plugin y prepararlo para subir lo hace el script
-[`../../scripts/forja-doc-bundle.py`](../../scripts/forja-doc-bundle.py), relativo a este `SKILL.md`; en Claude Code
-equivale a `${CLAUDE_PLUGIN_ROOT}/scripts/forja-doc-bundle.py`. La variable `CLAUDE_PLUGIN_ROOT` no existe en el
-entorno de Bash: resuelve antes la ruta absoluta del script y úsala entre comillas. En los ejemplos, `<scripts>`
-representa la carpeta del script.
-
-El zip tiene la misma estructura que la carpeta `Doc/` del plugin, con las imágenes incluidas y los enlaces relativos
-resueltos; el mismo formato sirve para bajar y para subir:
-
-```
-User/*.md        # páginas de uso
-Dev/*.md         # páginas de programación
-Assets/**        # imágenes y archivos que enlazan las páginas
-forja.json       # datos de cada página, con el formato de Doc/forja.json
-```
-
-```bash
-python3 "<scripts>/forja-doc-bundle.py" unpack "<zip>" "<ruta del plugin>" [--type user|dev|all] [--dry-run]
-python3 "<scripts>/forja-doc-bundle.py" pack "<ruta del plugin>" "<zip>" [--pages User/a.md Dev/b.md ...] [--type user|dev|all]
-```
-
-- **`unpack`** escribe en `Doc/User`, `Doc/Dev` y `Doc/Assets` (acepta también el prefijo `Doc/` en el zip). Las
-  páginas del zip reemplazan su entrada de `Doc/forja.json` y las locales que no vienen se conservan. Quita los
-  `.gitkeep` de las carpetas que quedan con contenido, valida `forja.json` y los enlaces, e imprime lo creado,
-  actualizado y sin cambios, y los avisos. Rechaza el zip entero, sin escribir nada, si trae rutas absolutas, con `..`
-  o enlaces simbólicos. `--dry-run` solo informa. Con `--type`, solo esa sección y las imágenes que usan sus páginas.
-- **`pack`** incluye las páginas elegidas (o todas las del tipo), sus entradas de `forja.json` y las imágenes de
-  `Doc/Assets` que enlazan (`../Assets/...` en el cuerpo e `imageurl` `Doc/Assets/...`). Avisa de imágenes o enlaces
-  `.md` que no existen, de enlaces fuera de `User`/`Dev` y de títulos repetidos. Son **errores** que impiden crear el
-  zip un cuerpo de menos de 300 caracteres (el servidor lo rechaza) y un problema de `forja.json` (campo desconocido,
-  tipo o valor no admitido, padre que no existe).
-- Código de salida: 0 si todo va bien (aunque haya avisos), 1 si hay errores y 2 si la ruta no es un plugin, el core o
-  un zip existente.
-
-## Cómo asocia la web cada página
-
-Cada archivo del paquete se asocia a su publicación por la **ruta** (`User/x.md`) y, si no la encuentra, por el
-**`permalink`** de su entrada en `forja.json`. Por eso **no cambies el `permalink`** en `forja.json` para renombrar o
-mover una página: cambia el `title`. Las páginas de la web que no vienen en el paquete **no se tocan**: subir una sola
-página no borra las demás, y para retirar una página publicada hay que hacerlo desde la web (o con
-`forja_update_publication`).
 
 ## Flujos
 
-### Descargar la documentación
+### Publicar la documentación de `Doc/`
 
-1. `forja_download_docs` con `plugin`, `type` (`all`, `user` o `dev`) y `output_zip` (ruta absoluta del zip temporal).
-2. `forja-doc-bundle.py unpack "<zip>" "<plugin>" --dry-run` y resume al usuario qué páginas se crean o cambian.
-3. Si lo confirma, repite sin `--dry-run`. Revisa los avisos y el `git diff` de `Doc/`: lo que estaba solo en local
-   (páginas y entradas que no vienen en el zip) se conserva.
+La forja no importa la carpeta `Doc/` del zip de una versión: cada página de `Doc/User` y `Doc/Dev` es una
+**publicación** de tipo `user` o `dev`, que se crea y se actualiza con `forja_publish_doc_page`.
 
-### Editar y subir la documentación
+1. Escribe o corrige las páginas (skill `fs-dev:docs-writer`) y valida la estructura y `Doc/forja.json` con
+   `fs-dev:crear-documentacion` (`create-doc-structure.py --check`).
+2. Publica **primero las páginas padre**: una página con `parent` en `forja.json` falla si su padre aún no tiene
+   publicación.
+3. Para cada página, `forja_publish_doc_page` con `plugin`, `plugin_path` y `page` (`User/x.md` o `Dev/x.md`) y
+   `dry_run: true`. Resume al usuario lo que devuelve: si se crea o se actualiza, los campos, las imágenes que se suben
+   o se reutilizan, los enlaces que no se pueden resolver y los campos que se ignoran.
+4. Con su confirmación, repite sin `dry_run`. Comunica la URL de cada página y los avisos.
+5. Si alguna página enlaza otra que aún no estaba publicada, el enlace queda como estaba: cuando estén todas
+   publicadas, vuelve a publicar las páginas con avisos de enlaces sin resolver.
 
-1. Escribe o corrige las páginas (skill `fs-dev:docs-writer`) y valida la estructura con `fs-dev:crear-documentacion`
-   (`create-doc-structure.py --check`).
-2. `forja-doc-bundle.py pack "<plugin>" "<zip>"` con `--pages` para subir solo las páginas cambiadas, o sin él para
-   todas. Corrige los errores y revisa los avisos antes de seguir.
-3. Con la confirmación del usuario, `forja_upload_docs` con `plugin` y `zip_path`. Comunica las páginas creadas,
-   actualizadas, sin cambios y los errores que devuelve el servidor.
+Qué hace `forja_publish_doc_page`:
 
-Para publicar la documentación junto con una versión no hace falta este flujo: ver
-[Publicar una versión](#publicar-una-versión).
+- Toma de la entrada de la página en `forja.json` `title` (obligatorio), `title_short`, `ordernum`, `icon`, `color`,
+  `keywords`, `controllers`, `youtubeid` y `parent`. El tipo sale de la carpeta (`User` → `user`, `Dev` → `dev`).
+  `permalink`, `imageurl` y `visibility` no se pueden cambiar por la API: se ignoran con un aviso y se ajustan en la
+  web.
+- Sube las imágenes locales que enlaza la página (normalmente `../Assets/...`) y las coloca en su sitio. Una imagen
+  que ya se subió (por esta página o por otra) y no ha cambiado se reutiliza.
+- Cambia los enlaces a otras páginas de `Doc/User` o `Doc/Dev` que ya tienen publicación por su URL en la web.
+- Guarda en la entrada de la página el `idpublication` y las imágenes subidas (`assets`). **Haz commit de
+  `Doc/forja.json`** junto con las páginas: sin `idpublication`, la siguiente vez se crearía una publicación nueva.
+- Rechaza, sin enviar nada, una página sin `title`, con menos de 300 caracteres de cuerpo, con imágenes que no existen
+  o que están fuera de `Doc/`, y una entrada con un `idpublication` que ya no existe en la forja (quítalo para crearla
+  de nuevo).
+
+Crear publicaciones tiene los mismos límites que la web (email verificado y máximos diarios y semanales): si se agotan,
+la forja responde 429 y hay que seguir otro día. Para retirar una página publicada, `forja_delete_publication` (solo
+quien la escribió) y quita su `idpublication` de `forja.json`.
+
+Para traer a `Doc/` una página escrita en la web, `forja_get_publication` devuelve su texto en Markdown: guárdala en
+`Doc/<sección>/<archivo>.md` y añade su entrada en `forja.json` con el `title` y el `idpublication`.
 
 ### Traducciones
 
 - `forja_download_translations` con `plugin` y `plugin_path` (y `lang` para un solo idioma) **sustituye** los archivos
-  de `Translation/`: revisa antes que no haya cambios locales sin subir y, después, el `git diff`.
+  de `Translation/`: revisa antes que no haya cambios locales sin subir y, después, el `git diff`. Un idioma sin
+  traducciones en la web no vacía el archivo local.
 - `forja_upload_translations` sube los `Translation/*.json` del plugin (todos o solo `lang`) o una sola clave con
   `lang`, `key` y `value`. En local solo se mantiene `es_ES.json` (los demás idiomas se traducen en la web), así que
-  normalmente se sube con `lang: "es_ES"`. Subir no borra nada: las claves de la web que ya no están en local se
-  quedan.
-- `forja_delete_translations` borra en la web una clave en todos los idiomas (`key`), un idioma completo (`lang`),
-  una clave en un idioma (`key` y `lang`) o todas las traducciones del plugin en todos los idiomas (`all: true`, sin
-  `key` ni `lang`). Sin parámetros no borra nada y nunca toca claves de otros plugins. Devuelve las filas borradas
-  (`deleted`), las claves (`keys`) y el recuento por idioma (`languages`). **No se puede deshacer**: también se pierden
-  las traducciones a otros idiomas que hizo la comunidad en la web.
-
-#### Borrar todo y subir de nuevo
-
-Cuando el plugin cambia por completo y las claves de la web ya no sirven, para no dejar claves huérfanas:
-
-1. Descarga antes una copia de lo que hay en la web con `forja_download_translations`, con una carpeta temporal fuera
-   del plugin como `plugin_path` (no la del plugin, para no sustituir sus archivos de `Translation/`).
-2. Explica al usuario que se borrarán **todas** las traducciones del plugin en **todos** los idiomas, incluidas las
-   de la comunidad, con cuántas claves e idiomas hay en la copia, y pide su **confirmación expresa**. Sin ella, no
-   sigas.
-3. `forja_delete_translations` con `all: true`. Comprueba el informe.
-4. `forja_upload_translations` con `plugin_path` y `lang: "es_ES"`. Las claves nuevas se crean en todos los idiomas
-   con el texto en español, pendientes de traducir.
-
-Si solo sobran algunas claves, bórralas una a una con `key` en lugar de borrarlo todo.
-
-### Dar de alta un plugin nuevo
-
-Las demás herramientas solo admiten plugins que ya existen en la web. Para uno nuevo:
-
-1. `forja_get_plugin_options` devuelve el cupo (`quota.plugins` de `quota.limit`, que crece con las instalaciones
-   activas de todos tus plugins), si puedes crear uno (`can_create`), los campos obligatorios y opcionales, los tipos,
-   las licencias y el precio mínimo (`min_price`). Si `can_create` es `false`, explica al usuario el motivo (email sin
-   verificar o cupo agotado) y no sigas.
-2. Toma el `name` del `facturascripts.ini` del plugin: debe coincidir con el de la web para poder subir sus
-   versiones. Empieza por una letra y solo admite letras, números, `-` y `_` (de 3 a 50).
-3. Pregunta la descripción y el tipo si no los conoces: con `name` son obligatorios. Con la confirmación del usuario,
-   `forja_create_plugin` con `name`, `description`, `type` (`free`, `for-sale`, `sponsor` o `private`) y, si los
-   indica, `license` (`LGPL` por defecto) y `price` (solo para `for-sale`). El plugin se asigna al primer equipo
-   privado del autor, que se crea si no tiene ninguno.
-
-El servidor aplica los mismos límites que la web: email verificado, cupo de plugins, nombre libre (sin distinguir
-mayúsculas) y equipos privados del autor. El plugin queda **privado** hasta que el personal lo aprueba; mientras
-tanto ya se le pueden subir versiones, traducciones y documentación.
+  normalmente se sube con `lang: "es_ES"`.
+- La subida sigue las reglas de la web: **cada idioma enviado cuesta puntos** (no se cobran si nada cambia), hay topes
+  diarios y semanales de claves nuevas y un máximo de claves por idioma, y los textos quedan **pendientes de
+  revisión**. Las claves nuevas se crean en todos los idiomas con el texto en español. No se cambian las claves del
+  proyecto principal ni las revisadas por alguien de más nivel: salen en `skipped` con su motivo. Comunica `created`,
+  `updated`, `unchanged`, `skipped`, `points_spent` y `points`.
+- Las traducciones **no se pueden borrar** por la API: las claves de la web que ya no están en local se quedan. Si hay
+  que borrarlas, se pide al personal.
 
 ### Datos e imágenes del plugin
 
-- `forja_update_plugin` cambia la descripción larga (`description`), la corta (`description_short`), el repositorio
-  público (`publicrepo`) y el vídeo de YouTube (`youtube`); solo se envían los campos indicados. Consulta antes los
-  datos actuales con `forja_get_plugin`.
+- `forja_get_plugin` devuelve la ficha con su salud (`health`) y los requisitos de catálogo que le faltan
+  (`health_requirements`): mientras quede alguno, la salud es 0. Úsalo para explicar al autor qué completar.
+- `forja_update_plugin` cambia la descripción (`description`), el repositorio público (`publicrepo`, URL http(s)) y
+  el vídeo de YouTube (`youtube`); solo se envían los campos indicados. La descripción corta no se edita: la forja la
+  vuelve a generar al cambiar la descripción.
 - `forja_upload_plugin_image` sube una imagen de la ficha (`image_path`, ruta absoluta) en la posición 1, 2 o 3
-  (`position`); `forja_delete_plugin_image` quita la de una posición.
+  (`position`; la 1 es la portada) o en el primer hueco libre; `forja_delete_plugin_image` quita la de una posición.
+  La forja compacta las imágenes para no dejar huecos.
 
-### Noticias y publicaciones
+### Noticias
 
 - `forja_list_publications` (con `type` `news`, `user` o `dev`) y `forja_get_publication` (`id`) consultan lo
   publicado.
-- `forja_create_publication` crea una noticia (`type: "news"`) con `title` y el cuerpo en Markdown en `body` o
-  `body_file`, y opcionalmente `images`, `youtubeid`, `ordernum` e `idparent`. Para redactar la noticia de una versión
-  a partir de los commits, usa la skill `fs-dev:skill-notice`.
-- `forja_update_publication` (`id`) cambia solo los campos indicados.
-- Las páginas de documentación de `Doc/User` y `Doc/Dev` se suben con el paquete
-  ([Editar y subir la documentación](#editar-y-subir-la-documentación)), no con estas herramientas: así conservan sus
-  imágenes, sus enlaces y los datos de `forja.json`.
+- `forja_create_publication` crea una noticia (`type: "news"`) con `title` y el cuerpo en Markdown (al menos 300
+  caracteres) en `body` o `body_file`, y opcionalmente `title_short`, `youtube`, `icon`, `color`, `keywords` e
+  `images`, que la forja añade al final del texto. Para redactar la noticia de una versión a partir de los commits, usa
+  la skill `fs-dev:skill-notice`.
+- `forja_update_publication` (`id`) cambia solo los campos indicados; si editas una publicación de otro miembro del
+  equipo, quedas como coautor.
+- Las páginas de `Doc/User` y `Doc/Dev` se publican con `forja_publish_doc_page`, no con estas herramientas: así
+  conservan sus imágenes en su sitio, sus enlaces y los datos de `forja.json`.
 
 ### Publicar una versión
 
 1. Comprueba la versión del `facturascripts.ini` y, si procede, audita el plugin con `fs-dev:verificar-min-version`.
 2. `forja_build_zip` con `source_path` (ruta absoluta de la carpeta del plugin o del core) crea el zip en una carpeta
    temporal: carpeta raíz con el `name` del `facturascripts.ini` (`facturascripts` en el core), permisos 0755/0644 y
-   sin archivos ocultos (`.git`, `.claude`...), `Test`, `Doc`, archivos de IA, metadatos del sistema ni enlaces
-   simbólicos; en el core, tampoco `Plugins`, `Dinamic`, `MyFiles` ni `config*.php`. Sirve para «créame el zip del
-   plugin X» o «créame el zip del core». Para publicar a la vez la documentación de `Doc/User` y `Doc/Dev`, añade
-   `include_docs: true`.
+   sin archivos ocultos (`.git`, `.claude`...), `Test`, `Doc`, archivos de IA, `phpunit*.xml`, metadatos del sistema
+   ni enlaces simbólicos; en el core, tampoco `Plugins`, `Dinamic`, `MyFiles` ni `config*.php`. Sirve para «créame el
+   zip del plugin X» o «créame el zip del core».
 3. Enseña al usuario el resumen: nombre, versión, archivos, lo excluido por grupo y los avisos. Si falla (por
    ejemplo, `composer.json` sin `vendor`), explica cómo arreglarlo; no lo empaquetes de otra forma para saltarte el
    error.
@@ -173,21 +122,28 @@ tanto ya se le pueden subir versiones, traducciones y documentación.
    tomarse del `facturascripts.ini` del zip). Tras subirlo con éxito, borra el zip temporal de `forja_build_zip`;
    pasa `keep_zip: true` si el usuario quiere conservarlo. Un zip que no creó `forja_build_zip` (por ejemplo, de
    `fsmaker zip`) nunca se borra.
-5. Comunica la versión creada, los archivos que el servidor quitó del zip, el informe de documentación y qué pasó con
-   el zip local (`local_zip`).
+5. Comunica la versión creada, los avisos (por ejemplo, los archivos de desarrollo que la forja quitó del zip) y qué
+   pasó con el zip local (`local_zip`).
 
-El servidor **importa `Doc/User` y `Doc/Dev`** con su `Doc/forja.json` si el zip los trae (cada página se asocia igual
-que en `forja_upload_docs` y las de la web que no vienen no se tocan) y después **quita del zip guardado** la carpeta
-`Doc/` entera, `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/` y los metadatos del sistema (`.DS_Store`,
-`__MACOSX/`...), de modo que quien descarga la versión no los recibe. Antes de subir una versión con
-`include_docs: true`, comprueba las páginas con `forja-doc-bundle.py pack` hacia un zip temporal que no se sube: un
-cuerpo de menos de 300 caracteres, por ejemplo, también lo rechaza el servidor al importar la versión.
+La versión nueva queda en **beta**. Cuando el autor lo decida, `forja_set_build_status` con `version` y `status`
+(`stable`, `beta` o `disabled`) cambia su estado; la forja puede dejarla en beta si la versión del core que necesita
+no es estable, así que comunica el estado con el que ha quedado. `forja_list_builds` lista las versiones con su
+estado y sus descargas. La documentación no viaja en el zip: publícala con
+[`forja_publish_doc_page`](#publicar-la-documentación-de-doc).
+
+### Errores e issues
+
+- `forja_list_errors` lista los informes de error que envían las instalaciones (filtro `status`: `investigating` o
+  `solved`, y `limit`/`offset`), y `forja_get_error` (`hash`) devuelve uno completo: mensaje, archivo y línea,
+  versiones de core y PHP, plugins activos y la solución si la hay. Para investigar y corregir un error, sigue la
+  skill `fs-dev:analizar-bug` con esos datos.
+- `forja_list_issues` (filtro `status`: `open` o `closed`) y `forja_get_issue` (`id`) consultan las issues en solo
+  lectura. La conversación de una issue solo se ve si la creaste, eres de su equipo de soporte o has comentado en
+  ella; si no, la forja responde 403. Para contestar, hazlo en la web.
 
 ## Reglas
 
-- No hagas commits de lo descargado salvo que el usuario lo pida.
-- No subas ni borres nada sin confirmación expresa, y nunca un zip de documentación que `pack` no haya creado sin
-  errores.
-- Nunca uses `forja_delete_translations` con `all: true` sin que el usuario haya confirmado expresamente que quiere
-  borrar todas las traducciones del plugin en todos los idiomas.
+- No hagas commits salvo que el usuario lo pida; recuérdale que `Doc/forja.json` guarda los `idpublication`.
+- No envíes ni borres nada sin confirmación expresa, y publica las páginas de documentación con `dry_run` primero.
+- Ten en cuenta que subir traducciones gasta puntos del autor: dilo antes de subirlas.
 - No muestres el token de la conexión ni el contenido de `~/.fs-claude.json`.

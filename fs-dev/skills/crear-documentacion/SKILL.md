@@ -29,8 +29,8 @@ Es la de los plugins fiscales (FiscalES, Facturae, InformeSII, Ticketbai y Verif
 
 - `Doc/Context/` se puede dividir en tantos archivos y subcarpetas como haga falta (por ejemplo `NN-tema.md` y
   `Decisiones/NNNN-titulo.md`); su `README.md` hace de índice y se actualiza en el mismo trabajo que cambia el código.
-- `Doc/forja.json` lo lee la forja de facturascripts.com al subir una versión del plugin o del core, que importa
-  automáticamente `Doc/User` y `Doc/Dev`. Su formato está en la sección [`Doc/forja.json`](#docforjajson) y la
+- `Doc/forja.json` guarda los datos con los que se publica cada página de `Doc/User` y `Doc/Dev` en la forja de
+  facturascripts.com, y el id de su publicación. Su formato está en la sección [`Doc/forja.json`](#docforjajson) y la
   publicación, en [Publicación en la forja](#publicación-en-la-forja).
 - Las carpetas vacías llevan un `.gitkeep` para que git las suba. No lo añadas a carpetas que ya tienen archivos.
 - `AGENTS.md` es el archivo de instrucciones para los agentes (Codex lo lee directamente) y es corto: qué es el plugin
@@ -85,34 +85,34 @@ Todos los campos son opcionales. Las longitudes máximas se cuentan en caractere
 
 | Campo | Tipo | Qué indica |
 |---|---|---|
-| `title` | texto | Título de la página; si falta, se usa el nombre del archivo `.md` formateado |
-| `title_short` | texto | Título corto para SEO; si falta, se usa el nombre del archivo `.md` formateado |
-| `permalink` | texto, máx. 200 | Enlace de la página en la web. Si ya existe, la forja le añade algo para hacerlo único al crear la página; después no se puede cambiar, y la forja lo usa para reconocer la página si cambia su ruta |
+| `title` | texto, máx. 200 | Título de la página; obligatorio para publicarla |
+| `title_short` | texto, máx. 100 | Título corto para SEO; si falta, la forja recorta el título |
+| `permalink` | texto, máx. 200 | Enlace de la página en la web. La forja lo genera a partir del título al crear la publicación y la API no lo cambia: solo es informativo |
 | `parent` | texto | Página padre, por su **nombre de archivo con `.md`** en la misma sección (`inicio.md`, no su permalink) |
 | `ordernum` | número entero | Orden de la página |
 | `youtubeid` | texto | Vídeo de YouTube de la página |
-| `imageurl` | texto | Imagen principal: una URL o un archivo de `Doc/Assets/` |
-| `icon` | texto | Icono de Font Awesome |
+| `imageurl` | texto | Imagen principal: una URL o un archivo de `Doc/Assets/`. La API no la cambia: se pone desde la web |
+| `icon` | texto, máx. 50 | Icono de Font Awesome |
 | `color` | texto | Color de Bootstrap: `primary`, `secondary`, `success`, `danger`, `warning`, `info` o `dark` |
 | `keywords` | texto, máx. 300 | Palabras clave para buscar la página, separadas por comas |
 | `controllers` | texto, máx. 300 | Controladores donde se muestra la página, separados por comas y sin espacios (`ListFacturaCliente,EditFacturaCliente`) |
-| `visibility` | `true` o `false` | Si la página es visible; es un booleano JSON sin comillas, nunca un texto como `"public"` |
+| `visibility` | `true` o `false` | Si la página es visible; es un booleano JSON sin comillas, nunca un texto como `"public"`. La API no la cambia: se cambia desde la web |
+| `idpublication` | número entero | Id de la publicación en la forja. Lo escribe `forja_publish_doc_page` al publicar la página; no lo cambies a mano |
+| `assets` | objeto | Imágenes de la página ya subidas a la forja (`{"Assets/x.png": {"url": ..., "sha256": ...}}`). Lo escribe `forja_publish_doc_page` para no volver a subirlas |
 
 ## Publicación en la forja
 
-- Al subir una **versión** del plugin o del core con su `Doc/`, la forja **importa automáticamente** las páginas de
-  `Doc/User` y `Doc/Dev` con sus datos de `Doc/forja.json` y las imágenes de `Doc/Assets` que enlazan, y después quita
-  del zip guardado la carpeta `Doc/` entera, `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/` y los metadatos del
-  sistema: quien descarga la versión no los recibe. `forja_build_zip` de fs-mcp crea el zip de la versión ya sin
-  ellos; con `include_docs: true` conserva `Doc/User`, `Doc/Dev`, `Doc/Assets` y `Doc/forja.json` para esa importación.
-- Cada archivo se asocia a su página de la web por la **ruta** (`User/x.md`) y, si no, por el **`permalink`** de
-  `forja.json`; por eso no se cambia el `permalink` para renombrar una página. Las páginas de la web que no vienen en
-  el paquete no se tocan.
-- Para bajar la documentación publicada o subir páginas sin publicar una versión, usa la skill
-  `fs-dev:sincronizar-forja` y su script `forja-doc-bundle.py` (`unpack` y `pack`), con las herramientas `forja_*` de
-  fs-mcp.
-- La web rechaza las páginas con menos de 300 caracteres de cuerpo: `forja-doc-bundle.py pack` lo comprueba antes de
-  subirlas.
+- Cada página de `Doc/User` y `Doc/Dev` es una **publicación** de la forja (de tipo `user` o `dev`). La forja **no
+  importa** la carpeta `Doc/` del zip de una versión: `forja_build_zip` de fs-mcp la deja fuera del zip, y las páginas
+  se publican una a una con `forja_publish_doc_page`, siguiendo la skill `fs-dev:sincronizar-forja`.
+- `forja_publish_doc_page` envía los datos de la entrada de `forja.json`, sube las imágenes de `Doc/Assets` que enlaza
+  la página y las coloca en su sitio, cambia los enlaces a otras páginas publicadas por su URL y guarda en la entrada
+  el `idpublication` y las imágenes subidas (`assets`). Versiona `Doc/forja.json` con las páginas: sin
+  `idpublication`, la página se publicaría otra vez como nueva.
+- Una página con `parent` se publica después que su padre. Los enlaces a páginas aún sin publicar se dejan como
+  están: cuando estén todas publicadas, se vuelve a publicar la página que las enlaza.
+- La web rechaza las páginas sin `title` o con menos de 300 caracteres de cuerpo: `forja_publish_doc_page` lo
+  comprueba antes de enviar nada.
 
 ## Script
 

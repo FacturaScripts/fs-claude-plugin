@@ -125,6 +125,8 @@ class CreateDocStructureTest(unittest.TestCase):
                     'youtubeid': 'abc',
                     'imageurl': 'Doc/Assets/inicio.png', 'icon': 'fa-solid fa-book', 'color': 'info',
                     'keywords': 'inicio,ventas', 'controllers': 'ListFacturaCliente', 'visibility': True,
+                    'idpublication': 12,
+                    'assets': {'Assets/inicio.png': {'url': 'https://facturascripts.com/MyFiles/x.png', 'sha256': 'ab'}},
                 },
                 'ventas.md': {'parent': 'inicio.md'},
             },
@@ -139,7 +141,8 @@ class CreateDocStructureTest(unittest.TestCase):
         forja['User']['ventas.md'] = {'parent': 'nada.md', 'ordernum': '1', 'visibility': 'si', 'color': 'light',
                                       'autor': 'yo', 'permalink': 'p' * 201, 'keywords': 'k' * 301}
         forja['User']['inicio.md']['controllers'] = 'c' * 300
-        forja['User']['falta.md'] = {'parent': 'inicio', 'visibility': 1, 'controllers': 'ListA, EditA'}
+        forja['User']['falta.md'] = {'parent': 'inicio', 'visibility': 1, 'controllers': 'ListA, EditA',
+                                     'idpublication': 0, 'assets': {'Assets/x.png': 'https://x'}, 'title': 't' * 201}
         forja['Otra'] = {}
         (self.root / 'Doc/forja.json').write_text(json.dumps(forja), encoding='utf-8')
 
@@ -154,7 +157,10 @@ class CreateDocStructureTest(unittest.TestCase):
                      'color «light» no admitido', 'campo desconocido «autor»',
                      'User › falta.md no existe', 'sección desconocida «Otra»',
                      '«permalink» tiene 201 caracteres y el máximo es 200',
-                     '«keywords» tiene 301 caracteres y el máximo es 300'):
+                     '«keywords» tiene 301 caracteres y el máximo es 300',
+                     '«title» tiene 201 caracteres y el máximo es 200',
+                     '«idpublication» es el id de la publicación en la forja',
+                     '«assets» guarda cada imagen subida'):
             self.assertIn(text, output)
         self.assertNotIn('«controllers» tiene', output)
 

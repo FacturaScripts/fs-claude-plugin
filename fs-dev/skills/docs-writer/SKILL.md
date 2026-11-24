@@ -50,7 +50,7 @@ Cuando el usuario pide toda la documentación de un plugin (varias páginas), t�
 
 1. **Inventario.** Pantallas, acciones y configuración del plugin (controladores, XMLView, `Init.php`,
    `Translation/es_ES.json`), las páginas que ya hay en `Doc/User`, `Doc/Dev` y `Doc/forja.json` y las **publicadas**
-   en la web: léelas de la forja con `forja_list_publications` (tipos `user` y `dev`) y `forja_download_docs` de
+   en la web: léelas de la forja con `forja_list_publications` (tipos `user` y `dev`) y `forja_get_publication` de
    fs-mcp (la skill `fs-dev:sincronizar-forja` explica cómo), o de la web del plugin si no hay acceso.
 2. **Índice.** Diseña el árbol de páginas y propónselo al usuario antes de escribir:
 
@@ -60,7 +60,8 @@ Cuando el usuario pide toda la documentación de un plugin (varias páginas), t�
    | `enviar-facturas.md` | Cómo enviar facturas | `configuracion.md` | 20 | `enviar-facturas` |
 
    `parent` es el nombre de archivo con `.md`; deja huecos en `ordernum` (10, 20, 30...) para insertar páginas
-   después. **Conserva los permalinks ya publicados**: la forja reconoce la página por ellos y no deja cambiarlos.
+   después. **Conserva el `idpublication` de las páginas ya publicadas** (y muévelo con su entrada si cambia el nombre
+   del archivo): la forja reconoce la página por él.
 3. **Instalación y plan de datos** comunes (ver [Antes de capturar](#antes-de-capturar)), con los registros reservados
    para cada página.
 4. **Reparto.** Si repartes las páginas entre varios redactores en paralelo, dales a todos el mismo **briefing**: el
@@ -73,8 +74,9 @@ Cuando el usuario pide toda la documentación de un plugin (varias páginas), t�
 5. **Unión y validación.** Junta las entradas en `Doc/forja.json` y normalízalas (`visibility` booleano, `parent` con
    `.md`, `controllers` sin espacios, `ordernum` del índice, iconos y colores coherentes). Revisa cada página: marcas
    en el orden del texto, sin claves de traducción, sin notas internas, sin la marca, enlaces a páginas que existen y
-   afirmaciones comprobadas en el código. Valida con `create-doc-structure.py --check` y con
-   `forja-doc-bundle.py pack` sobre todas las páginas, y revisa las imágenes.
+   afirmaciones comprobadas en el código. Valida con `create-doc-structure.py --check`, comprueba que cada cuerpo
+   tiene al menos 300 caracteres y revisa las imágenes. Si el usuario quiere publicarlas, sigue la skill
+   `fs-dev:sincronizar-forja` (`forja_publish_doc_page`, padres primero).
 6. **Hallazgos.** Reúne en tu informe, aparte de la documentación, los fallos del plugin encontrados al documentar
    (con archivo y línea si se conocen) y propón al usuario corregirlos; la documentación no los arregla ni los
    menciona como notas.
