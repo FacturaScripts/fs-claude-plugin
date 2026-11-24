@@ -75883,6 +75883,11 @@ function isInside(child, parent) {
 async function realOrSelf(value) {
   return realpath(value).catch(() => path3.resolve(value));
 }
+function connectionsFileFromEnv() {
+  const value = process.env.FS_CONNECTIONS_FILE;
+  if (!value || value.startsWith("${")) return null;
+  return path3.resolve(value);
+}
 function blockedReason(target, home, protectedFiles) {
   if (protectedFiles.some((file) => comparable(file) === comparable(target))) {
     return "es el archivo de configuraci\xF3n de fs-mcp, que contiene los tokens de las conexiones";
@@ -75908,8 +75913,8 @@ async function checkUploadPath(raw, options = {}) {
   const home = await realOrSelf(options.home ?? os2.homedir());
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_UPLOAD_BYTES;
   const configFiles = [path3.join(home, CONFIG_FILE_NAME), path3.join(home, LEGACY_CONFIG_FILE_NAME)];
-  const envFile = process.env.FS_CONNECTIONS_FILE;
-  if (envFile && path3.isAbsolute(envFile)) configFiles.push(envFile);
+  const envFile = connectionsFileFromEnv();
+  if (envFile) configFiles.push(envFile);
   const protectedFiles = await Promise.all(configFiles.map(realOrSelf));
   const given = path3.resolve(value);
   const real = await realpath(given).catch(() => null);

@@ -91,6 +91,20 @@ async function realOrSelf(value: string): Promise<string> {
 }
 
 /**
+ * Ruta del archivo de conexiones indicado en FS_CONNECTIONS_FILE, con la misma
+ * regla que ConnectionManager: se ignoran los marcadores sin expandir (`${...}`)
+ * y una ruta relativa se resuelve respecto al directorio de trabajo, que es
+ * donde la abre el gestor de conexiones.
+ *
+ * @returns la ruta absoluta, o null si la variable no está definida.
+ */
+function connectionsFileFromEnv(): string | null {
+    const value = process.env.FS_CONNECTIONS_FILE;
+    if (!value || value.startsWith('${')) return null;
+    return path.resolve(value);
+}
+
+/**
  * Devuelve el motivo por el que una ruta no se puede subir, o null si se puede.
  *
  * @param target ruta que se comprueba (la indicada o la real).
@@ -139,8 +153,8 @@ export async function checkUploadPath(raw: unknown, options: UploadOptions = {})
     const home = await realOrSelf(options.home ?? os.homedir());
     const maxBytes = options.maxBytes ?? DEFAULT_MAX_UPLOAD_BYTES;
     const configFiles = [path.join(home, CONFIG_FILE_NAME), path.join(home, LEGACY_CONFIG_FILE_NAME)];
-    const envFile = process.env.FS_CONNECTIONS_FILE;
-    if (envFile && path.isAbsolute(envFile)) configFiles.push(envFile);
+    const envFile = connectionsFileFromEnv();
+    if (envFile) configFiles.push(envFile);
     const protectedFiles = await Promise.all(configFiles.map(realOrSelf));
 
     const given = path.resolve(value);

@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import test from 'node:test';
 
 const { checkUploadPath } = await import('../build/plugins/shared/upload.js');
@@ -100,6 +100,22 @@ test('rechaza el archivo de conexiones indicado en FS_CONNECTIONS_FILE', async (
   try {
     const conexiones = escribir('datos/connections.json', '{}');
     process.env.FS_CONNECTIONS_FILE = conexiones;
+    const resultado = await checkUploadPath(conexiones, { home });
+    assert.equal(resultado.ok, false);
+    assert.match(resultado.error, /configuración de fs-mcp/);
+  } finally {
+    if (anterior === undefined) delete process.env.FS_CONNECTIONS_FILE;
+    else process.env.FS_CONNECTIONS_FILE = anterior;
+    limpiar();
+  }
+});
+
+test('rechaza el archivo de FS_CONNECTIONS_FILE aunque la variable tenga una ruta relativa', async () => {
+  const { home, escribir, limpiar } = crearHome();
+  const anterior = process.env.FS_CONNECTIONS_FILE;
+  try {
+    const conexiones = escribir('datos/connections.json', '{}');
+    process.env.FS_CONNECTIONS_FILE = relative(process.cwd(), conexiones);
     const resultado = await checkUploadPath(conexiones, { home });
     assert.equal(resultado.ok, false);
     assert.match(resultado.error, /configuración de fs-mcp/);
