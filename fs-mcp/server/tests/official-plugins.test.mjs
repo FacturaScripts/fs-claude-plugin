@@ -147,6 +147,13 @@ test('si la instalación no tiene el plugin, el error lo dice', async () => {
   assert.ok(!isMissingResource('Error en FacturaScripts (Pega, HTTP 404): Registro no encontrado'));
 });
 
+test('si la clave de API no tiene permiso para el plugin, el error lo dice', async () => {
+  respuestas['/proyectos'] = () => respuesta(403, { message: 'Prohibido' });
+  const resultado = await handleOfficialPluginTool('get_rentabilidad_proyectos', { connection: 'pega' });
+  assert.equal(resultado.isError, true);
+  assert.match(resultado.content[0].text, /no tiene permiso para los recursos del plugin Proyectos/);
+});
+
 test('set_estado_servicio_at busca el estado por nombre sin distinguir acentos ni mayúsculas', async () => {
   respuestas['/estadoates'] = [
     { id: 1, nombre: 'Pendiente', editable: true },
@@ -193,6 +200,91 @@ test('get_trabajos_at_pendientes agrupa por servicio y acción con precio × can
   const soloB = await llamar('get_trabajos_at_pendientes', { codcliente: 'B', accion: 'factura' });
   assert.equal(soloB.resumen.servicios, 1);
   assert.equal(soloB.resumen.importe, 5);
+});
+
+test('get_trabajos_at_pendientes cuenta aparte los trabajos sin precio y limita el detalle', async () => {
+  respuestas['/trabajoates'] = (req) => {
+    const estado = new URL(req.url, 'http://x').searchParams.get('filter[estado]');
+    if (estado !== '1') return [];
+    return [
+      { idtrabajo: 1, idservicio: 10, estado: 1, precio: 20, cantidad: 2 },
+      { idtrabajo: 2, idservicio: 11, estado: 1, precio: 0, cantidad: 1 },
+      { idtrabajo: 3, idservicio: 12, estado: 1, precio: 0, cantidad: 3 },
+    ];
+  };
+  for (const id of [10, 11, 12]) respuestas[`/servicioates/${id}`] = { idservicio: id, codigo: `SER-${id}`, codcliente: 'A', editable: true };
+
+  const todos = await llamar('get_trabajos_at_pendientes', { limit: 1 });
+  assert.equal(todos.resumen.servicios, 3);
+  assert.equal(todos.resumen.trabajos_sin_precio, 2);
+  assert.equal(todos.resumen.por_accion['hacer factura'].sin_precio, 2);
+  assert.equal(todos.servicios.length, 1);
+  assert.equal(todos.servicios[0].codigo, 'SER-10');
+  assert.match(todos.aviso, /Se listan 1 de 3 servicios/);
+  assert.equal(todos.resumen.clientes, 1);
+  assert.equal(todos.resumen.por_cliente.length, 1);
+
+  const conPrecio = await llamar('get_trabajos_at_pendientes', { excluir_sin_precio: true });
+  assert.equal(conPrecio.resumen.servicios, 1);
+  assert.equal(conPrecio.resumen.trabajos, 1);
+  assert.equal(conPrecio.resumen.trabajos_sin_precio, 2);
+  assert.equal(conPrecio.resumen.importe, 40);
+});
+
+test('get_trabajos_at_pendientes lee los servicios en bloque cuando son muchos', async () => {
+  const trabajos = Array.from({ length: 120 }, (_, i) => ({ idtrabajo: i + 1, idservicio: i + 1, estado: 1, precio: 1, cantidad: 1 }));
+  respuestas['/trabajoates'] = (req) => {
+    const params = new URL(req.url, 'http://x').searchParams;
+    if (params.get('filter[estado]') !== '1') return [];
+    const offset = Number(params.get('offset') ?? 0);
+    return trabajos.slice(offset, offset + Number(params.get('limit') ?? 50));
+  };
+  respuestas['/servicioates'] = (req) => {
+    const params = new URL(req.url, 'http://x').searchParams;
+    const offset = Number(params.get('offset') ?? 0);
+    const servicios = trabajos.map((t) => ({ idservicio: t.idservicio, codigo: `S${t.idservicio}`, codcliente: 'A', editable: true }));
+    return servicios.slice(offset, offset + Number(params.get('limit') ?? 50));
+  };
+  const datos = await llamar('get_trabajos_at_pendientes', { accion: 'factura' });
+  assert.equal(datos.resumen.servicios, 120);
+  assert.ok(!fs.peticiones.some((p) => /\/servicioates\/\d+/.test(p.path)), 'no debe pedir los servicios uno a uno');
+});
+
+test('get_tiempos_resolucion_at mide hasta el último paso a cerrado del historial', async () => {
+  respuestas['/prioridadates'] = [{ id: 1, nombre: 'Alta' }];
+  respuestas['/tipoates'] = [{ id: 1, name: 'Reparación' }];
+  respuestas['/servicioates'] = [
+    { idservicio: 1, codigo: 'S1', fecha: '01-03-2026', hora: '10:00:00', idprioridad: 1, idtipo: 1, asignado: 'ana', editable: false },
+    { idservicio: 2, codigo: 'S2', fecha: '02-03-2026', hora: '09:00:00', idprioridad: 1, idtipo: 1, asignado: 'luis', editable: false },
+    { idservicio: 3, codigo: 'S3', fecha: '03-03-2026', hora: '09:00:00', idprioridad: 1, idtipo: 1, asignado: 'ana', editable: false },
+  ];
+  respuestas['/servicioatloges'] = [
+    // S1 se cierra, se reabre y se vuelve a cerrar: cuenta el último cierre
+    { idservicio: 1, creationdate: '02-03-2026 10:00:00', context: JSON.stringify({ editable: false }) },
+    { idservicio: 1, creationdate: '03-03-2026 10:00:00', context: JSON.stringify({ editable: true }) },
+    { idservicio: 1, creationdate: '05-03-2026 10:00:00', context: JSON.stringify({ editable: false }) },
+    // S2 cambia de estado sin cerrarse y después se cierra
+    { idservicio: 2, creationdate: '02-03-2026 12:00:00', context: JSON.stringify({ editable: true }) },
+    { idservicio: 2, creationdate: '03-03-2026 09:00:00', context: '{"editable":0}' },
+    // S3 no tiene el cierre en el historial
+    { idservicio: 3, creationdate: '03-03-2026 10:00:00', context: 'no es json' },
+  ];
+
+  const datos = await llamar('get_tiempos_resolucion_at', { fecha_desde: '2026-03-01', fecha_hasta: '2026-03-31' });
+  const servicios = fs.peticiones.find((p) => p.path.startsWith('/api/3/servicioates'));
+  assert.equal(query(servicios)['filter[editable]'], '0');
+  const logs = fs.peticiones.find((p) => p.path.includes('/servicioatloges'));
+  assert.equal(query(logs)['filter[creationdate_gte]'], '2026-03-01');
+
+  assert.equal(datos.resumen.cerrados, 3);
+  assert.equal(datos.resumen.sin_historial, 1);
+  assert.equal(datos.resumen.servicios, 2);
+  assert.deepEqual(datos.mas_lentos.map((s) => [s.codigo, s.dias]), [['S1', 4], ['S2', 1]]);
+  assert.equal(datos.resumen.dias_medios, 2.5);
+  assert.equal(datos.resumen.dias_mediana, 2.5);
+  assert.deepEqual(datos.por_tramo.map((t) => t.servicios), [1, 1, 0, 0]);
+  assert.equal(datos.por_prioridad[0].prioridad, 'Alta');
+  assert.match(datos.aviso, /1 servicios cerrados no tienen/);
 });
 
 test('get_horas_trabajos_at suma horas por usuario y cuenta los trabajos sin hora de fin', async () => {

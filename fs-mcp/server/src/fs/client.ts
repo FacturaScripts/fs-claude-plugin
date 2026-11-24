@@ -153,6 +153,40 @@ function hideApiFields<T>(fields: string[] | undefined, data: T): T {
  */
 const MAX_CONCURRENT_REQUESTS = 4;
 
+/**
+ * Esperas, en milisegundos, antes de cada reintento de un GET que la API
+ * rechaza por superar el límite de peticiones por minuto (HTTP 429). Los
+ * informes recorren muchas páginas y pueden chocar con ese límite; como el GET
+ * no modifica nada, se puede repetir sin riesgo. FS_RETRY_429_DELAYS (lista de
+ * milisegundos separados por comas) permite cambiarlas, por ejemplo en los tests.
+ */
+const DEFAULT_RATE_LIMIT_DELAYS = [5000, 15000, 30000];
+
+/**
+ * Esperas de reintento ante un HTTP 429 vigentes.
+ */
+function rateLimitDelays(): number[] {
+  const custom = process.env.FS_RETRY_429_DELAYS;
+  if (custom === undefined) return DEFAULT_RATE_LIMIT_DELAYS;
+  return custom
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value) && value >= 0);
+}
+
+/**
+ * Indica si un error del cliente corresponde a un HTTP 429 de la API.
+ *
+ * @param error error capturado.
+ */
+function isRateLimited(error: unknown): boolean {
+  if (!(error instanceof Error) || !/\bHTTP 429\b/.test(error.message)) return false;
+  // Si la API ha bloqueado la IP durante minutos («se ha bloqueado durante 10
+  // minutos»), reintentar en segundos no sirve y cada intento puede alargar el
+  // bloqueo: se devuelve el error tal cual.
+  return !/bloquead|blocked/i.test(error.message);
+}
+
 class FacturaScriptsClient {
   private defaultConnectionKey: string | undefined;
   private axiosInstances: Map<string, { connection: ConnectionConfig; instance: AxiosInstance }> = new Map();
@@ -293,22 +327,32 @@ class FacturaScriptsClient {
    * Realiza una petición GET a la API de FacturaScripts.
    * Los parámetros se serializan a la sintaxis de filtros que espera la API
    * (`filter[campo]=valor`); los parámetros sueltos serían ignorados por el servidor.
+   * Si la API responde HTTP 429 (límite de peticiones por minuto), reintenta tras
+   * las esperas de rateLimitDelays() sin ocupar un hueco del limitador mientras espera.
    */
   async get<T>(
     endpoint: string,
     params?: Record<string, unknown>,
     connectionKey?: string
   ): Promise<T> {
-    try {
-      const instance = this.getAxiosInstance(connectionKey);
-      const response = await this.limited(connectionKey, () => instance.get<T>(endpoint, {
-        params: toApiQueryParams(params),
-      }));
-      return hideApiFields(fieldsToHide(response), response.data);
-    } catch (error) {
-      throw new Error(
-        `GET ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
-      );
+    const delays = rateLimitDelays();
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const instance = this.getAxiosInstance(connectionKey);
+        const response = await this.limited(connectionKey, () => instance.get<T>(endpoint, {
+          params: toApiQueryParams(params),
+        }));
+        return hideApiFields(fieldsToHide(response), response.data);
+      } catch (error) {
+        const delay = delays[attempt];
+        if (isRateLimited(error) && delay !== undefined) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        throw new Error(
+          `GET ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     }
   }
 

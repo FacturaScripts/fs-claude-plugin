@@ -523,17 +523,17 @@ var require_codegen = __commonJS({
         this.nodes = nodes;
       }
       render(opts) {
-        return this.nodes.reduce((code, n) => code + n.render(opts), "");
+        return this.nodes.reduce((code, n2) => code + n2.render(opts), "");
       }
       optimizeNodes() {
         const { nodes } = this;
         let i = nodes.length;
         while (i--) {
-          const n = nodes[i].optimizeNodes();
-          if (Array.isArray(n))
-            nodes.splice(i, 1, ...n);
-          else if (n)
-            nodes[i] = n;
+          const n2 = nodes[i].optimizeNodes();
+          if (Array.isArray(n2))
+            nodes.splice(i, 1, ...n2);
+          else if (n2)
+            nodes[i] = n2;
           else
             nodes.splice(i, 1);
         }
@@ -543,16 +543,16 @@ var require_codegen = __commonJS({
         const { nodes } = this;
         let i = nodes.length;
         while (i--) {
-          const n = nodes[i];
-          if (n.optimizeNames(names, constants))
+          const n2 = nodes[i];
+          if (n2.optimizeNames(names, constants))
             continue;
-          subtractNames(names, n.names);
+          subtractNames(names, n2.names);
           nodes.splice(i, 1);
         }
         return nodes.length > 0 ? this : void 0;
       }
       get names() {
-        return this.nodes.reduce((names, n) => addNames(names, n.names), {});
+        return this.nodes.reduce((names, n2) => addNames(names, n2.names), {});
       }
     };
     var BlockNode = class extends ParentNode {
@@ -963,8 +963,8 @@ var require_codegen = __commonJS({
       endFunc() {
         return this._endBlockNode(Func);
       }
-      optimize(n = 1) {
-        while (n-- > 0) {
+      optimize(n2 = 1) {
+        while (n2-- > 0) {
           this._root.optimizeNodes();
           this._root.optimizeNames(this._root.names, this._constants);
         }
@@ -978,19 +978,19 @@ var require_codegen = __commonJS({
         this._nodes.push(node);
       }
       _endBlockNode(N1, N2) {
-        const n = this._currNode;
-        if (n instanceof N1 || N2 && n instanceof N2) {
+        const n2 = this._currNode;
+        if (n2 instanceof N1 || N2 && n2 instanceof N2) {
           this._nodes.pop();
           return this;
         }
         throw new Error(`CodeGen: not in block "${N2 ? `${N1.kind}/${N2.kind}` : N1.kind}"`);
       }
       _elseNode(node) {
-        const n = this._currNode;
-        if (!(n instanceof If)) {
+        const n2 = this._currNode;
+        if (!(n2 instanceof If)) {
           throw new Error('CodeGen: "else" without "if"');
         }
-        this._currNode = n.else = node;
+        this._currNode = n2.else = node;
         return this;
       }
       get _root() {
@@ -1007,8 +1007,8 @@ var require_codegen = __commonJS({
     };
     exports.CodeGen = CodeGen;
     function addNames(names, from) {
-      for (const n in from)
-        names[n] = (names[n] || 0) + (from[n] || 0);
+      for (const n2 in from)
+        names[n2] = (names[n2] || 0) + (from[n2] || 0);
       return names;
     }
     function addExprNames(names, from) {
@@ -1028,11 +1028,11 @@ var require_codegen = __commonJS({
           items.push(c);
         return items;
       }, []));
-      function replaceName(n) {
-        const c = constants[n.str];
-        if (c === void 0 || names[n.str] !== 1)
-          return n;
-        delete names[n.str];
+      function replaceName(n2) {
+        const c = constants[n2.str];
+        if (c === void 0 || names[n2.str] !== 1)
+          return n2;
+        delete names[n2.str];
         return c;
       }
       function canOptimize(e) {
@@ -1040,8 +1040,8 @@ var require_codegen = __commonJS({
       }
     }
     function subtractNames(names, from) {
-      for (const n in from)
-        names[n] = (names[n] || 0) - (from[n] || 0);
+      for (const n2 in from)
+        names[n2] = (names[n2] || 0) - (from[n2] || 0);
     }
     function not(x) {
       return typeof x == "boolean" || typeof x == "number" || x === null ? !x : (0, code_1._)`!${par(x)}`;
@@ -17117,7 +17117,7 @@ var require_ms = __commonJS({
       if (!match) {
         return;
       }
-      var n = parseFloat(match[1]);
+      var n2 = parseFloat(match[1]);
       var type = (match[2] || "ms").toLowerCase();
       switch (type) {
         case "years":
@@ -17125,39 +17125,39 @@ var require_ms = __commonJS({
         case "yrs":
         case "yr":
         case "y":
-          return n * y;
+          return n2 * y;
         case "weeks":
         case "week":
         case "w":
-          return n * w;
+          return n2 * w;
         case "days":
         case "day":
         case "d":
-          return n * d;
+          return n2 * d;
         case "hours":
         case "hour":
         case "hrs":
         case "hr":
         case "h":
-          return n * h;
+          return n2 * h;
         case "minutes":
         case "minute":
         case "mins":
         case "min":
         case "m":
-          return n * m;
+          return n2 * m;
         case "seconds":
         case "second":
         case "secs":
         case "sec":
         case "s":
-          return n * s;
+          return n2 * s;
         case "milliseconds":
         case "millisecond":
         case "msecs":
         case "msec":
         case "ms":
-          return n;
+          return n2;
         default:
           return void 0;
       }
@@ -17194,9 +17194,9 @@ var require_ms = __commonJS({
       }
       return ms + " ms";
     }
-    function plural(ms, msAbs, n, name) {
-      var isPlural = msAbs >= n * 1.5;
-      return Math.round(ms / n) + " " + name + (isPlural ? "s" : "");
+    function plural(ms, msAbs, n2, name) {
+      var isPlural = msAbs >= n2 * 1.5;
+      return Math.round(ms / n2) + " " + name + (isPlural ? "s" : "");
     }
   }
 });
@@ -52580,7 +52580,7 @@ var $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
         const r = el._zod.run({ value: input[key], issues: [] }, ctx);
         const isOptional = el._zod.optin === "optional" && el._zod.optout === "optional";
         if (r instanceof Promise) {
-          proms.push(r.then((r2) => isOptional ? handleOptionalObjectResult(r2, payload, key, input) : handleObjectResult(r2, payload, key)));
+          proms.push(r.then((r3) => isOptional ? handleOptionalObjectResult(r3, payload, key, input) : handleObjectResult(r3, payload, key)));
         } else if (isOptional) {
           handleOptionalObjectResult(r, payload, key, input);
         } else {
@@ -52604,7 +52604,7 @@ var $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
       }
       const r = _catchall.run({ value: input[key], issues: [] }, ctx);
       if (r instanceof Promise) {
-        proms.push(r.then((r2) => handleObjectResult(r2, payload, key)));
+        proms.push(r.then((r3) => handleObjectResult(r3, payload, key)));
       } else {
         handleObjectResult(r, payload, key);
       }
@@ -53147,7 +53147,7 @@ var $ZodCustom = /* @__PURE__ */ $constructor("$ZodCustom", (inst, def) => {
     const input = payload.value;
     const r = def.fn(input);
     if (r instanceof Promise) {
-      return r.then((r2) => handleRefineResult(r2, payload, input, inst));
+      return r.then((r3) => handleRefineResult(r3, payload, input, inst));
     }
     handleRefineResult(r, payload, input, inst);
     return;
@@ -62288,6 +62288,16 @@ function hideApiFields(fields, data) {
   return hideFieldsInRecord(data, fields);
 }
 var MAX_CONCURRENT_REQUESTS = 4;
+var DEFAULT_RATE_LIMIT_DELAYS = [5e3, 15e3, 3e4];
+function rateLimitDelays() {
+  const custom2 = process.env.FS_RETRY_429_DELAYS;
+  if (custom2 === void 0) return DEFAULT_RATE_LIMIT_DELAYS;
+  return custom2.split(",").map((value) => Number(value.trim())).filter((value) => Number.isFinite(value) && value >= 0);
+}
+function isRateLimited(error2) {
+  if (!(error2 instanceof Error) || !/\bHTTP 429\b/.test(error2.message)) return false;
+  return !/bloquead|blocked/i.test(error2.message);
+}
 var FacturaScriptsClient = class {
   defaultConnectionKey;
   axiosInstances = /* @__PURE__ */ new Map();
@@ -62398,18 +62408,28 @@ var FacturaScriptsClient = class {
    * Realiza una petición GET a la API de FacturaScripts.
    * Los parámetros se serializan a la sintaxis de filtros que espera la API
    * (`filter[campo]=valor`); los parámetros sueltos serían ignorados por el servidor.
+   * Si la API responde HTTP 429 (límite de peticiones por minuto), reintenta tras
+   * las esperas de rateLimitDelays() sin ocupar un hueco del limitador mientras espera.
    */
   async get(endpoint, params, connectionKey) {
-    try {
-      const instance = this.getAxiosInstance(connectionKey);
-      const response = await this.limited(connectionKey, () => instance.get(endpoint, {
-        params: toApiQueryParams(params)
-      }));
-      return hideApiFields(fieldsToHide(response), response.data);
-    } catch (error2) {
-      throw new Error(
-        `GET ${endpoint}: ${error2 instanceof Error ? error2.message : String(error2)}`
-      );
+    const delays = rateLimitDelays();
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const instance = this.getAxiosInstance(connectionKey);
+        const response = await this.limited(connectionKey, () => instance.get(endpoint, {
+          params: toApiQueryParams(params)
+        }));
+        return hideApiFields(fieldsToHide(response), response.data);
+      } catch (error2) {
+        const delay = delays[attempt];
+        if (isRateLimited(error2) && delay !== void 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        throw new Error(
+          `GET ${endpoint}: ${error2 instanceof Error ? error2.message : String(error2)}`
+        );
+      }
     }
   }
   /**
@@ -62526,7 +62546,7 @@ function getModelNames() {
   return [...registry2.keys()].sort();
 }
 function getAllModelMetadata() {
-  return getModelNames().map((n) => registry2.get(n));
+  return getModelNames().map((n2) => registry2.get(n2));
 }
 async function bootstrapCoreMetadata() {
   const { modelMetadata: modelMetadata2 } = await Promise.resolve().then(() => (init_metadata(), metadata_exports));
@@ -70015,6 +70035,15 @@ function fechaDeEntrada(nombre, valor) {
   }
   return fecha;
 }
+function pendingFilters(args) {
+  const filters = { editable: true };
+  if (typeof args.codcliente === "string" && args.codcliente !== "") filters.codcliente = args.codcliente;
+  return filters;
+}
+function sumNeto(docs) {
+  const total = docs.reduce((acc, doc) => acc + (Number(doc.neto) || 0), 0);
+  return Math.round(total * 100) / 100;
+}
 function porcentaje(parte, total) {
   return total > 0 ? parte / total * 100 : 0;
 }
@@ -70175,33 +70204,36 @@ var extendedAnalyticsTools = [
   },
   {
     name: "get_presupuestos_pendientes",
-    description: "Presupuestos editables (no convertidos), agrupados por agente. Marca los vencidos seg\xFAn finoferta.",
+    description: "Presupuestos editables (no convertidos), agrupados por agente. Marca los vencidos seg\xFAn finoferta. Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.",
     inputSchema: {
       type: "object",
       properties: {
-        connection: { type: "string", description: "Clave de conexi\xF3n" }
+        connection: { type: "string", description: "Clave de conexi\xF3n" },
+        codcliente: { type: "string", description: "Solo los documentos de este cliente (opcional)" }
       },
       required: ["connection"]
     }
   },
   {
     name: "get_pedidos_pendientes_servir",
-    description: "Pedidos de cliente editables (no convertidos a albar\xE1n/factura). Importe pendiente y antig\xFCedad.",
+    description: "Pedidos de cliente editables (no convertidos a albar\xE1n/factura). Importe pendiente y antig\xFCedad. Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.",
     inputSchema: {
       type: "object",
       properties: {
-        connection: { type: "string", description: "Clave de conexi\xF3n" }
+        connection: { type: "string", description: "Clave de conexi\xF3n" },
+        codcliente: { type: "string", description: "Solo los documentos de este cliente (opcional)" }
       },
       required: ["connection"]
     }
   },
   {
     name: "get_albaranes_pendientes_facturar",
-    description: "Albaranes de cliente editables (entregados pero no facturados). Posible revenue leak.",
+    description: "Albaranes de cliente editables (entregados pero no facturados). Posible revenue leak. Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.",
     inputSchema: {
       type: "object",
       properties: {
-        connection: { type: "string", description: "Clave de conexi\xF3n" }
+        connection: { type: "string", description: "Clave de conexi\xF3n" },
+        codcliente: { type: "string", description: "Solo los documentos de este cliente (opcional)" }
       },
       required: ["connection"]
     }
@@ -70679,7 +70711,7 @@ async function handleExtendedAnalyticsTool(name, args) {
         });
       }
       case "get_presupuestos_pendientes": {
-        const presupuestos = await fetchAllPaginated("/presupuestoclientes", { editable: true }, connection);
+        const presupuestos = await fetchAllPaginated("/presupuestoclientes", pendingFilters(args), connection);
         const now = /* @__PURE__ */ new Date();
         const result = presupuestos.map((p) => {
           const finoferta = p.finoferta ? parseFsDate(p.finoferta) : null;
@@ -70692,6 +70724,7 @@ async function handleExtendedAnalyticsTool(name, args) {
             codagente: p.codagente,
             fecha: p.fecha,
             finoferta: p.finoferta,
+            neto: p.neto,
             total: p.total,
             totalbeneficio: p.totalbeneficio,
             vencido,
@@ -70709,13 +70742,14 @@ async function handleExtendedAnalyticsTool(name, args) {
         return jsonResponse({
           totalPresupuestos: result.length,
           importeAcumulado: result.reduce((acc, r) => acc + (r.total || 0), 0),
+          netoAcumulado: sumNeto(result),
           vencidos: result.filter((r) => r.vencido).length,
           porAgente: Object.values(porAgente).sort((a, b) => b.importeTotal - a.importeTotal),
           detalle: result
         });
       }
       case "get_pedidos_pendientes_servir": {
-        const pedidos = await fetchAllPaginated("/pedidoclientes", { editable: true }, connection);
+        const pedidos = await fetchAllPaginated("/pedidoclientes", pendingFilters(args), connection);
         const now = /* @__PURE__ */ new Date();
         const detalle = pedidos.map((p) => ({
           idpedido: p.idpedido,
@@ -70724,6 +70758,7 @@ async function handleExtendedAnalyticsTool(name, args) {
           nombrecliente: p.nombrecliente,
           codagente: p.codagente,
           fecha: p.fecha,
+          neto: p.neto,
           total: p.total,
           totalbeneficio: p.totalbeneficio,
           diasDesdeFecha: diasEntre(parseFsDate(p.fecha), now)
@@ -70732,11 +70767,12 @@ async function handleExtendedAnalyticsTool(name, args) {
         return jsonResponse({
           totalPedidos: detalle.length,
           importeAcumulado: detalle.reduce((acc, r) => acc + (r.total || 0), 0),
+          netoAcumulado: sumNeto(detalle),
           detalle
         });
       }
       case "get_albaranes_pendientes_facturar": {
-        const albaranes = await fetchAllPaginated("/albaranclientes", { editable: true }, connection);
+        const albaranes = await fetchAllPaginated("/albaranclientes", pendingFilters(args), connection);
         const now = /* @__PURE__ */ new Date();
         const detalle = albaranes.map((a) => ({
           idalbaran: a.idalbaran,
@@ -70745,6 +70781,7 @@ async function handleExtendedAnalyticsTool(name, args) {
           nombrecliente: a.nombrecliente,
           codagente: a.codagente,
           fecha: a.fecha,
+          neto: a.neto,
           total: a.total,
           diasDesdeEntrega: diasEntre(parseFsDate(a.fecha), now)
         }));
@@ -70752,6 +70789,7 @@ async function handleExtendedAnalyticsTool(name, args) {
         return jsonResponse({
           totalAlbaranes: detalle.length,
           importePendienteFacturar: detalle.reduce((acc, r) => acc + (r.total || 0), 0),
+          netoPendienteFacturar: sumNeto(detalle),
           detalle
         });
       }
@@ -71362,6 +71400,423 @@ async function handleExtendedAnalyticsTool(name, args) {
   }
 }
 
+// src/modules/analytics/fiscal.ts
+var OPERATION_REGULARIZATION = "R";
+var OPERATION_CLOSING = "C";
+var ZONE_FIELDS = { provincia: "provincia", ciudad: "ciudad", pais: "codpais" };
+var MAX_INVOICES_FOR_BREAKDOWN = 5e3;
+var connectionProperty = { type: "string", description: "Clave de conexi\xF3n" };
+var fiscalAnalyticsTools = [
+  {
+    name: "get_cuenta_resultados",
+    description: "Cuenta de p\xE9rdidas y ganancias abreviada de un ejercicio a partir de los saldos de las subcuentas de los grupos 6 (gastos) y 7 (ingresos) del Plan General Contable espa\xF1ol, sin los asientos de regularizaci\xF3n ni de cierre: ingresos, gastos y resultado, por grupo (2 d\xEDgitos) y por cuenta (3 d\xEDgitos), con comparativa opcional con otro ejercicio. Importes sin impuestos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: connectionProperty,
+        codejercicio: { type: "string", description: "C\xF3digo del ejercicio (consulta get_ejercicios)" },
+        codejercicio_comparar: { type: "string", description: "Ejercicio con el que comparar (opcional)" }
+      },
+      required: ["connection", "codejercicio"]
+    }
+  },
+  {
+    name: "get_balance_situacion",
+    description: "Balance de situaci\xF3n abreviado de un ejercicio a partir de los saldos de las subcuentas de los grupos 1 a 5 del Plan General Contable espa\xF1ol, sin el asiento de cierre: activo no corriente y corriente, patrimonio neto (con el resultado del ejercicio si a\xFAn no se ha regularizado) y pasivo no corriente y corriente, con el cuadre entre activo y patrimonio neto m\xE1s pasivo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: connectionProperty,
+        codejercicio: { type: "string", description: "C\xF3digo del ejercicio (consulta get_ejercicios)" }
+      },
+      required: ["connection", "codejercicio"]
+    }
+  },
+  {
+    name: "get_impuestos_periodo",
+    description: "IVA repercutido (facturas de cliente) y soportado (facturas de proveedor) de un periodo por fecha de factura: totales de base, IVA, recargo de equivalencia, retenciones de IRPF y suplidos, desglose por tipo de IVA y recargo, y la diferencia entre repercutido y soportado como orientaci\xF3n para la liquidaci\xF3n (modelo 303). Importes en la divisa principal.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: connectionProperty,
+        fecha_desde: { type: "string", description: "Desde esta fecha de factura incluida (YYYY-MM-DD)" },
+        fecha_hasta: { type: "string", description: "Hasta esta fecha de factura incluida (YYYY-MM-DD)" },
+        desglose: { type: "boolean", description: "Calcular el desglose por tipo de IVA leyendo las l\xEDneas (por defecto true)" },
+        idempresa: { type: "number", description: "Solo las facturas de esta empresa (recomendado si hay varias)" }
+      },
+      required: ["connection", "fecha_desde", "fecha_hasta"]
+    }
+  },
+  {
+    name: "get_ventas_por_zona",
+    description: "Ventas facturadas de un periodo agrupadas por provincia, ciudad o pa\xEDs de la direcci\xF3n de la factura: n\xFAmero de facturas y de clientes, base imponible (sin impuestos), total (con impuestos) y porcentaje sobre la base imponible. Importes en la divisa principal.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: connectionProperty,
+        fecha_desde: { type: "string", description: "Desde esta fecha de factura incluida (YYYY-MM-DD)" },
+        fecha_hasta: { type: "string", description: "Hasta esta fecha de factura incluida (YYYY-MM-DD)" },
+        agrupar: { type: "string", enum: ["provincia", "ciudad", "pais"], description: "Agrupaci\xF3n (por defecto provincia)" },
+        codserie: { type: "string", description: "Solo las facturas de esta serie (opcional)" },
+        idempresa: { type: "number", description: "Solo las facturas de esta empresa (recomendado si hay varias)" }
+      },
+      required: ["connection", "fecha_desde", "fecha_hasta"]
+    }
+  }
+];
+function r2(value) {
+  return Math.round(value * 100) / 100;
+}
+function n(value) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function requiredDate(value, name) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(`${name} es obligatorio y debe tener el formato YYYY-MM-DD.`);
+  }
+  return value;
+}
+function toMainCurrency(amount, doc) {
+  const rate = n(doc.tasaconv);
+  return rate > 0 ? amount / rate : amount;
+}
+async function accountBalances(codejercicio, excludeOperations, connection) {
+  const [subaccounts, accounts, ...excludedLists] = await Promise.all([
+    fetchAllPaginated("/subcuentas", { codejercicio }, connection),
+    fetchAllPaginated("/cuentas", { codejercicio }, connection),
+    ...excludeOperations.map((operacion) => fetchAllPaginated("/asientos", { codejercicio, operacion }, connection))
+  ]);
+  if (subaccounts.length === 0) {
+    throw new Error(`El ejercicio ${codejercicio} no tiene subcuentas: comprueba el c\xF3digo con get_ejercicios.`);
+  }
+  const balances = /* @__PURE__ */ new Map();
+  for (const sub of subaccounts) {
+    const code = String(sub.codsubcuenta ?? "");
+    const current = balances.get(code) ?? { debe: 0, haber: 0 };
+    current.debe += n(sub.debe);
+    current.haber += n(sub.haber);
+    balances.set(code, current);
+  }
+  const excluded = [];
+  const kept = [];
+  for (const entry of excludedLists.flat()) {
+    const lines = await fetchAllPaginated("/partidas", { idasiento: entry.idasiento }, connection);
+    if (entry.operacion === OPERATION_REGULARIZATION && !lines.some((line) => String(line.codsubcuenta ?? "").startsWith("129"))) {
+      kept.push(entry);
+      continue;
+    }
+    excluded.push(entry);
+    for (const line of lines) {
+      const current = balances.get(String(line.codsubcuenta ?? ""));
+      if (!current) continue;
+      current.debe -= n(line.debe);
+      current.haber -= n(line.haber);
+    }
+  }
+  const names = /* @__PURE__ */ new Map();
+  for (const account of accounts) names.set(String(account.codcuenta ?? ""), String(account.descripcion ?? ""));
+  const summary = (entry) => ({ idasiento: entry.idasiento, numero: entry.numero, fecha: entry.fecha, operacion: entry.operacion, concepto: entry.concepto ?? null });
+  return {
+    balances,
+    accounts: names,
+    excluded: excluded.map(summary),
+    kept: kept.map(summary)
+  };
+}
+async function incomeStatement(codejercicio, connection) {
+  const { balances, accounts, excluded, kept } = await accountBalances(
+    codejercicio,
+    [OPERATION_REGULARIZATION, OPERATION_CLOSING],
+    connection
+  );
+  const groups = { ingresos: /* @__PURE__ */ new Map(), gastos: /* @__PURE__ */ new Map() };
+  for (const [code, { debe, haber }] of balances) {
+    const kind = code.startsWith("7") ? "ingresos" : code.startsWith("6") ? "gastos" : null;
+    if (!kind) continue;
+    const amount = kind === "ingresos" ? haber - debe : debe - haber;
+    if (Math.abs(amount) < 5e-3) continue;
+    const group = groups[kind].get(code.slice(0, 2)) ?? { importe: 0, cuentas: /* @__PURE__ */ new Map() };
+    group.importe += amount;
+    group.cuentas.set(code.slice(0, 3), (group.cuentas.get(code.slice(0, 3)) ?? 0) + amount);
+    groups[kind].set(code.slice(0, 2), group);
+  }
+  const toList = (map) => [...map].sort(([a], [b]) => a.localeCompare(b)).map(([grupo, g]) => ({
+    grupo,
+    descripcion: accounts.get(grupo) ?? null,
+    importe: r2(g.importe),
+    cuentas: [...g.cuentas].sort(([a], [b]) => a.localeCompare(b)).map(([cuenta, importe]) => ({ cuenta, descripcion: accounts.get(cuenta) ?? null, importe: r2(importe) }))
+  }));
+  const income = [...groups.ingresos.values()].reduce((sum, g) => sum + g.importe, 0);
+  const expenses = [...groups.gastos.values()].reduce((sum, g) => sum + g.importe, 0);
+  return {
+    codejercicio,
+    resumen: {
+      ingresos: r2(income),
+      gastos: r2(expenses),
+      resultado: r2(income - expenses),
+      margen_pct: income !== 0 ? r2((income - expenses) / income * 100) : null
+    },
+    ingresos: toList(groups.ingresos),
+    gastos: toList(groups.gastos),
+    asientos_excluidos: excluded,
+    ...kept.length > 0 ? { asientos_r_incluidos: kept } : {}
+  };
+}
+async function cuentaResultados(args) {
+  const connection = args.connection;
+  if (typeof args.codejercicio !== "string" || args.codejercicio === "") throw new Error("codejercicio es obligatorio.");
+  const current = await incomeStatement(args.codejercicio, connection);
+  if (typeof args.codejercicio_comparar !== "string" || args.codejercicio_comparar === "") {
+    return { ...current, nota: NOTE_ACCOUNTING };
+  }
+  const previous = await incomeStatement(args.codejercicio_comparar, connection);
+  const variation = (a, b) => b !== 0 ? r2((a - b) / Math.abs(b) * 100) : null;
+  return {
+    ...current,
+    comparativa: {
+      codejercicio: args.codejercicio_comparar,
+      resumen: previous.resumen,
+      variacion_pct: {
+        ingresos: variation(current.resumen.ingresos, previous.resumen.ingresos),
+        gastos: variation(current.resumen.gastos, previous.resumen.gastos),
+        resultado: variation(current.resumen.resultado, previous.resumen.resultado)
+      }
+    },
+    nota: NOTE_ACCOUNTING
+  };
+}
+var NOTE_ACCOUNTING = "Aproximaci\xF3n de gesti\xF3n con el cuadro de cuentas del Plan General Contable espa\xF1ol, a partir de los saldos de las subcuentas, que FacturaScripts actualiza en segundo plano. Los informes oficiales los aporta el plugin Informes.";
+async function balanceSituacion(args) {
+  const connection = args.connection;
+  if (typeof args.codejercicio !== "string" || args.codejercicio === "") throw new Error("codejercicio es obligatorio.");
+  const { balances, accounts, excluded } = await accountBalances(args.codejercicio, [OPERATION_CLOSING], connection);
+  const lines = {
+    activo_no_corriente: /* @__PURE__ */ new Map(),
+    existencias: /* @__PURE__ */ new Map(),
+    deudores: /* @__PURE__ */ new Map(),
+    tesoreria_e_inversiones: /* @__PURE__ */ new Map(),
+    patrimonio_neto: /* @__PURE__ */ new Map(),
+    pasivo_no_corriente: /* @__PURE__ */ new Map(),
+    pasivo_corriente: /* @__PURE__ */ new Map()
+  };
+  const add = (map, code, amount) => {
+    const key = code.slice(0, 2);
+    map.set(key, (map.get(key) ?? 0) + amount);
+  };
+  let pendingResult = 0;
+  for (const [code, { debe, haber }] of balances) {
+    const saldo = debe - haber;
+    const group = code.charAt(0);
+    if (group === "6" || group === "7") pendingResult -= saldo;
+    if (Math.abs(saldo) < 5e-3) continue;
+    if (group === "1") {
+      add(Number(code.slice(0, 2)) <= 13 ? lines.patrimonio_neto : lines.pasivo_no_corriente, code, -saldo);
+    } else if (group === "2") {
+      add(lines.activo_no_corriente, code, saldo);
+    } else if (group === "3") {
+      add(lines.existencias, code, saldo);
+    } else if (group === "4" || group === "5") {
+      if (saldo > 0) add(group === "4" ? lines.deudores : lines.tesoreria_e_inversiones, code, saldo);
+      else add(lines.pasivo_corriente, code, -saldo);
+    }
+  }
+  const toList = (map) => [...map].sort(([a], [b]) => a.localeCompare(b)).map(([grupo, importe]) => ({ grupo, descripcion: accounts.get(grupo) ?? null, importe: r2(importe) }));
+  const sum = (map) => [...map.values()].reduce((acc, value) => acc + value, 0);
+  const nonCurrentAssets = sum(lines.activo_no_corriente);
+  const currentAssets = sum(lines.existencias) + sum(lines.deudores) + sum(lines.tesoreria_e_inversiones);
+  const equity = sum(lines.patrimonio_neto) + pendingResult;
+  const nonCurrentLiabilities = sum(lines.pasivo_no_corriente);
+  const currentLiabilities = sum(lines.pasivo_corriente);
+  const assets = nonCurrentAssets + currentAssets;
+  const equityAndLiabilities = equity + nonCurrentLiabilities + currentLiabilities;
+  return {
+    codejercicio: args.codejercicio,
+    activo: {
+      total: r2(assets),
+      no_corriente: { total: r2(nonCurrentAssets), grupos: toList(lines.activo_no_corriente) },
+      corriente: {
+        total: r2(currentAssets),
+        existencias: toList(lines.existencias),
+        deudores: toList(lines.deudores),
+        tesoreria_e_inversiones: toList(lines.tesoreria_e_inversiones)
+      }
+    },
+    patrimonio_neto_y_pasivo: {
+      total: r2(equityAndLiabilities),
+      patrimonio_neto: {
+        total: r2(equity),
+        grupos: toList(lines.patrimonio_neto),
+        resultado_sin_regularizar: r2(pendingResult)
+      },
+      pasivo_no_corriente: { total: r2(nonCurrentLiabilities), grupos: toList(lines.pasivo_no_corriente) },
+      pasivo_corriente: { total: r2(currentLiabilities), grupos: toList(lines.pasivo_corriente) }
+    },
+    ratios: {
+      fondo_maniobra: r2(currentAssets - currentLiabilities),
+      liquidez: currentLiabilities !== 0 ? r2(currentAssets / currentLiabilities) : null,
+      endeudamiento: equityAndLiabilities !== 0 ? r2((nonCurrentLiabilities + currentLiabilities) / equityAndLiabilities * 100) : null
+    },
+    descuadre: r2(assets - equityAndLiabilities),
+    asientos_excluidos: excluded,
+    nota: NOTE_ACCOUNTING + " Las subcuentas de los grupos 4 y 5 se clasifican como activo o pasivo seg\xFAn el signo de su saldo, y todo el pasivo de esos grupos se presenta como corriente."
+  };
+}
+async function invoiceLines(endpoint, invoices, connection) {
+  if (invoices.length === 0) return [];
+  const ids = invoices.map((invoice) => n(invoice.idfactura));
+  const wanted = new Set(ids.map(String));
+  const lines = await fetchAllPaginated(
+    endpoint,
+    { idfactura_gte: Math.min(...ids), idfactura_lte: Math.max(...ids) },
+    connection
+  );
+  return lines.filter((line) => wanted.has(String(line.idfactura)));
+}
+function taxSide(invoices, lines) {
+  const totals = { facturas: invoices.length, base: 0, iva: 0, recargo: 0, irpf: 0, suplidos: 0, total: 0 };
+  for (const invoice of invoices) {
+    totals.base += toMainCurrency(n(invoice.neto), invoice);
+    totals.iva += toMainCurrency(n(invoice.totaliva), invoice);
+    totals.recargo += toMainCurrency(n(invoice.totalrecargo), invoice);
+    totals.irpf += toMainCurrency(n(invoice.totalirpf), invoice);
+    totals.suplidos += toMainCurrency(n(invoice.totalsuplidos), invoice);
+    totals.total += toMainCurrency(n(invoice.total), invoice);
+  }
+  const result = {
+    totales: Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, key === "facturas" ? value : r2(value)]))
+  };
+  if (!lines) return result;
+  const byInvoice = new Map(invoices.map((invoice) => [String(invoice.idfactura), invoice]));
+  const byRate = /* @__PURE__ */ new Map();
+  for (const line of lines) {
+    const invoice = byInvoice.get(String(line.idfactura));
+    if (!invoice || line.suplido === true || line.suplido === 1 || line.suplido === "1") continue;
+    const factor = (100 - n(invoice.dtopor1)) / 100 * ((100 - n(invoice.dtopor2)) / 100);
+    const base = toMainCurrency(n(line.pvptotal) * factor, invoice);
+    const key = `${n(line.iva)}|${n(line.recargo)}`;
+    const group = byRate.get(key) ?? { iva: n(line.iva), recargo: n(line.recargo), base: 0, cuota_iva: 0, cuota_recargo: 0 };
+    group.base += base;
+    group.cuota_iva += base * n(line.iva) / 100;
+    group.cuota_recargo += base * n(line.recargo) / 100;
+    byRate.set(key, group);
+  }
+  const breakdown = [...byRate.values()].sort((a, b) => b.iva - a.iva || b.recargo - a.recargo).map((g) => ({ iva: g.iva, recargo: g.recargo, base: r2(g.base), cuota_iva: r2(g.cuota_iva), cuota_recargo: r2(g.cuota_recargo) }));
+  const breakdownIva = breakdown.reduce((sum, g) => sum + g.cuota_iva, 0);
+  result.por_tipo = breakdown;
+  result.diferencia_iva_desglose = r2(totals.iva - breakdownIva);
+  return result;
+}
+function companiesNotice(invoices, args) {
+  if (args.idempresa !== void 0 && args.idempresa !== "") return null;
+  const companies = new Set(invoices.map((invoice) => String(invoice.idempresa ?? "")));
+  if (companies.size <= 1) return null;
+  return `Hay facturas de ${companies.size} empresas (${[...companies].sort().join(", ")}) sumadas: filtra con idempresa para ver cada una por separado.`;
+}
+async function impuestosPeriodo(args) {
+  const connection = args.connection;
+  const desde = requiredDate(args.fecha_desde, "fecha_desde");
+  const hasta = requiredDate(args.fecha_hasta, "fecha_hasta");
+  const withBreakdown = args.desglose !== false;
+  const range = { fecha_gte: desde, fecha_lte: hasta };
+  if (args.idempresa !== void 0 && args.idempresa !== "") range.idempresa = args.idempresa;
+  const sales = await fetchAllPaginated("/facturaclientes", range, connection);
+  const purchases = await fetchAllPaginated("/facturaproveedores", range, connection);
+  const notices = [];
+  let salesLines = null;
+  let purchaseLines = null;
+  if (withBreakdown) {
+    if (sales.length + purchases.length > MAX_INVOICES_FOR_BREAKDOWN) {
+      notices.push(`Hay m\xE1s de ${MAX_INVOICES_FOR_BREAKDOWN} facturas: se omite el desglose por tipo de IVA; acota el periodo.`);
+    } else {
+      salesLines = await invoiceLines("/lineafacturaclientes", sales, connection);
+      purchaseLines = await invoiceLines("/lineafacturaproveedores", purchases, connection);
+    }
+  }
+  const companies = companiesNotice([...sales, ...purchases], args);
+  if (companies) notices.push(companies);
+  const currencies = new Set([...sales, ...purchases].map((invoice) => invoice.coddivisa).filter(Boolean));
+  if (currencies.size > 1) notices.push(`Hay facturas en ${currencies.size} divisas: se han convertido a la principal con su tasa de conversi\xF3n.`);
+  const repercutido = taxSide(sales, salesLines);
+  const soportado = taxSide(purchases, purchaseLines);
+  const output = n(repercutido.totales.iva) + n(repercutido.totales.recargo);
+  const input = n(soportado.totales.iva);
+  return {
+    periodo: { desde, hasta },
+    ...notices.length > 0 ? { aviso: notices.join(" ") } : {},
+    repercutido,
+    soportado,
+    liquidacion_orientativa: {
+      iva_repercutido_con_recargo: r2(output),
+      iva_soportado: r2(input),
+      diferencia: r2(output - input),
+      resultado: output - input >= 0 ? "a ingresar" : "a compensar o devolver"
+    },
+    nota: "Orientaci\xF3n calculada desde las facturas por su fecha. La liquidaci\xF3n real depende de la fecha de devengo, de las facturas no deducibles, de la prorrata y de operaciones especiales (intracomunitarias, inversi\xF3n del sujeto pasivo, criterio de caja), que esta herramienta no distingue. El recargo de equivalencia soportado no es deducible y no se resta."
+  };
+}
+async function ventasPorZona(args) {
+  const connection = args.connection;
+  const desde = requiredDate(args.fecha_desde, "fecha_desde");
+  const hasta = requiredDate(args.fecha_hasta, "fecha_hasta");
+  const grouping = typeof args.agrupar === "string" && args.agrupar !== "" ? args.agrupar : "provincia";
+  const field = ZONE_FIELDS[grouping];
+  if (!field) throw new Error("agrupar debe ser provincia, ciudad o pais.");
+  const params = { fecha_gte: desde, fecha_lte: hasta };
+  if (typeof args.codserie === "string" && args.codserie !== "") params.codserie = args.codserie;
+  if (args.idempresa !== void 0 && args.idempresa !== "") params.idempresa = args.idempresa;
+  const invoices = await fetchAllPaginated("/facturaclientes", params, connection);
+  const companies = companiesNotice(invoices, args);
+  const groups = /* @__PURE__ */ new Map();
+  for (const invoice of invoices) {
+    const raw = String(invoice[field] ?? "").trim();
+    const key = raw === "" ? "" : raw.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const group = groups.get(key) ?? { nombres: /* @__PURE__ */ new Map(), facturas: 0, clientes: /* @__PURE__ */ new Set(), neto: 0, total: 0 };
+    group.nombres.set(raw, (group.nombres.get(raw) ?? 0) + 1);
+    group.facturas += 1;
+    group.clientes.add(String(invoice.codcliente ?? ""));
+    group.neto += toMainCurrency(n(invoice.neto), invoice);
+    group.total += toMainCurrency(n(invoice.total), invoice);
+    groups.set(key, group);
+  }
+  const totalNet = [...groups.values()].reduce((sum, g) => sum + g.neto, 0);
+  const zones = [...groups].map(([key, g]) => {
+    const name = key === "" ? "(sin datos)" : [...g.nombres].sort((a, b) => b[1] - a[1])[0]?.[0] ?? key;
+    return {
+      zona: name,
+      facturas: g.facturas,
+      clientes: g.clientes.size,
+      neto: r2(g.neto),
+      total: r2(g.total),
+      porcentaje_neto: totalNet !== 0 ? r2(g.neto / totalNet * 100) : null
+    };
+  }).sort((a, b) => b.neto - a.neto);
+  return {
+    periodo: { desde, hasta },
+    agrupacion: grouping,
+    ...companies ? { aviso: companies } : {},
+    resumen: { facturas: invoices.length, zonas: zones.length, neto: r2(totalNet) },
+    zonas: zones
+  };
+}
+async function handleFiscalAnalyticsTool(name, args) {
+  const handlers = {
+    get_cuenta_resultados: cuentaResultados,
+    get_balance_situacion: balanceSituacion,
+    get_impuestos_periodo: impuestosPeriodo,
+    get_ventas_por_zona: ventasPorZona
+  };
+  const handler = handlers[name];
+  if (!handler) return null;
+  try {
+    const payload = await handler(args);
+    return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }] };
+  } catch (error2) {
+    const message = error2 instanceof Error ? error2.message : String(error2);
+    return { content: [{ type: "text", text: JSON.stringify({ error: `${name}: ${message}` }, null, 2) }], isError: true };
+  }
+}
+
 // src/modules/analytics/index.ts
 var analyticsTools = [
   {
@@ -71380,7 +71835,7 @@ var analyticsTools = [
   },
   {
     name: "get_clientes_perdidos",
-    description: "Obtiene clientes que no han comprado en N meses",
+    description: "Clientes activos que compraron alguna vez pero no en los \xFAltimos N meses, con su \xFAltima compra y los d\xEDas desde entonces. Los que nunca compraron est\xE1n en get_clientes_sin_compras.",
     inputSchema: {
       type: "object",
       properties: {
@@ -71398,7 +71853,7 @@ var analyticsTools = [
   },
   {
     name: "get_clientes_sin_compras",
-    description: "Obtiene clientes que nunca han realizado compras",
+    description: "Clientes que nunca han realizado compras (sin ninguna factura), con sus datos de contacto, fecha de alta y si est\xE1n de baja.",
     inputSchema: {
       type: "object",
       properties: {
@@ -71532,7 +71987,7 @@ var analyticsTools = [
   },
   {
     name: "get_facturas_con_errores",
-    description: "Obtiene facturas con posibles errores (total 0, anuladas con pagos, etc.)",
+    description: "Facturas de cliente con posibles errores: total cero, total negativo sin ser rectificativa (o positivo si\xE9ndolo), IVA negativo, total que no cuadra con base, suplidos, IVA, recargo e IRPF, beneficio negativo y pagada y vencida a la vez.",
     inputSchema: {
       type: "object",
       properties: {
@@ -71628,6 +72083,7 @@ var analyticsTools = [
 async function registerAnalyticsTools(tools5) {
   analyticsTools.forEach((tool) => tools5.set(tool.name, tool));
   extendedAnalyticsTools.forEach((tool) => tools5.set(tool.name, tool));
+  fiscalAnalyticsTools.forEach((tool) => tools5.set(tool.name, tool));
 }
 async function handleAnalyticsTool(name, args) {
   const input = args;
@@ -71684,40 +72140,27 @@ async function handleAnalyticsTool(name, args) {
           fetchAllPaginated("/clientes", {}, connection),
           fetchAllPaginated("/facturaclientes", {}, connection)
         ]);
-        const clientesConCompras = /* @__PURE__ */ new Set();
+        const ultimaCompraPorCliente = /* @__PURE__ */ new Map();
         for (const factura of facturas) {
-          const fechaFactura = parseFsDate(factura.fecha);
-          if (fechaFactura >= fechaLimite) {
-            clientesConCompras.add(factura.codcliente);
+          const instante = parseFsDate(factura.fecha).getTime();
+          if (!Number.isFinite(instante)) continue;
+          const actual = ultimaCompraPorCliente.get(factura.codcliente);
+          if (!actual || actual.instante < instante) {
+            ultimaCompraPorCliente.set(factura.codcliente, { fecha: factura.fecha, instante });
           }
         }
         const clientesPerdidos = [];
         for (const cliente of clientes) {
-          if (!clientesConCompras.has(cliente.codcliente)) {
-            let ultimaCompra = null;
-            let diasSinCompras = Infinity;
-            for (const factura of facturas) {
-              if (factura.codcliente === cliente.codcliente) {
-                const fechaFactura = parseFsDate(factura.fecha);
-                if (!ultimaCompra || parseFsDate(ultimaCompra) < fechaFactura) {
-                  ultimaCompra = factura.fecha;
-                }
-              }
-            }
-            if (ultimaCompra) {
-              const d\u00EDas = Math.floor(
-                (ahora.getTime() - parseFsDate(ultimaCompra).getTime()) / (1e3 * 60 * 60 * 24)
-              );
-              diasSinCompras = d\u00EDas;
-            }
-            clientesPerdidos.push({
-              codcliente: cliente.codcliente,
-              nombre: cliente.nombre,
-              email: cliente.email,
-              ultimaCompra,
-              diasSinCompras
-            });
-          }
+          if (cliente.debaja === true || cliente.debaja === 1 || cliente.debaja === "1") continue;
+          const ultima = ultimaCompraPorCliente.get(cliente.codcliente);
+          if (!ultima || ultima.instante >= fechaLimite.getTime()) continue;
+          clientesPerdidos.push({
+            codcliente: cliente.codcliente,
+            nombre: cliente.nombre,
+            email: cliente.email,
+            ultimaCompra: ultima.fecha,
+            diasSinCompras: Math.floor((ahora.getTime() - ultima.instante) / (1e3 * 60 * 60 * 24))
+          });
         }
         return {
           content: [
@@ -71738,9 +72181,15 @@ async function handleAnalyticsTool(name, args) {
         for (const factura of facturas) {
           clientesConFacturas.add(factura.codcliente);
         }
-        const clientesSinCompras = clientes.filter(
-          (cliente) => !clientesConFacturas.has(cliente.codcliente)
-        );
+        const clientesSinCompras = clientes.filter((cliente) => !clientesConFacturas.has(cliente.codcliente)).map((cliente) => ({
+          codcliente: cliente.codcliente,
+          nombre: cliente.nombre,
+          cifnif: cliente.cifnif ?? null,
+          email: cliente.email ?? null,
+          telefono1: cliente.telefono1 ?? null,
+          fechaalta: cliente.fechaalta ?? null,
+          debaja: cliente.debaja ?? false
+        }));
         return {
           content: [{ type: "text", text: JSON.stringify(clientesSinCompras, null, 2) }]
         };
@@ -71966,20 +72415,34 @@ async function handleAnalyticsTool(name, args) {
         for (const factura of facturas) {
           const errores = [];
           const detalles = {};
-          if ((factura.total ?? 0) <= 0) {
-            errores.push("Total cero o negativo");
+          const rectificativa = factura.idfacturarect !== null && factura.idfacturarect !== void 0 && factura.idfacturarect !== "" && Number(factura.idfacturarect) !== 0;
+          const total = Number(factura.total) || 0;
+          if (total === 0) {
+            errores.push("Total cero");
             detalles.total = factura.total;
+          } else if (!rectificativa && total < 0) {
+            errores.push("Total negativo sin ser rectificativa");
+            detalles.total = factura.total;
+          } else if (rectificativa && total > 0) {
+            errores.push("Rectificativa con total positivo");
+            detalles.total = factura.total;
+            detalles.idfacturarect = factura.idfacturarect;
           }
-          if ((factura.totaliva ?? 0) < 0) {
+          if (!rectificativa && (factura.totaliva ?? 0) < 0) {
             errores.push("IVA total negativo");
             detalles.totaliva = factura.totaliva;
           }
-          if ((factura.neto ?? 0) > (factura.total ?? 0)) {
-            errores.push("Neto mayor que total");
+          const componentes = (Number(factura.neto) || 0) + (Number(factura.totalsuplidos) || 0) + (Number(factura.totaliva) || 0) + (Number(factura.totalrecargo) || 0) - (Number(factura.totalirpf) || 0);
+          if (Math.abs(componentes - total) > 0.02) {
+            errores.push("El total no cuadra con base, suplidos, IVA, recargo e IRPF");
             detalles.neto = factura.neto;
+            detalles.totalsuplidos = factura.totalsuplidos;
+            detalles.totaliva = factura.totaliva;
+            detalles.totalrecargo = factura.totalrecargo;
+            detalles.totalirpf = factura.totalirpf;
             detalles.total = factura.total;
           }
-          if ((factura.totalbeneficio ?? 0) < 0) {
+          if (!rectificativa && (factura.totalbeneficio ?? 0) < 0) {
             errores.push("Beneficio negativo (vendida bajo coste)");
             detalles.totalbeneficio = factura.totalbeneficio;
             detalles.totalcoste = factura.totalcoste;
@@ -72188,7 +72651,7 @@ async function handleAnalyticsTool(name, args) {
         };
       }
       default:
-        return await handleExtendedAnalyticsTool(name, args);
+        return await handleExtendedAnalyticsTool(name, args) ?? await handleFiscalAnalyticsTool(name, args);
     }
   } catch (error2) {
     const errorMessage = error2 instanceof Error ? error2.message : String(error2);
@@ -72775,8 +73238,8 @@ function isTrue(value) {
   return value === true || value === 1 || value === "1" || value === "t" || value === "true";
 }
 function num2(value) {
-  const n = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(n) ? n : 0;
+  const n2 = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n2) ? n2 : 0;
 }
 function round2(value) {
   return Math.round(value * 100) / 100;
@@ -72893,6 +73356,12 @@ function failFromError(plugin, tool, error2) {
     return fail(
       `Error en ${tool}: ${message}
 La instalaci\xF3n no expone este recurso: comprueba que el plugin ${plugin} est\xE1 instalado y activo en ella y que la clave de API tiene acceso a sus recursos.`
+    );
+  }
+  if (message.includes("HTTP 403")) {
+    return fail(
+      `Error en ${tool}: ${message}
+La clave de API de esta conexi\xF3n no tiene permiso para los recursos del plugin ${plugin}: el plugin est\xE1 instalado, pero hay que darle acceso a la clave desde la configuraci\xF3n de la API de FacturaScripts.`
     );
   }
   return fail(`Error en ${tool}: ${message}`);
@@ -78337,7 +78806,7 @@ var projectFilterProps = {
 var PROYECTOS_TOOLS = [
   {
     name: "get_proyecto",
-    description: "Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, margen y pendiente de facturar, sus tareas con la fase y si est\xE1n vencidas (y el resumen por fase), los usuarios, las \xFAltimas notas, el stock, el resumen de documentos de compra y venta por tipo y los servicios SAT vinculados (si el plugin Servicios est\xE1 activo).",
+    description: "Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, margen y pendiente de facturar, sus tareas con la fase y si est\xE1n vencidas (y el resumen por fase), los usuarios, las \xFAltimas notas, el stock, el resumen de documentos de compra y venta por tipo y los servicios SAT vinculados (si el plugin Servicios est\xE1 activo). Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y pedidos a\xFAn no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.",
     inputSchema: {
       type: "object",
       properties: {
@@ -78410,7 +78879,7 @@ var PROYECTOS_TOOLS = [
   },
   {
     name: "get_informe_proyectos",
-    description: "Informe de proyectos (por fecha de alta): total, abiertos y cerrados, ventas, compras, margen y pendiente de facturar, con desglose por estado, cliente, responsable y mes, y los proyectos con m\xE1s ventas, m\xE1s margen y margen negativo.",
+    description: "Informe de proyectos (por fecha de alta): total, abiertos y cerrados, ventas, compras, margen y pendiente de facturar, con desglose por estado, cliente, responsable y mes, y los proyectos con m\xE1s ventas, m\xE1s margen y margen negativo. Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y pedidos a\xFAn no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.",
     inputSchema: {
       type: "object",
       properties: {
@@ -78424,7 +78893,7 @@ var PROYECTOS_TOOLS = [
   },
   {
     name: "get_rentabilidad_proyectos",
-    description: "Rentabilidad por proyecto: ventas, compras, margen (ventas \u2212 compras), margen sobre ventas en % y pendiente de facturar, ordenados por el criterio indicado, con los totales.",
+    description: "Rentabilidad por proyecto: ventas, compras, margen (ventas \u2212 compras), margen sobre ventas en % y pendiente de facturar, ordenados por el criterio indicado, con los totales. Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y pedidos a\xFAn no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.",
     inputSchema: {
       type: "object",
       properties: {
@@ -78564,7 +79033,7 @@ async function proyectoDetalle(args) {
     },
     economia: {
       ...economics(project),
-      nota: "Ventas y compras son los totales que calcula el plugin sin duplicar documentos ya servidos o facturados."
+      nota: "Ventas y compras son los totales con impuestos que calcula el plugin sin duplicar documentos ya servidos o facturados; el pendiente de facturar es sin impuestos."
     },
     resumen_tareas: {
       tareas: taskRows.length,
@@ -81771,6 +82240,7 @@ var RESOURCES3 = [
 
 // src/plugins/servicios/tools.ts
 var CONCURRENCY = 8;
+var MAX_WORKS_PER_SERVICE = 10;
 var PENDING_ACTIONS = { factura: 1, albaran: 3, presupuesto: 5 };
 var LINKED_DOCUMENTS = [
   { key: "presupuestos", endpoint: "/presupuestoclientes", id: "idpresupuesto" },
@@ -81861,7 +82331,7 @@ var SERVICIOS_TOOLS = [
   },
   {
     name: "get_trabajos_at_pendientes",
-    description: "Trabajos de servicios SAT marcados para facturar, hacer albar\xE1n o hacer presupuesto que a\xFAn no se han generado, agrupados por servicio, con el importe (precio \xD7 cantidad, sin impuestos) por acci\xF3n y por cliente. Los documentos se generan desde la ficha del servicio en FacturaScripts.",
+    description: "Trabajos de servicios SAT marcados para facturar, hacer albar\xE1n o hacer presupuesto que a\xFAn no se han generado, agrupados por servicio, con el importe (precio \xD7 cantidad, sin impuestos) por acci\xF3n y por cliente. Cuenta aparte los trabajos sin precio, que suelen ser registros de horas que han tomado la acci\xF3n por defecto del plugin. Los documentos se generan desde la ficha del servicio en FacturaScripts.",
     inputSchema: {
       type: "object",
       properties: {
@@ -81872,7 +82342,26 @@ var SERVICIOS_TOOLS = [
           description: "Acci\xF3n pendiente a consultar (por defecto todas)"
         },
         codcliente: { type: "string", description: "Solo los servicios de este cliente" },
-        idservicio: { type: "number", description: "Solo los trabajos de este servicio" }
+        idservicio: { type: "number", description: "Solo los trabajos de este servicio" },
+        excluir_sin_precio: { type: "boolean", description: "Omitir los trabajos con importe 0 (se siguen contando en trabajos_sin_precio)" },
+        limit: { type: "number", description: "Servicios y clientes a listar, los de m\xE1s importe (por defecto 20; cada servicio con hasta 10 trabajos); los totales cuentan todos" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_tiempos_resolucion_at",
+    description: "Tiempos de resoluci\xF3n de los servicios SAT cerrados de un periodo (por fecha del servicio): d\xEDas desde la apertura hasta el \xFAltimo paso a un estado cerrado seg\xFAn el historial, con la media, la mediana y el reparto por tramos, por prioridad, tipo, usuario asignado y mes. El plugin no guarda la fecha de cierre, as\xED que los servicios sin ese cambio en el historial se cuentan aparte.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        fecha_desde: { type: "string", description: "Desde esta fecha del servicio incluida (YYYY-MM-DD). Por defecto, hace 90 d\xEDas" },
+        fecha_hasta: { type: "string", description: "Hasta esta fecha del servicio incluida (YYYY-MM-DD)" },
+        asignado: { type: "string", description: "Solo los servicios asignados a este usuario (nick)" },
+        codcliente: { type: "string", description: "Solo los servicios de este cliente" },
+        idprioridad: { type: "number", description: "Solo los servicios de esta prioridad" },
+        idtipo: { type: "number", description: "Solo los servicios de este tipo" }
       },
       required: []
     }
@@ -82192,12 +82681,13 @@ async function trabajosPendientes(args) {
   }));
   const works = lists.flatMap((list) => list.rows);
   const truncated = lists.some((list) => list.truncated);
-  const serviceIds = [...new Set(works.map((work) => String(work.idservicio)))];
-  const services = await mapLimit(serviceIds, CONCURRENCY, (id) => getOrNull("/servicioates", id, connection));
-  const serviceById = new Map(serviceIds.map((id, i) => [id, services[i]]));
+  const excludeUnpriced = isTrue(args.excluir_sin_precio);
+  const limit = typeof args.limit === "number" && args.limit >= 0 ? Math.floor(args.limit) : 20;
+  const serviceById = await fetchByIds("/servicioates", "idservicio", works.map((work) => work.idservicio), connection);
   const byService = /* @__PURE__ */ new Map();
   const byAction = /* @__PURE__ */ new Map();
   const byClient = /* @__PURE__ */ new Map();
+  let unpriced = 0;
   for (const work of works) {
     const service = serviceById.get(String(work.idservicio)) ?? null;
     if (typeof args.codcliente === "string" && args.codcliente !== "" && service?.codcliente !== args.codcliente) {
@@ -82205,6 +82695,13 @@ async function trabajosPendientes(args) {
     }
     const amount = workAmount(work);
     const actionName = WORK_STATUS[num2(work.estado)] ?? String(work.estado);
+    if (amount === 0) {
+      unpriced += 1;
+      accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0, sin_precio: 0 }), (g) => {
+        g.sin_precio += 1;
+      });
+      if (excludeUnpriced) continue;
+    }
     accumulate(byService, String(work.idservicio), () => ({
       servicio: {
         idservicio: work.idservicio,
@@ -82220,7 +82717,7 @@ async function trabajosPendientes(args) {
         idtrabajo: work.idtrabajo,
         accion: actionName,
         referencia: work.referencia ?? null,
-        descripcion: work.descripcion ?? null,
+        descripcion: typeof work.descripcion === "string" ? work.descripcion.slice(0, 200) : null,
         cantidad: num2(work.cantidad),
         precio: num2(work.precio),
         importe: round2(amount),
@@ -82228,7 +82725,7 @@ async function trabajosPendientes(args) {
       });
       g.importe += amount;
     });
-    accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0 }), (g) => {
+    accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0, sin_precio: 0 }), (g) => {
       g.trabajos += 1;
       g.importe += amount;
     });
@@ -82239,16 +82736,31 @@ async function trabajosPendientes(args) {
     });
   }
   const groups = [...byService.values()].sort((a, b) => b.importe - a.importe);
+  const notices = [];
+  if (truncated) notices.push("Hay m\xE1s trabajos pendientes de los que se han le\xEDdo: acota los filtros.");
+  if (groups.length > limit) {
+    notices.push(`Se listan ${limit} de ${groups.length} servicios y los ${limit} clientes de m\xE1s importe; los totales cuentan todos. Sube limit o filtra por cliente.`);
+  }
   return ok({
-    ...truncated ? { aviso: "Hay m\xE1s trabajos pendientes de los que se han le\xEDdo: acota los filtros." } : {},
+    ...notices.length > 0 ? { aviso: notices.join(" ") } : {},
     resumen: {
       servicios: groups.length,
       trabajos: groups.reduce((sum, g) => sum + g.trabajos.length, 0),
       importe: round2(groups.reduce((sum, g) => sum + g.importe, 0)),
+      trabajos_sin_precio: unpriced,
+      ...excludeUnpriced ? { nota: "Los trabajos sin precio no se incluyen en los servicios, los trabajos ni los importes." } : {},
       por_accion: Object.fromEntries([...byAction].map(([key, g]) => [key, { ...g, importe: round2(g.importe) }])),
-      por_cliente: [...byClient].map(([codcliente, g]) => ({ codcliente, servicios: g.servicios.size, trabajos: g.trabajos, importe: round2(g.importe) })).sort((a, b) => b.importe - a.importe)
+      clientes: byClient.size,
+      // los clientes de más importe (tantos como servicios se detallan)
+      por_cliente: [...byClient].map(([codcliente, g]) => ({ codcliente, servicios: g.servicios.size, trabajos: g.trabajos, importe: round2(g.importe) })).sort((a, b) => b.importe - a.importe || b.trabajos - a.trabajos).slice(0, Math.max(limit, 1))
     },
-    servicios: groups.map((g) => ({ ...g.servicio, importe: round2(g.importe), trabajos: g.trabajos }))
+    // cada servicio lleva como mucho MAX_WORKS_PER_SERVICE trabajos, los de más importe
+    servicios: groups.slice(0, limit).map((g) => ({
+      ...g.servicio,
+      importe: round2(g.importe),
+      trabajos_total: g.trabajos.length,
+      trabajos: [...g.trabajos].sort((a, b) => num2(b.importe) - num2(a.importe)).slice(0, MAX_WORKS_PER_SERVICE)
+    }))
   });
 }
 function instant(date3, time3) {
@@ -82305,6 +82817,124 @@ async function horasTrabajos(args) {
     por_agente: toList(byAgent, "codagente")
   });
 }
+var RESOLUTION_BUCKETS = [
+  ["hasta 1 d\xEDa", 1],
+  ["de 2 a 7 d\xEDas", 7],
+  ["de 8 a 30 d\xEDas", 30],
+  ["m\xE1s de 30 d\xEDas", Infinity]
+];
+function contextEditable(context) {
+  let data = context;
+  if (typeof context === "string") {
+    try {
+      data = JSON.parse(context);
+    } catch {
+      return null;
+    }
+  }
+  if (!data || typeof data !== "object" || !("editable" in data)) return null;
+  return isTrue(data.editable);
+}
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+async function tiemposResolucion(args) {
+  const connection = connectionOf(args);
+  const defaultFrom = /* @__PURE__ */ new Date();
+  defaultFrom.setDate(defaultFrom.getDate() - 90);
+  const desde = optionalIsoDate(args.fecha_desde, "fecha_desde") ?? toIsoDate(defaultFrom);
+  const hasta = optionalIsoDate(args.fecha_hasta, "fecha_hasta");
+  const params = { editable: false, fecha_gte: desde };
+  if (hasta) params.fecha_lte = hasta;
+  for (const field of ["asignado", "codcliente", "idprioridad", "idtipo"]) {
+    if (args[field] !== void 0 && args[field] !== "") params[field] = args[field];
+  }
+  const [services, logs, priorities, types] = await Promise.all([
+    fetchAll("/servicioates", params, connection),
+    fetchAll(servicioATLog.meta.endpoint, { creationdate_gte: desde, "sort[creationdate]": "ASC", "sort[id]": "ASC" }, connection),
+    fetchCatalog("/prioridadates", "id", connection),
+    fetchCatalog("/tipoates", "id", connection)
+  ]);
+  const closedAt = /* @__PURE__ */ new Map();
+  const lastEditable = /* @__PURE__ */ new Map();
+  for (const log of logs.rows) {
+    const id = String(log.idservicio);
+    const editable = contextEditable(log.context);
+    if (editable === null) continue;
+    const previous = lastEditable.get(id) ?? true;
+    if (previous && !editable) {
+      const at = parseFsDate(log.creationdate).getTime();
+      if (Number.isFinite(at)) closedAt.set(id, at);
+    }
+    lastEditable.set(id, editable);
+  }
+  const init = () => ({ servicios: 0, dias: [] });
+  const groups = {
+    prioridad: /* @__PURE__ */ new Map(),
+    tipo: /* @__PURE__ */ new Map(),
+    asignado: /* @__PURE__ */ new Map(),
+    mes: /* @__PURE__ */ new Map()
+  };
+  const all3 = [];
+  const slowest = [];
+  let withoutHistory = 0;
+  for (const service of services.rows) {
+    const close = closedAt.get(String(service.idservicio));
+    const open = instant(service.fecha, typeof service.hora === "string" ? service.hora : "00:00:00");
+    if (close === void 0 || open === null || close < open) {
+      withoutHistory += 1;
+      continue;
+    }
+    const days = (close - open) / 864e5;
+    all3.push(days);
+    const add = (g) => {
+      g.servicios += 1;
+      g.dias.push(days);
+    };
+    accumulate(groups.prioridad, nameIn(priorities, service.idprioridad) ?? groupKey(service.idprioridad), init, add);
+    accumulate(groups.tipo, nameIn(types, service.idtipo, "name") ?? groupKey(service.idtipo), init, add);
+    accumulate(groups.asignado, groupKey(service.asignado), init, add);
+    accumulate(groups.mes, (isoDate(service.fecha) ?? "(sin fecha)").slice(0, 7), init, add);
+    slowest.push({
+      idservicio: service.idservicio,
+      codigo: service.codigo,
+      fecha: isoDate(service.fecha),
+      cierre: toIsoDate(new Date(close)),
+      dias: round2(days),
+      codcliente: service.codcliente ?? null,
+      asignado: service.asignado ?? null
+    });
+  }
+  const stats = (values) => ({
+    servicios: values.length,
+    dias_medios: values.length > 0 ? round2(values.reduce((sum, d) => sum + d, 0) / values.length) : null,
+    dias_mediana: values.length > 0 ? round2(median(values)) : null
+  });
+  const toList = (map, key) => [...map].map(([name, g]) => ({ [key]: name, ...stats(g.dias) })).sort((a, b) => num2(b.servicios) - num2(a.servicios));
+  const buckets = RESOLUTION_BUCKETS.map(([label, max], i) => {
+    const min = i === 0 ? -Infinity : RESOLUTION_BUCKETS[i - 1][1];
+    return { tramo: label, servicios: all3.filter((d) => d > min && d <= max).length };
+  });
+  const notices = [];
+  if (services.truncated || logs.truncated) notices.push("Hay m\xE1s registros de los que se han le\xEDdo: acota el periodo o los filtros.");
+  if (withoutHistory > 0) {
+    notices.push(`${withoutHistory} servicios cerrados no tienen en el historial el paso a un estado cerrado y no cuentan en los tiempos.`);
+  }
+  return ok({
+    periodo: { desde, hasta: hasta ?? null },
+    ...notices.length > 0 ? { aviso: notices.join(" ") } : {},
+    resumen: { cerrados: services.rows.length, sin_historial: withoutHistory, ...stats(all3) },
+    por_tramo: buckets,
+    por_prioridad: toList(groups.prioridad, "prioridad"),
+    por_tipo: toList(groups.tipo, "tipo"),
+    por_asignado: toList(groups.asignado, "asignado"),
+    por_mes: toList(groups.mes, "mes").sort((a, b) => String(a.mes).localeCompare(String(b.mes))),
+    mas_lentos: slowest.sort((a, b) => num2(b.dias) - num2(a.dias)).slice(0, 10)
+  });
+}
 async function handleServiciosTool(name, args) {
   switch (name) {
     case "get_servicio_at":
@@ -82321,6 +82951,8 @@ async function handleServiciosTool(name, args) {
       return trabajosPendientes(args);
     case "get_horas_trabajos_at":
       return horasTrabajos(args);
+    case "get_tiempos_resolucion_at":
+      return tiemposResolucion(args);
     default:
       return null;
   }

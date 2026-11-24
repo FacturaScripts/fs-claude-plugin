@@ -66,7 +66,9 @@ export const PROYECTOS_TOOLS: Tool[] = [
             'Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, ' +
             'margen y pendiente de facturar, sus tareas con la fase y si están vencidas (y el resumen por fase), los ' +
             'usuarios, las últimas notas, el stock, el resumen de documentos de compra y venta por tipo y los ' +
-            'servicios SAT vinculados (si el plugin Servicios está activo).',
+            'servicios SAT vinculados (si el plugin Servicios está activo). ' +
+            'Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y ' +
+            'pedidos aún no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -150,7 +152,9 @@ export const PROYECTOS_TOOLS: Tool[] = [
         description:
             'Informe de proyectos (por fecha de alta): total, abiertos y cerrados, ventas, compras, margen y pendiente ' +
             'de facturar, con desglose por estado, cliente, responsable y mes, y los proyectos con más ventas, más ' +
-            'margen y margen negativo.',
+            'margen y margen negativo. ' +
+            'Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y ' +
+            'pedidos aún no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -166,7 +170,9 @@ export const PROYECTOS_TOOLS: Tool[] = [
         name: 'get_rentabilidad_proyectos',
         description:
             'Rentabilidad por proyecto: ventas, compras, margen (ventas − compras), margen sobre ventas en % y ' +
-            'pendiente de facturar, ordenados por el criterio indicado, con los totales.',
+            'pendiente de facturar, ordenados por el criterio indicado, con los totales. ' +
+            'Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y ' +
+            'pedidos aún no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -353,7 +359,7 @@ async function proyectoDetalle(args: ToolArgs): Promise<ToolResult> {
         },
         economia: {
             ...economics(project),
-            nota: 'Ventas y compras son los totales que calcula el plugin sin duplicar documentos ya servidos o facturados.',
+            nota: 'Ventas y compras son los totales con impuestos que calcula el plugin sin duplicar documentos ya servidos o facturados; el pendiente de facturar es sin impuestos.',
         },
         resumen_tareas: {
             tareas: taskRows.length,

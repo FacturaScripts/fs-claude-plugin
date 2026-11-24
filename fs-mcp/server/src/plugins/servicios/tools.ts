@@ -7,12 +7,14 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
+import { parseFsDate, toIsoDate } from '../../utils/fsDate.js';
 import { pathId } from '../../utils/pathId.js';
 import {
     accumulate,
     connectionOf,
     daysBetween,
     fetchAll,
+    fetchByIds,
     fetchCatalog,
     findByName,
     getOrNull,
@@ -34,6 +36,9 @@ type Row = Record<string, unknown>;
 
 /** Llamadas simultáneas al leer registros sueltos por id. */
 const CONCURRENCY = 8;
+
+/** Trabajos que se detallan como máximo por servicio en get_trabajos_at_pendientes. */
+const MAX_WORKS_PER_SERVICE = 10;
 
 /** Acciones de facturación pendientes de un trabajo y su valor en la columna estado. */
 const PENDING_ACTIONS: Record<string, number> = { factura: 1, albaran: 3, presupuesto: 5 };
@@ -145,7 +150,8 @@ export const SERVICIOS_TOOLS: Tool[] = [
         description:
             'Trabajos de servicios SAT marcados para facturar, hacer albarán o hacer presupuesto que aún no se han ' +
             'generado, agrupados por servicio, con el importe (precio × cantidad, sin impuestos) por acción y por ' +
-            'cliente. Los documentos se generan desde la ficha del servicio en FacturaScripts.',
+            'cliente. Cuenta aparte los trabajos sin precio, que suelen ser registros de horas que han tomado la ' +
+            'acción por defecto del plugin. Los documentos se generan desde la ficha del servicio en FacturaScripts.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -157,6 +163,29 @@ export const SERVICIOS_TOOLS: Tool[] = [
                 },
                 codcliente: { type: 'string', description: 'Solo los servicios de este cliente' },
                 idservicio: { type: 'number', description: 'Solo los trabajos de este servicio' },
+                excluir_sin_precio: { type: 'boolean', description: 'Omitir los trabajos con importe 0 (se siguen contando en trabajos_sin_precio)' },
+                limit: { type: 'number', description: 'Servicios y clientes a listar, los de más importe (por defecto 20; cada servicio con hasta 10 trabajos); los totales cuentan todos' },
+            },
+            required: [],
+        },
+    },
+    {
+        name: 'get_tiempos_resolucion_at',
+        description:
+            'Tiempos de resolución de los servicios SAT cerrados de un periodo (por fecha del servicio): días desde ' +
+            'la apertura hasta el último paso a un estado cerrado según el historial, con la media, la mediana y el ' +
+            'reparto por tramos, por prioridad, tipo, usuario asignado y mes. El plugin no guarda la fecha de cierre, ' +
+            'así que los servicios sin ese cambio en el historial se cuentan aparte.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                fecha_desde: { type: 'string', description: 'Desde esta fecha del servicio incluida (YYYY-MM-DD). Por defecto, hace 90 días' },
+                fecha_hasta: { type: 'string', description: 'Hasta esta fecha del servicio incluida (YYYY-MM-DD)' },
+                asignado: { type: 'string', description: 'Solo los servicios asignados a este usuario (nick)' },
+                codcliente: { type: 'string', description: 'Solo los servicios de este cliente' },
+                idprioridad: { type: 'number', description: 'Solo los servicios de esta prioridad' },
+                idtipo: { type: 'number', description: 'Solo los servicios de este tipo' },
             },
             required: [],
         },
@@ -549,15 +578,18 @@ async function trabajosPendientes(args: ToolArgs): Promise<ToolResult> {
     }));
     const works = lists.flatMap((list) => list.rows);
     const truncated = lists.some((list) => list.truncated);
+    const excludeUnpriced = isTrue(args.excluir_sin_precio);
+    const limit = typeof args.limit === 'number' && args.limit >= 0 ? Math.floor(args.limit) : 20;
 
-    const serviceIds = [...new Set(works.map((work) => String(work.idservicio)))];
-    const services = await mapLimit(serviceIds, CONCURRENCY, (id) => getOrNull('/servicioates', id, connection));
-    const serviceById = new Map(serviceIds.map((id, i) => [id, services[i]] as const));
+    // con muchos servicios se lee el recurso completo en lugar de uno a uno,
+    // para no lanzar cientos de peticiones y chocar con el límite de la API
+    const serviceById = await fetchByIds('/servicioates', 'idservicio', works.map((work) => work.idservicio), connection);
 
     type ServiceGroup = { servicio: Row; trabajos: Row[]; importe: number };
     const byService = new Map<string, ServiceGroup>();
-    const byAction = new Map<string, { trabajos: number; importe: number }>();
+    const byAction = new Map<string, { trabajos: number; importe: number; sin_precio: number }>();
     const byClient = new Map<string, { servicios: Set<string>; trabajos: number; importe: number }>();
+    let unpriced = 0;
 
     for (const work of works) {
         const service = serviceById.get(String(work.idservicio)) ?? null;
@@ -566,6 +598,15 @@ async function trabajosPendientes(args: ToolArgs): Promise<ToolResult> {
         }
         const amount = workAmount(work);
         const actionName = WORK_STATUS[num(work.estado)] ?? String(work.estado);
+        if (amount === 0) {
+            // trabajos sin precio: suelen ser registros de horas que han tomado
+            // la acción de facturación por defecto del plugin
+            unpriced += 1;
+            accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0, sin_precio: 0 }), (g) => {
+                g.sin_precio += 1;
+            });
+            if (excludeUnpriced) continue;
+        }
         accumulate(byService, String(work.idservicio), () => ({
             servicio: {
                 idservicio: work.idservicio,
@@ -581,7 +622,7 @@ async function trabajosPendientes(args: ToolArgs): Promise<ToolResult> {
                 idtrabajo: work.idtrabajo,
                 accion: actionName,
                 referencia: work.referencia ?? null,
-                descripcion: work.descripcion ?? null,
+                descripcion: typeof work.descripcion === 'string' ? work.descripcion.slice(0, 200) : null,
                 cantidad: num(work.cantidad),
                 precio: num(work.precio),
                 importe: round2(amount),
@@ -589,7 +630,7 @@ async function trabajosPendientes(args: ToolArgs): Promise<ToolResult> {
             });
             g.importe += amount;
         });
-        accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0 }), (g) => {
+        accumulate(byAction, actionName, () => ({ trabajos: 0, importe: 0, sin_precio: 0 }), (g) => {
             g.trabajos += 1;
             g.importe += amount;
         });
@@ -601,18 +642,34 @@ async function trabajosPendientes(args: ToolArgs): Promise<ToolResult> {
     }
 
     const groups = [...byService.values()].sort((a, b) => b.importe - a.importe);
+    const notices: string[] = [];
+    if (truncated) notices.push('Hay más trabajos pendientes de los que se han leído: acota los filtros.');
+    if (groups.length > limit) {
+        notices.push(`Se listan ${limit} de ${groups.length} servicios y los ${limit} clientes de más importe; los totales cuentan todos. Sube limit o filtra por cliente.`);
+    }
     return ok({
-        ...(truncated ? { aviso: 'Hay más trabajos pendientes de los que se han leído: acota los filtros.' } : {}),
+        ...(notices.length > 0 ? { aviso: notices.join(' ') } : {}),
         resumen: {
             servicios: groups.length,
             trabajos: groups.reduce((sum, g) => sum + g.trabajos.length, 0),
             importe: round2(groups.reduce((sum, g) => sum + g.importe, 0)),
+            trabajos_sin_precio: unpriced,
+            ...(excludeUnpriced ? { nota: 'Los trabajos sin precio no se incluyen en los servicios, los trabajos ni los importes.' } : {}),
             por_accion: Object.fromEntries([...byAction].map(([key, g]) => [key, { ...g, importe: round2(g.importe) }])),
+            clientes: byClient.size,
+            // los clientes de más importe (tantos como servicios se detallan)
             por_cliente: [...byClient]
                 .map(([codcliente, g]) => ({ codcliente, servicios: g.servicios.size, trabajos: g.trabajos, importe: round2(g.importe) }))
-                .sort((a, b) => b.importe - a.importe),
+                .sort((a, b) => b.importe - a.importe || b.trabajos - a.trabajos)
+                .slice(0, Math.max(limit, 1)),
         },
-        servicios: groups.map((g) => ({ ...g.servicio, importe: round2(g.importe), trabajos: g.trabajos })),
+        // cada servicio lleva como mucho MAX_WORKS_PER_SERVICE trabajos, los de más importe
+        servicios: groups.slice(0, limit).map((g) => ({
+            ...g.servicio,
+            importe: round2(g.importe),
+            trabajos_total: g.trabajos.length,
+            trabajos: [...g.trabajos].sort((a, b) => num(b.importe) - num(a.importe)).slice(0, MAX_WORKS_PER_SERVICE),
+        })),
     });
 }
 
@@ -685,6 +742,154 @@ async function horasTrabajos(args: ToolArgs): Promise<ToolResult> {
     });
 }
 
+/** Tramos de días de resolución: [etiqueta, máximo de días incluido]. */
+const RESOLUTION_BUCKETS: Array<[string, number]> = [
+    ['hasta 1 día', 1],
+    ['de 2 a 7 días', 7],
+    ['de 8 a 30 días', 30],
+    ['más de 30 días', Infinity],
+];
+
+/**
+ * Lee el campo editable de la copia del servicio que guarda una entrada del
+ * historial, o null si la copia no se puede interpretar.
+ *
+ * @param context contexto del historial (JSON en texto o ya decodificado).
+ */
+function contextEditable(context: unknown): boolean | null {
+    let data: unknown = context;
+    if (typeof context === 'string') {
+        try {
+            data = JSON.parse(context);
+        } catch {
+            return null;
+        }
+    }
+    if (!data || typeof data !== 'object' || !('editable' in data)) return null;
+    return isTrue((data as Row).editable);
+}
+
+/**
+ * Mediana de una lista de números (0 si está vacía).
+ *
+ * @param values valores.
+ */
+function median(values: number[]): number {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? ((sorted[mid - 1] as number) + (sorted[mid] as number)) / 2 : (sorted[mid] as number);
+}
+
+async function tiemposResolucion(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const defaultFrom = new Date();
+    defaultFrom.setDate(defaultFrom.getDate() - 90);
+    const desde = optionalIsoDate(args.fecha_desde, 'fecha_desde') ?? toIsoDate(defaultFrom);
+    const hasta = optionalIsoDate(args.fecha_hasta, 'fecha_hasta');
+
+    const params: Row = { editable: false, fecha_gte: desde };
+    if (hasta) params.fecha_lte = hasta;
+    for (const field of ['asignado', 'codcliente', 'idprioridad', 'idtipo']) {
+        if (args[field] !== undefined && args[field] !== '') params[field] = args[field];
+    }
+
+    // un servicio abierto en el periodo solo puede cerrarse después de su
+    // inicio: basta con el historial creado desde esa fecha
+    const [services, logs, priorities, types] = await Promise.all([
+        fetchAll<Row>('/servicioates', params, connection),
+        fetchAll<Row>(servicioATLog.meta.endpoint, { creationdate_gte: desde, 'sort[creationdate]': 'ASC', 'sort[id]': 'ASC' }, connection),
+        fetchCatalog('/prioridadates', 'id', connection),
+        fetchCatalog('/tipoates', 'id', connection),
+    ]);
+
+    // instante del último paso de abierto a cerrado de cada servicio
+    const closedAt = new Map<string, number>();
+    const lastEditable = new Map<string, boolean>();
+    for (const log of logs.rows) {
+        const id = String(log.idservicio);
+        const editable = contextEditable(log.context);
+        if (editable === null) continue;
+        const previous = lastEditable.get(id) ?? true;
+        if (previous && !editable) {
+            const at = parseFsDate(log.creationdate).getTime();
+            if (Number.isFinite(at)) closedAt.set(id, at);
+        }
+        lastEditable.set(id, editable);
+    }
+
+    type Group = { servicios: number; dias: number[] };
+    const init = (): Group => ({ servicios: 0, dias: [] });
+    const groups = {
+        prioridad: new Map<string, Group>(),
+        tipo: new Map<string, Group>(),
+        asignado: new Map<string, Group>(),
+        mes: new Map<string, Group>(),
+    };
+    const all: number[] = [];
+    const slowest: Row[] = [];
+    let withoutHistory = 0;
+
+    for (const service of services.rows) {
+        const close = closedAt.get(String(service.idservicio));
+        const open = instant(service.fecha, typeof service.hora === 'string' ? service.hora : '00:00:00');
+        if (close === undefined || open === null || close < open) {
+            withoutHistory += 1;
+            continue;
+        }
+        const days = (close - open) / 86400000;
+        all.push(days);
+        const add = (g: Group): void => {
+            g.servicios += 1;
+            g.dias.push(days);
+        };
+        accumulate(groups.prioridad, nameIn(priorities, service.idprioridad) ?? groupKey(service.idprioridad), init, add);
+        accumulate(groups.tipo, nameIn(types, service.idtipo, 'name') ?? groupKey(service.idtipo), init, add);
+        accumulate(groups.asignado, groupKey(service.asignado), init, add);
+        accumulate(groups.mes, (isoDate(service.fecha) ?? '(sin fecha)').slice(0, 7), init, add);
+        slowest.push({
+            idservicio: service.idservicio,
+            codigo: service.codigo,
+            fecha: isoDate(service.fecha),
+            cierre: toIsoDate(new Date(close)),
+            dias: round2(days),
+            codcliente: service.codcliente ?? null,
+            asignado: service.asignado ?? null,
+        });
+    }
+
+    const stats = (values: number[]): Row => ({
+        servicios: values.length,
+        dias_medios: values.length > 0 ? round2(values.reduce((sum, d) => sum + d, 0) / values.length) : null,
+        dias_mediana: values.length > 0 ? round2(median(values)) : null,
+    });
+    const toList = (map: Map<string, Group>, key: string): Row[] =>
+        [...map].map(([name, g]) => ({ [key]: name, ...stats(g.dias) })).sort((a, b) => num(b.servicios) - num(a.servicios));
+
+    const buckets = RESOLUTION_BUCKETS.map(([label, max], i) => {
+        const min = i === 0 ? -Infinity : (RESOLUTION_BUCKETS[i - 1] as [string, number])[1];
+        return { tramo: label, servicios: all.filter((d) => d > min && d <= max).length };
+    });
+
+    const notices: string[] = [];
+    if (services.truncated || logs.truncated) notices.push('Hay más registros de los que se han leído: acota el periodo o los filtros.');
+    if (withoutHistory > 0) {
+        notices.push(`${withoutHistory} servicios cerrados no tienen en el historial el paso a un estado cerrado y no cuentan en los tiempos.`);
+    }
+
+    return ok({
+        periodo: { desde, hasta: hasta ?? null },
+        ...(notices.length > 0 ? { aviso: notices.join(' ') } : {}),
+        resumen: { cerrados: services.rows.length, sin_historial: withoutHistory, ...stats(all) },
+        por_tramo: buckets,
+        por_prioridad: toList(groups.prioridad, 'prioridad'),
+        por_tipo: toList(groups.tipo, 'tipo'),
+        por_asignado: toList(groups.asignado, 'asignado'),
+        por_mes: toList(groups.mes, 'mes').sort((a, b) => String(a.mes).localeCompare(String(b.mes))),
+        mas_lentos: slowest.sort((a, b) => num(b.dias) - num(a.dias)).slice(0, 10),
+    });
+}
+
 /**
  * Ejecuta una tool propia del plugin Servicios. Devuelve null si no es suya.
  *
@@ -707,6 +912,8 @@ export async function handleServiciosTool(name: string, args: ToolArgs): Promise
             return trabajosPendientes(args);
         case 'get_horas_trabajos_at':
             return horasTrabajos(args);
+        case 'get_tiempos_resolucion_at':
+            return tiemposResolucion(args);
         default:
             return null;
     }

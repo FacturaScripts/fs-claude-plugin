@@ -37,7 +37,8 @@ export function isMissingResource(message: string): boolean {
 
 /**
  * Convierte una excepción en un resultado de error. Si la API dice que el recurso
- * no existe, añade que probablemente el plugin no está activo en la instalación.
+ * no existe, añade que probablemente el plugin no está activo en la instalación;
+ * si responde HTTP 403, que la clave de API no tiene permiso para sus recursos.
  *
  * @param plugin nombre del plugin de FacturaScripts que aporta la tool.
  * @param tool   nombre de la tool que falló.
@@ -50,6 +51,13 @@ export function failFromError(plugin: string, tool: string, error: unknown): Too
             `Error en ${tool}: ${message}\n` +
                 `La instalación no expone este recurso: comprueba que el plugin ${plugin} está instalado y activo ` +
                 'en ella y que la clave de API tiene acceso a sus recursos.',
+        );
+    }
+    if (message.includes('HTTP 403')) {
+        return fail(
+            `Error en ${tool}: ${message}\n` +
+                `La clave de API de esta conexión no tiene permiso para los recursos del plugin ${plugin}: el plugin ` +
+                'está instalado, pero hay que darle acceso a la clave desde la configuración de la API de FacturaScripts.',
         );
     }
     return fail(`Error en ${tool}: ${message}`);

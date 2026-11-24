@@ -39,6 +39,28 @@ function fechaDeEntrada(nombre: string, valor: unknown): Date {
     return fecha;
 }
 
+/**
+ * Filtros de los documentos de venta pendientes: solo los editables (aún no
+ * convertidos) y, si se indica, solo los de un cliente.
+ *
+ * @param args argumentos de la tool.
+ */
+function pendingFilters(args: Record<string, unknown>): Record<string, unknown> {
+    const filters: Record<string, unknown> = { editable: true };
+    if (typeof args.codcliente === 'string' && args.codcliente !== '') filters.codcliente = args.codcliente;
+    return filters;
+}
+
+/**
+ * Suma el neto (sin impuestos) de una lista de documentos, redondeado a dos decimales.
+ *
+ * @param docs documentos con campo neto.
+ */
+function sumNeto(docs: Array<{ neto?: unknown }>): number {
+    const total = docs.reduce((acc, doc) => acc + (Number(doc.neto) || 0), 0);
+    return Math.round(total * 100) / 100;
+}
+
 function porcentaje(parte: number, total: number): number {
     return total > 0 ? (parte / total) * 100 : 0;
 }
@@ -220,33 +242,39 @@ export const extendedAnalyticsTools: Tool[] = [
     },
     {
         name: 'get_presupuestos_pendientes',
-        description: 'Presupuestos editables (no convertidos), agrupados por agente. Marca los vencidos según finoferta.',
+        description: 'Presupuestos editables (no convertidos), agrupados por agente. Marca los vencidos según finoferta. ' +
+            'Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.',
         inputSchema: {
             type: 'object' as const,
             properties: {
                 connection: { type: 'string', description: 'Clave de conexión' },
+                codcliente: { type: 'string', description: 'Solo los documentos de este cliente (opcional)' },
             },
             required: ['connection'],
         },
     },
     {
         name: 'get_pedidos_pendientes_servir',
-        description: 'Pedidos de cliente editables (no convertidos a albarán/factura). Importe pendiente y antigüedad.',
+        description: 'Pedidos de cliente editables (no convertidos a albarán/factura). Importe pendiente y antigüedad. ' +
+            'Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.',
         inputSchema: {
             type: 'object' as const,
             properties: {
                 connection: { type: 'string', description: 'Clave de conexión' },
+                codcliente: { type: 'string', description: 'Solo los documentos de este cliente (opcional)' },
             },
             required: ['connection'],
         },
     },
     {
         name: 'get_albaranes_pendientes_facturar',
-        description: 'Albaranes de cliente editables (entregados pero no facturados). Posible revenue leak.',
+        description: 'Albaranes de cliente editables (entregados pero no facturados). Posible revenue leak. ' +
+            'Cada documento lleva su neto (sin impuestos) y su total (con impuestos), y hay acumulados de ambos.',
         inputSchema: {
             type: 'object' as const,
             properties: {
                 connection: { type: 'string', description: 'Clave de conexión' },
+                codcliente: { type: 'string', description: 'Solo los documentos de este cliente (opcional)' },
             },
             required: ['connection'],
         },
@@ -854,7 +882,7 @@ export async function handleExtendedAnalyticsTool(
             case 'get_presupuestos_pendientes': {
                 // Definición: presupuestos con `editable=true` (todavía no convertidos a documento posterior).
                 // Marca los vencidos según finoferta.
-                const presupuestos = await fetchAllPaginated<any>('/presupuestoclientes', { editable: true }, connection);
+                const presupuestos = await fetchAllPaginated<any>('/presupuestoclientes', pendingFilters(args), connection);
                 const now = new Date();
 
                 const result = presupuestos.map(p => {
@@ -868,6 +896,7 @@ export async function handleExtendedAnalyticsTool(
                         codagente: p.codagente,
                         fecha: p.fecha,
                         finoferta: p.finoferta,
+                        neto: p.neto,
                         total: p.total,
                         totalbeneficio: p.totalbeneficio,
                         vencido,
@@ -889,6 +918,7 @@ export async function handleExtendedAnalyticsTool(
                 return jsonResponse({
                     totalPresupuestos: result.length,
                     importeAcumulado: result.reduce((acc, r) => acc + (r.total || 0), 0),
+                    netoAcumulado: sumNeto(result),
                     vencidos: result.filter(r => r.vencido).length,
                     porAgente: Object.values(porAgente).sort((a, b) => b.importeTotal - a.importeTotal),
                     detalle: result,
@@ -897,7 +927,7 @@ export async function handleExtendedAnalyticsTool(
 
             case 'get_pedidos_pendientes_servir': {
                 // Definición: pedidos con `editable=true` (no convertidos a albarán/factura).
-                const pedidos = await fetchAllPaginated<any>('/pedidoclientes', { editable: true }, connection);
+                const pedidos = await fetchAllPaginated<any>('/pedidoclientes', pendingFilters(args), connection);
                 const now = new Date();
 
                 const detalle = pedidos.map(p => ({
@@ -907,6 +937,7 @@ export async function handleExtendedAnalyticsTool(
                     nombrecliente: p.nombrecliente,
                     codagente: p.codagente,
                     fecha: p.fecha,
+                    neto: p.neto,
                     total: p.total,
                     totalbeneficio: p.totalbeneficio,
                     diasDesdeFecha: diasEntre(parseFsDate(p.fecha), now),
@@ -917,6 +948,7 @@ export async function handleExtendedAnalyticsTool(
                 return jsonResponse({
                     totalPedidos: detalle.length,
                     importeAcumulado: detalle.reduce((acc, r) => acc + (r.total || 0), 0),
+                    netoAcumulado: sumNeto(detalle),
                     detalle,
                 });
             }
@@ -924,7 +956,7 @@ export async function handleExtendedAnalyticsTool(
             case 'get_albaranes_pendientes_facturar': {
                 // Definición: albaranes con `editable=true` (entregados pero no facturados).
                 // Es revenue leak potencial — mercancía entregada que aún no genera factura.
-                const albaranes = await fetchAllPaginated<any>('/albaranclientes', { editable: true }, connection);
+                const albaranes = await fetchAllPaginated<any>('/albaranclientes', pendingFilters(args), connection);
                 const now = new Date();
 
                 const detalle = albaranes.map(a => ({
@@ -934,6 +966,7 @@ export async function handleExtendedAnalyticsTool(
                     nombrecliente: a.nombrecliente,
                     codagente: a.codagente,
                     fecha: a.fecha,
+                    neto: a.neto,
                     total: a.total,
                     diasDesdeEntrega: diasEntre(parseFsDate(a.fecha), now),
                 }));
@@ -943,6 +976,7 @@ export async function handleExtendedAnalyticsTool(
                 return jsonResponse({
                     totalAlbaranes: detalle.length,
                     importePendienteFacturar: detalle.reduce((acc, r) => acc + (r.total || 0), 0),
+                    netoPendienteFacturar: sumNeto(detalle),
                     detalle,
                 });
             }

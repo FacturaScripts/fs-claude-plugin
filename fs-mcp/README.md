@@ -134,6 +134,14 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 
 `get_ejercicios`, `get_asientos`, `get_partidas`, `get_cuentas`, `get_subcuentas`, `get_conceptopartidas`, `get_diarios`, `get_cuentaespeciales`, `get_regularizacionimpuestos`
 
+| Herramienta | Descripción |
+|---|---|
+| `get_cuenta_resultados` | Pérdidas y ganancias abreviadas de un ejercicio (grupos 6 y 7 del PGC español, sin regularización ni cierre), por grupo y cuenta, con comparativa opcional |
+| `get_balance_situacion` | Balance de situación abreviado de un ejercicio (grupos 1 a 5, sin el asiento de cierre), con fondo de maniobra, liquidez, endeudamiento y cuadre |
+| `get_impuestos_periodo` | IVA repercutido y soportado de un periodo, con recargo, IRPF, suplidos, desglose por tipo y diferencia orientativa para el modelo 303 |
+
+Son aproximaciones de gestión calculadas con los saldos de las subcuentas; los informes oficiales los aporta el plugin Informes.
+
 ### Finanzas
 
 `get_cuentabancos`, `get_formapagos`, `get_divisas`, `get_retenciones`, `get_impuestos`, `get_impuestozonas`
@@ -144,7 +152,7 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 |---|---|
 | `get_dashboard_resumen` | Resumen ejecutivo del negocio: ventas, cobros, stock y principales métricas |
 | `get_clientes_morosos` | Clientes con facturas vencidas e impagadas, ordenados por importe |
-| `get_clientes_perdidos` | Clientes que han dejado de comprar en el período indicado |
+| `get_clientes_perdidos` | Clientes activos que compraron alguna vez pero no en los últimos N meses |
 | `get_clientes_sin_compras` | Clientes que nunca han comprado o llevan un tiempo sin hacerlo |
 | `get_clientes_top_facturacion` | Clientes con mayor volumen de facturación |
 | `get_clientes_top_margen` | Clientes que generan mayor margen bruto |
@@ -158,7 +166,7 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 | `get_productos_sobrestock` | Productos con stock muy por encima de la rotación habitual |
 | `get_productos_top_margen` | Productos con mayor margen bruto |
 | `get_facturas_cliente_por_cifnif` | Busca facturas por CIF/NIF del cliente |
-| `get_facturas_con_errores` | Facturas con inconsistencias o errores detectados |
+| `get_facturas_con_errores` | Facturas con incoherencias: total cero, signo que no corresponde a una rectificativa, total que no cuadra con sus componentes, beneficio negativo… |
 | `get_facturas_margen_negativo` | Facturas cuyo coste supera el precio de venta |
 | `get_dso` | DSO (Days Sales Outstanding): media de días hasta cobrar una factura |
 | `get_aging_cobros` | Antigüedad de saldos pendientes de cobro agrupados por tramos |
@@ -170,6 +178,7 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 | `get_ventas_por_almacen` | Ventas agrupadas por almacén |
 | `get_ventas_por_serie` | Ventas agrupadas por serie de facturación |
 | `get_ventas_por_forma_pago` | Ventas agrupadas por forma de pago |
+| `get_ventas_por_zona` | Ventas de un periodo por provincia, ciudad o país, con base imponible, total y clientes |
 | `get_compras_por_familia` | Compras agrupadas por familia de producto |
 | `get_top_proveedores_compras` | Proveedores con mayor volumen de compras |
 | `get_comparativa_ventas_periodos` | Comparativa de ventas entre dos períodos |
@@ -178,9 +187,9 @@ Las herramientas `get_*` que exponen parámetros de filtro (`codcliente`, `idfac
 | `get_stock_muerto` | Productos sin movimiento durante el período indicado |
 | `get_valoracion_inventario` | Valoración del inventario al precio de coste |
 | `get_funnel_ventas` | Embudo de ventas: presupuestos → pedidos → albaranes → facturas |
-| `get_albaranclientes_pendientes_facturar` | Albaranes de cliente pendientes de convertir en factura |
-| `get_pedidos_pendientes_servir` | Pedidos de cliente sin albarán asignado |
-| `get_presupuestos_pendientes` | Presupuestos sin convertir en pedido o rechazados |
+| `get_albaranes_pendientes_facturar` | Albaranes de cliente pendientes de convertir en factura, con neto y total; filtrable por cliente |
+| `get_pedidos_pendientes_servir` | Pedidos de cliente sin albarán ni factura, con neto y total; filtrable por cliente |
+| `get_presupuestos_pendientes` | Presupuestos sin convertir, con neto y total y los vencidos; filtrable por cliente |
 | `get_pagos_pendientes_proveedor` | Facturas de proveedor pendientes de pago |
 | `get_tiempo_beneficios_cliente` | Evolución histórica del margen por cliente |
 | `get_tiempo_beneficios_todos_clientes` | Evolución histórica del margen agregado de todos los clientes |
@@ -235,6 +244,7 @@ Todas siguen las mismas reglas:
 - Los `set_estado_*` y `set_fase_*` aceptan el id o el nombre del estado o la fase.
 - Los informes leen todos los registros que cumplen los filtros (hasta 20 000) y avisan si hay más.
 - El servidor no lanza más de 4 peticiones simultáneas contra una misma instalación (las demás esperan turno), para no agotar los procesos PHP de hostings pequeños con las fichas e informes que leen varios recursos a la vez.
+- Si la instalación responde HTTP 429 (límite de peticiones por minuto de la API), las lecturas se reintentan tras esperar 5, 15 y 30 segundos. Las escrituras no se reintentan, y tampoco cuando la API avisa de que ha bloqueado la IP durante varios minutos: en ese caso hay que esperar a que pase el bloqueo.
 - La API no tiene usuario de sesión: los campos de usuario (`nick`, `asignado`) hay que indicarlos cuando hacen falta.
 
 ### Servicios (SAT)
@@ -247,7 +257,7 @@ Todas siguen las mismas reglas:
 | Máquinas | `get_maquinas_at`, `get_historial_maquina_at`, `create_maquina_at`, `update_maquina_at`, `delete_maquina_at` |
 | Checklists | `get_categorias_at`, `get_checks_at` y sus `create_*`, `update_*` y `delete_*`; `get_servicio_categorias_at`, `create_servicio_categoria_at`, `delete_servicio_categoria_at`, `get_servicio_checks_at`, `update_servicio_check_at` |
 | Historial | `get_servicio_at_logs` |
-| Informes | `get_informe_servicios_at` (por estado, prioridad, tipo, asignado, agente, mes y cliente), `get_servicios_at_pendientes` (abiertos por antigüedad), `get_trabajos_at_pendientes` (trabajos por facturar, albaranar o presupuestar), `get_horas_trabajos_at` (horas por usuario y agente) |
+| Informes | `get_informe_servicios_at` (por estado, prioridad, tipo, asignado, agente, mes y cliente), `get_servicios_at_pendientes` (abiertos por antigüedad), `get_trabajos_at_pendientes` (trabajos por facturar, albaranar o presupuestar, con los trabajos sin precio aparte), `get_horas_trabajos_at` (horas por usuario y agente), `get_tiempos_resolucion_at` (días hasta el cierre según el historial, por prioridad, tipo, asignado y mes) |
 
 Los presupuestos, albaranes y facturas de un servicio no se pueden generar por la API: se marcan los trabajos con la acción (`estado` 1, 3 o 5) y el documento se genera desde la ficha del servicio en FacturaScripts.
 
@@ -260,7 +270,7 @@ Los presupuestos, albaranes y facturas de un servicio no se pueden generar por l
 | Estados y fases | `get_estados_proyecto`, `get_fases_tarea` y sus `create_*`, `update_*` y `delete_*` |
 | Notas y usuarios | `get_notas_proyecto`, `create_nota_proyecto`, `update_nota_proyecto`, `delete_nota_proyecto`, `get_usuarios_proyecto`, `create_usuario_proyecto`, `delete_usuario_proyecto` |
 | Documentos y stock | `get_documentos_proyecto`, `set_proyecto_documento` (vincular o desvincular un documento de compra o venta), `get_stock_proyecto` |
-| Informes | `get_informe_proyectos` (por estado, cliente, responsable y mes), `get_rentabilidad_proyectos` (ventas, compras y margen por proyecto), `get_informe_tareas_proyecto` (por fase, usuario y proyecto), `get_tareas_proyecto_vencidas` |
+| Informes | `get_informe_proyectos` (por estado, cliente, responsable y mes), `get_rentabilidad_proyectos` (ventas, compras y margen por proyecto, con impuestos; el pendiente de facturar, sin impuestos), `get_informe_tareas_proyecto` (por fase, usuario y proyecto), `get_tareas_proyecto_vencidas` |
 
 ### CRM
 

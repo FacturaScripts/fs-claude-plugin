@@ -8,6 +8,7 @@ import { fsClient } from '../../fs/client.js';
 import { parseFsDate } from '../../utils/fsDate.js';
 import { fetchAllPaginated, idsFacturasPorEjercicio } from '../../utils/paginate.js';
 import { extendedAnalyticsTools, handleExtendedAnalyticsTool } from './kpis-extended.js';
+import { fiscalAnalyticsTools, handleFiscalAnalyticsTool } from './fiscal.js';
 
 interface ClienteMoroso {
   codcliente: string;
@@ -136,7 +137,7 @@ export const analyticsTools: Tool[] = [
   },
   {
     name: 'get_clientes_perdidos',
-    description: 'Obtiene clientes que no han comprado en N meses',
+    description: 'Clientes activos que compraron alguna vez pero no en los últimos N meses, con su última compra y los días desde entonces. Los que nunca compraron están en get_clientes_sin_compras.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -154,7 +155,7 @@ export const analyticsTools: Tool[] = [
   },
   {
     name: 'get_clientes_sin_compras',
-    description: 'Obtiene clientes que nunca han realizado compras',
+    description: 'Clientes que nunca han realizado compras (sin ninguna factura), con sus datos de contacto, fecha de alta y si están de baja.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -288,7 +289,7 @@ export const analyticsTools: Tool[] = [
   },
   {
     name: 'get_facturas_con_errores',
-    description: 'Obtiene facturas con posibles errores (total 0, anuladas con pagos, etc.)',
+    description: 'Facturas de cliente con posibles errores: total cero, total negativo sin ser rectificativa (o positivo siéndolo), IVA negativo, total que no cuadra con base, suplidos, IVA, recargo e IRPF, beneficio negativo y pagada y vencida a la vez.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -388,6 +389,7 @@ export const analyticsTools: Tool[] = [
 export async function registerAnalyticsTools(tools: Map<string, Tool>): Promise<void> {
   analyticsTools.forEach((tool) => tools.set(tool.name, tool));
   extendedAnalyticsTools.forEach((tool) => tools.set(tool.name, tool));
+  fiscalAnalyticsTools.forEach((tool) => tools.set(tool.name, tool));
 }
 
 /**
@@ -455,7 +457,7 @@ export async function handleAnalyticsTool(
             }
 
             case 'get_clientes_perdidos': {
-              // Definición: cliente perdido = existe en /clientes pero no tiene factura con `fecha >= now - meses`.
+              // Definición: cliente perdido = cliente activo que compró alguna vez pero no tiene factura con `fecha >= now - meses`.
               const connection = input.connection as string;
               const meses = (input.meses as number) || 12;
 
@@ -470,47 +472,32 @@ export async function handleAnalyticsTool(
                 fetchAllPaginated<any>('/facturaclientes', {}, connection),
               ]);
 
-              // Agrupar códigos de clientes que compraron en el período
-              const clientesConCompras = new Set<string>();
+              // Última compra de cada cliente, en una sola pasada por las facturas
+              const ultimaCompraPorCliente = new Map<string, { fecha: string; instante: number }>();
               for (const factura of facturas as any[]) {
-                const fechaFactura = parseFsDate(factura.fecha);
-                if (fechaFactura >= fechaLimite) {
-                  clientesConCompras.add(factura.codcliente);
+                const instante = parseFsDate(factura.fecha).getTime();
+                if (!Number.isFinite(instante)) continue;
+                const actual = ultimaCompraPorCliente.get(factura.codcliente);
+                if (!actual || actual.instante < instante) {
+                  ultimaCompraPorCliente.set(factura.codcliente, { fecha: factura.fecha, instante });
                 }
               }
 
-              // Clientes perdidos: están en clientes pero no compraron en N meses
+              // Clientes perdidos: compraron alguna vez, pero no en los últimos N meses. Los que
+              // nunca compraron son de get_clientes_sin_compras y los dados de baja no se cuentan.
               const clientesPerdidos: ClientePerdido[] = [];
               for (const cliente of clientes as any[]) {
-                if (!clientesConCompras.has(cliente.codcliente)) {
-                  // Buscar última compra
-                  let ultimaCompra: string | null = null;
-                  let diasSinCompras = Infinity;
+                if (cliente.debaja === true || cliente.debaja === 1 || cliente.debaja === '1') continue;
+                const ultima = ultimaCompraPorCliente.get(cliente.codcliente);
+                if (!ultima || ultima.instante >= fechaLimite.getTime()) continue;
 
-                  for (const factura of facturas as any[]) {
-                    if (factura.codcliente === cliente.codcliente) {
-                      const fechaFactura = parseFsDate(factura.fecha);
-                      if (!ultimaCompra || parseFsDate(ultimaCompra) < fechaFactura) {
-                        ultimaCompra = factura.fecha;
-                      }
-                    }
-                  }
-
-                  if (ultimaCompra) {
-                    const días = Math.floor(
-                      (ahora.getTime() - parseFsDate(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24),
-                    );
-                    diasSinCompras = días;
-                  }
-
-                  clientesPerdidos.push({
-                    codcliente: cliente.codcliente,
-                    nombre: cliente.nombre,
-                    email: cliente.email,
-                    ultimaCompra,
-                    diasSinCompras,
-                  });
-                }
+                clientesPerdidos.push({
+                  codcliente: cliente.codcliente,
+                  nombre: cliente.nombre,
+                  email: cliente.email,
+                  ultimaCompra: ultima.fecha,
+                  diasSinCompras: Math.floor((ahora.getTime() - ultima.instante) / (1000 * 60 * 60 * 24)),
+                });
               }
 
               return {
@@ -539,10 +526,19 @@ export async function handleAnalyticsTool(
                 clientesConFacturas.add(factura.codcliente);
               }
 
-              // Filtrar clientes sin facturas
-              const clientesSinCompras = (clientes as any[]).filter(
-                (cliente) => !clientesConFacturas.has(cliente.codcliente),
-              );
+              // Filtrar clientes sin facturas y devolver solo los datos de contacto y de alta:
+              // la ficha completa de cada cliente hacía la respuesta enorme en instalaciones grandes
+              const clientesSinCompras = (clientes as any[])
+                .filter((cliente) => !clientesConFacturas.has(cliente.codcliente))
+                .map((cliente) => ({
+                  codcliente: cliente.codcliente,
+                  nombre: cliente.nombre,
+                  cifnif: cliente.cifnif ?? null,
+                  email: cliente.email ?? null,
+                  telefono1: cliente.telefono1 ?? null,
+                  fechaalta: cliente.fechaalta ?? null,
+                  debaja: cliente.debaja ?? false,
+                }));
 
               return {
                 content: [{ type: 'text' as const, text: JSON.stringify(clientesSinCompras, null, 2) }],
@@ -848,7 +844,8 @@ export async function handleAnalyticsTool(
 
             case 'get_facturas_con_errores': {
               // Definición: facturas con inconsistencias detectables sobre las columnas de la cabecera:
-              // total<=0, totaliva<0, neto>total, totalbeneficio negativo, factura no editable y sin numero.
+              // total cero, signo incoherente con ser o no rectificativa, total que no cuadra con sus componentes,
+              // beneficio negativo y pagada y vencida a la vez.
               const connection = input.connection as string;
 
               // Obtener todas las facturas (paginación completa)
@@ -864,27 +861,46 @@ export async function handleAnalyticsTool(
                 const errores: string[] = [];
                 const detalles: Record<string, unknown> = {};
 
-                // Total no positivo
-                if ((factura.total ?? 0) <= 0) {
-                  errores.push('Total cero o negativo');
+                // Las rectificativas (idfacturarect informado) tienen importes negativos
+                // por diseño: no se marcan por eso, pero sí si su total es positivo.
+                const rectificativa = factura.idfacturarect !== null && factura.idfacturarect !== undefined
+                  && factura.idfacturarect !== '' && Number(factura.idfacturarect) !== 0;
+                const total = Number(factura.total) || 0;
+
+                if (total === 0) {
+                  errores.push('Total cero');
                   detalles.total = factura.total;
+                } else if (!rectificativa && total < 0) {
+                  errores.push('Total negativo sin ser rectificativa');
+                  detalles.total = factura.total;
+                } else if (rectificativa && total > 0) {
+                  errores.push('Rectificativa con total positivo');
+                  detalles.total = factura.total;
+                  detalles.idfacturarect = factura.idfacturarect;
                 }
 
                 // IVA negativo (la columna real es totaliva, no iva)
-                if ((factura.totaliva ?? 0) < 0) {
+                if (!rectificativa && (factura.totaliva ?? 0) < 0) {
                   errores.push('IVA total negativo');
                   detalles.totaliva = factura.totaliva;
                 }
 
-                // Neto mayor que total (sin IVA): contradicción aritmética
-                if ((factura.neto ?? 0) > (factura.total ?? 0)) {
-                  errores.push('Neto mayor que total');
+                // El total debe ser base + suplidos + IVA + recargo − IRPF (como el Calculator del core);
+                // comparar solo neto y total fallaría con retenciones o en rectificativas
+                const componentes = (Number(factura.neto) || 0) + (Number(factura.totalsuplidos) || 0)
+                  + (Number(factura.totaliva) || 0) + (Number(factura.totalrecargo) || 0) - (Number(factura.totalirpf) || 0);
+                if (Math.abs(componentes - total) > 0.02) {
+                  errores.push('El total no cuadra con base, suplidos, IVA, recargo e IRPF');
                   detalles.neto = factura.neto;
+                  detalles.totalsuplidos = factura.totalsuplidos;
+                  detalles.totaliva = factura.totaliva;
+                  detalles.totalrecargo = factura.totalrecargo;
+                  detalles.totalirpf = factura.totalirpf;
                   detalles.total = factura.total;
                 }
 
-                // Beneficio negativo: vendida por debajo de coste
-                if ((factura.totalbeneficio ?? 0) < 0) {
+                // Beneficio negativo: vendida por debajo de coste (en una rectificativa es lo normal)
+                if (!rectificativa && (factura.totalbeneficio ?? 0) < 0) {
                   errores.push('Beneficio negativo (vendida bajo coste)');
                   detalles.totalbeneficio = factura.totalbeneficio;
                   detalles.totalcoste = factura.totalcoste;
@@ -1156,7 +1172,7 @@ export async function handleAnalyticsTool(
             }
 
       default:
-        return await handleExtendedAnalyticsTool(name, args);
+        return (await handleExtendedAnalyticsTool(name, args)) ?? (await handleFiscalAnalyticsTool(name, args));
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
