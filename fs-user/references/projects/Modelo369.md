@@ -3,13 +3,13 @@ idproject: 614
 name: Modelo369
 permalink: modelo369
 creationdate: 01-06-2026
-lastmod: 19-06-2026
+lastmod: 16-11-2026
 version: 1
-betaversion: 0
+betaversion: 1.1
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo369

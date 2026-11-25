@@ -3,11 +3,11 @@ idproject: 788
 name: zAnticiposPlantillasPDF
 permalink: zanticiposplantillaspdf
 creationdate: 07-09-2026
-lastmod: 07-10-2026
-version: 1.2
+lastmod: 09-11-2026
+version: 1.23
 betaversion: 0
 mincore: 2026.5
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: PlantillasPDF,zAnticipos
@@ -16,10 +16,10 @@ url: https://facturascripts.com/plugins/zAnticiposPlantillasPDF
 ---
 🌟 ¿QUÉ ES zAnticiposPlantillasPDF Y CÓMO TRANSFORMA TU FACTURASCRIPTS?
 
-**zAnticiposPlantillasPDF** es el complemento de integración visual que une la potencia contable de **zAnticipos** con el motor gráfico de **PlantillasPDF**. Permite reflejar con máxima fidelidad y elegancia tanto el **resumen de anticipos aplicados y saldos pendientes** en la caja de totales como la **tabla de desglose de pagos fraccionados** en el pie de página de las 5 plantillas de PlantillasPDF, garantizando documentos comerciales claros, transparentes y libres de fricciones de cobro.
+**zAnticiposPlantillasPDF** es el complemento de integración visual que une la potencia contable de **zAnticipos** con el motor gráfico de **PlantillasPDF**. Permite reflejar con máxima fidelidad y elegancia tanto el **resumen de anticipos aplicados y saldos pendientes** en la caja de totales como la **tabla de desglose de pagos fraccionados** en el pie de página de las 6 plantillas de PlantillasPDF, garantizando documentos comerciales claros, transparentes y libres de fricciones de cobro.
 
-### 🎨 1. Integración Nativa en las 5 Plantillas de PlantillasPDF
-* **Adaptación arquitectónica a cada estilo:** Inyección milimétrica en sus 5 plantillas.
+### 🎨 1. Integración Nativa en las 6 Plantillas de PlantillasPDF
+* **Adaptación arquitectónica a cada estilo:** Inyección milimétrica en sus 6 plantillas.
 * **Fidelidad cromática y tipográfica:** Respeta los colores, tipografías y anchos de caja de tus formatos sin desbordamientos de texto.
 * **Sustitución inteligente del pie:** Reemplaza la forma de pago tradicional por la tabla detallada de cobros de anticipos con fechas y saldo pendiente de la operación.
 * 🔗 *[Ver guía de plantillas y configuración →](https://facturascripts.com/publicaciones/1-puesta-en-marcha-configuracion-multicanal-y-plantillas-pdf#tag-publication-title)*

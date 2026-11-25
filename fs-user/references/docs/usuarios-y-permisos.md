@@ -3,12 +3,12 @@ id: 950
 permalink: usuarios-y-permisos
 title: Usuarios y permisos
 creationdate: 17-07-2021 09:27:33
-lastmod: 03-09-2026
+lastmod: 04-11-2026
 url: https://facturascripts.com/publicaciones/usuarios-y-permisos
 ---
 Para usar FacturaScripts es necesario un usuario y contraseña, así se evita que cualquiera pueda acceder a sus datos. Puede gestionar la lista de usuarios de FacturaScripts desde el **menú Administrador** → **Usuarios**.
 
-![listado de usuarios](https://facturascripts.com/MyFiles/2023/12/1852.png?myft=5ba3b3c7c4a9716be7c19d5e44a86386b43250ca)
+![listado de usuarios](https://facturascripts.com/MyFiles/2026/11/7963_captura_de_pantalla_20261104_075754.png?myft=420c2adf04c53a1a14451dfdf61a75344dc79ea4)
 
 Esta ficha explica los usuarios. La configuración de accesos se reparte en tres fichas más:
 
@@ -22,7 +22,7 @@ Su instalación de FacturaScripts es **totalmente independiente** de facturascri
 ## 👤 Crear un usuario
 Puede crear tantos usuarios como necesite desde el **menú Administrador** → **Usuarios**. Todo lo que necesita indicar es un nick o apodo, y una contraseña, que tendrá que repetir para evitar errores. Una vez creado, el usuario podrá entrar al programa usando ese usuario y contraseña.
 
-![crear o añadir nuevo usuario](https://i.imgur.com/FP71JBY.png)
+![crear o añadir nuevo usuario](https://facturascripts.com/MyFiles/2026/11/7965_ajustes.png?myft=2607cb2ae0707e6602decb1939d17a75f7a91e45)
 
 Además del **nick** y la **contraseña**, puede indicar un email y una serie de opciones predeterminadas para ese usuario (algunas aparecen una vez guardado el nuevo usuario):
 

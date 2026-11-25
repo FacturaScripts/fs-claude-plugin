@@ -3,11 +3,11 @@ idproject: 240
 name: FirmarDocumentos
 permalink: firmardocumentos
 creationdate: 09-08-2022
-lastmod: 30-07-2026
+lastmod: 05-11-2026
 version: 1
-betaversion: 0
+betaversion: 1.1
 mincore: 2026.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

@@ -3,8 +3,8 @@ idproject: 669
 name: TPVRetailFS
 permalink: tpvretailfs
 creationdate: 04-07-2026
-lastmod: 10-10-2026
-version: 2.1
+lastmod: 10-11-2026
+version: 2.2
 betaversion: 0
 mincore: 2026
 maxcore: 2026.7

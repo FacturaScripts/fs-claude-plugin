@@ -3,25 +3,33 @@ idproject: 706
 name: AutoEnvioFacturas
 permalink: autoenviofacturas
 creationdate: 10-07-2026
-lastmod: 10-07-2026
-version: 1
+lastmod: 05-11-2026
+version: 1.2
 betaversion: 0
-mincore: 2026
-maxcore: 2026.7
+mincore: 2026.65
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/AutoEnvioFacturas
 ---
-Envía por email las facturas de cliente en cuanto las emites, sin que tengas que acordarte de darle al botón. El plugin revisa cada minuto las facturas ya emitidas, adjunta el PDF y las manda al contacto de facturación (o, si no lo hay, al email del cliente). Los bocetos nunca se envían.
+Envía **automáticamente por email** cada factura de cliente que emites, con su **PDF adjunto**, sin tocar un botón. Y si trabajas con **Verifactu**, el email no sale hasta que el **QR** ya está en el PDF.
 
-Y lo más importante si trabajas con la ley antifraude: es compatible con el plugin oficial Verifactu. En ejercicios en modo Verifactu, el email solo sale cuando la factura ya está registrada y el QR ya figura en el PDF. Nunca se escapa una factura sin QR.
+AutoEnvioFacturas revisa cada minuto las facturas emitidas y las manda al **contacto de facturación** del cliente (o, si no tiene, al email del cliente). Los **bocetos nunca se envían**, y cada factura sale **una sola vez**, también si alguien la manda a mano con el botón de enviar.
 
-Lo configuras una vez y se olvida el tema. Eliges desde qué fecha empezar, cuántos emails salen por ejecución, un pequeño margen de gracia antes de enviar (por si rectificas algo recién emitido) y una copia oculta opcional. El cuerpo del email es una notificación editable con marcadores {name}, {code}, {date}, {total} y {company}.
+**Características principales:**
 
-Trae garantía de no duplicados: usa el mismo campo que el botón de &quot;enviar&quot; manual, así que envío automático y envío a mano se respetan entre sí. Si un envío falla, reintenta hasta 3 veces y lo deja registrado. Todo el historial —una fila por factura, con su estado— queda a la vista en Administrador → Email.
+- **Envío automático por cron**: las facturas emitidas salen solas, cada minuto, con el PDF en el formato de impresión predeterminado.
+- **Compatible con Verifactu**: en ejercicios en modo Verifactu, solo se envía la factura ya registrada, con su QR en el PDF. Nunca una anulada.
+- **Margen antes de enviar**: unos minutos de cortesía (1 por defecto) para corregir una factura recién emitida antes de que salga.
+- **Email editable**: asunto y texto con marcadores `{name}`, `{code}`, `{date}`, `{total}`, `{company}`, `{email}` y, desde la 1.2, `{payment_method}` (forma de pago), `{due_date}` (vencimiento) y `{bank_account}` (cuenta para el pago), desde Administrador → Email → Notificaciones. La lista completa está en la propia pestaña de ajustes.
+- **Historial de envíos con colores**: una fila por factura con su estado (enviado, error, sin email, programado, reenvío, esperando Verifactu) y el **motivo real** de cada fallo.
+- **Repetir y Reenvío**: reintenta los envíos fallidos o reenvía una factura ya enviada desde el propio historial, sin tocar la base de datos.
+- **Reintentos controlados**: hasta 3 intentos por factura ante fallos de correo, y avisos claros en Administrador → Logs.
+- **Nunca dos veces**: aunque el cron se lance dos veces a la vez o falle algo al marcar la factura como enviada, cada factura sale una sola vez. Y las facturas bloqueadas (sin email, esperando a Verifactu) nunca retrasan a las demás.
+- **Copia oculta (CCO)** opcional, **límite de emails por pasada** y **fecha de inicio** para no enviar facturas antiguas.
 
-Instalación inmediata: copia, activa, marca la fecha de inicio y enciende el interruptor. Viene desactivado de fábrica para que no salga nada hasta que tú lo decidas.
+**Listo en dos minutos**: se instala desactivado. Eliges desde qué fecha enviar, marcas *Activo* y guardas. Todo se configura dentro de **Administrador → Email**, en dos pestañas nuevas: *Envío de facturas por email* e *Historial de envíos*.
 
-Requisitos: FacturaScripts 2026 o superior · PHP 8.1+ · cuenta de email de salida configurada · cron del servidor. Compatible con el plugin Verifactu oficial.
+**Requisitos:** FacturaScripts 2026.65 o superior (probado en 2026.7, 2026.71 y 2026.72), PHP 8.1 o superior, una cuenta de email configurada en Administrador → Email y el cron del servidor ejecutándose cada minuto. Para el flujo con QR, el plugin oficial Verifactu.

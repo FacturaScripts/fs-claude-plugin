@@ -3,14 +3,14 @@ id: 705
 permalink: migracion-de-plugins-de-2015-2017-822
 title: Migración de plugins antiguos
 creationdate: 27-05-2018 00:00:00
-lastmod: 09-08-2026
+lastmod: 25-11-2026
 url: https://facturascripts.com/publicaciones/migracion-de-plugins-de-2015-2017-822
 ---
 No existe el código perfecto. Crear un framework con nuevas funciones que sea compatible hacia atrás por los siglos de los siglos es el santo grial de los informáticos. Hasta ahora, nadie lo ha conseguido, y cada cierto tiempo es necesario romper la compatibilidad con plugins antiguos, a veces poco y otras, mucho.
 
 ## 🧰 fsmaker
 Tenemos una herramienta en línea de comandos para simplificar el desarrollo de plugins y, entre las muchas opciones que tiene, está la opción `upgrade`, para hacer automáticamente los cambios necesarios para adaptar el plugin a la última versión de FacturaScripts:
-- https://facturascripts.com/fsmaker
+- [fsmaker](https://facturascripts.com/fsmaker)
 
 ## ⚙️ Cambios en la v2026
 - El requisito mínimo es ahora PHP 8.1.

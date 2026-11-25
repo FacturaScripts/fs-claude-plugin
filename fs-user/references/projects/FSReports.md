@@ -3,11 +3,11 @@ idproject: 123
 name: FSReports
 permalink: fsreports
 creationdate: 28-05-2021
-lastmod: 18-10-2026
-version: 6.1
+lastmod: 15-11-2026
+version: 8
 betaversion: 5.2
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

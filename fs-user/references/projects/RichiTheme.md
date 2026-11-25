@@ -3,11 +3,11 @@ idproject: 532
 name: RichiTheme
 permalink: richitheme
 creationdate: 17-01-2026
-lastmod: 01-08-2026
-version: 1.4
+lastmod: 20-10-2026
+version: 1.5
 betaversion: 1.1
-mincore: 2025
-maxcore: 2026.7
+mincore: 2025.4
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

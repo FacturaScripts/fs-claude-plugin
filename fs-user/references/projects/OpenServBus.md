@@ -3,11 +3,11 @@ idproject: 131
 name: OpenServBus
 permalink: openservbus
 creationdate: 01-07-2021
-lastmod: 07-07-2026
-version: 4
+lastmod: 18-11-2026
+version: 4.05
 betaversion: 3.3
 mincore: 2026
-maxcore: 2026.3
+maxcore: 2026.72
 compatible: CSVimport,BuscadorAcumulado
 min_php: 8
 require: 

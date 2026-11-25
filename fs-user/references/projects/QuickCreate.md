@@ -3,11 +3,11 @@ idproject: 538
 name: QuickCreate
 permalink: quickcreate
 creationdate: 01-02-2026
-lastmod: 22-09-2026
-version: 7.3
+lastmod: 22-11-2026
+version: 7.4
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

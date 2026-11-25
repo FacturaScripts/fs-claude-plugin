@@ -7,7 +7,7 @@ lastmod: 30-03-2026
 version: 1.3
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: CRM

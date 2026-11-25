@@ -3,10 +3,10 @@ id: 2149
 permalink: como-hacer-una-factura-rectificativa-por-api
 title: Cómo hacer una factura rectificativa por API
 creationdate: 18-06-2025 18:55:50
-lastmod: 01-10-2026
+lastmod: 17-11-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-rectificativa-por-api
 ---
-Desde la versión `2024.94` de FacturaScripts es posible crear facturas rectificativas de cliente con una sola petición a la API, utilizando el endpoint `crearFacturaRectificativaCliente`. Se puede rectificar la factura completa o solo algunas de sus líneas, y en cada línea la cantidad que quieras.
+Desde la versión `2024.94` de FacturaScripts es posible crear facturas rectificativas de cliente con una sola petición a la API, utilizando el endpoint `crearFacturaRectificativaCliente`. Se puede rectificar la factura completa o solo algunas de sus líneas, y en cada línea la cantidad que quieras, sin superar nunca lo que quede pendiente de rectificar.
 
 ```plaintext
 POST /api/3/crearFacturaRectificativaCliente
@@ -36,7 +36,19 @@ Campos que admite:
 - `refund_IDLINEA`: cantidad a rectificar de la línea con ese `idlinea` (opcional, ver más abajo).
 - `codserie`: serie de la rectificativa (opcional; por defecto, la de la factura original).
 - `idestado`: estado de la rectificativa (opcional; por defecto, el mismo estado que la factura original).
+- `motivorect`: motivo de la rectificación (opcional, desde la versión `2026.72`; ver más abajo).
 - `nick` y `observaciones`: usuario y observaciones de la rectificativa (opcionales).
+
+### 📝 Motivo de la rectificación
+
+Desde la versión `2026.72` puedes indicar el motivo de la rectificación en el campo `motivorect`. Se guarda en la rectificativa y es el mismo que se elige en el desplegable **Motivo de la rectificación** al crearla desde la web. Los valores disponibles por defecto son:
+
+- `ES_80_1_2_6`: Art. 80 Uno, Dos y Seis LIVA o error fundado en derecho (devoluciones, descuentos, cambios de precio).
+- `ES_80_3`: Art. 80 Tres LIVA, concurso de acreedores.
+- `ES_80_4`: Art. 80 Cuatro LIVA, créditos incobrables.
+- `ES_OTHER`: otras causas.
+
+Algunos plugins pueden añadir o quitar motivos. Si no envías `motivorect`, la rectificativa queda sin motivo. Si envías un valor que no está disponible, la API responde con `400` y no crea la rectificativa.
 
 ### 🔢 Elegir qué líneas rectificar
 
@@ -50,10 +62,28 @@ GET /api/3/lineafacturaclientes?filter[idfactura]=1234
 
 Cómo se interpretan los campos `refund_`:
 
-- La cantidad se indica en **positivo**: la API la convierte en negativo en la rectificativa.
+- La cantidad se indica en **positivo**. La línea de la rectificativa siempre lleva el signo contrario al de la línea original: si la original es positiva queda en negativo, y si la original es negativa (por ejemplo, un descuento) queda en positivo.
 - Solo se incluyen en la rectificativa las líneas con un `refund_` distinto de cero.
-- Si no envías ningún `refund_` (o todos valen cero), se rectifica la **factura completa**: todas las líneas con su cantidad original.
+- Si no envías ningún `refund_` (o todos valen cero), se rectifica todo lo que **quede pendiente** de cada línea. Si la factura no tiene rectificativas anteriores, equivale a rectificar la factura completa.
 - Desde la versión `2026.7`, si envías un `refund_` que no corresponde a ninguna línea de esa factura, la API responde con `400` indicando la clave incorrecta y no crea la rectificativa. En versiones anteriores, si ninguna clave coincidía, se rectificaba la factura completa.
+
+### 🧮 Cantidad pendiente de rectificar
+
+Una misma factura puede rectificarse varias veces (por ejemplo, devoluciones parciales en días distintos), pero desde la versión `2026.8` la API controla cuánto se ha rectificado ya de cada línea:
+
+- La cantidad de un `refund_` no puede superar lo pendiente de esa línea, es decir, su cantidad original menos lo ya rectificado en rectificativas anteriores. En las líneas con cantidad negativa se comparan los valores absolutos.
+- Si alguna línea se pasa, la API responde con `400` indicando la línea, la cantidad pedida y la pendiente, y **no crea la rectificativa** (tampoco con el resto de líneas).
+- Si no envías ningún `refund_` y ya no queda nada pendiente en ninguna línea, la API responde con `400` en lugar de crear una rectificativa vacía o duplicada.
+
+Por ejemplo, con una línea de 4 unidades:
+
+1. `refund_1534 = 1` → se crea una rectificativa de −1 (quedan 3 pendientes).
+2. `refund_1534 = 2` → se crea una rectificativa de −2 (queda 1 pendiente).
+3. `refund_1534 = 2` → `400`: supera la unidad pendiente.
+4. Sin `refund_` → se crea una rectificativa de −1, lo último pendiente.
+5. Sin `refund_` otra vez → `400`: no queda nada por rectificar.
+
+En versiones anteriores a la `2026.8` no se hacía esta comprobación: se podía rectificar más de lo facturado y, sin `refund_`, cada llamada volvía a rectificar la factura completa aunque ya tuviera rectificativas. Si usas una de esas versiones, comprueba antes lo ya rectificado (ver más abajo cómo consultarlo).
 
 Ejemplo de petición para devolver 2 unidades de una sola línea:
 
@@ -65,6 +95,7 @@ Ejemplo de petición para devolver 2 unidades de una sola línea:
 	- idfactura: 1234
 	- fecha: 2026-10-01
 	- refund_1534: 2
+	- motivorect: ES_80_1_2_6
 
 📷 Resultado de la rectificación:
 
@@ -72,6 +103,7 @@ Ejemplo de petición para devolver 2 unidades de una sola línea:
 
 ### ⚙️ Qué hace la API al rectificar
 
+- Comprueba la cantidad pendiente de cada línea antes de tocar nada; si alguna no es válida, responde con el error y no modifica ninguna factura.
 - Si la factura original todavía es editable, la pasa al primer estado activo no editable (por ejemplo, **Emitida**), ya que una factura rectificada no debe poder modificarse.
 - Crea la nueva factura rectificativa, que referencia a la original mediante los campos `idfacturarect` (el `idfactura` de la original) y `codigorect` (su código). Cada línea de la rectificativa guarda en `idlinearect` el `idlinea` de la línea original.
 - Asigna a la rectificativa el `idestado` indicado o, si no se indica, el estado de la factura original. Desde la versión `2026.7` esto también se aplica cuando no se envía `idestado`; en versiones anteriores la rectificativa quedaba sin estado y no actualizaba el stock, así que en ellas conviene enviarlo siempre.
@@ -96,7 +128,7 @@ Si todo va bien, la API responde con código HTTP `200` y un objeto JSON con la 
 
 Si algo falla, devuelve un objeto con `status` a `error` y un `message` con el detalle:
 
-- `400` si falta `idfactura` o `fecha`, si la factura original ya es una rectificativa o si algún `refund_` no corresponde a una línea de la factura.
+- `400` si falta `idfactura` o `fecha`, si la factura original ya es una rectificativa, si el `motivorect` no es válido, si algún `refund_` no corresponde a una línea de la factura, si la cantidad de algún `refund_` supera lo pendiente de rectificar de su línea o si no queda nada pendiente de rectificar.
 - `404` si la factura original no existe.
 - `405` si el método no es POST ni PUT.
 
@@ -108,6 +140,12 @@ Para comprobar si una factura ha sido rectificada, busca las facturas cuyo `idfa
 
 ```plaintext
 GET /api/3/facturaclientes?filter[idfacturarect]=1234
+```
+
+Para saber cuánto se ha rectificado ya de una línea concreta, busca las líneas cuyo `idlinearect` sea su `idlinea` y suma sus cantidades:
+
+```plaintext
+GET /api/3/lineafacturaclientes?filter[idlinearect]=1534
 ```
 
 📷 Ejemplo de listado de facturas rectificadas:

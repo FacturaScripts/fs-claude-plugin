@@ -22,3 +22,5 @@ Las copias de seguridad se pueden programar por periodo, diario, semanal y mensu
 
 Dispone de un visor de la tarea, mostrando el tiempo restante y tiempo transcurrido. 
 También tiene una pequeña configuración de log propio, el cual permite detectar errores, procesos, y consultar las ultimas configuraciones.
+
+Compatible con servidores Linux (Plesk, cPanel, VPS). Windows (XAMPP, WAMP) no está soportado por ahora. Requiere tener programado el cron de FacturaScripts.

@@ -3,11 +3,11 @@ idproject: 191
 name: Comisiones
 permalink: comisiones
 creationdate: 12-03-2022
-lastmod: 20-08-2026
+lastmod: 28-10-2026
 version: 2.4
-betaversion: 1.4
+betaversion: 2.5
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

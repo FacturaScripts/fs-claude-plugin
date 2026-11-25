@@ -7,7 +7,7 @@ lastmod: 17-07-2026
 version: 1.8
 betaversion: 1.4
 mincore: 2026.4
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: StockAvanzado

@@ -3,11 +3,11 @@ idproject: 736
 name: DirectPrint
 permalink: directprint
 creationdate: 22-07-2026
-lastmod: 24-07-2026
-version: 1.02
+lastmod: 29-10-2026
+version: 1.03
 betaversion: 0
-mincore: 2026
-maxcore: 2026.5
+mincore: 2026.5
+maxcore: 2026.7
 compatible: PlantillasPDF
 min_php: 8.1
 require: 

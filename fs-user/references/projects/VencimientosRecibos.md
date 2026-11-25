@@ -3,11 +3,11 @@ idproject: 589
 name: VencimientosRecibos
 permalink: vencimientosrecibos
 creationdate: 01-05-2026
-lastmod: 28-08-2026
-version: 1.2
+lastmod: 20-10-2026
+version: 1.3
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: BuscadorAcumulado
 min_php: 8
 require: 

@@ -7,7 +7,7 @@ lastmod: 02-09-2026
 version: 4.22
 betaversion: 3.02
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: Anticipos,Proyectos,Servicios,Tickets
 min_php: 7.4
 require: 

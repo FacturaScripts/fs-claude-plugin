@@ -3,11 +3,11 @@ idproject: 323
 name: AnticiposPDFCoreDoc
 permalink: anticipospdfcoredoc
 creationdate: 08-09-2023
-lastmod: 02-08-2026
-version: 3.03
+lastmod: 09-11-2026
+version: 3.04
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 7.4
 require: Anticipos

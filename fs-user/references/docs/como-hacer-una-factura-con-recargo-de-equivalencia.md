@@ -3,7 +3,7 @@ id: 1616
 permalink: como-hacer-una-factura-con-recargo-de-equivalencia
 title: Cómo crear una factura con recargo de equivalencia
 creationdate: 30-11-2023 13:22:36
-lastmod: 10-03-2026
+lastmod: 04-11-2026
 url: https://facturascripts.com/publicaciones/como-hacer-una-factura-con-recargo-de-equivalencia
 ---
 El recargo de equivalencia es un impuesto indirecto aplicado a los comerciantes minoristas que venden ciertos productos. El porcentaje del recargo varía según el producto, y comúnmente es del 5,2%.
@@ -33,3 +33,14 @@ Para crear una factura con recargo de equivalencia en FacturaScripts, siga estos
 
 ### Guardar la factura
 Una vez que haya añadido todos los productos o servicios a la factura, haga clic en el botón **Guardar**.
+
+## Notas
+
+- **Compras**: las facturas de compra llevan recargo de equivalencia si **tu empresa** está en ese régimen (menú **Administrador → Empresas**, campo **Régimen impuestos**) o si lo está el **proveedor**. Marcarlo en el proveedor sirve cuando solo una de tus actividades está en recargo de equivalencia.
+- Las operaciones especiales quitan el recargo de las líneas aunque el cliente o la empresa estén en recargo de equivalencia: intracomunitaria, exportación, importación e inversión del sujeto pasivo.
+- El recargo de cada línea sale del impuesto (menú **Contabilidad → Impuestos**, campo **Recargo**). Solo se puede modificar en la línea si el cliente, el proveedor o tu empresa están en recargo de equivalencia.
+
+## Ver también
+
+- [Régimen IVA](https://facturascripts.com/publicaciones/regimen-iva-369)
+- [Configuración de impuestos y retenciones](https://facturascripts.com/publicaciones/impuestos-967)

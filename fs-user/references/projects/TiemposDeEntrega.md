@@ -3,13 +3,13 @@ idproject: 548
 name: TiemposDeEntrega
 permalink: tiemposdeentrega
 creationdate: 21-02-2026
-lastmod: 21-02-2026
-version: 1
+lastmod: 23-10-2026
+version: 1.02
 betaversion: 0
-mincore: 2025.6
-maxcore: 2026.41
+mincore: 2026.6
+maxcore: 2026.7
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/TiemposDeEntrega

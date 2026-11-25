@@ -3,8 +3,8 @@ idproject: 165
 name: ImportadorStripe
 permalink: importadorstripe
 creationdate: 03-12-2021
-lastmod: 06-10-2026
-version: 2
+lastmod: 02-11-2026
+version: 2.1
 betaversion: 1.2
 mincore: 2026
 maxcore: 2026.7

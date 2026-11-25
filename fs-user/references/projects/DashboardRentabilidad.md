@@ -3,11 +3,11 @@ idproject: 794
 name: DashboardRentabilidad
 permalink: dashboardrentabilidad
 creationdate: 18-09-2026
-lastmod: 07-10-2026
-version: 8.2
+lastmod: 23-11-2026
+version: 8.3
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

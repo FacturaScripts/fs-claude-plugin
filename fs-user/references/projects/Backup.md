@@ -3,11 +3,11 @@ idproject: 116
 name: Backup
 permalink: backup
 creationdate: 08-03-2021
-lastmod: 31-08-2026
+lastmod: 10-11-2026
 version: 3.7
-betaversion: 3.2
+betaversion: 3.8
 mincore: 2026.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

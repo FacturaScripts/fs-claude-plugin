@@ -3,11 +3,11 @@ idproject: 294
 name: MegaMod
 permalink: megamod
 creationdate: 28-02-2023
-lastmod: 11-09-2026
+lastmod: 20-11-2026
 version: 1.5
-betaversion: 1.1
+betaversion: 1.51
 mincore: 2026.4
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

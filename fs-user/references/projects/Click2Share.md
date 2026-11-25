@@ -3,11 +3,11 @@ idproject: 777
 name: Click2Share
 permalink: click2share
 creationdate: 01-09-2026
-lastmod: 05-10-2026
-version: 1.01
+lastmod: 02-11-2026
+version: 1.02
 betaversion: 0
 mincore: 2026.3
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

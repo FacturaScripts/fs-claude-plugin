@@ -3,11 +3,11 @@ idproject: 16
 name: FS2017Migrator
 permalink: fs2017migrator
 creationdate: 13-11-2018
-lastmod: 26-06-2026
+lastmod: 24-11-2026
 version: 3.1
-betaversion: 2.9
+betaversion: 3.2
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

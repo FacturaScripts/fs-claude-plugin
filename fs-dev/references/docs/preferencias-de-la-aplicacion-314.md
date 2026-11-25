@@ -3,7 +3,7 @@ id: 693
 permalink: preferencias-de-la-aplicacion-314
 title: Cómo crear preferencias de aplicación para su plugin
 creationdate: 22-10-2018 00:00:00
-lastmod: 12-08-2026
+lastmod: 28-10-2026
 url: https://facturascripts.com/publicaciones/preferencias-de-la-aplicacion-314
 ---
 Si necesita añadir opciones de configuración a su plugin, puede crear su propia sección en el apartado **Por defecto** (menú administrador &gt; panel de control) de FacturaScripts. El controlador que gestiona estas secciones es **EditSettings**, un controlador especial que carga automáticamente una sección para cada archivo XML dentro de **XMLView** cuyo nombre comience con el prefijo **Settings**.
@@ -49,6 +49,25 @@ Los archivos de configuración deben incluir obligatoriamente una columna **name
    &lt;widget type=&quot;text&quot; fieldname=&quot;name&quot; readonly=&quot;true&quot; required=&quot;true&quot; /&gt;
 &lt;/column&gt;
 ```
+
+### Agrupar la sección en el panel de control
+Desde la versión 2026.71, puede mostrar su sección bajo un encabezado del lateral del panel de control indicando el atributo **group** en la etiqueta raíz `&lt;view&gt;` del XML:
+
+```xml
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;view group=&quot;myplugin&quot;&gt;
+    &lt;columns&gt;
+        ...
+    &lt;/columns&gt;
+&lt;/view&gt;
+```
+
+- **Clave de traducción**: el valor de **group** se traduce al mostrar el encabezado con el [sistema de traducciones](https://facturascripts.com/publicaciones/las-traducciones-en-plugins), así que debe ser una clave que exista en las traducciones de su plugin o del core.
+- **Varias secciones en el mismo grupo**: las secciones con la misma clave aparecen juntas bajo el mismo encabezado, también junto a las pestañas que se agrupan desde PHP con [setTabGroup()](https://facturascripts.com/publicaciones/panelcontroller-845).
+- **Sin el atributo**: la sección se muestra como hasta ahora, entre las pestañas sin grupo, que aparecen primero.
+- **Solo en su propio XML**: el atributo se lee del archivo original, por lo que no sirve añadirlo desde una [extensión de XMLView](https://facturascripts.com/publicaciones/extensiones-de-xmlview). Para agrupar una sección del core o de otro plugin, use una extensión del controlador **EditSettings** y llame a `setTabGroup()`.
+
+Como con cualquier cambio en un XML, después de añadir o modificar el atributo debe regenerar la configuración dinámica (menú administrador &gt; Plugins &gt; botón Reconstruir).
 
 ### Leer configuración
 Puede acceder a los valores de cualquiera de los campos de configuración de su plugin utilizando `Tools::settings()` desde cualquier controlador o modelo:

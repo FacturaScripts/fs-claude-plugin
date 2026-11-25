@@ -3,10 +3,10 @@ idproject: 104
 name: Produccion
 permalink: produccion
 creationdate: 19-10-2020
-lastmod: 20-08-2026
-version: 2.12
+lastmod: 30-10-2026
+version: 2.16
 betaversion: 1.61
-mincore: 2026.6
+mincore: 2026.5
 maxcore: 2026.7
 compatible: 
 min_php: 8.1

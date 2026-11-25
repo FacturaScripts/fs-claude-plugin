@@ -3,11 +3,11 @@ idproject: 120
 name: Facturae
 permalink: facturae
 creationdate: 16-05-2021
-lastmod: 31-07-2026
+lastmod: 23-10-2026
 version: 3.51
-betaversion: 2.92
+betaversion: 3.61
 mincore: 2026.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

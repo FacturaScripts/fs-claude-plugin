@@ -3,11 +3,11 @@ idproject: 312
 name: IeMedidas
 permalink: iemedidas
 creationdate: 02-06-2023
-lastmod: 05-08-2026
-version: 2.8
+lastmod: 06-11-2026
+version: 2.9
 betaversion: 2.2
 mincore: 2025.3
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: PlantillasPDF

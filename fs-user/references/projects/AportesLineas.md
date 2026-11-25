@@ -3,12 +3,12 @@ idproject: 604
 name: AportesLineas
 permalink: aporteslineas
 creationdate: 21-05-2026
-lastmod: 06-10-2026
-version: 2.06
+lastmod: 02-11-2026
+version: 3.01
 betaversion: 0
 mincore: 2026.5
-maxcore: 2026.7
-compatible: 
+maxcore: 2026.72
+compatible: Proyectos
 min_php: 7.4
 require: 
 require_php: 

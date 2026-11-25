@@ -3,14 +3,14 @@ idproject: 351
 name: InformesEstadisticos
 permalink: informesestadisticos
 creationdate: 22-01-2024
-lastmod: 09-07-2026
-version: 2.07
+lastmod: 23-10-2026
+version: 2.08
 betaversion: 0
-mincore: 2026
-maxcore: 2026.41
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 8
-require: 
+min_php: 8.1
+require: ExtendedReport
 require_php: 
 url: https://facturascripts.com/plugins/InformesEstadisticos
 ---

@@ -4,10 +4,10 @@ name: PersonalizarEmail
 permalink: personalizaremail
 creationdate: 05-07-2026
 lastmod: 11-09-2026
-version: 1
-betaversion: 1.1
-mincore: 2026.3
-maxcore: 2026.7
+version: 1.1
+betaversion: 0
+mincore: 2026
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

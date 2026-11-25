@@ -3,11 +3,11 @@ idproject: 605
 name: ControlTiempo
 permalink: controltiempo
 creationdate: 21-05-2026
-lastmod: 18-10-2026
-version: 1.4
+lastmod: 04-11-2026
+version: 1.41
 betaversion: 0
-mincore: 2025
-maxcore: 2026.7
+mincore: 2025.71
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

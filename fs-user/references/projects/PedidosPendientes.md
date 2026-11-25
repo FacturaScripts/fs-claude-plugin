@@ -4,9 +4,9 @@ name: PedidosPendientes
 permalink: pedidospendientes
 creationdate: 10-01-2025
 lastmod: 20-08-2026
-version: 2.05
-betaversion: 2.07
-mincore: 2026.4
+version: 2.07
+betaversion: 0
+mincore: 2026.6
 maxcore: 2026.7
 compatible: 
 min_php: 8.1

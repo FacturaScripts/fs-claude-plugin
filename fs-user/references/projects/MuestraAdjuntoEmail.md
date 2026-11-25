@@ -4,10 +4,10 @@ name: MuestraAdjuntoEmail
 permalink: muestraadjuntoemail
 creationdate: 30-03-2026
 lastmod: 04-10-2026
-version: 1
-betaversion: 1.1
-mincore: 2025
-maxcore: 2026.7
+version: 1.1
+betaversion: 0
+mincore: 2026.7
+maxcore: 2026.72
 compatible: Template1_ext
 min_php: 8.1
 require: 

@@ -3,11 +3,11 @@ idproject: 373
 name: IeSepaMandato
 permalink: iesepamandato
 creationdate: 22-06-2024
-lastmod: 03-09-2025
-version: 1.2
+lastmod: 04-11-2026
+version: 1.3
 betaversion: 1
 mincore: 2025.3
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: PlantillasPDF

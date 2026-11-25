@@ -3,7 +3,7 @@ id: 2124
 permalink: anadir-una-github-action-para-ejecutar-los-tests-unitarios
 title: Añadir una github action para ejecutar los tests unitarios
 creationdate: 24-05-2025 18:30:49
-lastmod: 19-09-2026
+lastmod: 19-11-2026
 url: https://facturascripts.com/publicaciones/anadir-una-github-action-para-ejecutar-los-tests-unitarios
 ---
 Para añadir un GitHub Action que ejecute los tests unitarios en el repositorio de un plugin de FacturaScripts, sigue estos pasos:
@@ -34,23 +34,61 @@ Con el siguiente contenido básico adaptado para tu plugin. **Reemplaza el nombr
 ```
 name: Tests del Plugin FacturaScripts
 
+# Los tests solo se lanzan si el commit o la PR cambia algo que pueda alterar el
+# comportamiento del plugin. Si TODOS los archivos cambiados están en
+# paths-ignore, el workflow no se ejecuta y no consume minutos.
+# Es una lista de exclusiones: cualquier otro archivo (PHP, Table, XMLView, View,
+# Data, Test, composer.json...) sigue lanzando los tests.
 on:
   push:
     branches:
       - main
+    paths-ignore: &ignored-paths
+      # traducciones: se descargan de facturascripts.com y no cambian el código
+      - &#39;Translation/**&#39;
+      # JS, CSS, imágenes y fuentes: phpunit no los usa
+      - &#39;Assets/**&#39;
+      # documentación
+      - &#39;**.md&#39;
+      - &#39;Doc/**&#39;
+      - &#39;COPYING&#39;
+      - &#39;LICENSE&#39;
+      # configuración de los asistentes de IA (Claude Code, Codex...)
+      - &#39;.claude/**&#39;
+      - &#39;.agents/**&#39;
+      - &#39;.codex/**&#39;
+      # datos del plugin (versión, descripción...), npm, git y empaquetado
+      - &#39;facturascripts.ini&#39;
+      - &#39;package.json&#39;
+      - &#39;package-lock.json&#39;
+      - &#39;.gitignore&#39;
+      - &#39;.zipignore&#39;
+      # workflows que no afectan a los tests
+      - &#39;.github/workflows/release.yml&#39;
   pull_request:
     branches:
       - main
+    paths-ignore: *ignored-paths
+  # permite lanzarlo a mano desde la pestaña Actions cuando se quiera forzar
+  workflow_dispatch:
+
+# Si llega un commit nuevo a la misma rama o PR, se cancela la ejecución
+# anterior, que ya no sirve, en lugar de dejar que termine.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
     name: Tests en ${{ matrix.database }} con PHP ${{ matrix.php-version }}
     runs-on: ubuntu-26.04
+    # un job colgado no puede consumir las 6 horas por defecto
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
       matrix:
-        php-version: [&#39;8.1&#39;, &#39;8.2&#39;, &#39;8.3&#39;, &#39;8.4&#39;]
+        php-version: [&#39;8.1&#39;, &#39;8.2&#39;, &#39;8.3&#39;, &#39;8.4&#39;, &#39;8.5&#39;]
         database: [&#39;mysql&#39;, &#39;postgresql&#39;]
 
     env:
@@ -181,7 +219,7 @@ jobs:
       - name: Mostrar logs en caso de fallo
         if: failure()
         run: |
-          echo &quot;=== Logs de la base de datos ===&quot;
+          echo &quot;=== Logs de la base de datos ===&quot;;
           if [ &quot;${{ matrix.database }}&quot; = &quot;mysql&quot; ]; then
             docker logs $(docker ps -q --filter ancestor=mariadb:11) || true
           else

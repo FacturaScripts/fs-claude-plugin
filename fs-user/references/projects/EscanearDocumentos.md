@@ -3,11 +3,11 @@ idproject: 334
 name: EscanearDocumentos
 permalink: escaneardocumentos
 creationdate: 07-11-2023
-lastmod: 16-07-2026
-version: 3.9
-betaversion: 3.5
+lastmod: 24-11-2026
+version: 3.93
+betaversion: 4
 mincore: 2026.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 
@@ -20,8 +20,12 @@ Archivos soportados:
 - PDF
 - JPG
 - PNG
+- GIF
+- WEBP
 
-Este plugin requiere registrar la instalación de FacturaScripts para su funcionamiento y su uso está limitado a:
-- 100 escaneos mensuales para patrocinadores ORO.
-- 50 escaneos mensuales para patrocinadores PLATA / PRO.
-- 25 escaneos mensuales para el resto.
+Este plugin requiere registrar la instalación de FacturaScripts y tener un patrocinio activo. El número de escaneos al mes depende del nivel de patrocinio:
+- 200 escaneos mensuales para patrocinadores ORO.
+- 80 escaneos mensuales para patrocinadores PLATA.
+- 40 escaneos mensuales para patrocinadores BRONCE y PRO.
+
+Sin un patrocinio activo no se pueden escanear documentos.

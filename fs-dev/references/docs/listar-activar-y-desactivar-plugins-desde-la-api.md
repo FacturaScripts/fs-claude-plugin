@@ -3,14 +3,14 @@ id: 4431
 permalink: listar-activar-y-desactivar-plugins-desde-la-api
 title: Listar, activar y desactivar plugins desde la API
 creationdate: 27-08-2026 13:35:28
-lastmod: 27-08-2026
+lastmod: 06-11-2026
 url: https://facturascripts.com/publicaciones/listar-activar-y-desactivar-plugins-desde-la-api
 ---
 La API de FacturaScripts incluye un endpoint especial, `plugins`, que no corresponde a ningún modelo de la base de datos. Permite consultar los plugins instalados y, si la API key tiene acceso completo, activarlos o desactivarlos de forma remota.
 
-Todas las peticiones necesitan la cabecera `Token` (o `X-Auth-Token`) con la API key, igual que el resto de la API.
+Todas las peticiones necesitan la clave de API en la cabecera `Token`, igual que el resto de la API. Consulta la [guía de la API](https://facturascripts.com/publicaciones/la-api-rest-de-facturascripts-912) para crear una clave y ver los errores de autenticación.
 
-## Listar los plugins
+## 📋 Listar los plugins
 
 ```
 GET http://localhost:8000/api/3/plugins
@@ -50,7 +50,7 @@ Significado de cada campo:
 
 Además, la respuesta incluye la cabecera `X-Core-Version` con la versión del core instalado, útil para comprobar compatibilidades sin hacer una segunda petición.
 
-## Filtrar y ordenar
+## 🔍 Filtrar y ordenar
 
 El listado admite los parámetros `filter` y `sort`, con la misma sintaxis que el resto de recursos de la API.
 
@@ -74,7 +74,7 @@ Para ordenar se usa `sort`, indicando `ASC` o `DESC`:
 GET http://localhost:8000/api/3/plugins?sort[version]=DESC
 ```
 
-## Obtener un plugin concreto
+## 🧩 Obtener un plugin concreto
 
 ```
 GET http://localhost:8000/api/3/plugins/POS
@@ -91,7 +91,7 @@ Devuelve un único objeto con los mismos campos que el listado. Si el plugin no 
 
 Si el plugin está marcado como oculto, responde con un `403` y el mensaje `plugin-hidden`.
 
-## Activar un plugin
+## ✅ Activar un plugin
 
 ```
 POST http://localhost:8000/api/3/plugins/POS/enable
@@ -108,7 +108,7 @@ Respuesta correcta:
 
 Si la activación falla, la respuesta es un `400` con `status: error`. En ese caso `message` no es un texto fijo, sino los mensajes del log de la operación, que explican el motivo: dependencias sin cumplir, plugin no compatible, etc.
 
-## Desactivar un plugin
+## ⛔ Desactivar un plugin
 
 ```
 POST http://localhost:8000/api/3/plugins/POS/disable
@@ -123,14 +123,14 @@ POST http://localhost:8000/api/3/plugins/POS/disable
 
 Al igual que en la activación, si algo falla se devuelve un `400` con los mensajes del log.
 
-## Permisos y errores comunes
+## 🔐 Permisos y errores comunes
 
 - **Las acciones `enable` y `disable` requieren el método POST.** Con cualquier otro método la respuesta es un `405` con el mensaje `method-not-allowed`.
 - **Requieren una API key con acceso completo.** Si la clave no lo tiene, la respuesta es un `403` con el mensaje `full-access-required`.
 - Para *listar* plugins no hace falta acceso completo, pero si la API key no lo tiene, necesita un permiso para el recurso `plugins` con la opción de lectura marcada. Se configura en **Administrador &gt; API Keys**, en la pestaña de permisos.
 - Cualquier otra acción distinta de `enable` o `disable` devuelve un `400` con el mensaje `invalid-action`.
 
-## Ejemplo con cURL
+## 💻 Ejemplo con cURL
 
 Listar los plugins activados:
 

@@ -3,7 +3,7 @@ id: 1627
 permalink: widget-library
 title: Widget Library
 creationdate: 06-12-2023 20:55:37
-lastmod: 15-10-2026
+lastmod: 06-11-2026
 url: https://facturascripts.com/publicaciones/widget-library
 ---
 El widget de archivos adjuntos, conocido como **WidgetLibrary**, permite seleccionar o subir archivos adjuntos. Este widget es ideal cuando se desea que el usuario suba un archivo específico, como un logotipo o similar.
@@ -23,7 +23,7 @@ Aquí tienes un ejemplo de cómo implementar el widget en un formulario:
 Los atributos disponibles en la etiqueta del widget son los siguientes:
 
 - **fieldname**: Nombre del campo que contiene la información. **Obligatorio**.
-- **accept**: Lista de extensiones permitidas, como por ejemplo `.gif`, `.jpg` y `.png`.
+- **accept**: Lista de extensiones permitidas, como por ejemplo `.gif`, `.jpg` y `.png`. Para saber qué tipos se pueden descargar después, consulta la [lista de tipos permitidos](https://facturascripts.com/publicaciones/descargar-archivos-de-myfiles).
 - **onclick**: URL o controlador al que será redirigido el usuario al hacer clic en el widget. A esta URL se le añade **?code=** seguido del valor del campo.
 
 ### Visualización en Formularios

@@ -3,11 +3,11 @@ idproject: 41
 name: POS
 permalink: pos
 creationdate: 11-03-2019
-lastmod: 17-10-2026
-version: 2.81
-betaversion: 2.8
-mincore: 2026.5
-maxcore: 2026.7
+lastmod: 05-11-2026
+version: 2.86
+betaversion: 2.85
+mincore: 2026.65
+maxcore: 2026.72
 compatible: SKU,TarifasAvanzadas
 min_php: 8.4
 require: 

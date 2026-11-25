@@ -3,7 +3,7 @@ id: 2628
 permalink: como-registrar-una-compra-de-importacion
 title: Cómo registrar una compra de importación
 creationdate: 11-03-2026 12:02:30
-lastmod: 21-09-2026
+lastmod: 04-11-2026
 url: https://facturascripts.com/publicaciones/como-registrar-una-compra-de-importacion
 ---
 Una importación se produce cuando compras mercancía a un proveedor de fuera de la Unión Europea (China, Estados Unidos, Reino Unido, etc.). A diferencia de las compras intracomunitarias, aquí no hay autorepercusión: el IVA se liquida en la aduana mediante el DUA (Documento Único Administrativo), que es un documento independiente de la factura del proveedor.
@@ -64,7 +64,8 @@ Intracomunitaria (dentro de la UE):
 
 ## Notas
 
-- Si el proveedor tiene configurada la operación por defecto como Importación en su ficha, las nuevas facturas de compra a ese proveedor la tendrán preseleccionada.
+- Para que las nuevas compras a un proveedor tengan la operación preseleccionada, abre su ficha (**Compras → Proveedores**), elige **Operación: Importación** y deja vacía la **Excepción de IVA**: con la operación Importación no se admite ninguna, y si eliges una, la ficha no se guarda y aparece el aviso «La combinación de operación y excepción de IVA no es válida».
 - Los gastos de aduanas, aranceles y transporte se suelen contabilizar por separado o como líneas adicionales en la factura del transitario.
 - Las retenciones de IRPF, si las hay, se calculan con normalidad sobre la base imponible.
-- La operación se puede indicar también en presupuestos, pedidos y albaranes de compra, y se arrastrará al transformar el documento en factura.
+- El campo **Operación** está en la ventana **Detalles** de presupuestos, pedidos, albaranes y facturas de compra. Si lo indicas en un presupuesto, pedido o albarán, se conserva al transformarlo en factura.
+- Este tratamiento automático solo se aplica cuando el país de la empresa es España.

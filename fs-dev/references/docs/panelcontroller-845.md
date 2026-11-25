@@ -3,7 +3,7 @@ id: 682
 permalink: panelcontroller-845
 title: PanelController
 creationdate: 30-04-2018 00:00:00
-lastmod: 03-10-2026
+lastmod: 28-10-2026
 url: https://facturascripts.com/publicaciones/panelcontroller-845
 ---
 El PanelController, al igual que el [ListController](https://facturascripts.com/publicaciones/listcontroller-232), es un **controlador extendido** que permite múltiples vistas o pestañas. En este caso, admite distintos tipos de vistas:
@@ -151,6 +151,8 @@ $this-&gt;addListView(&#39;ListFacturaCliente&#39;, &#39;FacturaCliente&#39;, &#
 Las pestañas sin grupo se muestran primero y después cada grupo con su encabezado, en el orden en que aparece por primera vez. `getTabGroups()` devuelve las vistas agrupadas por clave (las que no tienen grupo, bajo la clave vacía).
 
 Los plugins pueden agrupar sus propias pestañas, o las del core, desde una [extensión del controlador](https://facturascripts.com/publicaciones/extensiones-de-controladores) llamando a `setSettings($viewName, &#39;group&#39;, $group)`. En el core se usan los grupos `sales` y `purchases` en clientes, proveedores y agentes, y `warehouse` en productos.
+
+En el panel de control, las secciones que salen de un archivo `SettingsXXX.xml` también pueden declarar su grupo en el propio XML, con el atributo `group` de la raíz `&lt;view&gt;`. Lo explicamos en [Cómo crear preferencias de aplicación para su plugin](https://facturascripts.com/publicaciones/preferencias-de-la-aplicacion-314).
 
 ### ↔️ Navegación entre registros
 

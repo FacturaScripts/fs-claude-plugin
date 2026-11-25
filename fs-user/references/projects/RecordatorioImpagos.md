@@ -3,11 +3,11 @@ idproject: 611
 name: RecordatorioImpagos
 permalink: recordatorioimpagos
 creationdate: 29-05-2026
-lastmod: 09-07-2026
-version: 1.31
+lastmod: 04-11-2026
+version: 1.32
 betaversion: 0
-mincore: 2025
-maxcore: 2026.7
+mincore: 2025.71
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

@@ -3,13 +3,13 @@ idproject: 68
 name: Modelo347
 permalink: modelo347
 creationdate: 03-01-2020
-lastmod: 18-05-2026
+lastmod: 16-11-2026
 version: 3.6
-betaversion: 3.1
+betaversion: 3.61
 mincore: 2025.6
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo347

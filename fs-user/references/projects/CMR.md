@@ -3,11 +3,11 @@ idproject: 489
 name: CMR
 permalink: cmr
 creationdate: 02-12-2025
-lastmod: 16-09-2026
+lastmod: 04-11-2026
 version: 1.2
-betaversion: 0
+betaversion: 1.3
 mincore: 2026.5
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

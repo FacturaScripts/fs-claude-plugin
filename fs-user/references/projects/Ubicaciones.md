@@ -3,11 +3,11 @@ idproject: 43
 name: Ubicaciones
 permalink: ubicaciones
 creationdate: 13-03-2019
-lastmod: 24-07-2026
-version: 4.02
+lastmod: 04-11-2026
+version: 4.03
 betaversion: 3.4
-mincore: 2026
-maxcore: 2026.5
+mincore: 2026.6
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

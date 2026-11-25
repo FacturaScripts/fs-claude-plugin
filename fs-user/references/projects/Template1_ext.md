@@ -3,11 +3,11 @@ idproject: 472
 name: Template1_ext
 permalink: template1-ext
 creationdate: 19-10-2025
-lastmod: 29-09-2026
-version: 2.42
+lastmod: 06-11-2026
+version: 2.43
 betaversion: 0
 mincore: 2025.43
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: IeOmitelineas
 min_php: 8
 require: PlantillasPDF
@@ -45,7 +45,9 @@ Actualización para el formato de documentos de más de una página:
 - Posibilidad de asignar un Formato de Impresión de Facturas predefinido a cada uno de nuestros Clientes.
  
 
-NOVEDAD En la gestión de espaciados entre líneas para tener un mayor control, puedes elegir el formato supercomprimido por defecto, u otro formato con diferentes tipos de espaciados entre líneas.
+- Gestión de espaciados entre líneas para tener un mayor control, puedes elegir el formato supercomprimido por defecto, u otro formato con diferentes tipos de espaciados entre líneas.
+
+-Novedad: posibilidad de llevar el campo Observaciones en la zona superior del documento en lugar de la zona inferior o pie, y seleccionable por cada formato de impresión.
    
 Basada en la Plantilla Template1 de PlantillasPDF.
 

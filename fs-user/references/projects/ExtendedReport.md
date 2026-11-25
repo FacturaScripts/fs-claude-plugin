@@ -3,13 +3,13 @@ idproject: 350
 name: ExtendedReport
 permalink: extendedreport
 creationdate: 22-01-2024
-lastmod: 09-07-2026
-version: 2.12
+lastmod: 23-10-2026
+version: 2.13
 betaversion: 0
-mincore: 2026
-maxcore: 2026.5
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/ExtendedReport

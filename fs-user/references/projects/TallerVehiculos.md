@@ -4,10 +4,10 @@ name: TallerVehiculos
 permalink: tallervehiculos
 creationdate: 09-11-2025
 lastmod: 06-10-2026
-version: 1.2
-betaversion: 1.3
+version: 1.3
+betaversion: 0
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: PlantillasPDF
 min_php: 8.1
 require: Servicios

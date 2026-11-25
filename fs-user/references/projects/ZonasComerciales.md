@@ -3,14 +3,14 @@ idproject: 417
 name: ZonasComerciales
 permalink: zonascomerciales
 creationdate: 06-01-2025
-lastmod: 22-09-2025
-version: 2
+lastmod: 23-10-2026
+version: 2.02
 betaversion: 0
-mincore: 2025
-maxcore: 2026.41
+mincore: 2026.5
+maxcore: 2026.7
 compatible: 
-min_php: 8
-require: 
+min_php: 8.1
+require: ExtendedReport
 require_php: 
 url: https://facturascripts.com/plugins/ZonasComerciales
 ---

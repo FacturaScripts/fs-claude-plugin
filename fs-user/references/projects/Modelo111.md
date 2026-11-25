@@ -3,13 +3,13 @@ idproject: 192
 name: Modelo111
 permalink: modelo111
 creationdate: 16-03-2022
-lastmod: 17-07-2026
+lastmod: 16-11-2026
 version: 2.5
-betaversion: 2.1
+betaversion: 2.51
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo111

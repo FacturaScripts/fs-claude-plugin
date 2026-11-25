@@ -4,10 +4,10 @@ name: Comentarioprivado
 permalink: comentarioprivado
 creationdate: 22-11-2025
 lastmod: 07-10-2026
-version: 2
-betaversion: 2.1
-mincore: 2025
-maxcore: 2026.7
+version: 2.1
+betaversion: 0
+mincore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 

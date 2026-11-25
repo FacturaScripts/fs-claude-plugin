@@ -3,11 +3,11 @@ idproject: 440
 name: AnticiposPlantillasPDFsalesDoc
 permalink: anticiposplantillaspdfsalesdoc
 creationdate: 09-04-2025
-lastmod: 03-09-2026
-version: 3.02
+lastmod: 07-11-2026
+version: 3.03
 betaversion: 0
 mincore: 2025.43
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 7.4
 require: Anticipos,PlantillasPDF

@@ -3,11 +3,11 @@ idproject: 772
 name: TransportesDeCA
 permalink: transportesdeca
 creationdate: 24-08-2026
-lastmod: 09-10-2026
-version: 1.31
+lastmod: 04-11-2026
+version: 1.42
 betaversion: 0
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: 
@@ -16,15 +16,16 @@ url: https://facturascripts.com/plugins/TransportesDeCA
 ---
 Gestiona los transportes dentro de FacturaScripts, tanto si cargas tu propia mercancía (cantera, planta de áridos, fábrica…) como si eres una **empresa de transportes** que lleva la mercancía de sus clientes. Das de alta vehículos, transportistas y conductores una vez, y en cada albarán registras el pesaje y el transporte sin salir del documento que ya usas para facturar. Y emites el DeCA (Documento Electrónico de Control Administrativo) cumpliendo la Orden FOM/2861/2012 y la Resolución de 5 de junio de 2026, obligatorio desde el 5 de octubre de 2026.
 
-Al elegir el vehículo, la carga se rellena sola con la última combinación que usó (remolque, tara, MMA, autorización especial, empresa de transporte y conductor). Registras el pesaje —uno o varios materiales— y al guardar cada material se vuelca a su línea del albarán en la unidad en que lo vendes: toneladas, kilos, metros cúbicos o unidades. Desde ahí emites el DeCA con su código QR, que se mantiene al día con cualquier cambio y queda registrado tal como exige la norma.
+Al elegir el vehículo, la carga se rellena sola con la última combinación que usó (remolque, tara, MMA, autorización especial, empresa de transporte y conductor) y puedes engancharle cualquier remolque de tu flota. Registras el pesaje —uno o varios materiales— y al guardar cada material se vuelca a su línea del albarán en la unidad en que lo vendes: toneladas, kilos, metros cúbicos o unidades. Desde ahí emites el DeCA con su código QR, que se mantiene al día con cualquier cambio y queda registrado tal como exige la norma.
 
 Sirve igual para tus albaranes de venta (con DeCA) y para tus albaranes de compra de proveedor (sin DeCA), reutilizando la misma báscula.
 
 Características principales:
 
 - **Para productores y para empresas de transportes:** en la ficha de cada empresa eliges su papel. Como **productor** (por defecto), el origen es tu almacén y el cargador, quien contrata el transporte. Como **empresa de transportes**, cumplimentas el DeCA para tu cliente: tu empresa figura como transportista efectivo, tu cliente como cargador contractual, y en cada carga indicas el lugar de carga, el destinatario y la mercancía. Si subcontratas el viaje, las figuras se invierten solas. Admite instalaciones multiempresa, cada empresa con su rol.
-- **Maestros propios** en el menú Almacén: Vehículos (matrícula, remolque principal, tara, MMA, autorización especial, empresa de transporte, conductor por defecto y cliente/proveedor habitual), Empresas de transporte y Conductores, con relación entre conductores y transportistas.
-- **Varios remolques por vehículo:** cada combinación vehículo + remolque guarda su tara, su MMA y su autorización. Se registran solas al pesar.
+- **Maestros propios** en el menú Almacén: Vehículos (matrícula, remolque favorito, tara, tara de la cabeza sola, MMA, autorización especial, empresa de transporte, conductor por defecto y cliente/proveedor habitual), Remolques, Empresas de transporte y Conductores, con relación entre conductores y transportistas.
+- **Cabezas y remolques independientes:** cada remolque se da de alta una vez y se engancha a cualquier cabeza, que conserva su remolque favorito. Cada pareja guarda su tara, su MMA y su autorización, y se registra sola al pesar. La tara de una combinación nueva se propone como cabeza + remolque.
+- **Libreta de lugares de carga y descarga:** los sitios donde cargas y descargas habitualmente se guardan solos y se sugieren al rellenar la carga, primero los del cliente. Eliges uno y se rellenan la dirección y el destinatario.
 - **Varios materiales en una carga:** granel, palets, sacos o big bags en el mismo camión, cada uno con su peso y su línea del albarán; reparto automático y aviso si no cuadra con lo pesado.
 - **Volcado según cómo vendes cada producto:** toneladas, kilos, metros cúbicos (con su densidad), unidades/bultos o nada (por ejemplo, un porte que se cobra por viaje).
 - **Pestaña Carga** dentro del albarán: pesaje con neto en vivo, aviso de **sobrecarga**, obra/destino propuesta con la dirección del cliente, horas con botón &quot;Ahora&quot;, observaciones para el DeCA y observaciones internas, y &quot;Deshacer cambios&quot;.

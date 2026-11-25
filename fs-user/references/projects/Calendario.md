@@ -7,7 +7,7 @@ lastmod: 10-09-2026
 version: 3.13
 betaversion: 2.5
 mincore: 2026
-maxcore: 2026.65
+maxcore: 2026.72
 compatible: Turnos,CapacitacionPersonal
 min_php: 8
 require: 

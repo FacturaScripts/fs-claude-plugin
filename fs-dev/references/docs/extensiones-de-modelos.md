@@ -3,7 +3,7 @@ id: 918
 permalink: extensiones-de-modelos
 title: Extensiones de modelos
 creationdate: 08-05-2021 11:11:12
-lastmod: 12-09-2025
+lastmod: 17-11-2026
 url: https://facturascripts.com/publicaciones/extensiones-de-modelos
 ---
 Para modificar el comportamiento de modelos de otro plugins (o del core) podemos crear una extensión o pipe de ese modelo, es decir, crearemos un archivo php con el nombre del modelo en la carpeta **Extension/Model** de nuestro plugin.
@@ -49,7 +49,8 @@ public function init(): void
 ### Métodos disponibles para extender
 - **clear()** se ejecuta cuando se instancia un objeto del modelo, por ejemplo al hacer new Producto(). Asigna valores predeterminados.
 - **delete()** se ejecuta una vez realizado el [delete() del modelo](https://facturascripts.com/publicaciones/delete-986).
-- **deleteBefore()** se ejecuta antes de hacer el delete() del modelo. **Si devolvemos false**, impedimos el delete().
+- **deleteBefore()** se ejecuta antes de hacer el delete() del modelo. **Si devolvemos false**, impedimos el delete(). Desde la versión 2026.8 se ejecuta antes de que el modelo elimine sus datos relacionados (líneas, recibos, pagos...), así que al devolver false el registro queda intacto. Úsalo solo para comprobar, no para eliminar datos.
+- **onDelete()** se ejecuta justo después de eliminar el registro, dentro de la transacción del [delete() del modelo](https://facturascripts.com/publicaciones/delete-986). Es el lugar para eliminar los datos propios de tu plugin relacionados con el registro.
 - **save()** se ejecuta una vez realizado el [save() del modelo](https://facturascripts.com/publicaciones/save-782).
 - **saveBefore()** se ejecuta antes de hacer el save() del modelo. **Si devolvemos false**, impedimos el save().
 - **saveInsert()** se ejecuta una vez realizado el saveInsert() del modelo.
@@ -63,7 +64,7 @@ public function init(): void
 
 Aquí tienes un esquema de en qué orden se ejecutan las funciones y extensiones de un modelo:
 
-![esquema ejecución de extensiones](https://facturascripts.com/MyFiles/2025/03/2738.png?myft=a56aa3c2890a9815cd2ff98becc7054e26111494)
+![esquema ejecución de extensiones](https://facturascripts.com/MyFiles/2026/11/8239_esquema_extensiones_modelo.png?myft=9dfe37efc6646e060ec1e3278d4dd50d67b804d33ea6bbcc7c3aed7d5090edf2)
 
 ## fsmaker
 Para hacer este mismo proceso con [fsmaker](https://facturascripts.com/publicaciones/fsmaker-0-92-disponible) ejecutamos:

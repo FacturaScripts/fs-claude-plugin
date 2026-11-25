@@ -7,7 +7,7 @@ lastmod: 13-06-2026
 version: 1.1
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: BasicImportExport
 min_php: 8
 require: 

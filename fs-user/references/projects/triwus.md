@@ -3,13 +3,13 @@ idproject: 397
 name: triwus
 permalink: triwus
 creationdate: 03-09-2024
-lastmod: 29-01-2026
+lastmod: 15-11-2026
 version: 2.1
-betaversion: 0
+betaversion: 2.2
 mincore: 2025.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8.1
+min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/triwus

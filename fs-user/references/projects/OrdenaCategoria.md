@@ -7,7 +7,7 @@ lastmod: 14-10-2026
 version: 1.5
 betaversion: 0
 mincore: 2025.44
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 
@@ -16,7 +16,7 @@ url: https://facturascripts.com/plugins/OrdenaCategoria
 ---
 Genera un PDF con las Facturas de proveedor agrupadas por el campo nuevo Categoría con subtotales de grupo y total y con impuestos desglosados por tipo. Útil para Autónomos o empresas para agrupar por tipo de gasto (TEL, ASE, SUM...).  Este nuevo listado pdf aparecerá al pulsar el nuevo botón &quot;Categoría&quot;. Si pulsamos en el otro botón &quot;Imprimir&quot; saldrá el listado normal de facturascripts.
 
-Por ejemplo podemos filtrar por trimestres y realizar las agrupaciones por Categoría para llevarlas al Gestor.
+Por ejemplo podemos filtrar por trimestres y realizar las agrupaciones por Categoría para llevarlas al Gestor, o también para tener una idea clara de nuestros gastos de forma agrupada.
 
 Entraremos en Cualquier factura de compra y veremos el nuevo campo **Categoría**, allí pondremos nuestro código para poder agrupar todas las facturas por esa misma referencia: Podemos usar TEL para telefonía, ASE para asesorias, COM para compras, etc,etc, cualquier referencia que quieras.
 

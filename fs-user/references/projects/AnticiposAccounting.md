@@ -3,11 +3,11 @@ idproject: 752
 name: AnticiposAccounting
 permalink: anticiposaccounting
 creationdate: 28-07-2026
-lastmod: 11-10-2026
-version: 1.12
+lastmod: 02-11-2026
+version: 1.21
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 7.4
 require: Anticipos

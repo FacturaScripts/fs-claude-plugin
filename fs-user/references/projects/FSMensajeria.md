@@ -86,3 +86,7 @@ Cambia el estado según avance la resolución
 ✅ Asignación de tickets a usuarios
 ✅ Filtros por estado y prioridad
 ✅ Menú unificado &quot;Chat y Tickets&quot;
+
+ANTES DE ACTUALIZAR FACTURASCRIPTS
+• Actualiza primero este plugin a su última versión. Las versiones antiguas declaran compatibilidad solo hasta FacturaScripts 2026.7: cuando salga la próxima versión estable, el actualizador las marcará como incompatibles y su botón Descargar las desactivará. La última versión del plugin está declarada compatible hasta 2030.
+• Si ya te sale ese aviso, en el actualizador usa Opciones &gt; No desactivar plugins y actualiza el plugin justo después.

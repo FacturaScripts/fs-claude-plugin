@@ -7,7 +7,7 @@ lastmod: 07-10-2026
 version: 2.3
 betaversion: 0
 mincore: 2025.3
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: PlantillasPDF

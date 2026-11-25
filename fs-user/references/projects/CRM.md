@@ -3,13 +3,13 @@ idproject: 64
 name: CRM
 permalink: crm
 creationdate: 31-10-2019
-lastmod: 13-05-2026
-version: 3.44
-betaversion: 3.43
-mincore: 2025.81
-maxcore: 2026.7
+lastmod: 25-11-2026
+version: 3.5
+betaversion: 3.6
+mincore: 2026.65
+maxcore: 2026.72
 compatible: Informes
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/CRM

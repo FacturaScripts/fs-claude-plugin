@@ -3,7 +3,7 @@ id: 919
 permalink: extensiones-de-controladores
 title: Extensiones de controladores
 creationdate: 08-05-2021 11:27:09
-lastmod: 03-10-2026
+lastmod: 24-11-2026
 url: https://facturascripts.com/publicaciones/extensiones-de-controladores
 ---
 Para modificar el comportamiento o añadir pestañas o secciones a controladores de otros plugins (o del core) podemos usar una extensión o pipe, es decir, crearemos un archivo php con el mismo nombre que el controlador en la carpeta **Extension/Controller** de nuestro plugin.
@@ -17,6 +17,8 @@ Las extensiones no son herencia. No se puede extender cualquier función imagina
 - **loadData()** se ejecuta tras el loadData() del controlador. Recibe los parámetros $viewName y $view.
 - **execAfterAction()** se ejecuta tras el [execAfterAction() del controlador](https://facturascripts.com/publicaciones/controladores-extendidos-367).
 - **selectAction** se ejecuta antes de cargar datos en el [widget select](https://facturascripts.com/publicaciones/widget-select-557).
+
+![esquema ejecución de extensiones de controladores](https://facturascripts.com/MyFiles/2026/11/8355_esquema_extensiones_controlador.png?myft=b833efc3c2a99eb64cb862fd506360c3ecaee6b8b7dd1d7ecef31bbd9a0b9b1d)
 
 ### Ejemplo createViews
 Esto sirve para poder añadir pestañas o cualquier método a controladores que ya existen. Siguiendo con el ejemplo vamos a añadir la pestaña de logs al listado de productos (controlador ListProducto). Para ello creamos el archivo **Extension/Controller/ListProducto.php**:

@@ -3,11 +3,11 @@ idproject: 647
 name: EasyFields
 permalink: easyfields
 creationdate: 23-06-2026
-lastmod: 21-09-2026
-version: 1.1
+lastmod: 04-11-2026
+version: 1.2
 betaversion: 0
 mincore: 2025
-maxcore: 2026.65
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

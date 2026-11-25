@@ -4,10 +4,10 @@ name: Etiquetas
 permalink: etiquetas
 creationdate: 22-02-2020
 lastmod: 05-10-2026
-version: 3.2
-betaversion: 3.3
-mincore: 2026
-maxcore: 2026.7
+version: 3.3
+betaversion: 2.93
+mincore: 2026.4
+maxcore: 2026.72
 compatible: Tickets,TarifasAvanzadas,Trazabilidad
 min_php: 8.1
 require: 

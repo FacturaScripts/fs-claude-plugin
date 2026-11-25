@@ -3,11 +3,11 @@ idproject: 228
 name: Exporter
 permalink: exporter
 creationdate: 24-06-2022
-lastmod: 31-03-2026
+lastmod: 28-10-2026
 version: 1.3
-betaversion: 1
+betaversion: 1.4
 mincore: 2025.6
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

@@ -3,7 +3,7 @@ id: 1504
 permalink: testeo-de-plugins
 title: Pruebas de Plugins (tests unitarios)
 creationdate: 29-07-2023 21:31:11
-lastmod: 17-03-2026
+lastmod: 12-11-2026
 url: https://facturascripts.com/publicaciones/testeo-de-plugins
 ---
 Podemos realizar pruebas de nuestro plugin utilizando **PHPUnit**, colocando los **tests unitarios** en la carpeta **Test** del plugin. A continuación, podemos observar un ejemplo en el [repositorio de GitHub del plugin Informes](https://github.com/FacturaScripts/informes).
@@ -81,3 +81,25 @@ vendor/bin/phpunit phpunit-plugins.xml
 ```
 
 Si el plugin depende de otro plugin, hay que ejecutar `php Test/install-plugins.php` tantas veces como plugins haya que instalar, ya que se instalan de uno en uno.
+
+## 🧰 Traits de ayuda
+FacturaScripts incluye tres traits que puedes usar en tus tests: `DefaultSettingsTrait` (crea las tablas del core y carga la configuración predeterminada), `LogErrorsTrait` (muestra los errores del log cuando un test falla) y `RandomDataTrait` (genera clientes, productos, facturas... con datos aleatorios). Están explicados, con un ejemplo completo, en [Traits para los tests](https://facturascripts.com/publicaciones/traits-para-los-tests-defaultsettingstrait-logerrorstrait-y-randomdatatrait).
+
+## ⚠️ Errores frecuentes
+
+### Faltan tablas del core en la base de datos
+Es el fallo más habitual: el test falla con un error de SQL del tipo «la tabla no existe» sobre una tabla del core, a menudo solo en una base de datos limpia, como la de la [GitHub Action](https://facturascripts.com/publicaciones/anadir-una-github-action-para-ejecutar-los-tests-unitarios). Ocurre porque FacturaScripts crea cada tabla la primera vez que se instancia su modelo, y en los tests nadie ha pasado por el asistente de inicio.
+
+Se soluciona llamando a `loadCoreModels()`, del trait `DefaultSettingsTrait`, en el `setUpBeforeClass()` del test:
+
+```
+use DefaultSettingsTrait;
+
+public static function setUpBeforeClass(): void
+{
+	// creamos todas las tablas del core
+	self::loadCoreModels();
+}
+```
+
+Tienes la explicación completa en [Traits para los tests](https://facturascripts.com/publicaciones/traits-para-los-tests-defaultsettingstrait-logerrorstrait-y-randomdatatrait).

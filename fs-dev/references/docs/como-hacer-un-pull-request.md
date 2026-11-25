@@ -3,7 +3,7 @@ id: 2076
 permalink: como-hacer-un-pull-request
 title: Cómo hacer un pull request
 creationdate: 17-03-2025 13:32:47
-lastmod: 18-03-2025
+lastmod: 12-11-2026
 url: https://facturascripts.com/publicaciones/como-hacer-un-pull-request
 ---
 En esta sección vamos a comentar como realizar un pull request a facturascripts. Vamos a seguir los siguientes pasos sólidos:

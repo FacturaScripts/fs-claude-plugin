@@ -3,11 +3,11 @@ idproject: 110
 name: Anticipos
 permalink: anticipos
 creationdate: 14-11-2020
-lastmod: 11-10-2026
-version: 6.06
+lastmod: 16-11-2026
+version: 6.07
 betaversion: 5.02
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: AnticiposAccounting,AnticiposAddFile,AnticiposPDFCoreDoc,AnticiposPlantillasPDFsalesDoc,Proyectos,Textos,Tickets
 min_php: 7.4
 require: 

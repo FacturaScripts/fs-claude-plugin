@@ -3,11 +3,11 @@ idproject: 89
 name: TarifasAvanzadas
 permalink: tarifasavanzadas
 creationdate: 07-07-2020
-lastmod: 29-09-2026
-version: 2.52
-betaversion: 2.66
-mincore: 2026.1
-maxcore: 2026.7
+lastmod: 05-11-2026
+version: 2.69
+betaversion: 2.41
+mincore: 2026.65
+maxcore: 2026.72
 compatible: Tickets,CSVimport,PlantillasPDF
 min_php: 8.1
 require: 

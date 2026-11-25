@@ -3,11 +3,11 @@ idproject: 579
 name: AnticiposAddFile
 permalink: anticiposaddfile
 creationdate: 11-04-2026
-lastmod: 01-09-2026
-version: 1.24
+lastmod: 07-11-2026
+version: 2.01
 betaversion: 0
 mincore: 2025
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 7.4
 require: Anticipos

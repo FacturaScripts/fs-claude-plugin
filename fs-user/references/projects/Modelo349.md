@@ -3,13 +3,13 @@ idproject: 642
 name: Modelo349
 permalink: modelo349
 creationdate: 16-06-2026
-lastmod: 10-09-2026
+lastmod: 13-11-2026
 version: 1.1
-betaversion: 0
+betaversion: 1.2
 mincore: 2026
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo349

@@ -3,11 +3,11 @@ idproject: 469
 name: VisorErrores
 permalink: visorerrores
 creationdate: 19-09-2025
-lastmod: 02-02-2026
-version: 1.5
+lastmod: 09-11-2026
+version: 1.6
 betaversion: 1
 mincore: 2025.6
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

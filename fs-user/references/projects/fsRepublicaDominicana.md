@@ -3,56 +3,48 @@ idproject: 176
 name: fsRepublicaDominicana
 permalink: fsrepublicadominicana
 creationdate: 10-01-2022
-lastmod: 05-07-2026
-version: 1.35
-betaversion: 1.25
-mincore: 2025
-maxcore: 2026.7
+lastmod: 04-11-2026
+version: 1.38
+betaversion: 1.36
+mincore: 2026
+maxcore: 2026.72
 compatible: 
-min_php: 8.1
+min_php: 8.2
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/fsRepublicaDominicana
 ---
-Plugin base para generar los comprobantes fiscales NCF para República Dominicana
+***Plugin de localización fiscal de República Dominicana para FacturaScripts: comprobantes fiscales (NCF), comprobantes electrónicos (e-CF), notas de crédito y débito, impuestos adicionales, retenciones y los reportes 606, 607 y 608 de la DGII.                                                                                                                                                                               
+                                                                                                                                                                                                                    
+  REQUISITOS
+                                                                                                                                                                                                
+  - FacturaScripts 2026 o superior y PHP 8.2 o superior.                                                                                                                                                            
+  - Instale FacturaScripts con idioma Español (República Dominicana), zona horaria América/Santo_Domingo y país República Dominicana. Con otra configuración no se garantiza el funcionamiento.                     
+  - Al actualizar el plugin, pulse &quot;Reconstruir&quot; en Administrador &gt; Plugins.                                                                                                                                        
+                                                                                                                                                                                                                    
+  QUÉ HACE                                                                                                                                                                                                          
 
-- Requisitos de Instalación
-Para un correcto funcionamiento la instalación de FacturaScripts debe hacerse eligiendo el idioma Español de República Dominicana, la zona horaria: América/Santo_Domingo y el País República Dominicana
+  - NCF: maestro de rangos autorizados por la DGII, asignación automática del NCF al guardar la factura, control de correlativos y vencimiento.                                                                     
+  - Comprobantes: físicos del 01 al 17 y electrónicos del 31 al 47. Tipo de comprobante y forma de pago por cliente.                                                                                                
+  - Notas de crédito y débito: desde Devoluciones (04 y 34) o con factura a modificar y código de modificación de la DGII. El plugin valida que la nota de crédito reste, que la de débito sume, que no supere el  total de la factura y que sea del mismo cliente o proveedor, empresa y divisa.                                                                                                                                    
+  - Comprobantes electrónicos (e-CF): carga del XML del facturador, fecha de firma, código de seguridad y código QR de consulta de la DGII en el PDF. El plugin no firma ni transmite el e-CF.
+  - Impuestos adicionales: ISC específico y ad valorem (por porcentaje, monto por unidad o litro de alcohol), CDT, propina legal y primera placa, por línea. 
+  - En compras puede digitar el monto del ISC que facturó el proveedor.                                                                                                                                                                                                     
+  - Retenciones: ISR e ITBIS con los códigos de la DGII, descontadas en el PDF y reflejadas en los reportes.                                                                                                        
+  - Reportes fiscales: 606, 607, 608 y consolidado, con exportación a TXT para la DGII.                                                                                                                             
+  - Verificación de proveedores: antes de guardar una factura de compra, compruebe si el NCF ya fue registrado, y consulte el RNC del proveedor o cliente.                                                          
+                                                                                                                                                                                                                    
+  IMPRESIÓN
 
-- Configuración Inicial
-Para una correcta configuración primero se debe agregar en Contabilidad &gt; República Dominicana &gt; Maestro de NCF, la lista de tipos de comprobante autorizados por DGII para su emisión.
-
-Los comprobantes fiscales soportados en este momento son todos los comprobantes físicos desde el 01 hasta el 17 y los electrónicos que inician en 31.
-
-- Impresión de Comprobantes de Venta
-La impresión de facturas también permite imprimir el tipo de comprobante fiscal, el numero de NCF y la fecha de vencimiento si esta aplica.
-En el caso de los comprobantes electrónicos se generará con los datos que se suban del XML generado por el facturador electrónico gratuito de la DGII.
-
-- Verificación de NCF de Proveedores
-En el modulo de registro de facturas de proveedores puede verificar si el numero de NCF de un proveedor ya ha sido registrado con anterioridad antes de darle a guardar.
-
-- Limitantes del plugin
-El plugin no es completamente compatible con otros plugins que modifiquen las facturas de ventas o compras, cuando encuentre un problema de este tipo debe contactar primero al soporte del plugin no compatible y luego validar con el plugin de República Dominicana.
-
-- Secciones que añade el plugin a FacturaScripts
-El plugin agrega los siguientes submenus:
-
-En Contabilidad agrega el submenu República Dominicana con las siguientes secciones:
-- Impuestos: Aquí estan los impuestos adicionales como son ISC, CDT, Propina Legal y Primera Placa con sus correspondientes tasas.
-- Maestro de NCF: Aquí se agregan las autorizaciones de emisión de NCF de la DGII.
-- Tipo de Anulaciones: Aquí se puede dar mantenimiento a los tipos de anulaciones de DGII.
-- Tipo de Movimiento: Aquí se puede dar mantenimiento a los tipos de movimientos de DGII.
-- Tipo de NCF: Aquí se puede dar mantenimiento a las descripciones de los tipos de NCF.
-- Tipo de Pago: Aquí se puede dar mantenimiento a los tipos de pago de DGII.
-
-En Informes se agrega el submenu República Dominicana con las siguientes opciones:
-
-- Informes Fiscales: Aquí uno puede generar los informes 606, 607 y 608 y un informe general con las compras y ventas.
-El plugin agrega los siguientes campos en la parte final de la pantalla de Ventas &gt; Clientes
-
-- Tipo de comprobante: Para indicar el tipo de comprobante que se le debe generar a este cliente
-- Tipos de Pago: Para indicar cual es la forma de pago que se debe reportar de este cliente.
-El plugin agrega los siguientes campos en la parte final de la pantalla Compras &gt; Proveedores
-
-- Tipos de Pago: Este campo es para indicar cual es el tipo de pago que se tiene pactado con este cliente según la codificación de DGII.
-- Tipos de Anulación: Ayudan en la gestión de los tipos de anulación al generar una nota de credito de una factura.
+  El PDF incluye el tipo de comprobante, el NCF, la fecha de vencimiento cuando aplica, el NCF que modifica y su código en las notas, y el código QR en los e-CF.                                                   
+                                                                                                                                                                                                                    
+  DÓNDE ESTÁ EN EL MENÚ                                                                                                                                                                                             
+  - Contabilidad &gt; República Dominicana: Impuestos, Maestro de NCF, Tipos de anulación, Tipos de movimiento, Tipos de NCF y Tipos de pago.                                                                          
+  - Informes &gt; República Dominicana: Informes fiscales (606, 607, 608 y consolidado).                                                                                                                               
+  - Ventas &gt; Clientes y Compras &gt; Proveedores: campos de tipo de comprobante, tipo de pago y tipo de anulación al final de la ficha.                                                                                
+                                                                                                                                                                                                                    
+  LIMITACIONES
+  - No es plenamente compatible con otros plugins que modifiquen las facturas de venta o compra. Si hay un conflicto, contacte primero al soporte del otro plugin y luego valide con este.                          
+  - Las fórmulas del ISC específico y el campo de ITBIS llevado al costo del 606 conviene validarlos con su contador.                                                                                               
+                                                                                                                                                                                                                    
+  Documentación: [https://joenilson.github.io/fsRepublicaDominicana/]

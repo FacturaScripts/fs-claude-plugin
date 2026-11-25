@@ -3,11 +3,11 @@ idproject: 204
 name: IeAyudaFacturacion
 permalink: ieayudafacturacion
 creationdate: 16-04-2022
-lastmod: 03-09-2025
-version: 2.2
+lastmod: 04-11-2026
+version: 2.3
 betaversion: 1.3
 mincore: 2025.3
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

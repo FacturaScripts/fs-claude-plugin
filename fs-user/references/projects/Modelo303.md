@@ -3,13 +3,13 @@ idproject: 78
 name: Modelo303
 permalink: modelo303
 creationdate: 16-04-2020
-lastmod: 10-09-2026
+lastmod: 20-11-2026
 version: 3.4
-betaversion: 3.1
+betaversion: 3.51
 mincore: 2026.1
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Modelo303

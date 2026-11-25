@@ -3,11 +3,11 @@ idproject: 523
 name: RichiLite
 permalink: richilite
 creationdate: 10-01-2026
-lastmod: 24-07-2026
-version: 1.45
+lastmod: 20-10-2026
+version: 1.5
 betaversion: 1.1
-mincore: 2025
-maxcore: 2026.7
+mincore: 2025.4
+maxcore: 2026.72
 compatible: 
 min_php: 8
 require: 

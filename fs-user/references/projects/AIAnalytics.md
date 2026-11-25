@@ -55,3 +55,7 @@ FacturaScripts 2025 o superior.
 Para Ollama: servidor VPS o dedicado con acceso root y mínimo 4 GB de RAM libres.
 Para Groq: API key gratuita en console.groq.com (no requiere instalación).
 Para exportación PDF y email: librería rospdf incluida en FacturaScripts y SMTP configurado en el panel de administración.
+
+ANTES DE ACTUALIZAR FACTURASCRIPTS
+• Actualiza primero este plugin a su última versión. Las versiones antiguas declaran compatibilidad solo hasta FacturaScripts 2026.7: cuando salga la próxima versión estable, el actualizador las marcará como incompatibles y su botón Descargar las desactivará. La última versión del plugin está declarada compatible hasta 2030.
+• Si ya te sale ese aviso, en el actualizador usa Opciones &gt; No desactivar plugins y actualiza el plugin justo después.

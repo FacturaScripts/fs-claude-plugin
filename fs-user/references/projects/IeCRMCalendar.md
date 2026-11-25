@@ -3,13 +3,13 @@ idproject: 316
 name: IeCRMCalendar
 permalink: iecrmcalendar
 creationdate: 16-06-2023
-lastmod: 14-09-2026
-version: 3.31
+lastmod: 16-11-2026
+version: 4.31
 betaversion: 0
-mincore: 2025.3
-maxcore: 2026.7
+mincore: 2026.72
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: CRM
 require_php: 
 url: https://facturascripts.com/plugins/IeCRMCalendar

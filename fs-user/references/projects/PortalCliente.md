@@ -3,11 +3,11 @@ idproject: 352
 name: PortalCliente
 permalink: portalcliente
 creationdate: 25-01-2024
-lastmod: 06-10-2026
-version: 3.1
+lastmod: 09-11-2026
+version: 3.11
 betaversion: 1.91
 mincore: 2026.65
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: PrePagos,Traducciones,FirmarDocumentos,Servicios,Proyectos,TarifasAvanzadas
 min_php: 8.1
 require: 

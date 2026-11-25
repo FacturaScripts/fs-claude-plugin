@@ -3,17 +3,21 @@ idproject: 209
 name: PlantillaDetallada
 permalink: plantilladetallada
 creationdate: 29-04-2022
-lastmod: 15-09-2026
-version: 3.3
-betaversion: 2
+lastmod: 05-11-2026
+version: 3.31
+betaversion: 4
 mincore: 2026.4
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
 min_php: 8.1
 require: PlantillasPDF
 require_php: 
 url: https://facturascripts.com/plugins/PlantillaDetallada
 ---
+**Plugin incluido en PlantillasPDF v7, ya no es necesario instalar PlantillaDetallada**
+
+------------
+
 Añade un nueva plantilla al listado de plantillas del plugin PlantillasPDF. Esta plantilla es similar a la antigua factura_detallada de 2017.
 
 Requiere el plugin PlantillasPDF instalado y activado. Una vez activado, puedes seleccionar esta plantilla desde el menú Administrador → PlantillasPDF.

@@ -3,13 +3,13 @@ idproject: 71
 name: Fixer
 permalink: fixer
 creationdate: 12-02-2020
-lastmod: 22-05-2026
-version: 2.3
-betaversion: 1.9
+lastmod: 24-11-2026
+version: 2.4
+betaversion: 2.5
 mincore: 2025.4
-maxcore: 2026.7
+maxcore: 2026.72
 compatible: 
-min_php: 8
+min_php: 8.1
 require: 
 require_php: 
 url: https://facturascripts.com/plugins/Fixer
