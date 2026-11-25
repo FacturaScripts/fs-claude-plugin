@@ -116,7 +116,10 @@ export const nota: ResourceDef = {
         fechaaviso: 'Fecha del recordatorio (YYYY-MM-DD): ese día se avisa por email al autor, o a todos con paratodos',
         notice_hour: 'Hora del recordatorio (HH:MM:SS)',
         idoportunidad: 'Oportunidad de la nota. Avisa por email al creador, al asignado y al agente de la oportunidad',
-        tipodocumento: 'Clase del documento al que se refiere la nota (ej. PresupuestoCliente, FacturaCliente)',
+        tipodocumento: 'Documento al que se refiere la nota: la clase del documento (PresupuestoCliente, PedidoCliente, ' +
+            'AlbaranCliente, FacturaCliente o sus equivalentes de proveedor) o, para un servicio SAT, «servicio de ' +
+            'cliente» (más cómodo con create_nota_servicio_at)',
+        iddocumento: 'Id del documento o del servicio SAT al que se refiere la nota (con tipodocumento)',
         fecha: 'Fecha de la nota (YYYY-MM-DD). Por defecto, hoy',
     },
     list: {
@@ -250,22 +253,88 @@ export const cargo: ResourceDef = {
     delete: { tool: 'delete_cargo_crm', description: 'Elimina un cargo del catálogo (los contactos conservan su texto).' },
 };
 
+/** Valor de la columna status de una campaña por el nombre de su estado. */
+export const CAMPAIGN_STATUS_VALUE: Record<string, number> = { borrador: 0, enviando: 1, enviada: 2 };
+
 export const campana: ResourceDef = {
     plugin: PLUGIN,
     meta: metaOf('crm_campaign'),
-    fields: [],
+    fields: [
+        'name', 'subject', 'content', 'send_start_hour', 'send_end_hour', 'send_monday', 'send_tuesday',
+        'send_wednesday', 'send_thursday', 'send_friday', 'send_saturday', 'send_sunday', 'unsubscribe_link', 'nick',
+    ],
+    fieldDescriptions: {
+        name: 'Nombre interno de la campaña',
+        subject: 'Asunto de los emails. Admite {name} (nombre del destinatario) y {email}',
+        content: 'Contenido HTML de los emails. Admite {name}, {email} y {unsubscribe} (enlace de baja; si no se ' +
+            'pone y unsubscribe_link está activo, se añade al pie)',
+        send_start_hour: 'Hora (0-23) a partir de la que el cron envía. Por defecto 8',
+        send_end_hour: 'Hora (0-23) hasta la que el cron envía, incluida. Por defecto 16',
+        unsubscribe_link: 'Añadir al pie el enlace para darse de baja (art. 22.1 LSSI). Por defecto true',
+        nick: 'Usuario que crea la campaña (nick). La API no tiene usuario de sesión',
+    },
     list: {
         tool: 'get_campanas_crm',
         description:
             'Lista las campañas de email del CRM con su estado (0 borrador, 1 enviando, 2 enviada) y sus ' +
-            'estadísticas: emails a enviar, enviados y abiertos. Solo lectura: se preparan y envían desde FacturaScripts.',
+            'estadísticas: emails a enviar, enviados y abiertos. Para ver una completa usa get_campana_crm.',
         filters: ['status', 'nick'],
         like: ['name', 'subject'],
         defaultOrder: 'creation_date:desc,id:desc',
+    },
+    create: {
+        tool: 'create_campana_crm',
+        description:
+            'Crea una campaña de email en borrador. Por defecto se envía de lunes a viernes de 8 a 16 h con enlace de ' +
+            'baja. Después añade los destinatarios con anadir_lista_campana_crm, prueba el email con ' +
+            'enviar_prueba_campana_crm y ponla a enviar con set_estado_campana_crm.',
+        required: ['name', 'subject', 'content'],
+    },
+    update: {
+        tool: 'update_campana_crm',
+        description:
+            'Modifica una campaña de email: textos, horario y días de envío y enlace de baja. Para cambiar el estado ' +
+            'usa set_estado_campana_crm.',
+    },
+    delete: {
+        tool: 'delete_campana_crm',
+        description: 'Elimina una campaña de email con sus destinatarios y estadísticas. Irreversible: confirma antes con el usuario.',
+    },
+};
+
+export const campanaEmail: ResourceDef = {
+    plugin: PLUGIN,
+    meta: metaOf('crm_campaign_email'),
+    fields: ['id_campaign', 'email', 'id_contacto', 'outgoing_email'],
+    fieldDescriptions: {
+        outgoing_email: 'Cuenta de correo de salida: una de las de get_campana_crm (buzones). Sin ella el email no se ' +
+            'puede enviar',
+        id_contacto: 'Contacto del destinatario (opcional): da el nombre para {name}',
+    },
+    list: {
+        tool: 'get_emails_campana_crm',
+        description:
+            'Lista los destinatarios de las campañas de email: email, contacto, cuenta de salida, fecha de envío ' +
+            '(vacía si está pendiente) y si lo ha abierto. Filtra por id_campaign.',
+        filters: ['id_campaign', 'id_contacto', 'outgoing_email', 'opened'],
+        like: ['email'],
+        defaultOrder: 'id:asc',
+    },
+    create: {
+        tool: 'create_email_campana_crm',
+        description:
+            'Añade un destinatario suelto a una campaña. Para añadir muchos usa anadir_lista_campana_crm. Un email ' +
+            'solo puede estar una vez por cuenta de salida en cada campaña.',
+        required: ['id_campaign', 'email', 'outgoing_email'],
+    },
+    delete: {
+        tool: 'delete_email_campana_crm',
+        description: 'Quita un destinatario de una campaña (por su id) y recalcula las estadísticas.',
     },
 };
 
 /** Todos los modelos con tools CRUD del plugin. */
 export const RESOURCES: ResourceDef[] = [
     oportunidad, estadoOportunidad, nota, fuente, interes, interesContacto, lista, listaContacto, cargo, campana,
+    campanaEmail,
 ];

@@ -2,8 +2,10 @@
  * Plugin oficial Proyectos de FacturaScripts.
  *
  * Cubre los proyectos y sus tareas, fases, estados, notas, usuarios y stock,
- * los documentos de compra y venta vinculados, los cambios de estado y de fase
- * por nombre y los informes de proyectos, rentabilidad y tareas.
+ * los documentos de compra y venta y los asientos vinculados, los archivos del
+ * proyecto y de sus tareas, los recibos de sus facturas, la configuración del
+ * plugin, los cambios de estado y de fase por nombre y los informes de
+ * proyectos, rentabilidad y tareas.
  */
 
 import { buildResourceTools, handleResourceTool, resourceToolModels } from '../shared/resource.js';
@@ -18,7 +20,7 @@ const toolNames = new Set(tools.map((tool) => tool.name));
 
 export const proyectosPlugin: OfficialPlugin = {
     name: PLUGIN,
-    description: 'Proyectos, tareas, documentos vinculados, rentabilidad e informes',
+    description: 'Proyectos, tareas, documentos y asientos vinculados, archivos, recibos, configuración, rentabilidad e informes',
     models,
     tools,
     toolModels: Object.assign({}, ...RESOURCES.map(resourceToolModels)),

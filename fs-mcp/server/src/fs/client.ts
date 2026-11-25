@@ -290,7 +290,7 @@ class FacturaScriptsClient {
         // para que se pueda corregir la URL de la conexión, p. ej. de http a https
         const errorMessage = location
           ? `la API ha redirigido a ${location} y no se sigue la redirección para no enviar el token a otra dirección; si es la dirección de la instalación, corrige la URL de la conexión`
-          : error.response?.data?.message || error.message || "Error desconocido";
+          : apiErrorMessage(error.response?.data) || error.message || "Error desconocido";
 
         throw new Error(
           `Error en FacturaScripts (${connectionName}, HTTP ${statusCode}): ${errorMessage}`
@@ -460,3 +460,20 @@ class FacturaScriptsClient {
 export const fsClient = new FacturaScriptsClient();
 
 export default fsClient;
+
+/**
+ * Mensaje de error de una respuesta de la API. Los endpoints propios lo devuelven en
+ * `message`, pero la API genérica de modelos lo devuelve en `error` cuando el modelo no
+ * se puede guardar (por ejemplo, porque su validación lo rechaza).
+ *
+ * @param data cuerpo de la respuesta de error.
+ */
+export function apiErrorMessage(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const body = data as Record<string, unknown>;
+  for (const key of ['message', 'error']) {
+    const value = body[key];
+    if (typeof value === 'string' && value.trim() !== '') return value;
+  }
+  return undefined;
+}

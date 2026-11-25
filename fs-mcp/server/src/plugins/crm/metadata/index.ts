@@ -4,6 +4,7 @@
 import type { ModelMetadata } from '../../../metadata/types.js';
 
 import crmCampaignMetadata from './models/crm_campaign.js';
+import crmCampaignEmailMetadata from './models/crm_campaign_email.js';
 import crmFuenteMetadata from './models/crm_fuente.js';
 import crmInteresMetadata from './models/crm_interes.js';
 import crmInteresContactoMetadata from './models/crm_interes_contacto.js';
@@ -19,6 +20,7 @@ import crmPositionMetadata from './models/crm_position.js';
  */
 export const models: ModelMetadata[] = [
     crmCampaignMetadata,
+    crmCampaignEmailMetadata,
     crmFuenteMetadata,
     crmInteresMetadata,
     crmInteresContactoMetadata,

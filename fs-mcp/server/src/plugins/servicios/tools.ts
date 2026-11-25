@@ -1,8 +1,10 @@
 /**
  * Tools propias del plugin Servicios que no son CRUD de un modelo: ficha
- * completa de un servicio, cambio de estado por nombre, historial de una
- * máquina e informes (resumen, servicios pendientes, trabajos por facturar y
- * horas trabajadas).
+ * completa de un servicio, cambio de estado por nombre, generar el
+ * presupuesto, albarán o factura de sus trabajos, calcular las horas de un
+ * trabajo, archivos y notas del servicio, configuración del plugin, historial
+ * de una máquina e informes (resumen, servicios pendientes, trabajos por
+ * facturar y horas trabajadas).
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -27,8 +29,18 @@ import {
     round2,
     todayIso,
 } from '../shared/query.js';
+import {
+    DELETE_ATTACHMENT_PROPERTIES,
+    deleteAttachment,
+    listAttachments,
+    UPDATE_ATTACHMENT_PROPERTIES,
+    updateAttachment,
+    UPLOAD_SAFETY_TEXT,
+    uploadAttachment,
+} from '../shared/attachments.js';
 import { CONNECTION_PROPERTY } from '../shared/resource.js';
-import { fail, ok } from '../shared/result.js';
+import { fail, isMissingResource, ok } from '../shared/result.js';
+import { getSettingsTool, settingsProperties, updateSettingsTool, type SettingDef } from '../shared/settings.js';
 import type { ToolArgs, ToolResult } from '../types.js';
 import { servicioATLog, WORK_STATUS } from './resources.js';
 
@@ -50,6 +62,80 @@ const LINKED_DOCUMENTS: Array<{ key: string; endpoint: string; id: string }> = [
     { key: 'facturas', endpoint: '/facturaclientes', id: 'idfactura' },
 ];
 
+/** Clase del modelo de los servicios, con la que se relacionan sus archivos. */
+const SERVICE_MODEL = 'ServicioAT';
+
+/** Tipo de documento con el que el plugin CRM guarda las notas de un servicio. */
+const SERVICE_NOTE_TYPE = 'servicio de cliente';
+
+/** Notas de un servicio que se incluyen en su ficha. */
+const NOTES_LIMIT = 20;
+
+/** Versión del plugin Servicios que añade los endpoints generarDocumentoServicioAT y calcularHorasTrabajoAT. */
+const API_ENDPOINTS_VERSION = '4.42';
+
+/** Documentos que se pueden generar desde un servicio y la acción de los trabajos que incluyen. */
+const GENERATED_DOCUMENTS: Record<string, string> = {
+    presupuesto: '5 hacer presupuesto',
+    albaran: '3 hacer albarán',
+    factura: '1 hacer factura',
+};
+
+/** Casillas del PDF y del ticket del servicio, con lo que imprimen. */
+const PRINT_OPTIONS: Record<string, string> = {
+    machine_info: 'los datos de las máquinas',
+    observations: 'las observaciones',
+    description: 'la descripción',
+    material: 'el material',
+    solution: 'la solución',
+    agent: 'el agente',
+    assigned: 'el usuario asignado',
+    works: 'los trabajos',
+    work_reference: 'la referencia de los trabajos',
+    work_description: 'la descripción de los trabajos',
+    work_quantity: 'la cantidad de los trabajos',
+    work_price: 'el precio de los trabajos',
+};
+
+/** Configuración general del plugin (Admin servicios > Configuración). */
+const SERVICE_SETTINGS: Record<string, SettingDef> = {
+    patron: {
+        type: 'string',
+        description: 'Patrón del código de los servicios nuevos. Admite {ANYO}, {NUM} y el resto de variables de los ' +
+            'patrones de FacturaScripts (por defecto SER-{NUM})',
+    },
+    longnumero: { type: 'number', description: 'Longitud mínima del número del patrón, rellenado con ceros' },
+    workstatus: {
+        type: 'number',
+        enum: [0, 1, 2, 3, 4, 5, 6],
+        description: 'Acción de los trabajos nuevos: 0 sin acción, 1 hacer factura, 2 facturado, 3 hacer albarán, ' +
+            '4 albarán hecho, 5 hacer presupuesto, 6 presupuesto hecho',
+    },
+    new_service_without_machine: { type: 'boolean', description: 'Permitir crear servicios sin máquina' },
+    disablestockmanagement: { type: 'boolean', description: 'Desactivar el control de stock de los trabajos' },
+    print_pdf_footer_text: { type: 'string', description: 'Texto del pie del PDF del servicio' },
+    ...Object.fromEntries(
+        Object.entries(PRINT_OPTIONS).map(([key, text]) => [
+            `print_pdf_${key}`,
+            { type: 'boolean', description: `Imprimir en el PDF del servicio ${text}` },
+        ]),
+    ),
+    print_ticket_footer_text: { type: 'string', description: 'Texto del pie del ticket del servicio' },
+    ...Object.fromEntries(
+        Object.entries(PRINT_OPTIONS).map(([key, text]) => [
+            `print_ticket_${key}`,
+            { type: 'boolean', description: `Imprimir en el ticket del servicio ${text}` },
+        ]),
+    ),
+    document_description: { type: 'boolean', description: 'Añadir la descripción del servicio a los documentos generados' },
+    document_material: { type: 'boolean', description: 'Añadir el material del servicio a los documentos generados' },
+    document_solution: { type: 'boolean', description: 'Añadir la solución del servicio a los documentos generados' },
+    document_observations: { type: 'boolean', description: 'Añadir las observaciones del servicio a los documentos generados' },
+    document_start_date: { type: 'boolean', description: 'Añadir la fecha de inicio a los documentos generados' },
+    document_end_date: { type: 'boolean', description: 'Añadir la fecha de fin a los documentos generados' },
+    document_machine: { type: 'boolean', description: 'Añadir las máquinas del servicio a los documentos generados' },
+};
+
 const dateRangeProps = {
     fecha_desde: { type: 'string', description: 'Desde esta fecha incluida (YYYY-MM-DD)' },
     fecha_hasta: { type: 'string', description: 'Hasta esta fecha incluida (YYYY-MM-DD)' },
@@ -61,7 +147,8 @@ export const SERVICIOS_TOOLS: Tool[] = [
         description:
             'Ficha completa de un servicio SAT: datos del servicio con los nombres de su estado, prioridad, tipo y ' +
             'cliente, sus trabajos con importes y acción de facturación, las máquinas, la checklist de verificaciones, ' +
-            'los presupuestos, albaranes y facturas generados y las últimas entradas del historial.',
+            'los presupuestos, albaranes y facturas generados, sus archivos adjuntos, sus notas (si el plugin CRM está ' +
+            'activo) y las últimas entradas del historial.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -208,6 +295,136 @@ export const SERVICIOS_TOOLS: Tool[] = [
             required: [],
         },
     },
+    {
+        name: 'create_documento_servicio_at',
+        description:
+            'Genera un presupuesto, un albarán o una factura de cliente con los trabajos del servicio que tienen esa ' +
+            'acción (5 hacer presupuesto, 3 hacer albarán, 1 hacer factura), igual que los botones de la ficha del ' +
+            'servicio: añade la línea del servicio y una por trabajo y marca los trabajos como presupuestados, ' +
+            'albaranados o facturados. El servicio debe estar en un estado editable. Prepara antes los trabajos con ' +
+            `update_trabajo_at (campo estado). Requiere Servicios ${API_ENDPOINTS_VERSION} o posterior. Confirma antes con el usuario.`,
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idservicio: { type: 'number', description: 'Id del servicio' },
+                tipo: {
+                    type: 'string',
+                    enum: Object.keys(GENERATED_DOCUMENTS),
+                    description: 'Documento a generar: presupuesto, albaran o factura',
+                },
+            },
+            required: ['idservicio', 'tipo'],
+        },
+    },
+    {
+        name: 'calcular_horas_trabajo_at',
+        description:
+            'Calcula las horas de un trabajo a partir de su fecha y hora de inicio y de fin (días × 24 + diferencia de ' +
+            'horas) y las guarda como cantidad, como el botón de calcular horas de la ficha del servicio. El servicio ' +
+            'debe estar en un estado editable.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idtrabajo: { type: 'number', description: 'Id del trabajo' },
+            },
+            required: ['idtrabajo'],
+        },
+    },
+    {
+        name: 'get_archivos_servicio_at',
+        description: 'Archivos adjuntos de un servicio SAT, con su nombre, tipo, tamaño, observaciones y enlace de descarga.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idservicio: { type: 'number', description: 'Id del servicio' },
+            },
+            required: ['idservicio'],
+        },
+    },
+    {
+        name: 'create_archivo_servicio_at',
+        description: 'Sube un archivo del equipo local a FacturaScripts y lo adjunta a un servicio SAT. ' + UPLOAD_SAFETY_TEXT,
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idservicio: { type: 'number', description: 'Id del servicio' },
+                ruta: { type: 'string', description: 'Ruta absoluta del archivo en este equipo' },
+                observaciones: { type: 'string', description: 'Observaciones del adjunto' },
+                nick: { type: 'string', description: 'Usuario que adjunta el archivo (nick)' },
+            },
+            required: ['idservicio', 'ruta'],
+        },
+    },
+    {
+        name: 'update_archivo_servicio_at',
+        description: 'Cambia las observaciones de un archivo adjunto a un servicio (por el idrelacion de get_archivos_servicio_at).',
+        inputSchema: { type: 'object', properties: UPDATE_ATTACHMENT_PROPERTIES, required: ['idrelacion', 'observaciones'] },
+    },
+    {
+        name: 'delete_archivo_servicio_at',
+        description:
+            'Quita un archivo adjunto de un servicio (por el idrelacion de get_archivos_servicio_at). Con ' +
+            'borrar_archivo=true borra también el archivo si nada más lo usa. Irreversible.',
+        inputSchema: { type: 'object', properties: DELETE_ATTACHMENT_PROPERTIES, required: ['idrelacion'] },
+    },
+    {
+        name: 'get_notas_servicio_at',
+        description:
+            'Notas de un servicio SAT, de la más reciente a la más antigua. Las notas de los servicios son del plugin ' +
+            'CRM, que debe estar activo; se modifican y borran con update_nota_crm y delete_nota_crm.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idservicio: { type: 'number', description: 'Id del servicio' },
+                limit: { type: 'number', description: 'Notas a listar (por defecto 50)' },
+            },
+            required: ['idservicio'],
+        },
+    },
+    {
+        name: 'create_nota_servicio_at',
+        description:
+            'Añade una nota a un servicio SAT, como la pestaña de notas de su ficha, con un recordatorio opcional ' +
+            '(fechaaviso y notice_hour). La nota queda también en el contacto de facturación del cliente. Requiere el ' +
+            'plugin CRM. Se modifican y borran con update_nota_crm y delete_nota_crm.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idservicio: { type: 'number', description: 'Id del servicio' },
+                observaciones: { type: 'string', description: 'Texto de la nota' },
+                nick: {
+                    type: 'string',
+                    description: 'Autor de la nota (nick). Indícalo siempre: la API no tiene usuario de sesión y sin autor el aviso no llega a nadie',
+                },
+                fechaaviso: { type: 'string', description: 'Fecha del recordatorio (YYYY-MM-DD)' },
+                notice_hour: { type: 'string', description: 'Hora del recordatorio (HH:MM:SS)' },
+                paratodos: { type: 'boolean', description: 'Avisar a todos los usuarios, no solo al autor' },
+            },
+            required: ['idservicio', 'observaciones'],
+        },
+    },
+    {
+        name: 'get_config_servicios',
+        description:
+            'Configuración general del plugin Servicios (Admin servicios): patrón y longitud del código, acción de los ' +
+            'trabajos nuevos, servicios sin máquina, control de stock y opciones del PDF, del ticket y de los documentos ' +
+            'generados.',
+        inputSchema: { type: 'object', properties: { connection: CONNECTION_PROPERTY }, required: [] },
+    },
+    {
+        name: 'update_config_servicios',
+        description:
+            'Modifica la configuración general del plugin Servicios; solo cambian los valores enviados. Los estados, ' +
+            'prioridades, tipos y categorías se gestionan con sus propias tools (*_estado_at, *_prioridad_at, ' +
+            '*_tipo_at y *_categoria_at).',
+        inputSchema: { type: 'object', properties: settingsProperties(SERVICE_SETTINGS), required: [] },
+    },
 ];
 
 /**
@@ -261,7 +478,7 @@ async function servicioDetalle(args: ToolArgs): Promise<ToolResult> {
     const machineIds = [service.idmaquina, service.idmaquina2, service.idmaquina3, service.idmaquina4]
         .filter((value) => value !== null && value !== undefined && value !== '');
 
-    const [works, status, priority, type, customer, machines, checks, checkCatalog, categories, categoryCatalog, history, documents] =
+    const [works, status, priority, type, customer, machines, checks, checkCatalog, categories, categoryCatalog, history, documents, files, notes] =
         await Promise.all([
             fetchAll<Row>('/trabajoates', { idservicio: id, 'sort[fechainicio]': 'ASC', 'sort[horainicio]': 'ASC' }, connection),
             getOrNull('/estadoates', service.idestado, connection),
@@ -296,6 +513,9 @@ async function servicioDetalle(args: ToolArgs): Promise<ToolResult> {
                     }
                 }),
             ),
+            listAttachments(SERVICE_MODEL, id, connection).catch(() => [] as Row[]),
+            // las notas son del plugin CRM: si no está activo, se omiten
+            serviceNotes(id, NOTES_LIMIT, connection).catch(() => null),
         ]);
 
     const byAction = new Map<string, { trabajos: number; importe: number }>();
@@ -348,8 +568,152 @@ async function servicioDetalle(args: ToolArgs): Promise<ToolResult> {
             verificaciones,
         },
         documentos: Object.fromEntries(documents),
+        archivos: files,
+        ...(notes === null ? {} : { notas: notes }),
         historial: history,
     });
+}
+
+/**
+ * Notas de un servicio (plugin CRM), de la más reciente a la más antigua.
+ *
+ * @param idservicio servicio.
+ * @param limit      notas a leer.
+ * @param connection conexión a usar.
+ * @throws Error si el plugin CRM no está activo.
+ */
+async function serviceNotes(idservicio: unknown, limit: number, connection: string | undefined): Promise<Row[]> {
+    const rows = await fsClient.get<Row[]>(
+        '/crmnotas',
+        { tipodocumento: SERVICE_NOTE_TYPE, iddocumento: idservicio, 'sort[fecha]': 'DESC', 'sort[hora]': 'DESC', limit },
+        connection,
+    );
+    return Array.isArray(rows) ? rows : [];
+}
+
+/**
+ * Llama a un endpoint de la API del plugin y, si la instalación no lo tiene, explica qué versión hace falta.
+ *
+ * @param tool       nombre de la tool, para el mensaje de error.
+ * @param endpoint   recurso de la API.
+ * @param body       datos de la petición.
+ * @param connection conexión a usar.
+ */
+async function postPluginEndpoint(tool: string, endpoint: string, body: Row, connection: string | undefined): Promise<ToolResult> {
+    try {
+        return ok(await fsClient.post<Row>(endpoint, body, connection));
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (isMissingResource(message)) {
+            return fail(
+                `${tool}: la instalación no tiene el endpoint ${endpoint}. Requiere el plugin Servicios ` +
+                    `${API_ENDPOINTS_VERSION} o posterior: actualízalo y vuelve a intentarlo.`,
+            );
+        }
+        throw error;
+    }
+}
+
+async function crearDocumentoServicio(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    if (typeof args.tipo !== 'string' || !(args.tipo in GENERATED_DOCUMENTS)) {
+        return fail(`create_documento_servicio_at: tipo no válido. Usa ${Object.keys(GENERATED_DOCUMENTS).join(', ')}.`);
+    }
+    return postPluginEndpoint(
+        'create_documento_servicio_at',
+        '/generarDocumentoServicioAT',
+        { idservicio: pathId(args.idservicio), tipo: args.tipo },
+        connection,
+    );
+}
+
+/**
+ * Horas de un trabajo con la misma fórmula que el plugin (TrabajoAT::calculateHours): días entre las fechas
+ * (redondeados hacia arriba) por 24 más la diferencia entre las horas, con 4 decimales.
+ *
+ * @param work trabajo con fechainicio, fechafin, horainicio y horafin.
+ */
+export function workHours(work: Row): number {
+    // contamos los días en UTC para que un cambio de horario no altere la diferencia
+    const utcDay = (value: unknown): number | null => {
+        const date = parseFsDate(value);
+        return Number.isNaN(date.getTime()) ? null : Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    };
+    let days = 0;
+    const start = utcDay(work.fechainicio);
+    const end = utcDay(work.fechafin);
+    if (start !== null && end !== null) days = Math.ceil((end - start) / 86400000);
+
+    let hours = 0;
+    const seconds = (value: unknown): number | null => {
+        if (typeof value !== 'string' || value === '') return null;
+        const [h = 0, m = 0, s = 0] = value.split(':').map((part) => Number(part) || 0);
+        return h * 3600 + m * 60 + s;
+    };
+    const ini = seconds(work.horainicio);
+    const fin = seconds(work.horafin);
+    if (ini !== null && fin !== null) hours = Math.round(((fin - ini) / 3600) * 10000) / 10000;
+
+    return days * 24 + hours;
+}
+
+async function calcularHorasTrabajo(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.idtrabajo);
+    try {
+        return ok(await fsClient.post<Row>('/calcularHorasTrabajoAT', { idtrabajo: id }, connection));
+    } catch (error) {
+        if (!isMissingResource(error instanceof Error ? error.message : String(error))) throw error;
+    }
+
+    // la instalación tiene una versión anterior del plugin: calculamos aquí con la misma fórmula
+    const work = await fsClient.get<Row>(`/trabajoates/${id}`, undefined, connection);
+    const service = await fsClient.get<Row>(`/servicioates/${pathId(work.idservicio)}`, undefined, connection);
+    if (!isTrue(service.editable)) {
+        return fail(`calcular_horas_trabajo_at: el servicio ${String(work.idservicio)} no está en un estado editable.`);
+    }
+    const cantidad = workHours(work);
+    const result = await fsClient.put<Row>(`/trabajoates/${id}`, { cantidad }, connection);
+    return ok({ cantidad, cantidad_anterior: work.cantidad ?? null, resultado: result });
+}
+
+async function crearArchivoServicio(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.idservicio);
+    return uploadAttachment('create_archivo_servicio_at', SERVICE_MODEL, id, args, connection, () =>
+        fsClient.get(`/servicioates/${id}`, undefined, connection),
+    );
+}
+
+async function notasServicio(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.idservicio);
+    const limit = typeof args.limit === 'number' && args.limit > 0 ? args.limit : 50;
+    return ok({ idservicio: Number(id), notas: await serviceNotes(id, limit, connection) });
+}
+
+async function crearNotaServicio(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    if (typeof args.observaciones !== 'string' || args.observaciones.trim() === '') {
+        return fail('create_nota_servicio_at: indica el texto de la nota (observaciones).');
+    }
+    const service = await fsClient.get<Row>(`/servicioates/${pathId(args.idservicio)}`, undefined, connection);
+    const customer = await getOrNull('/clientes', service.codcliente, connection);
+
+    // los mismos valores que pone la pestaña de notas de la ficha del servicio
+    const note: Row = {
+        tipodocumento: SERVICE_NOTE_TYPE,
+        iddocumento: service.idservicio,
+        documento: service.codigo ?? null,
+        observaciones: args.observaciones,
+    };
+    if (customer?.idcontactofact !== undefined && customer.idcontactofact !== null) note.idcontacto = customer.idcontactofact;
+    for (const field of ['nick', 'fechaaviso', 'notice_hour']) {
+        if (typeof args[field] === 'string' && args[field] !== '') note[field] = args[field];
+    }
+    if (args.paratodos !== undefined) note.paratodos = isTrue(args.paratodos) ? 1 : 0;
+
+    return ok(await fsClient.post<Row>('/crmnotas', note, connection));
 }
 
 async function setEstadoServicio(args: ToolArgs): Promise<ToolResult> {
@@ -898,6 +1262,26 @@ async function tiemposResolucion(args: ToolArgs): Promise<ToolResult> {
  */
 export async function handleServiciosTool(name: string, args: ToolArgs): Promise<ToolResult | null> {
     switch (name) {
+        case 'create_documento_servicio_at':
+            return crearDocumentoServicio(args);
+        case 'calcular_horas_trabajo_at':
+            return calcularHorasTrabajo(args);
+        case 'get_archivos_servicio_at':
+            return ok({ idservicio: Number(pathId(args.idservicio)), archivos: await listAttachments(SERVICE_MODEL, pathId(args.idservicio), connectionOf(args)) });
+        case 'create_archivo_servicio_at':
+            return crearArchivoServicio(args);
+        case 'update_archivo_servicio_at':
+            return updateAttachment([SERVICE_MODEL], args, connectionOf(args));
+        case 'delete_archivo_servicio_at':
+            return deleteAttachment([SERVICE_MODEL], args, connectionOf(args));
+        case 'get_notas_servicio_at':
+            return notasServicio(args);
+        case 'create_nota_servicio_at':
+            return crearNotaServicio(args);
+        case 'get_config_servicios':
+            return getSettingsTool('servicios', SERVICE_SETTINGS, args);
+        case 'update_config_servicios':
+            return updateSettingsTool('update_config_servicios', 'servicios', SERVICE_SETTINGS, args);
         case 'get_servicio_at':
             return servicioDetalle(args);
         case 'set_estado_servicio_at':

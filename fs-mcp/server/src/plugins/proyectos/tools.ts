@@ -1,8 +1,9 @@
 /**
  * Tools propias del plugin Proyectos que no son CRUD de un modelo: ficha
  * completa de un proyecto, sus documentos de compra y venta, vincular
- * documentos, cambios de estado y de fase por nombre, e informes (resumen de
- * proyectos, rentabilidad, tareas y tareas vencidas).
+ * documentos y asientos, archivos del proyecto y de sus tareas, recibos de sus
+ * facturas, configuración del plugin, cambios de estado y de fase por nombre, e
+ * informes (resumen de proyectos, rentabilidad, tareas y tareas vencidas).
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -20,13 +21,24 @@ import {
     groupKey,
     isoDate,
     isTrue,
+    mapLimit,
     num,
     optionalIsoDate,
     round2,
     todayIso,
 } from '../shared/query.js';
+import {
+    DELETE_ATTACHMENT_PROPERTIES,
+    deleteAttachment,
+    listAttachments,
+    UPDATE_ATTACHMENT_PROPERTIES,
+    updateAttachment,
+    UPLOAD_SAFETY_TEXT,
+    uploadAttachment,
+} from '../shared/attachments.js';
 import { CONNECTION_PROPERTY } from '../shared/resource.js';
-import { fail, ok } from '../shared/result.js';
+import { fail, isMissingResource, ok } from '../shared/result.js';
+import { getSettingsTool, settingsProperties, updateSettingsTool, type SettingDef } from '../shared/settings.js';
 import type { ToolArgs, ToolResult } from '../types.js';
 import { PHASE_CANCELED, PHASE_COMPLETED, PHASE_TYPE } from './resources.js';
 
@@ -45,6 +57,48 @@ const DOCUMENTS: Array<{ tipo: string; endpoint: string; id: string; lado: 'vent
 ];
 
 const DOCUMENT_TYPES = DOCUMENTS.map((doc) => doc.tipo);
+
+/**
+ * Clase del modelo en FacturaScripts a partir del tipo en snake_case (factura_cliente → FacturaCliente).
+ *
+ * @param tipo tipo de documento.
+ */
+function modelClass(tipo: string): string {
+    return tipo
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('');
+}
+
+/** Registros que se pueden vincular a un proyecto: sus documentos de compra y venta y los asientos. */
+const LINKABLE: Array<{ tipo: string; endpoint: string; modelo: string }> = [
+    ...DOCUMENTS.map((doc) => ({ tipo: doc.tipo, endpoint: doc.endpoint, modelo: modelClass(doc.tipo) })),
+    { tipo: 'asiento', endpoint: '/asientos', modelo: 'Asiento' },
+];
+
+const LINKABLE_TYPES = LINKABLE.map((item) => item.tipo);
+
+/** Clases de modelo con las que se relacionan los archivos de un proyecto y de sus tareas. */
+const PROJECT_FILE_MODELS = ['Proyecto', 'TareaProyecto'];
+
+/** Configuración general del plugin (Admin proyectos > Configuración). */
+const PROJECT_SETTINGS: Record<string, SettingDef> = {
+    patron: {
+        type: 'string',
+        description: 'Patrón del nombre de los proyectos nuevos. Admite {ANYO}, {NUM} y el resto de variables de los ' +
+            'patrones de FacturaScripts (por defecto PR-{ANYO}-{NUM})',
+    },
+    longnumero: { type: 'number', description: 'Longitud mínima del número del patrón, rellenado con ceros' },
+    reiniciar_patron_anualmente: { type: 'boolean', description: 'Volver a empezar la numeración cada año' },
+    stock: { type: 'boolean', description: 'Calcular y mostrar el stock de los productos de cada proyecto' },
+    burnstock: {
+        type: 'boolean',
+        description: 'Quemar el stock: descontar del proyecto el material que sale en sus albaranes y facturas de venta',
+    },
+};
+
+/** Versión del plugin Proyectos que añade el endpoint vincularProyecto. */
+const LINK_ENDPOINT_VERSION = '5.32';
 
 const dateRangeProps = {
     fecha_desde: { type: 'string', description: 'Desde esta fecha de alta incluida (YYYY-MM-DD)' },
@@ -65,8 +119,8 @@ export const PROYECTOS_TOOLS: Tool[] = [
         description:
             'Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, ' +
             'margen y pendiente de facturar, sus tareas con la fase y si están vencidas (y el resumen por fase), los ' +
-            'usuarios, las últimas notas, el stock, el resumen de documentos de compra y venta por tipo y los ' +
-            'servicios SAT vinculados (si el plugin Servicios está activo). ' +
+            'usuarios, las últimas notas, el stock, el resumen de documentos de compra y venta por tipo, los asientos ' +
+            'vinculados, los archivos adjuntos y los servicios SAT vinculados (si el plugin Servicios está activo). ' +
             'Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y ' +
             'pedidos aún no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.',
         inputSchema: {
@@ -101,16 +155,22 @@ export const PROYECTOS_TOOLS: Tool[] = [
     {
         name: 'set_proyecto_documento',
         description:
-            'Vincula un documento de compra o venta a un proyecto, o lo desvincula. FacturaScripts recalcula los ' +
-            'totales del proyecto al guardar el documento.',
+            'Vincula a un proyecto un documento de compra o venta o un asiento contable, o lo desvincula, igual que ' +
+            'los botones de la ficha del proyecto: admite documentos ya no editables (facturas emitidas, presupuestos ' +
+            'aceptados...) y asientos de ejercicios cerrados. Recalcula el stock y los totales del proyecto nuevo y del ' +
+            `anterior. Requiere Proyectos ${LINK_ENDPOINT_VERSION} o posterior; con versiones anteriores usa la API ` +
+            'genérica, que solo admite documentos y asientos editables.',
         inputSchema: {
             type: 'object',
             properties: {
                 connection: CONNECTION_PROPERTY,
-                tipo: { type: 'string', enum: DOCUMENT_TYPES, description: 'Tipo de documento' },
-                id: { type: 'number', description: 'Id del documento (idfactura, idalbaran, idpedido o idpresupuesto)' },
+                tipo: { type: 'string', enum: LINKABLE_TYPES, description: 'Tipo de documento, o asiento' },
+                id: {
+                    type: 'number',
+                    description: 'Id del documento (idfactura, idalbaran, idpedido o idpresupuesto) o del asiento (idasiento)',
+                },
                 idproyecto: { type: 'number', description: 'Proyecto al que vincularlo' },
-                desvincular: { type: 'boolean', description: 'true para quitar el documento de su proyecto' },
+                desvincular: { type: 'boolean', description: 'true para quitarlo de su proyecto' },
             },
             required: ['tipo', 'id'],
         },
@@ -224,6 +284,99 @@ export const PROYECTOS_TOOLS: Tool[] = [
             required: [],
         },
     },
+    {
+        name: 'get_archivos_proyecto',
+        description:
+            'Archivos adjuntos de un proyecto (idproyecto) o de una de sus tareas (idtarea), con su nombre, tipo, ' +
+            'tamaño, observaciones y enlace de descarga.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idproyecto: { type: 'number', description: 'Id del proyecto' },
+                idtarea: { type: 'number', description: 'Id de la tarea, en lugar del proyecto' },
+            },
+            required: [],
+        },
+    },
+    {
+        name: 'create_archivo_proyecto',
+        description:
+            'Sube un archivo del equipo local a FacturaScripts y lo adjunta a un proyecto (idproyecto) o a una de sus ' +
+            'tareas (idtarea). ' + UPLOAD_SAFETY_TEXT,
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idproyecto: { type: 'number', description: 'Id del proyecto' },
+                idtarea: { type: 'number', description: 'Id de la tarea, en lugar del proyecto' },
+                ruta: { type: 'string', description: 'Ruta absoluta del archivo en este equipo' },
+                observaciones: { type: 'string', description: 'Observaciones del adjunto' },
+                nick: { type: 'string', description: 'Usuario que adjunta el archivo (nick)' },
+            },
+            required: ['ruta'],
+        },
+    },
+    {
+        name: 'update_archivo_proyecto',
+        description:
+            'Cambia las observaciones de un archivo adjunto a un proyecto o a una tarea (por el idrelacion de ' +
+            'get_archivos_proyecto).',
+        inputSchema: { type: 'object', properties: UPDATE_ATTACHMENT_PROPERTIES, required: ['idrelacion', 'observaciones'] },
+    },
+    {
+        name: 'delete_archivo_proyecto',
+        description:
+            'Quita un archivo adjunto de un proyecto o de una tarea (por el idrelacion de get_archivos_proyecto). Con ' +
+            'borrar_archivo=true borra también el archivo si nada más lo usa. Irreversible.',
+        inputSchema: { type: 'object', properties: DELETE_ATTACHMENT_PROPERTIES, required: ['idrelacion'] },
+    },
+    {
+        name: 'get_recibos_proyecto',
+        description:
+            'Recibos de las facturas de cliente vinculadas a un proyecto (los recibos no se vinculan por separado: ' +
+            'son los de sus facturas), con el total pendiente de cobro y los vencidos.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idproyecto: { type: 'number', description: 'Id del proyecto' },
+                pagado: { type: 'boolean', description: 'true solo los pagados, false solo los pendientes' },
+            },
+            required: ['idproyecto'],
+        },
+    },
+    {
+        name: 'pagar_recibos_proyecto',
+        description:
+            'Marca como pagados recibos de las facturas de un proyecto, como el botón «Pagado» de la ficha del ' +
+            'proyecto: FacturaScripts registra el pago y, si la factura queda cobrada, la marca como pagada. Solo ' +
+            'admite recibos de facturas del proyecto. Confirma antes con el usuario.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idproyecto: { type: 'number', description: 'Id del proyecto' },
+                idrecibos: { type: 'array', items: { type: 'number' }, description: 'Ids de los recibos a pagar' },
+                nick: { type: 'string', description: 'Usuario que registra el pago (nick)' },
+            },
+            required: ['idproyecto', 'idrecibos'],
+        },
+    },
+    {
+        name: 'get_config_proyectos',
+        description:
+            'Configuración general del plugin Proyectos (Admin proyectos): patrón y longitud del número de los ' +
+            'proyectos, reinicio anual de la numeración, stock por proyecto y quemar stock.',
+        inputSchema: { type: 'object', properties: { connection: CONNECTION_PROPERTY }, required: [] },
+    },
+    {
+        name: 'update_config_proyectos',
+        description:
+            'Modifica la configuración general del plugin Proyectos; solo cambian los valores enviados. Los estados ' +
+            'y las fases se gestionan con sus propias tools (create/update/delete_estado_proyecto y _fase_tarea).',
+        inputSchema: { type: 'object', properties: settingsProperties(PROJECT_SETTINGS), required: [] },
+    },
 ];
 
 /**
@@ -302,7 +455,7 @@ async function proyectoDetalle(args: ToolArgs): Promise<ToolResult> {
     const notesLimit = typeof args.notas === 'number' && args.notas >= 0 ? args.notas : 20;
     const today = todayIso();
 
-    const [status, customer, tasks, phases, users, notes, stock, documents, services] = await Promise.all([
+    const [status, customer, tasks, phases, users, notes, stock, documents, services, entries, files] = await Promise.all([
         getOrNull('/estadoproyectos', project.idestado, connection),
         getOrNull('/clientes', project.codcliente, connection),
         fetchAll<Row>('/tareaproyectos', { idproyecto: id, 'sort[idtarea]': 'ASC' }, connection),
@@ -332,6 +485,8 @@ async function proyectoDetalle(args: ToolArgs): Promise<ToolResult> {
         ),
         // si el plugin Servicios no está activo el recurso no existe y no se muestran
         fetchAll<Row>('/servicioates', { idproyecto: id }, connection).then((r) => r.rows).catch(() => null),
+        fetchAll<Row>('/asientos', { idproyecto: id, 'sort[fecha]': 'DESC' }, connection).then((r) => r.rows).catch(() => [] as Row[]),
+        listAttachments('Proyecto', id, connection).catch(() => [] as Row[]),
     ]);
 
     const byPhase = new Map<string, number>();
@@ -372,6 +527,14 @@ async function proyectoDetalle(args: ToolArgs): Promise<ToolResult> {
         notas: notes,
         stock: { referencias: stock.rows.length, registros: stock.rows.slice(0, 100) },
         documentos: documents,
+        asientos: entries.map((row) => ({
+            idasiento: row.idasiento,
+            numero: row.numero ?? null,
+            fecha: isoDate(row.fecha),
+            concepto: row.concepto ?? null,
+            importe: num(row.importe),
+        })),
+        archivos: files,
         ...(services !== null ? {
             servicios_sat: services.map((row) => ({
                 idservicio: row.idservicio,
@@ -425,8 +588,8 @@ async function documentosProyecto(args: ToolArgs): Promise<ToolResult> {
 
 async function setProyectoDocumento(args: ToolArgs): Promise<ToolResult> {
     const connection = connectionOf(args);
-    const doc = DOCUMENTS.find((d) => d.tipo === args.tipo);
-    if (!doc) return fail(`set_proyecto_documento: tipo no válido. Usa ${DOCUMENT_TYPES.join(', ')}.`);
+    const target = LINKABLE.find((item) => item.tipo === args.tipo);
+    if (!target) return fail(`set_proyecto_documento: tipo no válido. Usa ${LINKABLE_TYPES.join(', ')}.`);
 
     const unlink = isTrue(args.desvincular);
     if (!unlink && (args.idproyecto === undefined || args.idproyecto === null || args.idproyecto === '')) {
@@ -436,13 +599,147 @@ async function setProyectoDocumento(args: ToolArgs): Promise<ToolResult> {
         // comprobamos que el proyecto existe para no dejar el documento con un id huérfano
         await fsClient.get(`/proyectos/${pathId(args.idproyecto)}`, undefined, connection);
     }
+    const idproyecto = unlink ? 'null' : args.idproyecto;
 
-    const result = await fsClient.put<Row>(
-        `${doc.endpoint}/${pathId(args.id)}`,
-        { idproyecto: unlink ? 'null' : args.idproyecto },
-        connection,
+    // endpoint del plugin: vincula aunque el documento o el asiento ya no sea editable
+    try {
+        const result = await fsClient.post<Row>(
+            '/vincularProyecto',
+            { modelo: target.modelo, id: pathId(args.id), idproyecto },
+            connection,
+        );
+        return ok(result);
+    } catch (error) {
+        if (!isMissingResource(error instanceof Error ? error.message : String(error))) throw error;
+    }
+
+    // la instalación tiene una versión anterior del plugin: API genérica del modelo
+    const result = await fsClient.put<Row>(`${target.endpoint}/${pathId(args.id)}`, { idproyecto }, connection);
+    return ok({
+        aviso:
+            `La instalación tiene una versión de Proyectos anterior a la ${LINK_ENDPOINT_VERSION}: se ha usado la API ` +
+            'genérica, que no admite documentos ni asientos bloqueados. Actualiza el plugin para vincularlos.',
+        resultado: result,
+    });
+}
+
+/**
+ * Modelo e id del registro al que se adjuntan los archivos: la tarea si se indica idtarea, si no el proyecto.
+ *
+ * @param args argumentos de la llamada.
+ * @returns el modelo, su id y el endpoint para comprobarlo, o un mensaje de error.
+ */
+function projectFileTarget(args: ToolArgs): { model: string; id: string; endpoint: string } | string {
+    const hasTask = args.idtarea !== undefined && args.idtarea !== null && args.idtarea !== '';
+    const hasProject = args.idproyecto !== undefined && args.idproyecto !== null && args.idproyecto !== '';
+    if (hasTask === hasProject) return 'indica idproyecto o idtarea (solo uno de los dos).';
+    return hasTask
+        ? { model: 'TareaProyecto', id: pathId(args.idtarea), endpoint: '/tareaproyectos' }
+        : { model: 'Proyecto', id: pathId(args.idproyecto), endpoint: '/proyectos' };
+}
+
+async function archivosProyecto(args: ToolArgs): Promise<ToolResult> {
+    const target = projectFileTarget(args);
+    if (typeof target === 'string') return fail(`get_archivos_proyecto: ${target}`);
+    const files = await listAttachments(target.model, target.id, connectionOf(args));
+    return ok({ modelo: target.model, id: Number(target.id), archivos: files });
+}
+
+async function crearArchivoProyecto(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const target = projectFileTarget(args);
+    if (typeof target === 'string') return fail(`create_archivo_proyecto: ${target}`);
+    return uploadAttachment('create_archivo_proyecto', target.model, target.id, args, connection, () =>
+        fsClient.get(`${target.endpoint}/${target.id}`, undefined, connection),
     );
-    return ok(result);
+}
+
+/**
+ * Facturas de cliente de un proyecto, por id.
+ *
+ * @param idproyecto proyecto.
+ * @param connection conexión a usar.
+ */
+async function projectInvoices(idproyecto: unknown, connection: string | undefined): Promise<Map<string, Row>> {
+    const { rows } = await fetchAll<Row>('/facturaclientes', { idproyecto }, connection);
+    return new Map(rows.map((row) => [String(row.idfactura), row]));
+}
+
+async function recibosProyecto(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.idproyecto);
+    await fsClient.get(`/proyectos/${id}`, undefined, connection);
+
+    const invoices = await projectInvoices(id, connection);
+    const filter: Row = {};
+    if (args.pagado !== undefined && args.pagado !== null) filter.pagado = isTrue(args.pagado);
+    const lists = await mapLimit([...invoices.keys()], 4, async (idfactura) => {
+        const { rows } = await fetchAll<Row>('/reciboclientes', { idfactura, ...filter }, connection);
+        return rows;
+    });
+
+    const today = todayIso();
+    const receipts = lists.flat().map((row) => {
+        const vencimiento = isoDate(row.vencimiento);
+        const paid = isTrue(row.pagado);
+        return {
+            idrecibo: row.idrecibo,
+            idfactura: row.idfactura,
+            codigofactura: row.codigofactura ?? invoices.get(String(row.idfactura))?.codigo ?? null,
+            numero: row.numero ?? null,
+            importe: num(row.importe),
+            fecha: isoDate(row.fecha),
+            vencimiento,
+            pagado: paid,
+            fechapago: isoDate(row.fechapago),
+            vencido: !paid && vencimiento !== null && vencimiento < today,
+        };
+    });
+
+    const pending = receipts.filter((item) => !item.pagado);
+    return ok({
+        idproyecto: Number(id),
+        resumen: {
+            facturas: invoices.size,
+            recibos: receipts.length,
+            pendiente: round2(pending.reduce((sum, item) => sum + item.importe, 0)),
+            vencido: round2(pending.filter((item) => item.vencido).reduce((sum, item) => sum + item.importe, 0)),
+        },
+        recibos: receipts,
+    });
+}
+
+async function pagarRecibosProyecto(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.idproyecto);
+    const ids = Array.isArray(args.idrecibos) ? args.idrecibos : [];
+    if (ids.length === 0) return fail('pagar_recibos_proyecto: indica los idrecibos a pagar.');
+
+    await fsClient.get(`/proyectos/${id}`, undefined, connection);
+    const invoices = await projectInvoices(id, connection);
+
+    // comprobamos todos los recibos antes de pagar ninguno
+    const receipts: Row[] = [];
+    for (const idrecibo of ids) {
+        const receipt = await fsClient.get<Row>(`/reciboclientes/${pathId(idrecibo)}`, undefined, connection);
+        if (!invoices.has(String(receipt.idfactura))) {
+            return fail(`El recibo ${String(idrecibo)} no es de una factura del proyecto ${id}: no se ha pagado ningún recibo.`);
+        }
+        receipts.push(receipt);
+    }
+
+    const results: Row[] = [];
+    for (const receipt of receipts) {
+        if (isTrue(receipt.pagado)) {
+            results.push({ idrecibo: receipt.idrecibo, resultado: 'ya estaba pagado' });
+            continue;
+        }
+        const body: Row = { pagado: 1 };
+        if (typeof args.nick === 'string' && args.nick !== '') body.nick = args.nick;
+        await fsClient.put(`/reciboclientes/${pathId(receipt.idrecibo)}`, body, connection);
+        results.push({ idrecibo: receipt.idrecibo, resultado: 'pagado' });
+    }
+    return ok({ idproyecto: Number(id), recibos: results });
 }
 
 async function setEstadoProyecto(args: ToolArgs): Promise<ToolResult> {
@@ -748,6 +1045,22 @@ export async function handleProyectosTool(name: string, args: ToolArgs): Promise
             return setProyectoDocumento(args);
         case 'set_estado_proyecto':
             return setEstadoProyecto(args);
+        case 'get_archivos_proyecto':
+            return archivosProyecto(args);
+        case 'create_archivo_proyecto':
+            return crearArchivoProyecto(args);
+        case 'update_archivo_proyecto':
+            return updateAttachment(PROJECT_FILE_MODELS, args, connectionOf(args));
+        case 'delete_archivo_proyecto':
+            return deleteAttachment(PROJECT_FILE_MODELS, args, connectionOf(args));
+        case 'get_recibos_proyecto':
+            return recibosProyecto(args);
+        case 'pagar_recibos_proyecto':
+            return pagarRecibosProyecto(args);
+        case 'get_config_proyectos':
+            return getSettingsTool('proyectos', PROJECT_SETTINGS, args);
+        case 'update_config_proyectos':
+            return updateSettingsTool('update_config_proyectos', 'proyectos', PROJECT_SETTINGS, args);
         case 'set_fase_tarea_proyecto':
             return setFaseTarea(args);
         case 'get_informe_proyectos':

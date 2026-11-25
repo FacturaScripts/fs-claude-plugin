@@ -55,7 +55,7 @@ Usa el formato de informe del perfil con estas secciones:
 ## Cómo actuar en el ERP
 
 - Los servicios se gestionan desde su listado; los estados, prioridades, tipos y la checklist se configuran en el propio plugin (ficha `Servicios`).
-- Los presupuestos, albaranes y facturas de los trabajos se generan desde la ficha del servicio, en la pestaña correspondiente, con el botón de la varita mágica (ficha `Servicios`).
+- Los presupuestos, albaranes y facturas de los trabajos se generan desde la ficha del servicio, en la pestaña correspondiente, con el botón de la varita mágica (ficha `Servicios`), o con `create_documento_servicio_at` de fs-mcp (plugin Servicios 4.42 o posterior). Confirma antes con el usuario.
 
 ## Limitaciones
 

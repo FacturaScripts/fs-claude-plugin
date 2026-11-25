@@ -74,6 +74,13 @@
             "endpoint": "/crmcampaignes",
             "editView": "EditCrmCampaign",
             "description": "Campaña de email del CRM, con asunto, contenido, estado, días y horas de envío y estadísticas de emails enviados y abiertos."
+        },
+        {
+            "name": "crm_campaign_email",
+            "table": "crm_campaigns_emails",
+            "endpoint": "/crmcampaignemailes",
+            "editView": "EditCrmCampaign",
+            "description": "Destinatario de una campaña de email del CRM: email, contacto, cuenta de salida, si ya se ha enviado (fecha) y si lo ha abierto."
         }
     ]
 }

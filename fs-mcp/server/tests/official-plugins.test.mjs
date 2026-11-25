@@ -341,17 +341,197 @@ test('get_rentabilidad_proyectos calcula el margen y ordena por el criterio pedi
   assert.deepEqual(porVentas.proyectos.map((p) => p.idproyecto), [1, 2, 3]);
 });
 
-test('set_proyecto_documento comprueba el proyecto y desvincula con «null»', async () => {
+test('set_proyecto_documento usa el endpoint del plugin, admite asientos y desvincula con «null»', async () => {
   respuestas['/proyectos/4'] = { idproyecto: 4 };
+  respuestas['POST /vincularProyecto'] = { ok: 'ok', data: { modelo: 'FacturaCliente', id: 12, idproyecto: 4 } };
   await llamar('set_proyecto_documento', { tipo: 'factura_cliente', id: 12, idproyecto: 4 });
-  const put = fs.peticiones.find((p) => p.method === 'PUT');
-  assert.equal(new URL(put.path, 'http://x').pathname, '/api/3/facturaclientes/12');
-  assert.equal(new URLSearchParams(put.body).get('idproyecto'), '4');
+  const post = fs.peticiones.find((p) => p.method === 'POST');
+  assert.equal(new URL(post.path, 'http://x').pathname, '/api/3/vincularProyecto');
+  const cuerpo = new URLSearchParams(post.body);
+  assert.equal(cuerpo.get('modelo'), 'FacturaCliente');
+  assert.equal(cuerpo.get('id'), '12');
+  assert.equal(cuerpo.get('idproyecto'), '4');
+  assert.ok(!fs.peticiones.some((p) => p.method === 'PUT'), 'no debe usar la API genérica');
 
   fs.peticiones.length = 0;
-  await llamar('set_proyecto_documento', { tipo: 'albaran_proveedor', id: 3, desvincular: true });
+  await llamar('set_proyecto_documento', { tipo: 'asiento', id: 7, desvincular: true });
   assert.equal(fs.peticiones.length, 1);
-  assert.equal(new URLSearchParams(fs.peticiones[0].body).get('idproyecto'), 'null');
+  const desvincular = new URLSearchParams(fs.peticiones[0].body);
+  assert.equal(desvincular.get('modelo'), 'Asiento');
+  assert.equal(desvincular.get('idproyecto'), 'null');
+});
+
+test('set_proyecto_documento usa la API genérica si el plugin no tiene el endpoint, y lo avisa', async () => {
+  respuestas['/proyectos/4'] = { idproyecto: 4 };
+  respuestas['POST /vincularProyecto'] = () => respuesta(404, { status: 'error', message: 'Invalid API resource' });
+  respuestas['PUT /albaranproveedores/3'] = { ok: 'ok', data: { idalbaran: 3 } };
+  const datos = await llamar('set_proyecto_documento', { tipo: 'albaran_proveedor', id: 3, idproyecto: 4 });
+  assert.match(datos.aviso, /5\.32/);
+  const put = fs.peticiones.find((p) => p.method === 'PUT');
+  assert.equal(new URL(put.path, 'http://x').pathname, '/api/3/albaranproveedores/3');
+  assert.equal(new URLSearchParams(put.body).get('idproyecto'), '4');
+});
+
+test('los archivos de proyecto van al proyecto o a la tarea y no tocan relaciones de otros modelos', async () => {
+  const sinDestino = await handleOfficialPluginTool('get_archivos_proyecto', { connection: 'pega' });
+  assert.ok(sinDestino.isError);
+  const ambos = await handleOfficialPluginTool('get_archivos_proyecto', { connection: 'pega', idproyecto: 1, idtarea: 2 });
+  assert.ok(ambos.isError);
+  assert.equal(fs.peticiones.length, 0);
+
+  respuestas['/attachedfilerelations'] = [{ id: 5, idfile: 9, model: 'TareaProyecto', modelid: 2, observations: 'plano' }];
+  respuestas['/attachedfiles/9'] = { idfile: 9, filename: 'plano.pdf' };
+  const datos = await llamar('get_archivos_proyecto', { idtarea: 2 });
+  assert.equal(datos.modelo, 'TareaProyecto');
+  assert.equal(datos.archivos[0].filename, 'plano.pdf');
+  const consulta = query(fs.peticiones.find((p) => p.path.startsWith('/api/3/attachedfilerelations')));
+  assert.equal(consulta['filter[model]'], 'TareaProyecto');
+  assert.equal(consulta['filter[modelid]'], '2');
+
+  fs.peticiones.length = 0;
+  respuestas['/attachedfilerelations/8'] = { id: 8, idfile: 9, model: 'CrmOportunidad', modelid: 3 };
+  const ajeno = await handleOfficialPluginTool('update_archivo_proyecto', { connection: 'pega', idrelacion: 8, observaciones: 'x' });
+  assert.ok(ajeno.isError);
+  assert.ok(!fs.peticiones.some((p) => p.method === 'PUT'), 'no debe modificar una relación de otro modelo');
+
+  respuestas['/attachedfilerelations/5'] = { id: 5, idfile: 9, model: 'Proyecto', modelid: 1 };
+  await llamar('update_archivo_proyecto', { idrelacion: 5, observaciones: '' });
+  const put = fs.peticiones.find((p) => p.method === 'PUT');
+  assert.equal(new URLSearchParams(put.body).get('observations'), 'null');
+});
+
+test('update_config_proyectos guarda las casillas como 1 o 0 y crea la configuración si no existe', async () => {
+  let guardado = null;
+  respuestas['GET /settings/proyectos'] = () =>
+    guardado ? { name: 'proyectos', properties: JSON.stringify(guardado) } : respuesta(404, { status: 'error', message: 'record-not-found' });
+  const vacio = await handleOfficialPluginTool('update_config_proyectos', { connection: 'pega' });
+  assert.ok(vacio.isError);
+  assert.equal(fs.peticiones.length, 0);
+
+  respuestas['POST /settings'] = () => {
+    guardado = { patron: 'OBRA-{NUM}', stock: '1', burnstock: '0' };
+    return { ok: 'ok' };
+  };
+  const datos = await llamar('update_config_proyectos', { patron: 'OBRA-{NUM}', stock: true, burnstock: false });
+  const post = new URLSearchParams(fs.peticiones.find((p) => p.method === 'POST').body);
+  assert.equal(post.get('name'), 'proyectos');
+  assert.equal(post.get('stock'), '1');
+  assert.equal(post.get('burnstock'), '0');
+  assert.deepEqual(datos.cambiados.sort(), ['burnstock', 'patron', 'stock']);
+  assert.equal(datos.valores.stock, true);
+  assert.equal(datos.valores.burnstock, false);
+
+  // ya existe: se modifica con PUT
+  fs.peticiones.length = 0;
+  respuestas['PUT /settings/proyectos'] = { ok: 'ok' };
+  await llamar('update_config_proyectos', { longnumero: 5 });
+  const put = fs.peticiones.find((p) => p.method === 'PUT');
+  assert.equal(new URL(put.path, 'http://x').pathname, '/api/3/settings/proyectos');
+  assert.equal(new URLSearchParams(put.body).get('longnumero'), '5');
+});
+
+test('pagar_recibos_proyecto no paga nada si un recibo no es de una factura del proyecto', async () => {
+  respuestas['/proyectos/4'] = { idproyecto: 4 };
+  respuestas['/facturaclientes'] = [{ idfactura: 20, codigo: 'FAC1' }];
+  respuestas['/reciboclientes/1'] = { idrecibo: 1, idfactura: 20, pagado: false };
+  respuestas['/reciboclientes/2'] = { idrecibo: 2, idfactura: 99, pagado: false };
+  const resultado = await handleOfficialPluginTool('pagar_recibos_proyecto', { connection: 'pega', idproyecto: 4, idrecibos: [1, 2] });
+  assert.ok(resultado.isError);
+  assert.ok(!fs.peticiones.some((p) => p.method === 'PUT'));
+
+  fs.peticiones.length = 0;
+  respuestas['/reciboclientes/3'] = { idrecibo: 3, idfactura: 20, pagado: true };
+  const datos = await llamar('pagar_recibos_proyecto', { idproyecto: 4, idrecibos: [1, 3], nick: 'ana' });
+  assert.deepEqual(datos.recibos.map((r) => r.resultado), ['pagado', 'ya estaba pagado']);
+  const puts = fs.peticiones.filter((p) => p.method === 'PUT');
+  assert.equal(puts.length, 1);
+  assert.equal(new URL(puts[0].path, 'http://x').pathname, '/api/3/reciboclientes/1');
+  assert.equal(new URLSearchParams(puts[0].body).get('pagado'), '1');
+  assert.equal(new URLSearchParams(puts[0].body).get('nick'), 'ana');
+});
+
+test('get_recibos_proyecto suma lo pendiente y lo vencido de las facturas del proyecto', async () => {
+  respuestas['/proyectos/4'] = { idproyecto: 4 };
+  respuestas['/facturaclientes'] = [{ idfactura: 20, codigo: 'FAC1' }];
+  respuestas['/reciboclientes'] = [
+    { idrecibo: 1, idfactura: 20, importe: 100, vencimiento: '01-01-2020', pagado: false },
+    { idrecibo: 2, idfactura: 20, importe: 50, vencimiento: '01-01-2099', pagado: false },
+    { idrecibo: 3, idfactura: 20, importe: 30, vencimiento: '01-01-2020', pagado: true },
+  ];
+  const datos = await llamar('get_recibos_proyecto', { idproyecto: 4 });
+  assert.equal(datos.resumen.pendiente, 150);
+  assert.equal(datos.resumen.vencido, 100);
+  assert.equal(datos.recibos[0].codigofactura, 'FAC1');
+});
+
+test('create_documento_servicio_at llama al endpoint del plugin y explica qué versión hace falta', async () => {
+  respuestas['POST /generarDocumentoServicioAT'] = { ok: 'ok', data: { documentos: [{ modelo: 'FacturaCliente', id: 5 }] } };
+  const datos = await llamar('create_documento_servicio_at', { idservicio: 3, tipo: 'factura' });
+  assert.equal(datos.data.documentos[0].id, 5);
+  const cuerpo = new URLSearchParams(fs.peticiones[0].body);
+  assert.equal(cuerpo.get('idservicio'), '3');
+  assert.equal(cuerpo.get('tipo'), 'factura');
+
+  const tipoMalo = await handleOfficialPluginTool('create_documento_servicio_at', { connection: 'pega', idservicio: 3, tipo: 'pedido' });
+  assert.ok(tipoMalo.isError);
+
+  respuestas['POST /generarDocumentoServicioAT'] = () => respuesta(404, { status: 'error', message: 'Invalid API resource' });
+  const viejo = await handleOfficialPluginTool('create_documento_servicio_at', { connection: 'pega', idservicio: 3, tipo: 'albaran' });
+  assert.ok(viejo.isError);
+  assert.match(viejo.content[0].text, /4\.42/);
+});
+
+test('calcular_horas_trabajo_at calcula como el plugin si la instalación no tiene el endpoint', async () => {
+  respuestas['POST /calcularHorasTrabajoAT'] = () => respuesta(404, { status: 'error', message: 'Invalid API resource' });
+  respuestas['/trabajoates/7'] = {
+    idtrabajo: 7, idservicio: 2, cantidad: 1, fechainicio: '01-03-2026', fechafin: '02-03-2026', horainicio: '08:00:00', horafin: '10:30:00',
+  };
+  respuestas['/servicioates/2'] = { idservicio: 2, editable: true };
+  respuestas['PUT /trabajoates/7'] = { ok: 'ok' };
+  const datos = await llamar('calcular_horas_trabajo_at', { idtrabajo: 7 });
+  assert.equal(datos.cantidad, 26.5);
+  const put = fs.peticiones.find((p) => p.method === 'PUT');
+  assert.equal(new URLSearchParams(put.body).get('cantidad'), '26.5');
+
+  // servicio cerrado: no se modifica
+  fs.peticiones.length = 0;
+  respuestas['/servicioates/2'] = { idservicio: 2, editable: false };
+  const cerrado = await handleOfficialPluginTool('calcular_horas_trabajo_at', { connection: 'pega', idtrabajo: 7 });
+  assert.ok(cerrado.isError);
+  assert.ok(!fs.peticiones.some((p) => p.method === 'PUT'));
+});
+
+test('workHours usa la fórmula del plugin: días × 24 más la diferencia de horas', async () => {
+  const { workHours } = await import('../build/plugins/servicios/tools.js');
+  assert.equal(workHours({ fechainicio: '2026-01-01', fechafin: '2026-01-01', horainicio: '09:00:00', horafin: '12:15:00' }), 3.25);
+  // cambio de hora de marzo: sigue contando un día
+  assert.equal(workHours({ fechainicio: '28-03-2026', fechafin: '29-03-2026', horainicio: '10:00:00', horafin: '10:00:00' }), 24);
+  assert.equal(workHours({ fechainicio: '2026-01-01', horainicio: '09:00:00' }), 0);
+});
+
+test('create_nota_servicio_at crea la nota como la ficha: tipo, servicio y contacto del cliente', async () => {
+  respuestas['/servicioates/3'] = { idservicio: 3, codigo: 'SER-3', codcliente: 'C1' };
+  respuestas['/clientes/C1'] = { codcliente: 'C1', idcontactofact: 15 };
+  respuestas['POST /crmnotas'] = { ok: 'ok', data: { id: 1 } };
+  await llamar('create_nota_servicio_at', { idservicio: 3, observaciones: 'Llamar mañana', nick: 'ana', fechaaviso: '2026-12-01' });
+  const nota = new URLSearchParams(fs.peticiones.find((p) => p.method === 'POST').body);
+  assert.equal(nota.get('tipodocumento'), 'servicio de cliente');
+  assert.equal(nota.get('iddocumento'), '3');
+  assert.equal(nota.get('documento'), 'SER-3');
+  assert.equal(nota.get('idcontacto'), '15');
+  assert.equal(nota.get('fechaaviso'), '2026-12-01');
+});
+
+test('update_archivo_oportunidad_crm cambia las observaciones de una relación de oportunidad', async () => {
+  respuestas['/attachedfilerelations/4'] = { id: 4, idfile: 2, model: 'CrmOportunidad', modelid: 6 };
+  respuestas['PUT /attachedfilerelations/4'] = { ok: 'ok' };
+  await llamar('update_archivo_oportunidad_crm', { idrelacion: 4, observaciones: 'Oferta firmada' });
+  const put = fs.peticiones.find((p) => p.method === 'PUT');
+  assert.equal(new URLSearchParams(put.body).get('observations'), 'Oferta firmada');
+
+  respuestas['/attachedfilerelations/9'] = { id: 9, idfile: 2, model: 'ServicioAT', modelid: 6 };
+  const ajeno = await handleOfficialPluginTool('update_archivo_oportunidad_crm', { connection: 'pega', idrelacion: 9, observaciones: 'x' });
+  assert.ok(ajeno.isError);
 });
 
 test('get_proyecto omite los servicios SAT si el plugin Servicios no está activo', async () => {
@@ -359,8 +539,13 @@ test('get_proyecto omite los servicios SAT si el plugin Servicios no está activ
   respuestas['/servicioates'] = () => respuesta(404, { status: 'error', message: 'Invalid API resource' });
   respuestas['/tareaproyectos'] = [{ idtarea: 1, idproyecto: 2, idfase: 1, fechafin: '01-01-2020' }];
   respuestas['/fasetareas'] = [{ idfase: 1, nombre: 'Pendiente', tipo: null }];
+  respuestas['/asientos'] = [{ idasiento: 213, numero: 5, fecha: '20-06-2025', concepto: 'Factura FAC1', importe: 10.89 }];
   const datos = await llamar('get_proyecto', { idproyecto: 2 });
   assert.equal(datos.servicios_sat, undefined);
+  assert.deepEqual(datos.asientos, [{ idasiento: 213, numero: 5, fecha: '2025-06-20', concepto: 'Factura FAC1', importe: 10.89 }]);
+  assert.deepEqual(datos.archivos, []);
+  const asientos = fs.peticiones.find((p) => p.path.startsWith('/api/3/asientos'));
+  assert.equal(query(asientos)['filter[idproyecto]'], '2');
   assert.equal(datos.economia.margen, 60);
   assert.equal(datos.resumen_tareas.vencidas, 1);
   assert.equal(datos.documentos.length, 8);
@@ -510,6 +695,88 @@ test('create_archivo_oportunidad_crm no lee archivos ocultos ni llama a la API',
   }
 });
 
+test('set_contactos_lista_crm añade los que faltan y quita por idcontacto', async () => {
+  respuestas['/crmlistas/3'] = { id: 3, nombre: 'Clientes', numcontactos: 2 };
+  respuestas['/crmlistacontactos'] = [
+    { id: 10, idlista: 3, idcontacto: 1 },
+    { id: 11, idlista: 3, idcontacto: 2 },
+  ];
+  respuestas['POST /crmlistacontactos'] = { ok: 'ok' };
+  respuestas['DELETE /crmlistacontactos/11'] = { ok: 'ok' };
+  const datos = await llamar('set_contactos_lista_crm', { idlista: 3, anadir: [1, 5, 5], quitar: [2, 9] });
+  assert.deepEqual(datos.anadidos, [5]);
+  assert.deepEqual(datos.ya_estaban, [1]);
+  assert.deepEqual(datos.quitados, [2]);
+  assert.deepEqual(datos.no_estaban, [9]);
+  const altas = fs.peticiones.filter((p) => p.method === 'POST');
+  assert.equal(altas.length, 1);
+  assert.equal(new URLSearchParams(altas[0].body).get('idcontacto'), '5');
+  assert.ok(fs.peticiones.some((p) => p.method === 'DELETE' && p.path === '/api/3/crmlistacontactos/11'));
+
+  const vacio = await handleOfficialPluginTool('set_contactos_lista_crm', { connection: 'pega', idlista: 3 });
+  assert.ok(vacio.isError);
+});
+
+test('set_estado_campana_crm no pone a enviar una campaña sin destinatarios', async () => {
+  respuestas['/crmcampaignes/4'] = { id: 4, status: 0 };
+  respuestas['/crmcampaignemailes'] = [];
+  const vacia = await handleOfficialPluginTool('set_estado_campana_crm', { connection: 'pega', id: 4, estado: 'enviando' });
+  assert.ok(vacia.isError);
+  assert.ok(!fs.peticiones.some((p) => p.method === 'PUT'));
+
+  respuestas['/crmcampaignemailes'] = [{ id: 1, id_campaign: 4, email: 'a@b.es' }];
+  respuestas['PUT /crmcampaignes/4'] = { ok: 'ok', data: { id: 4, status: 1 } };
+  const datos = await llamar('set_estado_campana_crm', { id: 4, estado: 'enviando' });
+  assert.equal(datos.estado_anterior, 'borrador');
+  assert.equal(new URLSearchParams(fs.peticiones.find((p) => p.method === 'PUT').body).get('status'), '1');
+
+  // pausar no exige destinatarios
+  fs.peticiones.length = 0;
+  respuestas['/crmcampaignemailes'] = [];
+  await llamar('set_estado_campana_crm', { id: 4, estado: 'borrador' });
+  assert.equal(new URLSearchParams(fs.peticiones.find((p) => p.method === 'PUT').body).get('status'), '0');
+});
+
+test('anadir_lista_campana_crm y enviar_prueba_campana_crm usan los endpoints del plugin', async () => {
+  respuestas['POST /anadirListaCampanaCRM'] = { ok: 'ok', data: { anadidos: 12, num_emails: 12 } };
+  const lista = await llamar('anadir_lista_campana_crm', { id: 4, idlista: 3, outgoing_email: 'ventas@empresa.es' });
+  assert.equal(lista.data.anadidos, 12);
+  const cuerpo = new URLSearchParams(fs.peticiones[0].body);
+  assert.equal(cuerpo.get('id'), '4');
+  assert.equal(cuerpo.get('idlista'), '3');
+  assert.equal(cuerpo.get('outgoing_email'), 'ventas@empresa.es');
+
+  fs.peticiones.length = 0;
+  respuestas['POST /enviarPruebaCampanaCRM'] = { ok: 'Email enviado' };
+  await llamar('enviar_prueba_campana_crm', { id: 4, email: ' yo@empresa.es ', nombre: 'Ana' });
+  const prueba = new URLSearchParams(fs.peticiones[0].body);
+  assert.equal(prueba.get('email'), 'yo@empresa.es');
+  assert.equal(prueba.get('nombre'), 'Ana');
+  assert.equal(prueba.get('outgoing_email'), null);
+
+  respuestas['POST /anadirListaCampanaCRM'] = () => respuesta(404, { status: 'error', message: 'Invalid API resource' });
+  const viejo = await handleOfficialPluginTool('anadir_lista_campana_crm', { connection: 'pega', id: 4, idlista: 3 });
+  assert.ok(viejo.isError);
+  assert.match(viejo.content[0].text, /CRM 3\.6/);
+});
+
+test('get_campana_crm resume los destinatarios por cuenta de salida y lista los buzones', async () => {
+  respuestas['/crmcampaignes/4'] = { id: 4, name: 'Navidad', status: 1 };
+  respuestas['/crmcampaignemailes'] = [
+    { id: 1, email: 'a@b.es', outgoing_email: '', sent: '01-12-2026 10:00:00', opened: true },
+    { id: 2, email: 'c@d.es', outgoing_email: '', sent: '01-12-2026 10:00:01', opened: false },
+    { id: 3, email: 'e@f.es', outgoing_email: 'ventas@empresa.es', sent: null, opened: false },
+  ];
+  respuestas['/buzonesCampanaCRM'] = { data: ['ventas@empresa.es'] };
+  const datos = await llamar('get_campana_crm', { id: 4 });
+  assert.equal(datos.campana.estado_nombre, 'enviando');
+  assert.equal(datos.destinatarios.total, 3);
+  assert.equal(datos.destinatarios.pendientes, 1);
+  assert.equal(datos.destinatarios.tasa_apertura_pct, 50);
+  assert.equal(datos.destinatarios.por_cuenta_salida['(predeterminada)'].enviados, 2);
+  assert.deepEqual(datos.buzones, ['ventas@empresa.es']);
+});
+
 /**
  * Nombre del recurso de la API para una clase de modelo, con la misma regla que
  * APIModel::pluralize() del core.
@@ -532,6 +799,7 @@ test('el endpoint de cada modelo de los plugins oficiales es el que publica la A
     crm_oportunidad: 'CrmOportunidad', crm_oportunidad_estado: 'CrmOportunidadEstado', crm_nota: 'CrmNota',
     crm_fuente: 'CrmFuente', crm_interes: 'CrmInteres', crm_interes_contacto: 'CrmInteresContacto', crm_lista: 'CrmLista',
     crm_lista_contacto: 'CrmListaContacto', crm_position: 'CrmPosition', crm_campaign: 'CrmCampaign',
+    crm_campaign_email: 'CrmCampaignEmail',
   };
   const modelos = OFFICIAL_PLUGINS.flatMap((p) => p.models);
   assert.deepEqual(modelos.map((m) => m.name).sort(), Object.keys(clases).sort());

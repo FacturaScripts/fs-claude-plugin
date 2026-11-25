@@ -3,7 +3,9 @@
  *
  * Cubre los servicios de asistencia técnica y sus trabajos, estados,
  * prioridades, tipos, máquinas, checklists de verificación e historial, más la
- * ficha completa de un servicio, el cambio de estado por nombre y los informes.
+ * ficha completa de un servicio, el cambio de estado por nombre, la generación
+ * de presupuestos, albaranes y facturas desde sus trabajos, el cálculo de horas,
+ * sus archivos y notas, la configuración del plugin y los informes.
  */
 
 import { buildResourceTools, handleResourceTool, resourceToolModels } from '../shared/resource.js';
@@ -18,7 +20,7 @@ const toolNames = new Set(tools.map((tool) => tool.name));
 
 export const serviciosPlugin: OfficialPlugin = {
     name: PLUGIN,
-    description: 'Servicios de asistencia técnica (SAT), trabajos, máquinas, checklists e informes',
+    description: 'Servicios de asistencia técnica (SAT), trabajos, documentos generados, horas, archivos, notas, máquinas, checklists, configuración e informes',
     models,
     tools,
     toolModels: Object.assign({}, ...RESOURCES.map(resourceToolModels)),

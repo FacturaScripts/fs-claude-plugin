@@ -97,7 +97,7 @@
         "name": "Nombre interno de la campaña.",
         "subject": "Asunto de los emails.",
         "content": "Contenido HTML de los emails.",
-        "status": "Estado de la campaña.",
+        "status": "Estado de la campaña: 0 borrador (no se envía), 1 enviando (el cron la envía en su horario) y 2 enviada.",
         "num_emails": "Emails que tiene que enviar la campaña.",
         "num_sent": "Emails ya enviados.",
         "num_opened": "Emails abiertos por los destinatarios.",
@@ -115,5 +115,16 @@
         "nick": "Usuario que creó la campaña.",
         "last_update": "Fecha y hora de la última modificación.",
         "last_nick": "Usuario que la modificó por última vez."
+    },
+    "crm_campaign_email": {
+        "id": "Identificador del destinatario en la campaña.",
+        "id_campaign": "Campaña.",
+        "id_contacto": "Contacto del destinatario.",
+        "email": "Email al que se envía.",
+        "outgoing_email": "Cuenta de correo de salida con la que se envía (vacío: la predeterminada).",
+        "sent": "Fecha y hora de envío; vacío si aún no se ha enviado.",
+        "opened": "Si el destinatario ha abierto el email.",
+        "verificode": "Código de seguimiento del email enviado.",
+        "creation_date": "Fecha y hora en que se añadió a la campaña."
     }
 }

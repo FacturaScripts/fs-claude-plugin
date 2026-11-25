@@ -218,7 +218,7 @@ export const crmCampaignMetadata: ModelMetadata = {
             "isRequired": true,
             "label": "Estado",
             "default": 0,
-            "description": "Estado de la campaña.",
+            "description": "Estado de la campaña: 0 borrador (no se envía), 1 enviando (el cron la envía en su horario) y 2 enviada.",
             "widget": "select",
             "enumValues": [
                 "0",
@@ -457,7 +457,7 @@ export const crmCampaignMetadata: ModelMetadata = {
         },
         {
             "type": "hasMany",
-            "targetModel": "crm_campaigns_emails",
+            "targetModel": "crm_campaign_email",
             "targetTable": "crm_campaigns_emails",
             "localColumn": "id",
             "remoteColumn": "id_campaign"
@@ -470,8 +470,8 @@ export const crmCampaignMetadata: ModelMetadata = {
         }
     ],
     "generatedFrom": {
-        "generatedAt": "2026-11-24T12:56:34.504Z",
-        "facturascriptsCommit": "7aa596470",
+        "generatedAt": "2026-11-25T11:43:24.209Z",
+        "facturascriptsCommit": "49b30cf3a",
         "facturascriptsVersion": "plugin:CRM@16399b9",
         "versions": {
             "plugin:CRM": {

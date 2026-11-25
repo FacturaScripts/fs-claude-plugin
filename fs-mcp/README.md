@@ -251,26 +251,34 @@ Todas siguen las mismas reglas:
 
 | Qué | Herramientas |
 |---|---|
-| Servicios | `get_servicios_at`, `get_servicio_at` (ficha completa: trabajos, máquinas, checklist, documentos e historial), `create_servicio_at`, `update_servicio_at`, `delete_servicio_at`, `set_estado_servicio_at` |
-| Trabajos | `get_trabajos_at`, `create_trabajo_at`, `update_trabajo_at`, `delete_trabajo_at` |
+| Servicios | `get_servicios_at`, `get_servicio_at` (ficha completa: trabajos, máquinas, checklist, documentos, archivos, notas e historial), `create_servicio_at`, `update_servicio_at`, `delete_servicio_at`, `set_estado_servicio_at` |
+| Trabajos | `get_trabajos_at`, `create_trabajo_at`, `update_trabajo_at`, `delete_trabajo_at`, `calcular_horas_trabajo_at` (horas entre el inicio y el fin, guardadas como cantidad) |
+| Documentos | `create_documento_servicio_at` (genera el presupuesto, albarán o factura de los trabajos con esa acción, como los botones de la ficha) |
+| Archivos y notas | `get_archivos_servicio_at`, `create_archivo_servicio_at`, `update_archivo_servicio_at`, `delete_archivo_servicio_at`; `get_notas_servicio_at`, `create_nota_servicio_at` (notas del plugin CRM; se modifican y borran con `update_nota_crm` y `delete_nota_crm`) |
+| Configuración | `get_config_servicios`, `update_config_servicios` (patrón y longitud del código, acción de los trabajos nuevos, servicios sin máquina, control de stock y opciones del PDF, del ticket y de los documentos generados) |
 | Estados, prioridades y tipos | `get_estados_at`, `get_prioridades_at`, `get_tipos_at` y sus `create_*`, `update_*` y `delete_*` |
 | Máquinas | `get_maquinas_at`, `get_historial_maquina_at`, `create_maquina_at`, `update_maquina_at`, `delete_maquina_at` |
 | Checklists | `get_categorias_at`, `get_checks_at` y sus `create_*`, `update_*` y `delete_*`; `get_servicio_categorias_at`, `create_servicio_categoria_at`, `delete_servicio_categoria_at`, `get_servicio_checks_at`, `update_servicio_check_at` |
 | Historial | `get_servicio_at_logs` |
 | Informes | `get_informe_servicios_at` (por estado, prioridad, tipo, asignado, agente, mes y cliente), `get_servicios_at_pendientes` (abiertos por antigüedad), `get_trabajos_at_pendientes` (trabajos por facturar, albaranar o presupuestar, con los trabajos sin precio aparte), `get_horas_trabajos_at` (horas por usuario y agente), `get_tiempos_resolucion_at` (días hasta el cierre según el historial, por prioridad, tipo, asignado y mes) |
 
-Los presupuestos, albaranes y facturas de un servicio no se pueden generar por la API: se marcan los trabajos con la acción (`estado` 1, 3 o 5) y el documento se genera desde la ficha del servicio en FacturaScripts.
+Para generar los presupuestos, albaranes y facturas de un servicio se marcan sus trabajos con la acción (`estado` 5, 3 o 1) y se llama a `create_documento_servicio_at`, que usa el endpoint `generarDocumentoServicioAT` del plugin Servicios 4.42 o posterior. `calcular_horas_trabajo_at` usa el endpoint `calcularHorasTrabajoAT` de esa misma versión y, con versiones anteriores, calcula las horas con la misma fórmula y las guarda por la API genérica.
 
 ### Proyectos
 
 | Qué | Herramientas |
 |---|---|
-| Proyectos | `get_proyectos`, `get_proyecto` (ficha completa: tareas, usuarios, notas, stock, documentos y servicios SAT), `create_proyecto`, `update_proyecto`, `delete_proyecto`, `set_estado_proyecto` |
+| Proyectos | `get_proyectos`, `get_proyecto` (ficha completa: tareas, usuarios, notas, stock, documentos, asientos, archivos y servicios SAT), `create_proyecto`, `update_proyecto`, `delete_proyecto`, `set_estado_proyecto` |
 | Tareas | `get_tareas_proyecto`, `create_tarea_proyecto`, `update_tarea_proyecto`, `delete_tarea_proyecto`, `set_fase_tarea_proyecto` |
 | Estados y fases | `get_estados_proyecto`, `get_fases_tarea` y sus `create_*`, `update_*` y `delete_*` |
 | Notas y usuarios | `get_notas_proyecto`, `create_nota_proyecto`, `update_nota_proyecto`, `delete_nota_proyecto`, `get_usuarios_proyecto`, `create_usuario_proyecto`, `delete_usuario_proyecto` |
-| Documentos y stock | `get_documentos_proyecto`, `set_proyecto_documento` (vincular o desvincular un documento de compra o venta), `get_stock_proyecto` |
+| Documentos y stock | `get_documentos_proyecto`, `set_proyecto_documento` (vincular o desvincular un documento de compra o venta o un asiento, también si ya no son editables), `get_stock_proyecto` |
+| Recibos | `get_recibos_proyecto` (recibos de las facturas del proyecto, con lo pendiente y lo vencido), `pagar_recibos_proyecto` (marca como pagados recibos de esas facturas) |
+| Archivos | `get_archivos_proyecto`, `create_archivo_proyecto`, `update_archivo_proyecto`, `delete_archivo_proyecto` (del proyecto o de una de sus tareas) |
+| Configuración | `get_config_proyectos`, `update_config_proyectos` (patrón y longitud del número, reinicio anual, stock por proyecto y quemar stock) |
 | Informes | `get_informe_proyectos` (por estado, cliente, responsable y mes), `get_rentabilidad_proyectos` (ventas, compras y margen por proyecto, con impuestos; el pendiente de facturar, sin impuestos), `get_informe_tareas_proyecto` (por fase, usuario y proyecto), `get_tareas_proyecto_vencidas` |
+
+`set_proyecto_documento` usa el endpoint `vincularProyecto` del plugin Proyectos 5.32 o posterior, que vincula igual que la ficha del proyecto aunque el documento ya no sea editable o el asiento sea de un ejercicio cerrado. Con versiones anteriores usa la API genérica, que solo admite documentos y asientos editables, y lo avisa.
 
 ### CRM
 
@@ -280,13 +288,15 @@ Los contactos son del core (`get_contactos`, `create_contacto`, `update_contacto
 |---|---|
 | Oportunidades | `get_oportunidades_crm`, `get_oportunidad_crm` (ficha completa: contacto, presupuesto, notas y archivos), `create_oportunidad_crm`, `update_oportunidad_crm`, `delete_oportunidad_crm`, `set_estado_oportunidad_crm` |
 | Presupuesto | `create_presupuesto_oportunidad_crm` (crea el presupuesto para el cliente del contacto y lo vincula), `set_presupuesto_oportunidad_crm` (vincular uno existente o desvincular) |
-| Archivos | `get_archivos_oportunidad_crm`, `create_archivo_oportunidad_crm` (sube un archivo local de hasta 25 MB; por seguridad rechaza los archivos y carpetas ocultos, la configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados), `delete_archivo_oportunidad_crm` |
+| Archivos | `get_archivos_oportunidad_crm`, `create_archivo_oportunidad_crm` (sube un archivo local de hasta 25 MB; por seguridad rechaza los archivos y carpetas ocultos, la configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados), `update_archivo_oportunidad_crm` (observaciones), `delete_archivo_oportunidad_crm` |
 | Estados | `get_estados_oportunidad_crm` y sus `create_*`, `update_*` y `delete_*` |
 | Notas | `get_notas_crm`, `create_nota_crm`, `update_nota_crm`, `delete_nota_crm` (de contacto, oportunidad o documento, con aviso opcional) |
 | Contactos | `get_contacto_crm` (ficha CRM: fuente, intereses, listas, oportunidades y notas) |
-| Fuentes, intereses, listas y cargos | `get_fuentes_crm`, `get_intereses_crm`, `get_listas_crm`, `get_cargos_crm` y sus `create_*`, `update_*` y `delete_*`; `get_intereses_contacto_crm`, `create_interes_contacto_crm`, `delete_interes_contacto_crm`, `get_contactos_lista_crm`, `create_contacto_lista_crm`, `delete_contacto_lista_crm` |
-| Campañas | `get_campanas_crm` (solo lectura, con estadísticas de envío y apertura) |
+| Fuentes, intereses, listas y cargos | `get_fuentes_crm`, `get_intereses_crm`, `get_listas_crm`, `get_cargos_crm` y sus `create_*`, `update_*` y `delete_*`; `get_intereses_contacto_crm`, `create_interes_contacto_crm`, `delete_interes_contacto_crm`, `get_contactos_lista_crm`, `create_contacto_lista_crm`, `delete_contacto_lista_crm` y `set_contactos_lista_crm` (añadir y quitar contactos en bloque por idcontacto) |
+| Campañas de email | `get_campanas_crm`, `get_campana_crm` (ficha: estado, destinatarios enviados, pendientes y abiertos, adjuntos y buzones de salida), `create_campana_crm`, `update_campana_crm`, `delete_campana_crm`, `set_estado_campana_crm` (enviando, borrador o enviada; el cron la envía en su horario), `anadir_lista_campana_crm` (añade los contactos con email de una lista), `enviar_prueba_campana_crm`; destinatarios sueltos con `get_emails_campana_crm`, `create_email_campana_crm` y `delete_email_campana_crm`; adjuntos con `get_archivos_campana_crm`, `create_archivo_campana_crm`, `update_archivo_campana_crm` y `delete_archivo_campana_crm` |
 | Informes | `get_informe_oportunidades_crm` (embudo por estado, conversión e importes por interés, fuente, asignado, agente y mes), `get_avisos_crm` (recordatorios de notas), `get_oportunidades_crm_sin_actividad` |
+
+Las campañas se preparan en borrador: se añaden los destinatarios con `anadir_lista_campana_crm`, se comprueba el email con `enviar_prueba_campana_crm` y se ponen a enviar con `set_estado_campana_crm`; el envío lo hace el cron del plugin por lotes, dentro de las horas y los días de la campaña. Cada destinatario necesita una cuenta de correo de salida: si no se indica, se usa la primera disponible. `anadir_lista_campana_crm` y `enviar_prueba_campana_crm` usan endpoints del plugin CRM 3.6 o posterior.
 
 ### Estructura y cómo añadir otro plugin oficial
 

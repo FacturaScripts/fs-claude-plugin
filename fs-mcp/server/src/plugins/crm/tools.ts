@@ -1,11 +1,12 @@
 /**
  * Tools propias del plugin CRM que no son CRUD de un modelo: fichas completas
- * de oportunidad y contacto, cambio de estado por nombre, convertir una
- * oportunidad en presupuesto o vincularla a uno existente, archivos de las
- * oportunidades e informes (embudo, avisos y oportunidades sin actividad).
+ * de oportunidad, contacto y campaña, cambio de estado por nombre, convertir
+ * una oportunidad en presupuesto o vincularla a uno existente, archivos de las
+ * oportunidades y de las campañas, contactos de las listas en bloque, añadir
+ * una lista a una campaña, enviar su prueba y cambiar su estado, e informes
+ * (embudo, avisos y oportunidades sin actividad).
  */
 
-import { readFile } from 'node:fs/promises';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { fsClient } from '../../fs/client.js';
 import { pathId } from '../../utils/pathId.js';
@@ -26,15 +27,30 @@ import {
     round2,
     todayIso,
 } from '../shared/query.js';
+import {
+    DELETE_ATTACHMENT_PROPERTIES,
+    deleteAttachment,
+    listAttachments,
+    UPDATE_ATTACHMENT_PROPERTIES,
+    updateAttachment,
+    UPLOAD_SAFETY_TEXT,
+    uploadAttachment,
+} from '../shared/attachments.js';
 import { CONNECTION_PROPERTY } from '../shared/resource.js';
-import { fail, ok } from '../shared/result.js';
-import { checkUploadPath } from '../shared/upload.js';
+import { fail, isMissingResource, ok } from '../shared/result.js';
 import type { ToolArgs, ToolResult } from '../types.js';
+import { CAMPAIGN_STATUS, CAMPAIGN_STATUS_VALUE } from './resources.js';
 
 type Row = Record<string, unknown>;
 
 /** Clase del modelo de las oportunidades, con la que se relacionan sus archivos. */
 const OPPORTUNITY_MODEL = 'CrmOportunidad';
+
+/** Clase del modelo de las campañas, con la que se relacionan sus adjuntos. */
+const CAMPAIGN_MODEL = 'CrmCampaign';
+
+/** Versión del plugin CRM que añade los endpoints de las campañas. */
+const CAMPAIGN_ENDPOINTS_VERSION = '3.6';
 
 /** Notas de la ficha de un contacto o de una oportunidad. */
 const NOTES_LIMIT = 50;
@@ -134,9 +150,8 @@ export const CRM_TOOLS: Tool[] = [
     {
         name: 'create_archivo_oportunidad_crm',
         description:
-            'Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (máximo 25 MB). ' +
-            'Confirma con el usuario la ruta del archivo antes de subirlo. Por seguridad rechaza los archivos y carpetas ' +
-            'ocultos, la configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados.',
+            'Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM. Avisa por email ' +
+            'al creador, al asignado y al agente de la oportunidad (plugin CRM 3.6 o posterior). ' + UPLOAD_SAFETY_TEXT,
         inputSchema: {
             type: 'object',
             properties: {
@@ -150,17 +165,24 @@ export const CRM_TOOLS: Tool[] = [
         },
     },
     {
+        name: 'update_archivo_oportunidad_crm',
+        description:
+            'Cambia las observaciones de un archivo adjunto a una oportunidad (por el id de la relación que devuelve ' +
+            'get_archivos_oportunidad_crm).',
+        inputSchema: {
+            type: 'object',
+            properties: UPDATE_ATTACHMENT_PROPERTIES,
+            required: ['idrelacion', 'observaciones'],
+        },
+    },
+    {
         name: 'delete_archivo_oportunidad_crm',
         description:
             'Quita un archivo adjunto de una oportunidad (por el id de la relación que devuelve ' +
             'get_archivos_oportunidad_crm). Con borrar_archivo=true borra también el archivo si nada más lo usa. Irreversible.',
         inputSchema: {
             type: 'object',
-            properties: {
-                connection: CONNECTION_PROPERTY,
-                idrelacion: { type: 'number', description: 'Id de la relación del archivo con la oportunidad' },
-                borrar_archivo: { type: 'boolean', description: 'Borrar también el archivo de FacturaScripts si no está adjunto a nada más' },
-            },
+            properties: DELETE_ATTACHMENT_PROPERTIES,
             required: ['idrelacion'],
         },
     },
@@ -231,6 +253,130 @@ export const CRM_TOOLS: Tool[] = [
             required: [],
         },
     },
+    {
+        name: 'set_contactos_lista_crm',
+        description:
+            'Añade y quita contactos de una lista del CRM por su idcontacto, como los botones de la ficha de la lista. ' +
+            'Los que ya están (al añadir) o no están (al quitar) se ignoran. El número de contactos de la lista se ' +
+            'recalcula solo.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                idlista: { type: 'number', description: 'Id de la lista' },
+                anadir: { type: 'array', items: { type: 'number' }, description: 'idcontacto de los contactos a añadir' },
+                quitar: { type: 'array', items: { type: 'number' }, description: 'idcontacto de los contactos a quitar' },
+            },
+            required: ['idlista'],
+        },
+    },
+    {
+        name: 'get_campana_crm',
+        description:
+            'Ficha completa de una campaña de email del CRM: datos y estado, destinatarios (total, enviados, ' +
+            'pendientes y abiertos, por cuenta de salida), adjuntos que se envían con cada email y cuentas de correo ' +
+            'de salida disponibles.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                id: { type: 'number', description: 'Id de la campaña' },
+            },
+            required: ['id'],
+        },
+    },
+    {
+        name: 'set_estado_campana_crm',
+        description:
+            'Cambia el estado de una campaña: enviando (el cron la envía por lotes dentro de su horario y días), ' +
+            'borrador (la pausa) o enviada (la da por terminada). No se puede poner a enviar una campaña sin ' +
+            'destinatarios. Confirma antes con el usuario: los emails se envían de verdad.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                id: { type: 'number', description: 'Id de la campaña' },
+                estado: { type: 'string', enum: Object.keys(CAMPAIGN_STATUS_VALUE), description: 'Nuevo estado' },
+            },
+            required: ['id', 'estado'],
+        },
+    },
+    {
+        name: 'anadir_lista_campana_crm',
+        description:
+            'Añade a una campaña todos los contactos con email de una lista del CRM, sin repetir los que ya tiene, ' +
+            'como el botón «Añadir contactos» de la ficha de la campaña. Requiere CRM ' + CAMPAIGN_ENDPOINTS_VERSION +
+            ' o posterior.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                id: { type: 'number', description: 'Id de la campaña' },
+                idlista: { type: 'number', description: 'Id de la lista de contactos' },
+                outgoing_email: {
+                    type: 'string',
+                    description: 'Cuenta de correo de salida (de get_campana_crm, buzones). Si se omite, la primera disponible',
+                },
+            },
+            required: ['id', 'idlista'],
+        },
+    },
+    {
+        name: 'enviar_prueba_campana_crm',
+        description:
+            'Envía un email de prueba de la campaña a una dirección, como el botón «Prueba» de la ficha: mismo asunto, ' +
+            'contenido, adjuntos y enlace de baja que recibirán los destinatarios. No cambia el estado ni las ' +
+            'estadísticas. Requiere CRM ' + CAMPAIGN_ENDPOINTS_VERSION + ' o posterior.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                id: { type: 'number', description: 'Id de la campaña' },
+                email: { type: 'string', description: 'Email al que enviar la prueba' },
+                outgoing_email: { type: 'string', description: 'Cuenta de correo de salida. Si se omite, la primera disponible' },
+                nombre: { type: 'string', description: 'Nombre para {name} en el texto. Por defecto, el email' },
+            },
+            required: ['id', 'email'],
+        },
+    },
+    {
+        name: 'get_archivos_campana_crm',
+        description: 'Archivos adjuntos de una campaña de email (se envían con cada email), con su nombre, tamaño y observaciones.',
+        inputSchema: {
+            type: 'object',
+            properties: { connection: CONNECTION_PROPERTY, id: { type: 'number', description: 'Id de la campaña' } },
+            required: ['id'],
+        },
+    },
+    {
+        name: 'create_archivo_campana_crm',
+        description:
+            'Sube un archivo del equipo local y lo adjunta a una campaña de email: se enviará con cada email. ' +
+            UPLOAD_SAFETY_TEXT,
+        inputSchema: {
+            type: 'object',
+            properties: {
+                connection: CONNECTION_PROPERTY,
+                id: { type: 'number', description: 'Id de la campaña' },
+                ruta: { type: 'string', description: 'Ruta absoluta del archivo en este equipo' },
+                observaciones: { type: 'string', description: 'Observaciones del adjunto' },
+                nick: { type: 'string', description: 'Usuario que adjunta el archivo (nick)' },
+            },
+            required: ['id', 'ruta'],
+        },
+    },
+    {
+        name: 'update_archivo_campana_crm',
+        description: 'Cambia las observaciones de un adjunto de una campaña (por el idrelacion de get_archivos_campana_crm).',
+        inputSchema: { type: 'object', properties: UPDATE_ATTACHMENT_PROPERTIES, required: ['idrelacion', 'observaciones'] },
+    },
+    {
+        name: 'delete_archivo_campana_crm',
+        description:
+            'Quita un adjunto de una campaña (por el idrelacion de get_archivos_campana_crm). Con borrar_archivo=true ' +
+            'borra también el archivo si nada más lo usa. Irreversible.',
+        inputSchema: { type: 'object', properties: DELETE_ATTACHMENT_PROPERTIES, required: ['idrelacion'] },
+    },
 ];
 
 /**
@@ -283,31 +429,6 @@ function estimationAmounts(estimation: Row): Row {
     };
 }
 
-/**
- * Lee los archivos adjuntos de una oportunidad.
- *
- * @param id         oportunidad.
- * @param connection conexión a usar.
- */
-async function opportunityFiles(id: unknown, connection: string | undefined): Promise<Row[]> {
-    const { rows } = await fetchAll<Row>('/attachedfilerelations', { model: OPPORTUNITY_MODEL, modelid: id }, connection);
-    const files = await fetchByIds('/attachedfiles', 'idfile', rows.map((row) => row.idfile), connection);
-    return rows.map((relation) => {
-        const file = files.get(String(relation.idfile));
-        return {
-            idrelacion: relation.id,
-            idfile: relation.idfile,
-            filename: file?.filename ?? null,
-            mimetype: file?.mimetype ?? null,
-            size: file?.size ?? null,
-            date: file?.date ?? null,
-            observations: relation.observations ?? null,
-            nick: relation.nick ?? null,
-            download: file?.download ?? null,
-        };
-    });
-}
-
 async function oportunidadDetalle(args: ToolArgs): Promise<ToolResult> {
     const connection = connectionOf(args);
     const opportunity = await fsClient.get<Row>(`/crmoportunidades/${pathId(args.id)}`, undefined, connection);
@@ -321,7 +442,7 @@ async function oportunidadDetalle(args: ToolArgs): Promise<ToolResult> {
         fsClient
             .get<Row[]>('/crmnotas', { idoportunidad: opportunity.id, 'sort[fecha]': 'DESC', 'sort[hora]': 'DESC', limit: NOTES_LIMIT }, connection)
             .catch(() => [] as Row[]),
-        opportunityFiles(opportunity.id, connection).catch(() => [] as Row[]),
+        listAttachments(OPPORTUNITY_MODEL, opportunity.id, connection).catch(() => [] as Row[]),
     ]);
 
     return ok({
@@ -467,53 +588,24 @@ async function setPresupuesto(args: ToolArgs): Promise<ToolResult> {
 async function crearArchivo(args: ToolArgs): Promise<ToolResult> {
     const connection = connectionOf(args);
     const id = pathId(args.id);
-    // validamos la ruta antes de llamar a la API: solo archivos normales y visibles, nunca credenciales
-    const check = await checkUploadPath(args.ruta);
-    if (!check.ok) return fail(`create_archivo_oportunidad_crm: ${check.error}`);
-    const upload = check.file;
+    // la ruta se valida antes de llamar a la API; después comprobamos la oportunidad
+    return uploadAttachment('create_archivo_oportunidad_crm', OPPORTUNITY_MODEL, id, args, connection, () =>
+        fsClient.get(`/crmoportunidades/${id}`, undefined, connection),
+    );
+}
 
-    // comprobamos la oportunidad antes de subir nada
-    await fsClient.get(`/crmoportunidades/${id}`, undefined, connection);
-
-    const form = new FormData();
-    form.append('files[]', new Blob([await readFile(upload.path)]), upload.name);
-    const uploaded = await fsClient.postMultipart<{ files?: Row[] }>('/uploadFiles', form, connection);
-    const file = uploaded?.files?.[0];
-    if (!file || file.idfile === undefined) {
-        return fail(`FacturaScripts no ha aceptado el archivo: ${JSON.stringify(uploaded)}`);
-    }
-
-    const relation: Row = { idfile: file.idfile, model: OPPORTUNITY_MODEL, modelid: Number(id) };
-    if (typeof args.observaciones === 'string' && args.observaciones !== '') relation.observations = args.observaciones;
-    if (typeof args.nick === 'string' && args.nick !== '') relation.nick = args.nick;
-    const result = await fsClient.post<Row>('/attachedfilerelations', relation, connection);
-
-    return ok({ archivo: { idfile: file.idfile, filename: file.filename, size: file.size, mimetype: file.mimetype }, relacion: result });
+async function editarArchivo(args: ToolArgs): Promise<ToolResult> {
+    return updateAttachment([OPPORTUNITY_MODEL], args, connectionOf(args));
 }
 
 async function borrarArchivo(args: ToolArgs): Promise<ToolResult> {
-    const connection = connectionOf(args);
-    const relation = await fsClient.get<Row>(`/attachedfilerelations/${pathId(args.idrelacion)}`, undefined, connection);
-    if (relation.model !== OPPORTUNITY_MODEL) {
-        return fail(`La relación ${String(args.idrelacion)} no es de una oportunidad del CRM (es de ${String(relation.model)}).`);
-    }
-
-    const result = await fsClient.delete<Row>(`/attachedfilerelations/${pathId(relation.id)}`, connection);
-    let fileDeleted = false;
-    if (isTrue(args.borrar_archivo)) {
-        const others = await fsClient.get<Row[]>('/attachedfilerelations', { idfile: relation.idfile, limit: 1 }, connection);
-        if (Array.isArray(others) && others.length === 0) {
-            await fsClient.delete(`/attachedfiles/${pathId(relation.idfile)}`, connection);
-            fileDeleted = true;
-        }
-    }
-    return ok({ relacion: result, archivo_borrado: fileDeleted });
+    return deleteAttachment([OPPORTUNITY_MODEL], args, connectionOf(args));
 }
 
 async function archivosOportunidad(args: ToolArgs): Promise<ToolResult> {
     const connection = connectionOf(args);
     const id = pathId(args.id);
-    return ok({ oportunidad: Number(id), archivos: await opportunityFiles(id, connection) });
+    return ok({ oportunidad: Number(id), archivos: await listAttachments(OPPORTUNITY_MODEL, id, connection) });
 }
 
 async function contactoDetalle(args: ToolArgs): Promise<ToolResult> {
@@ -764,6 +856,185 @@ async function sinActividad(args: ToolArgs): Promise<ToolResult> {
 }
 
 /**
+ * Llama a un endpoint de campañas del plugin y, si la instalación no lo tiene, explica qué versión hace falta.
+ *
+ * @param tool       nombre de la tool, para el mensaje de error.
+ * @param endpoint   recurso de la API.
+ * @param body       datos de la petición.
+ * @param connection conexión a usar.
+ */
+async function postCampaignEndpoint(tool: string, endpoint: string, body: Row, connection: string | undefined): Promise<ToolResult> {
+    try {
+        return ok(await fsClient.post<Row>(endpoint, body, connection));
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (isMissingResource(message)) {
+            return fail(
+                `${tool}: la instalación no tiene el endpoint ${endpoint}. Requiere el plugin CRM ` +
+                    `${CAMPAIGN_ENDPOINTS_VERSION} o posterior: actualízalo y vuelve a intentarlo.`,
+            );
+        }
+        throw error;
+    }
+}
+
+/**
+ * Lista de ids recibida en una tool, sin vacíos ni repetidos.
+ *
+ * @param value valor del argumento.
+ */
+function idList(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value.filter((id) => id !== null && id !== undefined && id !== '').map((id) => String(id)))];
+}
+
+async function setContactosLista(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const idlista = pathId(args.idlista);
+    const add = idList(args.anadir);
+    const remove = idList(args.quitar);
+    if (add.length === 0 && remove.length === 0) {
+        return fail('set_contactos_lista_crm: indica los idcontacto a añadir o a quitar.');
+    }
+
+    await fsClient.get(`/crmlistas/${idlista}`, undefined, connection);
+    const { rows } = await fetchAll<Row>('/crmlistacontactos', { idlista }, connection);
+    const members = new Map(rows.map((row) => [String(row.idcontacto), row]));
+
+    const added: string[] = [];
+    const skipped: string[] = [];
+    for (const idcontacto of add) {
+        if (members.has(idcontacto)) {
+            skipped.push(idcontacto);
+            continue;
+        }
+        await fsClient.post('/crmlistacontactos', { idlista, idcontacto }, connection);
+        added.push(idcontacto);
+    }
+
+    const removed: string[] = [];
+    const notMember: string[] = [];
+    for (const idcontacto of remove) {
+        const member = members.get(idcontacto);
+        if (!member) {
+            notMember.push(idcontacto);
+            continue;
+        }
+        await fsClient.delete(`/crmlistacontactos/${pathId(member.id)}`, connection);
+        removed.push(idcontacto);
+    }
+
+    const list = await fsClient.get<Row>(`/crmlistas/${idlista}`, undefined, connection);
+    return ok({
+        idlista: Number(idlista),
+        numcontactos: list.numcontactos ?? null,
+        anadidos: added.map(Number),
+        ya_estaban: skipped.map(Number),
+        quitados: removed.map(Number),
+        no_estaban: notMember.map(Number),
+    });
+}
+
+async function campanaDetalle(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.id);
+    const campaign = await fsClient.get<Row>(`/crmcampaignes/${id}`, undefined, connection);
+
+    const [emails, files, mailboxes] = await Promise.all([
+        fetchAll<Row>('/crmcampaignemailes', { id_campaign: id }, connection),
+        listAttachments(CAMPAIGN_MODEL, id, connection).catch(() => [] as Row[]),
+        // los buzones son un endpoint del plugin: con versiones anteriores no se muestran
+        fsClient.get<{ data?: unknown }>('/buzonesCampanaCRM', undefined, connection).then((r) => r?.data ?? null).catch(() => null),
+    ]);
+
+    const byOutgoing = new Map<string, { destinatarios: number; enviados: number; pendientes: number; abiertos: number }>();
+    for (const row of emails.rows) {
+        const sent = row.sent !== null && row.sent !== undefined && row.sent !== '';
+        accumulate(byOutgoing, String(row.outgoing_email ?? '') || '(predeterminada)', () => ({
+            destinatarios: 0,
+            enviados: 0,
+            pendientes: 0,
+            abiertos: 0,
+        }), (g) => {
+            g.destinatarios += 1;
+            if (sent) g.enviados += 1;
+            else g.pendientes += 1;
+            if (isTrue(row.opened)) g.abiertos += 1;
+        });
+    }
+    const total = emails.rows.length;
+    const sentCount = emails.rows.filter((row) => row.sent !== null && row.sent !== undefined && row.sent !== '').length;
+    const opened = emails.rows.filter((row) => isTrue(row.opened)).length;
+
+    return ok({
+        campana: { ...campaign, estado_nombre: CAMPAIGN_STATUS[num(campaign.status)] ?? String(campaign.status) },
+        destinatarios: {
+            total,
+            enviados: sentCount,
+            pendientes: total - sentCount,
+            abiertos: opened,
+            tasa_apertura_pct: sentCount === 0 ? null : round2((opened / sentCount) * 100),
+            por_cuenta_salida: Object.fromEntries(byOutgoing),
+            ...(emails.truncated ? { aviso: 'La campaña tiene más destinatarios de los que se han leído.' } : {}),
+        },
+        adjuntos: files,
+        ...(mailboxes !== null ? { buzones: mailboxes } : {}),
+    });
+}
+
+async function setEstadoCampana(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.id);
+    if (typeof args.estado !== 'string' || !(args.estado in CAMPAIGN_STATUS_VALUE)) {
+        return fail(`set_estado_campana_crm: estado no válido. Usa ${Object.keys(CAMPAIGN_STATUS_VALUE).join(', ')}.`);
+    }
+    const status = CAMPAIGN_STATUS_VALUE[args.estado] as number;
+
+    const campaign = await fsClient.get<Row>(`/crmcampaignes/${id}`, undefined, connection);
+    if (status === CAMPAIGN_STATUS_VALUE.enviando) {
+        const emails = await fsClient.get<Row[]>('/crmcampaignemailes', { id_campaign: id, limit: 1 }, connection);
+        if (!Array.isArray(emails) || emails.length === 0) {
+            return fail(`La campaña ${id} no tiene destinatarios: añádelos con anadir_lista_campana_crm antes de enviarla.`);
+        }
+    }
+
+    const result = await fsClient.put<Row>(`/crmcampaignes/${id}`, { status }, connection);
+    return ok({
+        estado_anterior: CAMPAIGN_STATUS[num(campaign.status)] ?? String(campaign.status),
+        estado: args.estado,
+        ...(status === CAMPAIGN_STATUS_VALUE.enviando
+            ? { aviso: 'El cron enviará los emails por lotes dentro del horario y los días de envío de la campaña.' }
+            : {}),
+        resultado: result,
+    });
+}
+
+async function anadirListaCampana(args: ToolArgs): Promise<ToolResult> {
+    const body: Row = { id: pathId(args.id), idlista: pathId(args.idlista) };
+    if (typeof args.outgoing_email === 'string' && args.outgoing_email !== '') body.outgoing_email = args.outgoing_email;
+    return postCampaignEndpoint('anadir_lista_campana_crm', '/anadirListaCampanaCRM', body, connectionOf(args));
+}
+
+async function enviarPruebaCampana(args: ToolArgs): Promise<ToolResult> {
+    if (typeof args.email !== 'string' || args.email.trim() === '') {
+        return fail('enviar_prueba_campana_crm: indica el email al que enviar la prueba.');
+    }
+    const body: Row = { id: pathId(args.id), email: args.email.trim() };
+    for (const field of ['outgoing_email', 'nombre']) {
+        if (typeof args[field] === 'string' && args[field] !== '') body[field] = args[field];
+    }
+    return postCampaignEndpoint('enviar_prueba_campana_crm', '/enviarPruebaCampanaCRM', body, connectionOf(args));
+}
+
+async function crearArchivoCampana(args: ToolArgs): Promise<ToolResult> {
+    const connection = connectionOf(args);
+    const id = pathId(args.id);
+    return uploadAttachment('create_archivo_campana_crm', CAMPAIGN_MODEL, id, args, connection, () =>
+        fsClient.get(`/crmcampaignes/${id}`, undefined, connection),
+    );
+}
+
+/**
  * Ejecuta una tool propia del plugin CRM. Devuelve null si no es suya.
  *
  * @param name nombre de la tool.
@@ -783,10 +1054,30 @@ export async function handleCrmTool(name: string, args: ToolArgs): Promise<ToolR
             return archivosOportunidad(args);
         case 'create_archivo_oportunidad_crm':
             return crearArchivo(args);
+        case 'update_archivo_oportunidad_crm':
+            return editarArchivo(args);
         case 'delete_archivo_oportunidad_crm':
             return borrarArchivo(args);
         case 'get_contacto_crm':
             return contactoDetalle(args);
+        case 'set_contactos_lista_crm':
+            return setContactosLista(args);
+        case 'get_campana_crm':
+            return campanaDetalle(args);
+        case 'set_estado_campana_crm':
+            return setEstadoCampana(args);
+        case 'anadir_lista_campana_crm':
+            return anadirListaCampana(args);
+        case 'enviar_prueba_campana_crm':
+            return enviarPruebaCampana(args);
+        case 'get_archivos_campana_crm':
+            return ok({ campana: Number(pathId(args.id)), archivos: await listAttachments(CAMPAIGN_MODEL, pathId(args.id), connectionOf(args)) });
+        case 'create_archivo_campana_crm':
+            return crearArchivoCampana(args);
+        case 'update_archivo_campana_crm':
+            return updateAttachment([CAMPAIGN_MODEL], args, connectionOf(args));
+        case 'delete_archivo_campana_crm':
+            return deleteAttachment([CAMPAIGN_MODEL], args, connectionOf(args));
         case 'get_informe_oportunidades_crm':
             return informeOportunidades(args);
         case 'get_avisos_crm':

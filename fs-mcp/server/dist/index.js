@@ -62376,7 +62376,7 @@ var FacturaScriptsClient = class {
         const connectionName = connection.name || resolvedKey;
         const statusCode = error2.response?.status || "desconocido";
         const location = error2.response?.headers?.location;
-        const errorMessage = location ? `la API ha redirigido a ${location} y no se sigue la redirecci\xF3n para no enviar el token a otra direcci\xF3n; si es la direcci\xF3n de la instalaci\xF3n, corrige la URL de la conexi\xF3n` : error2.response?.data?.message || error2.message || "Error desconocido";
+        const errorMessage = location ? `la API ha redirigido a ${location} y no se sigue la redirecci\xF3n para no enviar el token a otra direcci\xF3n; si es la direcci\xF3n de la instalaci\xF3n, corrige la URL de la conexi\xF3n` : apiErrorMessage(error2.response?.data) || error2.message || "Error desconocido";
         throw new Error(
           `Error en FacturaScripts (${connectionName}, HTTP ${statusCode}): ${errorMessage}`
         );
@@ -62511,6 +62511,15 @@ var FacturaScriptsClient = class {
   }
 };
 var fsClient = new FacturaScriptsClient();
+function apiErrorMessage(data) {
+  if (!data || typeof data !== "object") return void 0;
+  const body = data;
+  for (const key of ["message", "error"]) {
+    const value = body[key];
+    if (typeof value === "string" && value.trim() !== "") return value;
+  }
+  return void 0;
+}
 
 // src/utils/pathId.ts
 var NO_VALIDO = /[/\\?#%\x00-\x1f\x7f]| $/;
@@ -73770,7 +73779,7 @@ var crmCampaignMetadata = {
       "isRequired": true,
       "label": "Estado",
       "default": 0,
-      "description": "Estado de la campa\xF1a.",
+      "description": "Estado de la campa\xF1a: 0 borrador (no se env\xEDa), 1 enviando (el cron la env\xEDa en su horario) y 2 enviada.",
       "widget": "select",
       "enumValues": [
         "0",
@@ -74009,7 +74018,7 @@ var crmCampaignMetadata = {
     },
     {
       "type": "hasMany",
-      "targetModel": "crm_campaigns_emails",
+      "targetModel": "crm_campaign_email",
       "targetTable": "crm_campaigns_emails",
       "localColumn": "id",
       "remoteColumn": "id_campaign"
@@ -74022,8 +74031,8 @@ var crmCampaignMetadata = {
     }
   ],
   "generatedFrom": {
-    "generatedAt": "2026-11-24T12:56:34.504Z",
-    "facturascriptsCommit": "7aa596470",
+    "generatedAt": "2026-11-25T11:43:24.209Z",
+    "facturascriptsCommit": "49b30cf3a",
     "facturascriptsVersion": "plugin:CRM@16399b9",
     "versions": {
       "plugin:CRM": {
@@ -74055,6 +74064,227 @@ var crmCampaignMetadata = {
   ]
 };
 var crm_campaign_default = crmCampaignMetadata;
+
+// src/plugins/crm/metadata/models/crm_campaign_email.ts
+var crmCampaignEmailMetadata = {
+  "name": "crm_campaign_email",
+  "table": "crm_campaigns_emails",
+  "endpoint": "/crmcampaignemailes",
+  "primaryKey": "id",
+  "description": "Destinatario de una campa\xF1a de email del CRM: email, contacto, cuenta de salida, si ya se ha enviado (fecha) y si lo ha abierto.",
+  "source": "plugin:CRM",
+  "columns": [
+    {
+      "name": "creation_date",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": true,
+      "isRequired": true,
+      "label": "Fecha creaci\xF3n",
+      "description": "Fecha y hora en que se a\xF1adi\xF3 a la campa\xF1a.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "email",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "Email",
+      "maxLength": 100,
+      "description": "Email al que se env\xEDa.",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "sqlType": "serial",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": true,
+      "isReadonly": true,
+      "isRequired": false,
+      "label": "Id.",
+      "description": "Identificador del destinatario en la campa\xF1a.",
+      "widget": "text",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "id_campaign",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "id_campaign",
+      "description": "Campa\xF1a.",
+      "widget": "number",
+      "foreignKey": {
+        "table": "crm_campaigns",
+        "column": "id",
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "id_contacto",
+      "sqlType": "integer",
+      "tsType": "number",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "id_contacto",
+      "description": "Contacto del destinatario.",
+      "widget": "number",
+      "foreignKey": {
+        "table": "contactos",
+        "column": "idcontacto",
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
+      },
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3"
+        }
+      ]
+    },
+    {
+      "name": "outgoing_email",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": false,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": true,
+      "label": "outgoing_email",
+      "maxLength": 100,
+      "description": "Cuenta de correo de salida con la que se env\xEDa (vac\xEDo: la predeterminada).",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "sent",
+      "sqlType": "timestamp",
+      "tsType": "datetime",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Enviado",
+      "description": "Fecha y hora de env\xEDo; vac\xEDo si a\xFAn no se ha enviado.",
+      "widget": "datetime",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "2.9"
+        }
+      ]
+    },
+    {
+      "name": "opened",
+      "sqlType": "boolean",
+      "tsType": "boolean",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "Abierto",
+      "default": false,
+      "description": "Si el destinatario ha abierto el email.",
+      "widget": "checkbox",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.3"
+        }
+      ]
+    },
+    {
+      "name": "verificode",
+      "sqlType": "character varying(100)",
+      "tsType": "string",
+      "nullable": true,
+      "isPrimaryKey": false,
+      "isReadonly": false,
+      "isRequired": false,
+      "label": "verificode",
+      "maxLength": 100,
+      "description": "C\xF3digo de seguimiento del email enviado.",
+      "availability": [
+        {
+          "source": "plugin:CRM",
+          "since": "3.3"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "type": "belongsTo",
+      "targetModel": "crm_campaign",
+      "targetTable": "crm_campaigns",
+      "localColumn": "id_campaign",
+      "remoteColumn": "id"
+    },
+    {
+      "type": "belongsTo",
+      "targetModel": "contacto",
+      "targetTable": "contactos",
+      "localColumn": "id_contacto",
+      "remoteColumn": "idcontacto"
+    }
+  ],
+  "availability": [
+    {
+      "source": "plugin:CRM",
+      "since": "2.9"
+    }
+  ],
+  "generatedFrom": {
+    "generatedAt": "2026-11-25T11:43:24.209Z",
+    "facturascriptsCommit": "49b30cf3a",
+    "facturascriptsVersion": "plugin:CRM@16399b9",
+    "versions": {
+      "plugin:CRM": {
+        "latest": "3.44",
+        "tags": 33
+      }
+    }
+  }
+};
+var crm_campaign_email_default = crmCampaignEmailMetadata;
 
 // src/plugins/crm/metadata/models/crm_fuente.ts
 var crmFuenteMetadata = {
@@ -76054,6 +76284,7 @@ var crm_position_default = crmPositionMetadata;
 // src/plugins/crm/metadata/index.ts
 var models = [
   crm_campaign_default,
+  crm_campaign_email_default,
   crm_fuente_default,
   crm_interes_default,
   crm_interes_contacto_default,
@@ -76072,6 +76303,7 @@ function metaOf(name) {
   if (!meta) throw new Error(`Falta la metadata del modelo ${name} del plugin ${PLUGIN}.`);
   return meta;
 }
+var CAMPAIGN_STATUS = { 0: "borrador", 1: "enviando", 2: "enviada" };
 var oportunidad = {
   plugin: PLUGIN,
   meta: metaOf("crm_oportunidad"),
@@ -76176,7 +76408,8 @@ var nota = {
     fechaaviso: "Fecha del recordatorio (YYYY-MM-DD): ese d\xEDa se avisa por email al autor, o a todos con paratodos",
     notice_hour: "Hora del recordatorio (HH:MM:SS)",
     idoportunidad: "Oportunidad de la nota. Avisa por email al creador, al asignado y al agente de la oportunidad",
-    tipodocumento: "Clase del documento al que se refiere la nota (ej. PresupuestoCliente, FacturaCliente)",
+    tipodocumento: "Documento al que se refiere la nota: la clase del documento (PresupuestoCliente, PedidoCliente, AlbaranCliente, FacturaCliente o sus equivalentes de proveedor) o, para un servicio SAT, \xABservicio de cliente\xBB (m\xE1s c\xF3modo con create_nota_servicio_at)",
+    iddocumento: "Id del documento o del servicio SAT al que se refiere la nota (con tipodocumento)",
     fecha: "Fecha de la nota (YYYY-MM-DD). Por defecto, hoy"
   },
   list: {
@@ -76297,16 +76530,79 @@ var cargo = {
   update: { tool: "update_cargo_crm", description: "Cambia el nombre de un cargo del cat\xE1logo (no cambia el cargo de los contactos)." },
   delete: { tool: "delete_cargo_crm", description: "Elimina un cargo del cat\xE1logo (los contactos conservan su texto)." }
 };
+var CAMPAIGN_STATUS_VALUE = { borrador: 0, enviando: 1, enviada: 2 };
 var campana = {
   plugin: PLUGIN,
   meta: metaOf("crm_campaign"),
-  fields: [],
+  fields: [
+    "name",
+    "subject",
+    "content",
+    "send_start_hour",
+    "send_end_hour",
+    "send_monday",
+    "send_tuesday",
+    "send_wednesday",
+    "send_thursday",
+    "send_friday",
+    "send_saturday",
+    "send_sunday",
+    "unsubscribe_link",
+    "nick"
+  ],
+  fieldDescriptions: {
+    name: "Nombre interno de la campa\xF1a",
+    subject: "Asunto de los emails. Admite {name} (nombre del destinatario) y {email}",
+    content: "Contenido HTML de los emails. Admite {name}, {email} y {unsubscribe} (enlace de baja; si no se pone y unsubscribe_link est\xE1 activo, se a\xF1ade al pie)",
+    send_start_hour: "Hora (0-23) a partir de la que el cron env\xEDa. Por defecto 8",
+    send_end_hour: "Hora (0-23) hasta la que el cron env\xEDa, incluida. Por defecto 16",
+    unsubscribe_link: "A\xF1adir al pie el enlace para darse de baja (art. 22.1 LSSI). Por defecto true",
+    nick: "Usuario que crea la campa\xF1a (nick). La API no tiene usuario de sesi\xF3n"
+  },
   list: {
     tool: "get_campanas_crm",
-    description: "Lista las campa\xF1as de email del CRM con su estado (0 borrador, 1 enviando, 2 enviada) y sus estad\xEDsticas: emails a enviar, enviados y abiertos. Solo lectura: se preparan y env\xEDan desde FacturaScripts.",
+    description: "Lista las campa\xF1as de email del CRM con su estado (0 borrador, 1 enviando, 2 enviada) y sus estad\xEDsticas: emails a enviar, enviados y abiertos. Para ver una completa usa get_campana_crm.",
     filters: ["status", "nick"],
     like: ["name", "subject"],
     defaultOrder: "creation_date:desc,id:desc"
+  },
+  create: {
+    tool: "create_campana_crm",
+    description: "Crea una campa\xF1a de email en borrador. Por defecto se env\xEDa de lunes a viernes de 8 a 16 h con enlace de baja. Despu\xE9s a\xF1ade los destinatarios con anadir_lista_campana_crm, prueba el email con enviar_prueba_campana_crm y ponla a enviar con set_estado_campana_crm.",
+    required: ["name", "subject", "content"]
+  },
+  update: {
+    tool: "update_campana_crm",
+    description: "Modifica una campa\xF1a de email: textos, horario y d\xEDas de env\xEDo y enlace de baja. Para cambiar el estado usa set_estado_campana_crm."
+  },
+  delete: {
+    tool: "delete_campana_crm",
+    description: "Elimina una campa\xF1a de email con sus destinatarios y estad\xEDsticas. Irreversible: confirma antes con el usuario."
+  }
+};
+var campanaEmail = {
+  plugin: PLUGIN,
+  meta: metaOf("crm_campaign_email"),
+  fields: ["id_campaign", "email", "id_contacto", "outgoing_email"],
+  fieldDescriptions: {
+    outgoing_email: "Cuenta de correo de salida: una de las de get_campana_crm (buzones). Sin ella el email no se puede enviar",
+    id_contacto: "Contacto del destinatario (opcional): da el nombre para {name}"
+  },
+  list: {
+    tool: "get_emails_campana_crm",
+    description: "Lista los destinatarios de las campa\xF1as de email: email, contacto, cuenta de salida, fecha de env\xEDo (vac\xEDa si est\xE1 pendiente) y si lo ha abierto. Filtra por id_campaign.",
+    filters: ["id_campaign", "id_contacto", "outgoing_email", "opened"],
+    like: ["email"],
+    defaultOrder: "id:asc"
+  },
+  create: {
+    tool: "create_email_campana_crm",
+    description: "A\xF1ade un destinatario suelto a una campa\xF1a. Para a\xF1adir muchos usa anadir_lista_campana_crm. Un email solo puede estar una vez por cuenta de salida en cada campa\xF1a.",
+    required: ["id_campaign", "email", "outgoing_email"]
+  },
+  delete: {
+    tool: "delete_email_campana_crm",
+    description: "Quita un destinatario de una campa\xF1a (por su id) y recalcula las estad\xEDsticas."
   }
 };
 var RESOURCES = [
@@ -76319,10 +76615,11 @@ var RESOURCES = [
   lista,
   listaContacto,
   cargo,
-  campana
+  campana,
+  campanaEmail
 ];
 
-// src/plugins/crm/tools.ts
+// src/plugins/shared/attachments.ts
 import { readFile } from "node:fs/promises";
 
 // src/plugins/shared/upload.ts
@@ -76400,8 +76697,94 @@ async function checkUploadPath(raw, options = {}) {
   return { ok: true, file: { path: real, name: path3.basename(given), size: info.size } };
 }
 
+// src/plugins/shared/attachments.ts
+var UPLOAD_SAFETY_TEXT = "M\xE1ximo 25 MB. Confirma con el usuario la ruta del archivo antes de subirlo. Por seguridad rechaza los archivos y carpetas ocultos, la configuraci\xF3n de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados.";
+var UPDATE_ATTACHMENT_PROPERTIES = {
+  connection: CONNECTION_PROPERTY,
+  idrelacion: { type: "number", description: "Id de la relaci\xF3n del archivo (idrelacion del listado de archivos)" },
+  observaciones: { type: "string", description: "Nuevas observaciones del adjunto (cadena vac\xEDa para quitarlas)" }
+};
+var DELETE_ATTACHMENT_PROPERTIES = {
+  connection: CONNECTION_PROPERTY,
+  idrelacion: { type: "number", description: "Id de la relaci\xF3n del archivo (idrelacion del listado de archivos)" },
+  borrar_archivo: {
+    type: "boolean",
+    description: "Borrar tambi\xE9n el archivo de FacturaScripts si no est\xE1 adjunto a nada m\xE1s"
+  }
+};
+async function listAttachments(model, id, connection) {
+  const { rows } = await fetchAll("/attachedfilerelations", { model, modelid: id }, connection);
+  const files = await fetchByIds("/attachedfiles", "idfile", rows.map((row) => row.idfile), connection);
+  return rows.map((relation) => {
+    const file = files.get(String(relation.idfile));
+    return {
+      idrelacion: relation.id,
+      idfile: relation.idfile,
+      filename: file?.filename ?? null,
+      mimetype: file?.mimetype ?? null,
+      size: file?.size ?? null,
+      date: file?.date ?? null,
+      observations: relation.observations ?? null,
+      nick: relation.nick ?? null,
+      download: file?.download ?? null
+    };
+  });
+}
+async function uploadAttachment(tool, model, id, args, connection, verify) {
+  const check2 = await checkUploadPath(args.ruta);
+  if (!check2.ok) return fail(`${tool}: ${check2.error}`);
+  const upload = check2.file;
+  if (verify) await verify();
+  const form = new FormData();
+  form.append("files[]", new Blob([await readFile(upload.path)]), upload.name);
+  const uploaded = await fsClient.postMultipart("/uploadFiles", form, connection);
+  const file = uploaded?.files?.[0];
+  if (!file || file.idfile === void 0) {
+    return fail(`FacturaScripts no ha aceptado el archivo: ${JSON.stringify(uploaded)}`);
+  }
+  const relation = { idfile: file.idfile, model, modelid: Number(id), modelcode: String(id) };
+  if (typeof args.observaciones === "string" && args.observaciones !== "") relation.observations = args.observaciones;
+  if (typeof args.nick === "string" && args.nick !== "") relation.nick = args.nick;
+  const result = await fsClient.post("/attachedfilerelations", relation, connection);
+  return ok({ archivo: { idfile: file.idfile, filename: file.filename, size: file.size, mimetype: file.mimetype }, relacion: result });
+}
+async function loadRelation(idrelacion, models4, connection) {
+  const relation = await fsClient.get(`/attachedfilerelations/${pathId(idrelacion)}`, void 0, connection);
+  if (!models4.includes(String(relation.model))) {
+    return `La relaci\xF3n ${String(idrelacion)} no es de ${models4.join(" ni de ")} (es de ${String(relation.model)}).`;
+  }
+  return relation;
+}
+async function updateAttachment(models4, args, connection) {
+  if (typeof args.observaciones !== "string") return fail("Indica las nuevas observaciones del adjunto.");
+  const relation = await loadRelation(args.idrelacion, models4, connection);
+  if (typeof relation === "string") return fail(relation);
+  const result = await fsClient.put(
+    `/attachedfilerelations/${pathId(relation.id)}`,
+    { observations: args.observaciones === "" ? "null" : args.observaciones },
+    connection
+  );
+  return ok(result);
+}
+async function deleteAttachment(models4, args, connection) {
+  const relation = await loadRelation(args.idrelacion, models4, connection);
+  if (typeof relation === "string") return fail(relation);
+  const result = await fsClient.delete(`/attachedfilerelations/${pathId(relation.id)}`, connection);
+  let fileDeleted = false;
+  if (isTrue(args.borrar_archivo)) {
+    const others = await fsClient.get("/attachedfilerelations", { idfile: relation.idfile, limit: 1 }, connection);
+    if (Array.isArray(others) && others.length === 0) {
+      await fsClient.delete(`/attachedfiles/${pathId(relation.idfile)}`, connection);
+      fileDeleted = true;
+    }
+  }
+  return ok({ relacion: result, archivo_borrado: fileDeleted });
+}
+
 // src/plugins/crm/tools.ts
 var OPPORTUNITY_MODEL = "CrmOportunidad";
+var CAMPAIGN_MODEL = "CrmCampaign";
+var CAMPAIGN_ENDPOINTS_VERSION = "3.6";
 var NOTES_LIMIT = 50;
 var LINE_ITEM = {
   type: "object",
@@ -76487,7 +76870,7 @@ var CRM_TOOLS = [
   },
   {
     name: "create_archivo_oportunidad_crm",
-    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM (m\xE1ximo 25 MB). Confirma con el usuario la ruta del archivo antes de subirlo. Por seguridad rechaza los archivos y carpetas ocultos, la configuraci\xF3n de fs-mcp, las carpetas del sistema y de datos de aplicaciones, y las claves y certificados.",
+    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a una oportunidad del CRM. Avisa por email al creador, al asignado y al agente de la oportunidad (plugin CRM 3.6 o posterior). " + UPLOAD_SAFETY_TEXT,
     inputSchema: {
       type: "object",
       properties: {
@@ -76501,15 +76884,20 @@ var CRM_TOOLS = [
     }
   },
   {
+    name: "update_archivo_oportunidad_crm",
+    description: "Cambia las observaciones de un archivo adjunto a una oportunidad (por el id de la relaci\xF3n que devuelve get_archivos_oportunidad_crm).",
+    inputSchema: {
+      type: "object",
+      properties: UPDATE_ATTACHMENT_PROPERTIES,
+      required: ["idrelacion", "observaciones"]
+    }
+  },
+  {
     name: "delete_archivo_oportunidad_crm",
     description: "Quita un archivo adjunto de una oportunidad (por el id de la relaci\xF3n que devuelve get_archivos_oportunidad_crm). Con borrar_archivo=true borra tambi\xE9n el archivo si nada m\xE1s lo usa. Irreversible.",
     inputSchema: {
       type: "object",
-      properties: {
-        connection: CONNECTION_PROPERTY,
-        idrelacion: { type: "number", description: "Id de la relaci\xF3n del archivo con la oportunidad" },
-        borrar_archivo: { type: "boolean", description: "Borrar tambi\xE9n el archivo de FacturaScripts si no est\xE1 adjunto a nada m\xE1s" }
-      },
+      properties: DELETE_ATTACHMENT_PROPERTIES,
       required: ["idrelacion"]
     }
   },
@@ -76570,6 +76958,111 @@ var CRM_TOOLS = [
       },
       required: []
     }
+  },
+  {
+    name: "set_contactos_lista_crm",
+    description: "A\xF1ade y quita contactos de una lista del CRM por su idcontacto, como los botones de la ficha de la lista. Los que ya est\xE1n (al a\xF1adir) o no est\xE1n (al quitar) se ignoran. El n\xFAmero de contactos de la lista se recalcula solo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idlista: { type: "number", description: "Id de la lista" },
+        anadir: { type: "array", items: { type: "number" }, description: "idcontacto de los contactos a a\xF1adir" },
+        quitar: { type: "array", items: { type: "number" }, description: "idcontacto de los contactos a quitar" }
+      },
+      required: ["idlista"]
+    }
+  },
+  {
+    name: "get_campana_crm",
+    description: "Ficha completa de una campa\xF1a de email del CRM: datos y estado, destinatarios (total, enviados, pendientes y abiertos, por cuenta de salida), adjuntos que se env\xEDan con cada email y cuentas de correo de salida disponibles.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "Id de la campa\xF1a" }
+      },
+      required: ["id"]
+    }
+  },
+  {
+    name: "set_estado_campana_crm",
+    description: "Cambia el estado de una campa\xF1a: enviando (el cron la env\xEDa por lotes dentro de su horario y d\xEDas), borrador (la pausa) o enviada (la da por terminada). No se puede poner a enviar una campa\xF1a sin destinatarios. Confirma antes con el usuario: los emails se env\xEDan de verdad.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "Id de la campa\xF1a" },
+        estado: { type: "string", enum: Object.keys(CAMPAIGN_STATUS_VALUE), description: "Nuevo estado" }
+      },
+      required: ["id", "estado"]
+    }
+  },
+  {
+    name: "anadir_lista_campana_crm",
+    description: "A\xF1ade a una campa\xF1a todos los contactos con email de una lista del CRM, sin repetir los que ya tiene, como el bot\xF3n \xABA\xF1adir contactos\xBB de la ficha de la campa\xF1a. Requiere CRM " + CAMPAIGN_ENDPOINTS_VERSION + " o posterior.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "Id de la campa\xF1a" },
+        idlista: { type: "number", description: "Id de la lista de contactos" },
+        outgoing_email: {
+          type: "string",
+          description: "Cuenta de correo de salida (de get_campana_crm, buzones). Si se omite, la primera disponible"
+        }
+      },
+      required: ["id", "idlista"]
+    }
+  },
+  {
+    name: "enviar_prueba_campana_crm",
+    description: "Env\xEDa un email de prueba de la campa\xF1a a una direcci\xF3n, como el bot\xF3n \xABPrueba\xBB de la ficha: mismo asunto, contenido, adjuntos y enlace de baja que recibir\xE1n los destinatarios. No cambia el estado ni las estad\xEDsticas. Requiere CRM " + CAMPAIGN_ENDPOINTS_VERSION + " o posterior.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "Id de la campa\xF1a" },
+        email: { type: "string", description: "Email al que enviar la prueba" },
+        outgoing_email: { type: "string", description: "Cuenta de correo de salida. Si se omite, la primera disponible" },
+        nombre: { type: "string", description: "Nombre para {name} en el texto. Por defecto, el email" }
+      },
+      required: ["id", "email"]
+    }
+  },
+  {
+    name: "get_archivos_campana_crm",
+    description: "Archivos adjuntos de una campa\xF1a de email (se env\xEDan con cada email), con su nombre, tama\xF1o y observaciones.",
+    inputSchema: {
+      type: "object",
+      properties: { connection: CONNECTION_PROPERTY, id: { type: "number", description: "Id de la campa\xF1a" } },
+      required: ["id"]
+    }
+  },
+  {
+    name: "create_archivo_campana_crm",
+    description: "Sube un archivo del equipo local y lo adjunta a una campa\xF1a de email: se enviar\xE1 con cada email. " + UPLOAD_SAFETY_TEXT,
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        id: { type: "number", description: "Id de la campa\xF1a" },
+        ruta: { type: "string", description: "Ruta absoluta del archivo en este equipo" },
+        observaciones: { type: "string", description: "Observaciones del adjunto" },
+        nick: { type: "string", description: "Usuario que adjunta el archivo (nick)" }
+      },
+      required: ["id", "ruta"]
+    }
+  },
+  {
+    name: "update_archivo_campana_crm",
+    description: "Cambia las observaciones de un adjunto de una campa\xF1a (por el idrelacion de get_archivos_campana_crm).",
+    inputSchema: { type: "object", properties: UPDATE_ATTACHMENT_PROPERTIES, required: ["idrelacion", "observaciones"] }
+  },
+  {
+    name: "delete_archivo_campana_crm",
+    description: "Quita un adjunto de una campa\xF1a (por el idrelacion de get_archivos_campana_crm). Con borrar_archivo=true borra tambi\xE9n el archivo si nada m\xE1s lo usa. Irreversible.",
+    inputSchema: { type: "object", properties: DELETE_ATTACHMENT_PROPERTIES, required: ["idrelacion"] }
   }
 ];
 function opportunityValue(row) {
@@ -76597,24 +77090,6 @@ function estimationAmounts(estimation) {
     tasaconv: rate || 1
   };
 }
-async function opportunityFiles(id, connection) {
-  const { rows } = await fetchAll("/attachedfilerelations", { model: OPPORTUNITY_MODEL, modelid: id }, connection);
-  const files = await fetchByIds("/attachedfiles", "idfile", rows.map((row) => row.idfile), connection);
-  return rows.map((relation) => {
-    const file = files.get(String(relation.idfile));
-    return {
-      idrelacion: relation.id,
-      idfile: relation.idfile,
-      filename: file?.filename ?? null,
-      mimetype: file?.mimetype ?? null,
-      size: file?.size ?? null,
-      date: file?.date ?? null,
-      observations: relation.observations ?? null,
-      nick: relation.nick ?? null,
-      download: file?.download ?? null
-    };
-  });
-}
 async function oportunidadDetalle(args) {
   const connection = connectionOf(args);
   const opportunity = await fsClient.get(`/crmoportunidades/${pathId(args.id)}`, void 0, connection);
@@ -76625,7 +77100,7 @@ async function oportunidadDetalle(args) {
     getOrNull("/crmfuentes", opportunity.idfuente, connection),
     getOrNull("/presupuestoclientes", opportunity.idpresupuesto, connection),
     fsClient.get("/crmnotas", { idoportunidad: opportunity.id, "sort[fecha]": "DESC", "sort[hora]": "DESC", limit: NOTES_LIMIT }, connection).catch(() => []),
-    opportunityFiles(opportunity.id, connection).catch(() => [])
+    listAttachments(OPPORTUNITY_MODEL, opportunity.id, connection).catch(() => [])
   ]);
   return ok({
     oportunidad: {
@@ -76752,44 +77227,25 @@ async function setPresupuesto(args) {
 async function crearArchivo(args) {
   const connection = connectionOf(args);
   const id = pathId(args.id);
-  const check2 = await checkUploadPath(args.ruta);
-  if (!check2.ok) return fail(`create_archivo_oportunidad_crm: ${check2.error}`);
-  const upload = check2.file;
-  await fsClient.get(`/crmoportunidades/${id}`, void 0, connection);
-  const form = new FormData();
-  form.append("files[]", new Blob([await readFile(upload.path)]), upload.name);
-  const uploaded = await fsClient.postMultipart("/uploadFiles", form, connection);
-  const file = uploaded?.files?.[0];
-  if (!file || file.idfile === void 0) {
-    return fail(`FacturaScripts no ha aceptado el archivo: ${JSON.stringify(uploaded)}`);
-  }
-  const relation = { idfile: file.idfile, model: OPPORTUNITY_MODEL, modelid: Number(id) };
-  if (typeof args.observaciones === "string" && args.observaciones !== "") relation.observations = args.observaciones;
-  if (typeof args.nick === "string" && args.nick !== "") relation.nick = args.nick;
-  const result = await fsClient.post("/attachedfilerelations", relation, connection);
-  return ok({ archivo: { idfile: file.idfile, filename: file.filename, size: file.size, mimetype: file.mimetype }, relacion: result });
+  return uploadAttachment(
+    "create_archivo_oportunidad_crm",
+    OPPORTUNITY_MODEL,
+    id,
+    args,
+    connection,
+    () => fsClient.get(`/crmoportunidades/${id}`, void 0, connection)
+  );
+}
+async function editarArchivo(args) {
+  return updateAttachment([OPPORTUNITY_MODEL], args, connectionOf(args));
 }
 async function borrarArchivo(args) {
-  const connection = connectionOf(args);
-  const relation = await fsClient.get(`/attachedfilerelations/${pathId(args.idrelacion)}`, void 0, connection);
-  if (relation.model !== OPPORTUNITY_MODEL) {
-    return fail(`La relaci\xF3n ${String(args.idrelacion)} no es de una oportunidad del CRM (es de ${String(relation.model)}).`);
-  }
-  const result = await fsClient.delete(`/attachedfilerelations/${pathId(relation.id)}`, connection);
-  let fileDeleted = false;
-  if (isTrue(args.borrar_archivo)) {
-    const others = await fsClient.get("/attachedfilerelations", { idfile: relation.idfile, limit: 1 }, connection);
-    if (Array.isArray(others) && others.length === 0) {
-      await fsClient.delete(`/attachedfiles/${pathId(relation.idfile)}`, connection);
-      fileDeleted = true;
-    }
-  }
-  return ok({ relacion: result, archivo_borrado: fileDeleted });
+  return deleteAttachment([OPPORTUNITY_MODEL], args, connectionOf(args));
 }
 async function archivosOportunidad(args) {
   const connection = connectionOf(args);
   const id = pathId(args.id);
-  return ok({ oportunidad: Number(id), archivos: await opportunityFiles(id, connection) });
+  return ok({ oportunidad: Number(id), archivos: await listAttachments(OPPORTUNITY_MODEL, id, connection) });
 }
 async function contactoDetalle(args) {
   const connection = connectionOf(args);
@@ -77003,6 +77459,157 @@ async function sinActividad(args) {
     oportunidades: idle.map((item) => ({ ...item, contacto: contactName(contacts.get(String(item.idcontacto)) ?? null) }))
   });
 }
+async function postCampaignEndpoint(tool, endpoint, body, connection) {
+  try {
+    return ok(await fsClient.post(endpoint, body, connection));
+  } catch (error2) {
+    const message = error2 instanceof Error ? error2.message : String(error2);
+    if (isMissingResource(message)) {
+      return fail(
+        `${tool}: la instalaci\xF3n no tiene el endpoint ${endpoint}. Requiere el plugin CRM ${CAMPAIGN_ENDPOINTS_VERSION} o posterior: actual\xEDzalo y vuelve a intentarlo.`
+      );
+    }
+    throw error2;
+  }
+}
+function idList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((id) => id !== null && id !== void 0 && id !== "").map((id) => String(id)))];
+}
+async function setContactosLista(args) {
+  const connection = connectionOf(args);
+  const idlista = pathId(args.idlista);
+  const add = idList(args.anadir);
+  const remove = idList(args.quitar);
+  if (add.length === 0 && remove.length === 0) {
+    return fail("set_contactos_lista_crm: indica los idcontacto a a\xF1adir o a quitar.");
+  }
+  await fsClient.get(`/crmlistas/${idlista}`, void 0, connection);
+  const { rows } = await fetchAll("/crmlistacontactos", { idlista }, connection);
+  const members = new Map(rows.map((row) => [String(row.idcontacto), row]));
+  const added = [];
+  const skipped = [];
+  for (const idcontacto of add) {
+    if (members.has(idcontacto)) {
+      skipped.push(idcontacto);
+      continue;
+    }
+    await fsClient.post("/crmlistacontactos", { idlista, idcontacto }, connection);
+    added.push(idcontacto);
+  }
+  const removed = [];
+  const notMember = [];
+  for (const idcontacto of remove) {
+    const member = members.get(idcontacto);
+    if (!member) {
+      notMember.push(idcontacto);
+      continue;
+    }
+    await fsClient.delete(`/crmlistacontactos/${pathId(member.id)}`, connection);
+    removed.push(idcontacto);
+  }
+  const list = await fsClient.get(`/crmlistas/${idlista}`, void 0, connection);
+  return ok({
+    idlista: Number(idlista),
+    numcontactos: list.numcontactos ?? null,
+    anadidos: added.map(Number),
+    ya_estaban: skipped.map(Number),
+    quitados: removed.map(Number),
+    no_estaban: notMember.map(Number)
+  });
+}
+async function campanaDetalle(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  const campaign = await fsClient.get(`/crmcampaignes/${id}`, void 0, connection);
+  const [emails, files, mailboxes] = await Promise.all([
+    fetchAll("/crmcampaignemailes", { id_campaign: id }, connection),
+    listAttachments(CAMPAIGN_MODEL, id, connection).catch(() => []),
+    // los buzones son un endpoint del plugin: con versiones anteriores no se muestran
+    fsClient.get("/buzonesCampanaCRM", void 0, connection).then((r) => r?.data ?? null).catch(() => null)
+  ]);
+  const byOutgoing = /* @__PURE__ */ new Map();
+  for (const row of emails.rows) {
+    const sent = row.sent !== null && row.sent !== void 0 && row.sent !== "";
+    accumulate(byOutgoing, String(row.outgoing_email ?? "") || "(predeterminada)", () => ({
+      destinatarios: 0,
+      enviados: 0,
+      pendientes: 0,
+      abiertos: 0
+    }), (g) => {
+      g.destinatarios += 1;
+      if (sent) g.enviados += 1;
+      else g.pendientes += 1;
+      if (isTrue(row.opened)) g.abiertos += 1;
+    });
+  }
+  const total = emails.rows.length;
+  const sentCount = emails.rows.filter((row) => row.sent !== null && row.sent !== void 0 && row.sent !== "").length;
+  const opened = emails.rows.filter((row) => isTrue(row.opened)).length;
+  return ok({
+    campana: { ...campaign, estado_nombre: CAMPAIGN_STATUS[num2(campaign.status)] ?? String(campaign.status) },
+    destinatarios: {
+      total,
+      enviados: sentCount,
+      pendientes: total - sentCount,
+      abiertos: opened,
+      tasa_apertura_pct: sentCount === 0 ? null : round2(opened / sentCount * 100),
+      por_cuenta_salida: Object.fromEntries(byOutgoing),
+      ...emails.truncated ? { aviso: "La campa\xF1a tiene m\xE1s destinatarios de los que se han le\xEDdo." } : {}
+    },
+    adjuntos: files,
+    ...mailboxes !== null ? { buzones: mailboxes } : {}
+  });
+}
+async function setEstadoCampana(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  if (typeof args.estado !== "string" || !(args.estado in CAMPAIGN_STATUS_VALUE)) {
+    return fail(`set_estado_campana_crm: estado no v\xE1lido. Usa ${Object.keys(CAMPAIGN_STATUS_VALUE).join(", ")}.`);
+  }
+  const status = CAMPAIGN_STATUS_VALUE[args.estado];
+  const campaign = await fsClient.get(`/crmcampaignes/${id}`, void 0, connection);
+  if (status === CAMPAIGN_STATUS_VALUE.enviando) {
+    const emails = await fsClient.get("/crmcampaignemailes", { id_campaign: id, limit: 1 }, connection);
+    if (!Array.isArray(emails) || emails.length === 0) {
+      return fail(`La campa\xF1a ${id} no tiene destinatarios: a\xF1\xE1delos con anadir_lista_campana_crm antes de enviarla.`);
+    }
+  }
+  const result = await fsClient.put(`/crmcampaignes/${id}`, { status }, connection);
+  return ok({
+    estado_anterior: CAMPAIGN_STATUS[num2(campaign.status)] ?? String(campaign.status),
+    estado: args.estado,
+    ...status === CAMPAIGN_STATUS_VALUE.enviando ? { aviso: "El cron enviar\xE1 los emails por lotes dentro del horario y los d\xEDas de env\xEDo de la campa\xF1a." } : {},
+    resultado: result
+  });
+}
+async function anadirListaCampana(args) {
+  const body = { id: pathId(args.id), idlista: pathId(args.idlista) };
+  if (typeof args.outgoing_email === "string" && args.outgoing_email !== "") body.outgoing_email = args.outgoing_email;
+  return postCampaignEndpoint("anadir_lista_campana_crm", "/anadirListaCampanaCRM", body, connectionOf(args));
+}
+async function enviarPruebaCampana(args) {
+  if (typeof args.email !== "string" || args.email.trim() === "") {
+    return fail("enviar_prueba_campana_crm: indica el email al que enviar la prueba.");
+  }
+  const body = { id: pathId(args.id), email: args.email.trim() };
+  for (const field of ["outgoing_email", "nombre"]) {
+    if (typeof args[field] === "string" && args[field] !== "") body[field] = args[field];
+  }
+  return postCampaignEndpoint("enviar_prueba_campana_crm", "/enviarPruebaCampanaCRM", body, connectionOf(args));
+}
+async function crearArchivoCampana(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.id);
+  return uploadAttachment(
+    "create_archivo_campana_crm",
+    CAMPAIGN_MODEL,
+    id,
+    args,
+    connection,
+    () => fsClient.get(`/crmcampaignes/${id}`, void 0, connection)
+  );
+}
 async function handleCrmTool(name, args) {
   switch (name) {
     case "get_oportunidad_crm":
@@ -77017,10 +77624,30 @@ async function handleCrmTool(name, args) {
       return archivosOportunidad(args);
     case "create_archivo_oportunidad_crm":
       return crearArchivo(args);
+    case "update_archivo_oportunidad_crm":
+      return editarArchivo(args);
     case "delete_archivo_oportunidad_crm":
       return borrarArchivo(args);
     case "get_contacto_crm":
       return contactoDetalle(args);
+    case "set_contactos_lista_crm":
+      return setContactosLista(args);
+    case "get_campana_crm":
+      return campanaDetalle(args);
+    case "set_estado_campana_crm":
+      return setEstadoCampana(args);
+    case "anadir_lista_campana_crm":
+      return anadirListaCampana(args);
+    case "enviar_prueba_campana_crm":
+      return enviarPruebaCampana(args);
+    case "get_archivos_campana_crm":
+      return ok({ campana: Number(pathId(args.id)), archivos: await listAttachments(CAMPAIGN_MODEL, pathId(args.id), connectionOf(args)) });
+    case "create_archivo_campana_crm":
+      return crearArchivoCampana(args);
+    case "update_archivo_campana_crm":
+      return updateAttachment([CAMPAIGN_MODEL], args, connectionOf(args));
+    case "delete_archivo_campana_crm":
+      return deleteAttachment([CAMPAIGN_MODEL], args, connectionOf(args));
     case "get_informe_oportunidades_crm":
       return informeOportunidades(args);
     case "get_avisos_crm":
@@ -78780,6 +79407,80 @@ var RESOURCES2 = [
   stockProyecto
 ];
 
+// src/plugins/shared/settings.ts
+function settingsProperties(defs) {
+  const properties = { connection: CONNECTION_PROPERTY };
+  for (const [name, def] of Object.entries(defs)) {
+    properties[name] = { type: def.type, description: def.description, ...def.enum ? { enum: def.enum } : {} };
+  }
+  return properties;
+}
+function readValue(value, def) {
+  if (value === void 0 || value === null) return null;
+  if (def?.type === "boolean") return value === true || value === 1 || value === "1" || value === "true";
+  if (def?.type === "number") {
+    const parsed = Number(value);
+    return value === "" || Number.isNaN(parsed) ? null : parsed;
+  }
+  return value;
+}
+function writeValue(value, def) {
+  if (def.type === "boolean") return value === true || value === "true" || value === 1 || value === "1" ? "1" : "0";
+  return String(value);
+}
+async function readSettings(name, defs, connection) {
+  let raw = {};
+  let exists = true;
+  try {
+    const record2 = await fsClient.get(`/settings/${pathId(name)}`, void 0, connection);
+    const properties = typeof record2.properties === "string" ? JSON.parse(record2.properties) : record2.properties;
+    raw = properties && typeof properties === "object" ? properties : {};
+  } catch (error2) {
+    const message = error2 instanceof Error ? error2.message : String(error2);
+    if (!message.includes("HTTP 404")) throw error2;
+    exists = false;
+  }
+  const valores = {};
+  for (const [key, def] of Object.entries(defs)) valores[key] = readValue(raw[key], def);
+  const otros = {};
+  for (const [key, value] of Object.entries(raw)) if (!(key in defs)) otros[key] = value;
+  return { existe: exists, valores, otros };
+}
+async function getSettingsTool(name, defs, args) {
+  const connection = typeof args.connection === "string" ? args.connection : void 0;
+  const settings = await readSettings(name, defs, connection);
+  return ok({
+    configuracion: name,
+    ...settings.existe ? {} : { aviso: "La configuraci\xF3n a\xFAn no se ha guardado nunca: se usan los valores por defecto del plugin." },
+    valores: settings.valores,
+    ...Object.keys(settings.otros).length > 0 ? { otros: settings.otros } : {}
+  });
+}
+async function updateSettingsTool(tool, name, defs, args) {
+  const connection = typeof args.connection === "string" ? args.connection : void 0;
+  const body = {};
+  for (const [key, def] of Object.entries(defs)) {
+    const value = args[key];
+    if (value === void 0 || value === null) continue;
+    if (def.enum && !def.enum.map(String).includes(String(value))) {
+      return fail(`${tool}: ${key} debe ser uno de ${def.enum.join(", ")}.`);
+    }
+    if (def.type === "number" && Number.isNaN(Number(value))) return fail(`${tool}: ${key} debe ser un n\xFAmero.`);
+    body[key] = writeValue(value, def);
+  }
+  if (Object.keys(body).length === 0) {
+    return fail(`${tool}: indica al menos un valor a cambiar (${Object.keys(defs).join(", ")}).`);
+  }
+  const current = await readSettings(name, defs, connection);
+  if (current.existe) {
+    await fsClient.put(`/settings/${pathId(name)}`, body, connection);
+  } else {
+    await fsClient.post("/settings", { name, ...body }, connection);
+  }
+  const updated = await readSettings(name, defs, connection);
+  return ok({ configuracion: name, cambiados: Object.keys(body), valores: updated.valores });
+}
+
 // src/plugins/proyectos/tools.ts
 var DOCUMENTS = [
   { tipo: "presupuesto_cliente", endpoint: "/presupuestoclientes", id: "idpresupuesto", lado: "venta" },
@@ -78792,6 +79493,29 @@ var DOCUMENTS = [
   { tipo: "factura_proveedor", endpoint: "/facturaproveedores", id: "idfactura", lado: "compra" }
 ];
 var DOCUMENT_TYPES = DOCUMENTS.map((doc) => doc.tipo);
+function modelClass(tipo) {
+  return tipo.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("");
+}
+var LINKABLE = [
+  ...DOCUMENTS.map((doc) => ({ tipo: doc.tipo, endpoint: doc.endpoint, modelo: modelClass(doc.tipo) })),
+  { tipo: "asiento", endpoint: "/asientos", modelo: "Asiento" }
+];
+var LINKABLE_TYPES = LINKABLE.map((item) => item.tipo);
+var PROJECT_FILE_MODELS = ["Proyecto", "TareaProyecto"];
+var PROJECT_SETTINGS = {
+  patron: {
+    type: "string",
+    description: "Patr\xF3n del nombre de los proyectos nuevos. Admite {ANYO}, {NUM} y el resto de variables de los patrones de FacturaScripts (por defecto PR-{ANYO}-{NUM})"
+  },
+  longnumero: { type: "number", description: "Longitud m\xEDnima del n\xFAmero del patr\xF3n, rellenado con ceros" },
+  reiniciar_patron_anualmente: { type: "boolean", description: "Volver a empezar la numeraci\xF3n cada a\xF1o" },
+  stock: { type: "boolean", description: "Calcular y mostrar el stock de los productos de cada proyecto" },
+  burnstock: {
+    type: "boolean",
+    description: "Quemar el stock: descontar del proyecto el material que sale en sus albaranes y facturas de venta"
+  }
+};
+var LINK_ENDPOINT_VERSION = "5.32";
 var dateRangeProps = {
   fecha_desde: { type: "string", description: "Desde esta fecha de alta incluida (YYYY-MM-DD)" },
   fecha_hasta: { type: "string", description: "Hasta esta fecha de alta incluida (YYYY-MM-DD)" }
@@ -78806,7 +79530,7 @@ var projectFilterProps = {
 var PROYECTOS_TOOLS = [
   {
     name: "get_proyecto",
-    description: "Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, margen y pendiente de facturar, sus tareas con la fase y si est\xE1n vencidas (y el resumen por fase), los usuarios, las \xFAltimas notas, el stock, el resumen de documentos de compra y venta por tipo y los servicios SAT vinculados (si el plugin Servicios est\xE1 activo). Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y pedidos a\xFAn no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.",
+    description: "Ficha completa de un proyecto: datos con el nombre de su estado y cliente, totales de ventas, compras, margen y pendiente de facturar, sus tareas con la fase y si est\xE1n vencidas (y el resumen por fase), los usuarios, las \xFAltimas notas, el stock, el resumen de documentos de compra y venta por tipo, los asientos vinculados, los archivos adjuntos y los servicios SAT vinculados (si el plugin Servicios est\xE1 activo). Ventas y compras son importes con impuestos de los documentos vinculados (las ventas incluyen presupuestos y pedidos a\xFAn no facturados, sin duplicar los ya convertidos); el pendiente de facturar es el neto sin impuestos.",
     inputSchema: {
       type: "object",
       properties: {
@@ -78836,15 +79560,18 @@ var PROYECTOS_TOOLS = [
   },
   {
     name: "set_proyecto_documento",
-    description: "Vincula un documento de compra o venta a un proyecto, o lo desvincula. FacturaScripts recalcula los totales del proyecto al guardar el documento.",
+    description: `Vincula a un proyecto un documento de compra o venta o un asiento contable, o lo desvincula, igual que los botones de la ficha del proyecto: admite documentos ya no editables (facturas emitidas, presupuestos aceptados...) y asientos de ejercicios cerrados. Recalcula el stock y los totales del proyecto nuevo y del anterior. Requiere Proyectos ${LINK_ENDPOINT_VERSION} o posterior; con versiones anteriores usa la API gen\xE9rica, que solo admite documentos y asientos editables.`,
     inputSchema: {
       type: "object",
       properties: {
         connection: CONNECTION_PROPERTY,
-        tipo: { type: "string", enum: DOCUMENT_TYPES, description: "Tipo de documento" },
-        id: { type: "number", description: "Id del documento (idfactura, idalbaran, idpedido o idpresupuesto)" },
+        tipo: { type: "string", enum: LINKABLE_TYPES, description: "Tipo de documento, o asiento" },
+        id: {
+          type: "number",
+          description: "Id del documento (idfactura, idalbaran, idpedido o idpresupuesto) o del asiento (idasiento)"
+        },
         idproyecto: { type: "number", description: "Proyecto al que vincularlo" },
-        desvincular: { type: "boolean", description: "true para quitar el documento de su proyecto" }
+        desvincular: { type: "boolean", description: "true para quitarlo de su proyecto" }
       },
       required: ["tipo", "id"]
     }
@@ -78939,6 +79666,82 @@ var PROYECTOS_TOOLS = [
       },
       required: []
     }
+  },
+  {
+    name: "get_archivos_proyecto",
+    description: "Archivos adjuntos de un proyecto (idproyecto) o de una de sus tareas (idtarea), con su nombre, tipo, tama\xF1o, observaciones y enlace de descarga.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        idtarea: { type: "number", description: "Id de la tarea, en lugar del proyecto" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "create_archivo_proyecto",
+    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a un proyecto (idproyecto) o a una de sus tareas (idtarea). " + UPLOAD_SAFETY_TEXT,
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        idtarea: { type: "number", description: "Id de la tarea, en lugar del proyecto" },
+        ruta: { type: "string", description: "Ruta absoluta del archivo en este equipo" },
+        observaciones: { type: "string", description: "Observaciones del adjunto" },
+        nick: { type: "string", description: "Usuario que adjunta el archivo (nick)" }
+      },
+      required: ["ruta"]
+    }
+  },
+  {
+    name: "update_archivo_proyecto",
+    description: "Cambia las observaciones de un archivo adjunto a un proyecto o a una tarea (por el idrelacion de get_archivos_proyecto).",
+    inputSchema: { type: "object", properties: UPDATE_ATTACHMENT_PROPERTIES, required: ["idrelacion", "observaciones"] }
+  },
+  {
+    name: "delete_archivo_proyecto",
+    description: "Quita un archivo adjunto de un proyecto o de una tarea (por el idrelacion de get_archivos_proyecto). Con borrar_archivo=true borra tambi\xE9n el archivo si nada m\xE1s lo usa. Irreversible.",
+    inputSchema: { type: "object", properties: DELETE_ATTACHMENT_PROPERTIES, required: ["idrelacion"] }
+  },
+  {
+    name: "get_recibos_proyecto",
+    description: "Recibos de las facturas de cliente vinculadas a un proyecto (los recibos no se vinculan por separado: son los de sus facturas), con el total pendiente de cobro y los vencidos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        pagado: { type: "boolean", description: "true solo los pagados, false solo los pendientes" }
+      },
+      required: ["idproyecto"]
+    }
+  },
+  {
+    name: "pagar_recibos_proyecto",
+    description: "Marca como pagados recibos de las facturas de un proyecto, como el bot\xF3n \xABPagado\xBB de la ficha del proyecto: FacturaScripts registra el pago y, si la factura queda cobrada, la marca como pagada. Solo admite recibos de facturas del proyecto. Confirma antes con el usuario.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idproyecto: { type: "number", description: "Id del proyecto" },
+        idrecibos: { type: "array", items: { type: "number" }, description: "Ids de los recibos a pagar" },
+        nick: { type: "string", description: "Usuario que registra el pago (nick)" }
+      },
+      required: ["idproyecto", "idrecibos"]
+    }
+  },
+  {
+    name: "get_config_proyectos",
+    description: "Configuraci\xF3n general del plugin Proyectos (Admin proyectos): patr\xF3n y longitud del n\xFAmero de los proyectos, reinicio anual de la numeraci\xF3n, stock por proyecto y quemar stock.",
+    inputSchema: { type: "object", properties: { connection: CONNECTION_PROPERTY }, required: [] }
+  },
+  {
+    name: "update_config_proyectos",
+    description: "Modifica la configuraci\xF3n general del plugin Proyectos; solo cambian los valores enviados. Los estados y las fases se gestionan con sus propias tools (create/update/delete_estado_proyecto y _fase_tarea).",
+    inputSchema: { type: "object", properties: settingsProperties(PROJECT_SETTINGS), required: [] }
   }
 ];
 function phaseType(phases, idfase) {
@@ -78982,7 +79785,7 @@ async function proyectoDetalle(args) {
   const id = project.idproyecto;
   const notesLimit = typeof args.notas === "number" && args.notas >= 0 ? args.notas : 20;
   const today = todayIso();
-  const [status, customer, tasks, phases, users, notes, stock, documents, services] = await Promise.all([
+  const [status, customer, tasks, phases, users, notes, stock, documents, services, entries, files] = await Promise.all([
     getOrNull("/estadoproyectos", project.idestado, connection),
     getOrNull("/clientes", project.codcliente, connection),
     fetchAll("/tareaproyectos", { idproyecto: id, "sort[idtarea]": "ASC" }, connection),
@@ -79007,7 +79810,9 @@ async function proyectoDetalle(args) {
       })
     ),
     // si el plugin Servicios no está activo el recurso no existe y no se muestran
-    fetchAll("/servicioates", { idproyecto: id }, connection).then((r) => r.rows).catch(() => null)
+    fetchAll("/servicioates", { idproyecto: id }, connection).then((r) => r.rows).catch(() => null),
+    fetchAll("/asientos", { idproyecto: id, "sort[fecha]": "DESC" }, connection).then((r) => r.rows).catch(() => []),
+    listAttachments("Proyecto", id, connection).catch(() => [])
   ]);
   const byPhase = /* @__PURE__ */ new Map();
   const taskRows = tasks.rows.map((task) => {
@@ -79046,6 +79851,14 @@ async function proyectoDetalle(args) {
     notas: notes,
     stock: { referencias: stock.rows.length, registros: stock.rows.slice(0, 100) },
     documentos: documents,
+    asientos: entries.map((row) => ({
+      idasiento: row.idasiento,
+      numero: row.numero ?? null,
+      fecha: isoDate(row.fecha),
+      concepto: row.concepto ?? null,
+      importe: num2(row.importe)
+    })),
+    archivos: files,
     ...services !== null ? {
       servicios_sat: services.map((row) => ({
         idservicio: row.idservicio,
@@ -79092,8 +79905,8 @@ async function documentosProyecto(args) {
 }
 async function setProyectoDocumento(args) {
   const connection = connectionOf(args);
-  const doc = DOCUMENTS.find((d) => d.tipo === args.tipo);
-  if (!doc) return fail(`set_proyecto_documento: tipo no v\xE1lido. Usa ${DOCUMENT_TYPES.join(", ")}.`);
+  const target = LINKABLE.find((item) => item.tipo === args.tipo);
+  if (!target) return fail(`set_proyecto_documento: tipo no v\xE1lido. Usa ${LINKABLE_TYPES.join(", ")}.`);
   const unlink = isTrue(args.desvincular);
   if (!unlink && (args.idproyecto === void 0 || args.idproyecto === null || args.idproyecto === "")) {
     return fail("set_proyecto_documento: indica idproyecto o desvincular=true.");
@@ -79101,12 +79914,119 @@ async function setProyectoDocumento(args) {
   if (!unlink) {
     await fsClient.get(`/proyectos/${pathId(args.idproyecto)}`, void 0, connection);
   }
-  const result = await fsClient.put(
-    `${doc.endpoint}/${pathId(args.id)}`,
-    { idproyecto: unlink ? "null" : args.idproyecto },
-    connection
+  const idproyecto = unlink ? "null" : args.idproyecto;
+  try {
+    const result2 = await fsClient.post(
+      "/vincularProyecto",
+      { modelo: target.modelo, id: pathId(args.id), idproyecto },
+      connection
+    );
+    return ok(result2);
+  } catch (error2) {
+    if (!isMissingResource(error2 instanceof Error ? error2.message : String(error2))) throw error2;
+  }
+  const result = await fsClient.put(`${target.endpoint}/${pathId(args.id)}`, { idproyecto }, connection);
+  return ok({
+    aviso: `La instalaci\xF3n tiene una versi\xF3n de Proyectos anterior a la ${LINK_ENDPOINT_VERSION}: se ha usado la API gen\xE9rica, que no admite documentos ni asientos bloqueados. Actualiza el plugin para vincularlos.`,
+    resultado: result
+  });
+}
+function projectFileTarget(args) {
+  const hasTask = args.idtarea !== void 0 && args.idtarea !== null && args.idtarea !== "";
+  const hasProject = args.idproyecto !== void 0 && args.idproyecto !== null && args.idproyecto !== "";
+  if (hasTask === hasProject) return "indica idproyecto o idtarea (solo uno de los dos).";
+  return hasTask ? { model: "TareaProyecto", id: pathId(args.idtarea), endpoint: "/tareaproyectos" } : { model: "Proyecto", id: pathId(args.idproyecto), endpoint: "/proyectos" };
+}
+async function archivosProyecto(args) {
+  const target = projectFileTarget(args);
+  if (typeof target === "string") return fail(`get_archivos_proyecto: ${target}`);
+  const files = await listAttachments(target.model, target.id, connectionOf(args));
+  return ok({ modelo: target.model, id: Number(target.id), archivos: files });
+}
+async function crearArchivoProyecto(args) {
+  const connection = connectionOf(args);
+  const target = projectFileTarget(args);
+  if (typeof target === "string") return fail(`create_archivo_proyecto: ${target}`);
+  return uploadAttachment(
+    "create_archivo_proyecto",
+    target.model,
+    target.id,
+    args,
+    connection,
+    () => fsClient.get(`${target.endpoint}/${target.id}`, void 0, connection)
   );
-  return ok(result);
+}
+async function projectInvoices(idproyecto, connection) {
+  const { rows } = await fetchAll("/facturaclientes", { idproyecto }, connection);
+  return new Map(rows.map((row) => [String(row.idfactura), row]));
+}
+async function recibosProyecto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idproyecto);
+  await fsClient.get(`/proyectos/${id}`, void 0, connection);
+  const invoices = await projectInvoices(id, connection);
+  const filter2 = {};
+  if (args.pagado !== void 0 && args.pagado !== null) filter2.pagado = isTrue(args.pagado);
+  const lists = await mapLimit([...invoices.keys()], 4, async (idfactura) => {
+    const { rows } = await fetchAll("/reciboclientes", { idfactura, ...filter2 }, connection);
+    return rows;
+  });
+  const today = todayIso();
+  const receipts = lists.flat().map((row) => {
+    const vencimiento = isoDate(row.vencimiento);
+    const paid = isTrue(row.pagado);
+    return {
+      idrecibo: row.idrecibo,
+      idfactura: row.idfactura,
+      codigofactura: row.codigofactura ?? invoices.get(String(row.idfactura))?.codigo ?? null,
+      numero: row.numero ?? null,
+      importe: num2(row.importe),
+      fecha: isoDate(row.fecha),
+      vencimiento,
+      pagado: paid,
+      fechapago: isoDate(row.fechapago),
+      vencido: !paid && vencimiento !== null && vencimiento < today
+    };
+  });
+  const pending = receipts.filter((item) => !item.pagado);
+  return ok({
+    idproyecto: Number(id),
+    resumen: {
+      facturas: invoices.size,
+      recibos: receipts.length,
+      pendiente: round2(pending.reduce((sum, item) => sum + item.importe, 0)),
+      vencido: round2(pending.filter((item) => item.vencido).reduce((sum, item) => sum + item.importe, 0))
+    },
+    recibos: receipts
+  });
+}
+async function pagarRecibosProyecto(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idproyecto);
+  const ids = Array.isArray(args.idrecibos) ? args.idrecibos : [];
+  if (ids.length === 0) return fail("pagar_recibos_proyecto: indica los idrecibos a pagar.");
+  await fsClient.get(`/proyectos/${id}`, void 0, connection);
+  const invoices = await projectInvoices(id, connection);
+  const receipts = [];
+  for (const idrecibo of ids) {
+    const receipt = await fsClient.get(`/reciboclientes/${pathId(idrecibo)}`, void 0, connection);
+    if (!invoices.has(String(receipt.idfactura))) {
+      return fail(`El recibo ${String(idrecibo)} no es de una factura del proyecto ${id}: no se ha pagado ning\xFAn recibo.`);
+    }
+    receipts.push(receipt);
+  }
+  const results = [];
+  for (const receipt of receipts) {
+    if (isTrue(receipt.pagado)) {
+      results.push({ idrecibo: receipt.idrecibo, resultado: "ya estaba pagado" });
+      continue;
+    }
+    const body = { pagado: 1 };
+    if (typeof args.nick === "string" && args.nick !== "") body.nick = args.nick;
+    await fsClient.put(`/reciboclientes/${pathId(receipt.idrecibo)}`, body, connection);
+    results.push({ idrecibo: receipt.idrecibo, resultado: "pagado" });
+  }
+  return ok({ idproyecto: Number(id), recibos: results });
 }
 async function setEstadoProyecto(args) {
   const connection = connectionOf(args);
@@ -79359,6 +80279,22 @@ async function handleProyectosTool(name, args) {
       return setProyectoDocumento(args);
     case "set_estado_proyecto":
       return setEstadoProyecto(args);
+    case "get_archivos_proyecto":
+      return archivosProyecto(args);
+    case "create_archivo_proyecto":
+      return crearArchivoProyecto(args);
+    case "update_archivo_proyecto":
+      return updateAttachment(PROJECT_FILE_MODELS, args, connectionOf(args));
+    case "delete_archivo_proyecto":
+      return deleteAttachment(PROJECT_FILE_MODELS, args, connectionOf(args));
+    case "get_recibos_proyecto":
+      return recibosProyecto(args);
+    case "pagar_recibos_proyecto":
+      return pagarRecibosProyecto(args);
+    case "get_config_proyectos":
+      return getSettingsTool("proyectos", PROJECT_SETTINGS, args);
+    case "update_config_proyectos":
+      return updateSettingsTool("update_config_proyectos", "proyectos", PROJECT_SETTINGS, args);
     case "set_fase_tarea_proyecto":
       return setFaseTarea(args);
     case "get_informe_proyectos":
@@ -79379,7 +80315,7 @@ var tools2 = [...RESOURCES2.flatMap(buildResourceTools), ...PROYECTOS_TOOLS];
 var toolNames2 = new Set(tools2.map((tool) => tool.name));
 var proyectosPlugin = {
   name: PLUGIN2,
-  description: "Proyectos, tareas, documentos vinculados, rentabilidad e informes",
+  description: "Proyectos, tareas, documentos y asientos vinculados, archivos, recibos, configuraci\xF3n, rentabilidad e informes",
   models: models2,
   tools: tools2,
   toolModels: Object.assign({}, ...RESOURCES2.map(resourceToolModels)),
@@ -82030,7 +82966,7 @@ var trabajoAT = {
   },
   create: {
     tool: "create_trabajo_at",
-    description: "A\xF1ade un trabajo a un servicio SAT. Recalcula el neto del servicio, lo anota en su historial y, seg\xFAn la acci\xF3n (estado), descuenta stock del almac\xE9n del servicio. Para facturar los trabajos m\xE1rcalos con estado 1 (o 3 albar\xE1n, 5 presupuesto) y genera el documento desde la ficha del servicio en FacturaScripts.",
+    description: "A\xF1ade un trabajo a un servicio SAT. Recalcula el neto del servicio, lo anota en su historial y, seg\xFAn la acci\xF3n (estado), descuenta stock del almac\xE9n del servicio. Para facturar los trabajos m\xE1rcalos con estado 1 (o 3 albar\xE1n, 5 presupuesto) y genera el documento con create_documento_servicio_at. Para calcular la cantidad a partir de las horas de inicio y fin usa calcular_horas_trabajo_at.",
     required: ["idservicio"]
   },
   update: {
@@ -82247,6 +83183,64 @@ var LINKED_DOCUMENTS = [
   { key: "albaranes", endpoint: "/albaranclientes", id: "idalbaran" },
   { key: "facturas", endpoint: "/facturaclientes", id: "idfactura" }
 ];
+var SERVICE_MODEL = "ServicioAT";
+var SERVICE_NOTE_TYPE = "servicio de cliente";
+var NOTES_LIMIT2 = 20;
+var API_ENDPOINTS_VERSION = "4.42";
+var GENERATED_DOCUMENTS = {
+  presupuesto: "5 hacer presupuesto",
+  albaran: "3 hacer albar\xE1n",
+  factura: "1 hacer factura"
+};
+var PRINT_OPTIONS = {
+  machine_info: "los datos de las m\xE1quinas",
+  observations: "las observaciones",
+  description: "la descripci\xF3n",
+  material: "el material",
+  solution: "la soluci\xF3n",
+  agent: "el agente",
+  assigned: "el usuario asignado",
+  works: "los trabajos",
+  work_reference: "la referencia de los trabajos",
+  work_description: "la descripci\xF3n de los trabajos",
+  work_quantity: "la cantidad de los trabajos",
+  work_price: "el precio de los trabajos"
+};
+var SERVICE_SETTINGS = {
+  patron: {
+    type: "string",
+    description: "Patr\xF3n del c\xF3digo de los servicios nuevos. Admite {ANYO}, {NUM} y el resto de variables de los patrones de FacturaScripts (por defecto SER-{NUM})"
+  },
+  longnumero: { type: "number", description: "Longitud m\xEDnima del n\xFAmero del patr\xF3n, rellenado con ceros" },
+  workstatus: {
+    type: "number",
+    enum: [0, 1, 2, 3, 4, 5, 6],
+    description: "Acci\xF3n de los trabajos nuevos: 0 sin acci\xF3n, 1 hacer factura, 2 facturado, 3 hacer albar\xE1n, 4 albar\xE1n hecho, 5 hacer presupuesto, 6 presupuesto hecho"
+  },
+  new_service_without_machine: { type: "boolean", description: "Permitir crear servicios sin m\xE1quina" },
+  disablestockmanagement: { type: "boolean", description: "Desactivar el control de stock de los trabajos" },
+  print_pdf_footer_text: { type: "string", description: "Texto del pie del PDF del servicio" },
+  ...Object.fromEntries(
+    Object.entries(PRINT_OPTIONS).map(([key, text]) => [
+      `print_pdf_${key}`,
+      { type: "boolean", description: `Imprimir en el PDF del servicio ${text}` }
+    ])
+  ),
+  print_ticket_footer_text: { type: "string", description: "Texto del pie del ticket del servicio" },
+  ...Object.fromEntries(
+    Object.entries(PRINT_OPTIONS).map(([key, text]) => [
+      `print_ticket_${key}`,
+      { type: "boolean", description: `Imprimir en el ticket del servicio ${text}` }
+    ])
+  ),
+  document_description: { type: "boolean", description: "A\xF1adir la descripci\xF3n del servicio a los documentos generados" },
+  document_material: { type: "boolean", description: "A\xF1adir el material del servicio a los documentos generados" },
+  document_solution: { type: "boolean", description: "A\xF1adir la soluci\xF3n del servicio a los documentos generados" },
+  document_observations: { type: "boolean", description: "A\xF1adir las observaciones del servicio a los documentos generados" },
+  document_start_date: { type: "boolean", description: "A\xF1adir la fecha de inicio a los documentos generados" },
+  document_end_date: { type: "boolean", description: "A\xF1adir la fecha de fin a los documentos generados" },
+  document_machine: { type: "boolean", description: "A\xF1adir las m\xE1quinas del servicio a los documentos generados" }
+};
 var dateRangeProps2 = {
   fecha_desde: { type: "string", description: "Desde esta fecha incluida (YYYY-MM-DD)" },
   fecha_hasta: { type: "string", description: "Hasta esta fecha incluida (YYYY-MM-DD)" }
@@ -82254,7 +83248,7 @@ var dateRangeProps2 = {
 var SERVICIOS_TOOLS = [
   {
     name: "get_servicio_at",
-    description: "Ficha completa de un servicio SAT: datos del servicio con los nombres de su estado, prioridad, tipo y cliente, sus trabajos con importes y acci\xF3n de facturaci\xF3n, las m\xE1quinas, la checklist de verificaciones, los presupuestos, albaranes y facturas generados y las \xFAltimas entradas del historial.",
+    description: "Ficha completa de un servicio SAT: datos del servicio con los nombres de su estado, prioridad, tipo y cliente, sus trabajos con importes y acci\xF3n de facturaci\xF3n, las m\xE1quinas, la checklist de verificaciones, los presupuestos, albaranes y facturas generados, sus archivos adjuntos, sus notas (si el plugin CRM est\xE1 activo) y las \xFAltimas entradas del historial.",
     inputSchema: {
       type: "object",
       properties: {
@@ -82380,6 +83374,115 @@ var SERVICIOS_TOOLS = [
       },
       required: []
     }
+  },
+  {
+    name: "create_documento_servicio_at",
+    description: `Genera un presupuesto, un albar\xE1n o una factura de cliente con los trabajos del servicio que tienen esa acci\xF3n (5 hacer presupuesto, 3 hacer albar\xE1n, 1 hacer factura), igual que los botones de la ficha del servicio: a\xF1ade la l\xEDnea del servicio y una por trabajo y marca los trabajos como presupuestados, albaranados o facturados. El servicio debe estar en un estado editable. Prepara antes los trabajos con update_trabajo_at (campo estado). Requiere Servicios ${API_ENDPOINTS_VERSION} o posterior. Confirma antes con el usuario.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        tipo: {
+          type: "string",
+          enum: Object.keys(GENERATED_DOCUMENTS),
+          description: "Documento a generar: presupuesto, albaran o factura"
+        }
+      },
+      required: ["idservicio", "tipo"]
+    }
+  },
+  {
+    name: "calcular_horas_trabajo_at",
+    description: "Calcula las horas de un trabajo a partir de su fecha y hora de inicio y de fin (d\xEDas \xD7 24 + diferencia de horas) y las guarda como cantidad, como el bot\xF3n de calcular horas de la ficha del servicio. El servicio debe estar en un estado editable.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idtrabajo: { type: "number", description: "Id del trabajo" }
+      },
+      required: ["idtrabajo"]
+    }
+  },
+  {
+    name: "get_archivos_servicio_at",
+    description: "Archivos adjuntos de un servicio SAT, con su nombre, tipo, tama\xF1o, observaciones y enlace de descarga.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" }
+      },
+      required: ["idservicio"]
+    }
+  },
+  {
+    name: "create_archivo_servicio_at",
+    description: "Sube un archivo del equipo local a FacturaScripts y lo adjunta a un servicio SAT. " + UPLOAD_SAFETY_TEXT,
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        ruta: { type: "string", description: "Ruta absoluta del archivo en este equipo" },
+        observaciones: { type: "string", description: "Observaciones del adjunto" },
+        nick: { type: "string", description: "Usuario que adjunta el archivo (nick)" }
+      },
+      required: ["idservicio", "ruta"]
+    }
+  },
+  {
+    name: "update_archivo_servicio_at",
+    description: "Cambia las observaciones de un archivo adjunto a un servicio (por el idrelacion de get_archivos_servicio_at).",
+    inputSchema: { type: "object", properties: UPDATE_ATTACHMENT_PROPERTIES, required: ["idrelacion", "observaciones"] }
+  },
+  {
+    name: "delete_archivo_servicio_at",
+    description: "Quita un archivo adjunto de un servicio (por el idrelacion de get_archivos_servicio_at). Con borrar_archivo=true borra tambi\xE9n el archivo si nada m\xE1s lo usa. Irreversible.",
+    inputSchema: { type: "object", properties: DELETE_ATTACHMENT_PROPERTIES, required: ["idrelacion"] }
+  },
+  {
+    name: "get_notas_servicio_at",
+    description: "Notas de un servicio SAT, de la m\xE1s reciente a la m\xE1s antigua. Las notas de los servicios son del plugin CRM, que debe estar activo; se modifican y borran con update_nota_crm y delete_nota_crm.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        limit: { type: "number", description: "Notas a listar (por defecto 50)" }
+      },
+      required: ["idservicio"]
+    }
+  },
+  {
+    name: "create_nota_servicio_at",
+    description: "A\xF1ade una nota a un servicio SAT, como la pesta\xF1a de notas de su ficha, con un recordatorio opcional (fechaaviso y notice_hour). La nota queda tambi\xE9n en el contacto de facturaci\xF3n del cliente. Requiere el plugin CRM. Se modifican y borran con update_nota_crm y delete_nota_crm.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        connection: CONNECTION_PROPERTY,
+        idservicio: { type: "number", description: "Id del servicio" },
+        observaciones: { type: "string", description: "Texto de la nota" },
+        nick: {
+          type: "string",
+          description: "Autor de la nota (nick). Ind\xEDcalo siempre: la API no tiene usuario de sesi\xF3n y sin autor el aviso no llega a nadie"
+        },
+        fechaaviso: { type: "string", description: "Fecha del recordatorio (YYYY-MM-DD)" },
+        notice_hour: { type: "string", description: "Hora del recordatorio (HH:MM:SS)" },
+        paratodos: { type: "boolean", description: "Avisar a todos los usuarios, no solo al autor" }
+      },
+      required: ["idservicio", "observaciones"]
+    }
+  },
+  {
+    name: "get_config_servicios",
+    description: "Configuraci\xF3n general del plugin Servicios (Admin servicios): patr\xF3n y longitud del c\xF3digo, acci\xF3n de los trabajos nuevos, servicios sin m\xE1quina, control de stock y opciones del PDF, del ticket y de los documentos generados.",
+    inputSchema: { type: "object", properties: { connection: CONNECTION_PROPERTY }, required: [] }
+  },
+  {
+    name: "update_config_servicios",
+    description: "Modifica la configuraci\xF3n general del plugin Servicios; solo cambian los valores enviados. Los estados, prioridades, tipos y categor\xEDas se gestionan con sus propias tools (*_estado_at, *_prioridad_at, *_tipo_at y *_categoria_at).",
+    inputSchema: { type: "object", properties: settingsProperties(SERVICE_SETTINGS), required: [] }
   }
 ];
 async function loadService(args, connection) {
@@ -82408,7 +83511,7 @@ async function servicioDetalle(args) {
   const id = service.idservicio;
   const historyLimit = typeof args.historial === "number" && args.historial >= 0 ? args.historial : 20;
   const machineIds = [service.idmaquina, service.idmaquina2, service.idmaquina3, service.idmaquina4].filter((value) => value !== null && value !== void 0 && value !== "");
-  const [works, status, priority, type, customer, machines, checks, checkCatalog, categories, categoryCatalog, history, documents] = await Promise.all([
+  const [works, status, priority, type, customer, machines, checks, checkCatalog, categories, categoryCatalog, history, documents, files, notes] = await Promise.all([
     fetchAll("/trabajoates", { idservicio: id, "sort[fechainicio]": "ASC", "sort[horainicio]": "ASC" }, connection),
     getOrNull("/estadoates", service.idestado, connection),
     getOrNull("/prioridadates", service.idprioridad, connection),
@@ -82437,7 +83540,10 @@ async function servicioDetalle(args) {
           return [doc.key, []];
         }
       })
-    )
+    ),
+    listAttachments(SERVICE_MODEL, id, connection).catch(() => []),
+    // las notas son del plugin CRM: si no está activo, se omiten
+    serviceNotes(id, NOTES_LIMIT2, connection).catch(() => null)
   ]);
   const byAction = /* @__PURE__ */ new Map();
   const workRows = works.rows.map((work) => {
@@ -82487,8 +83593,118 @@ async function servicioDetalle(args) {
       verificaciones
     },
     documentos: Object.fromEntries(documents),
+    archivos: files,
+    ...notes === null ? {} : { notas: notes },
     historial: history
   });
+}
+async function serviceNotes(idservicio, limit, connection) {
+  const rows = await fsClient.get(
+    "/crmnotas",
+    { tipodocumento: SERVICE_NOTE_TYPE, iddocumento: idservicio, "sort[fecha]": "DESC", "sort[hora]": "DESC", limit },
+    connection
+  );
+  return Array.isArray(rows) ? rows : [];
+}
+async function postPluginEndpoint(tool, endpoint, body, connection) {
+  try {
+    return ok(await fsClient.post(endpoint, body, connection));
+  } catch (error2) {
+    const message = error2 instanceof Error ? error2.message : String(error2);
+    if (isMissingResource(message)) {
+      return fail(
+        `${tool}: la instalaci\xF3n no tiene el endpoint ${endpoint}. Requiere el plugin Servicios ${API_ENDPOINTS_VERSION} o posterior: actual\xEDzalo y vuelve a intentarlo.`
+      );
+    }
+    throw error2;
+  }
+}
+async function crearDocumentoServicio(args) {
+  const connection = connectionOf(args);
+  if (typeof args.tipo !== "string" || !(args.tipo in GENERATED_DOCUMENTS)) {
+    return fail(`create_documento_servicio_at: tipo no v\xE1lido. Usa ${Object.keys(GENERATED_DOCUMENTS).join(", ")}.`);
+  }
+  return postPluginEndpoint(
+    "create_documento_servicio_at",
+    "/generarDocumentoServicioAT",
+    { idservicio: pathId(args.idservicio), tipo: args.tipo },
+    connection
+  );
+}
+function workHours(work) {
+  const utcDay = (value) => {
+    const date3 = parseFsDate(value);
+    return Number.isNaN(date3.getTime()) ? null : Date.UTC(date3.getFullYear(), date3.getMonth(), date3.getDate());
+  };
+  let days = 0;
+  const start = utcDay(work.fechainicio);
+  const end = utcDay(work.fechafin);
+  if (start !== null && end !== null) days = Math.ceil((end - start) / 864e5);
+  let hours = 0;
+  const seconds = (value) => {
+    if (typeof value !== "string" || value === "") return null;
+    const [h = 0, m = 0, s = 0] = value.split(":").map((part) => Number(part) || 0);
+    return h * 3600 + m * 60 + s;
+  };
+  const ini = seconds(work.horainicio);
+  const fin = seconds(work.horafin);
+  if (ini !== null && fin !== null) hours = Math.round((fin - ini) / 3600 * 1e4) / 1e4;
+  return days * 24 + hours;
+}
+async function calcularHorasTrabajo(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idtrabajo);
+  try {
+    return ok(await fsClient.post("/calcularHorasTrabajoAT", { idtrabajo: id }, connection));
+  } catch (error2) {
+    if (!isMissingResource(error2 instanceof Error ? error2.message : String(error2))) throw error2;
+  }
+  const work = await fsClient.get(`/trabajoates/${id}`, void 0, connection);
+  const service = await fsClient.get(`/servicioates/${pathId(work.idservicio)}`, void 0, connection);
+  if (!isTrue(service.editable)) {
+    return fail(`calcular_horas_trabajo_at: el servicio ${String(work.idservicio)} no est\xE1 en un estado editable.`);
+  }
+  const cantidad = workHours(work);
+  const result = await fsClient.put(`/trabajoates/${id}`, { cantidad }, connection);
+  return ok({ cantidad, cantidad_anterior: work.cantidad ?? null, resultado: result });
+}
+async function crearArchivoServicio(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idservicio);
+  return uploadAttachment(
+    "create_archivo_servicio_at",
+    SERVICE_MODEL,
+    id,
+    args,
+    connection,
+    () => fsClient.get(`/servicioates/${id}`, void 0, connection)
+  );
+}
+async function notasServicio(args) {
+  const connection = connectionOf(args);
+  const id = pathId(args.idservicio);
+  const limit = typeof args.limit === "number" && args.limit > 0 ? args.limit : 50;
+  return ok({ idservicio: Number(id), notas: await serviceNotes(id, limit, connection) });
+}
+async function crearNotaServicio(args) {
+  const connection = connectionOf(args);
+  if (typeof args.observaciones !== "string" || args.observaciones.trim() === "") {
+    return fail("create_nota_servicio_at: indica el texto de la nota (observaciones).");
+  }
+  const service = await fsClient.get(`/servicioates/${pathId(args.idservicio)}`, void 0, connection);
+  const customer = await getOrNull("/clientes", service.codcliente, connection);
+  const note = {
+    tipodocumento: SERVICE_NOTE_TYPE,
+    iddocumento: service.idservicio,
+    documento: service.codigo ?? null,
+    observaciones: args.observaciones
+  };
+  if (customer?.idcontactofact !== void 0 && customer.idcontactofact !== null) note.idcontacto = customer.idcontactofact;
+  for (const field of ["nick", "fechaaviso", "notice_hour"]) {
+    if (typeof args[field] === "string" && args[field] !== "") note[field] = args[field];
+  }
+  if (args.paratodos !== void 0) note.paratodos = isTrue(args.paratodos) ? 1 : 0;
+  return ok(await fsClient.post("/crmnotas", note, connection));
 }
 async function setEstadoServicio(args) {
   const connection = connectionOf(args);
@@ -82937,6 +84153,26 @@ async function tiemposResolucion(args) {
 }
 async function handleServiciosTool(name, args) {
   switch (name) {
+    case "create_documento_servicio_at":
+      return crearDocumentoServicio(args);
+    case "calcular_horas_trabajo_at":
+      return calcularHorasTrabajo(args);
+    case "get_archivos_servicio_at":
+      return ok({ idservicio: Number(pathId(args.idservicio)), archivos: await listAttachments(SERVICE_MODEL, pathId(args.idservicio), connectionOf(args)) });
+    case "create_archivo_servicio_at":
+      return crearArchivoServicio(args);
+    case "update_archivo_servicio_at":
+      return updateAttachment([SERVICE_MODEL], args, connectionOf(args));
+    case "delete_archivo_servicio_at":
+      return deleteAttachment([SERVICE_MODEL], args, connectionOf(args));
+    case "get_notas_servicio_at":
+      return notasServicio(args);
+    case "create_nota_servicio_at":
+      return crearNotaServicio(args);
+    case "get_config_servicios":
+      return getSettingsTool("servicios", SERVICE_SETTINGS, args);
+    case "update_config_servicios":
+      return updateSettingsTool("update_config_servicios", "servicios", SERVICE_SETTINGS, args);
     case "get_servicio_at":
       return servicioDetalle(args);
     case "set_estado_servicio_at":
@@ -82963,7 +84199,7 @@ var tools3 = [...RESOURCES3.flatMap(buildResourceTools), ...SERVICIOS_TOOLS];
 var toolNames3 = new Set(tools3.map((tool) => tool.name));
 var serviciosPlugin = {
   name: PLUGIN3,
-  description: "Servicios de asistencia t\xE9cnica (SAT), trabajos, m\xE1quinas, checklists e informes",
+  description: "Servicios de asistencia t\xE9cnica (SAT), trabajos, documentos generados, horas, archivos, notas, m\xE1quinas, checklists, configuraci\xF3n e informes",
   models: models3,
   tools: tools3,
   toolModels: Object.assign({}, ...RESOURCES3.map(resourceToolModels)),

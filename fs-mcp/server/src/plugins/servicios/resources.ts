@@ -135,7 +135,8 @@ export const trabajoAT: ResourceDef = {
         description:
             'Añade un trabajo a un servicio SAT. Recalcula el neto del servicio, lo anota en su historial y, según ' +
             'la acción (estado), descuenta stock del almacén del servicio. Para facturar los trabajos márcalos con ' +
-            'estado 1 (o 3 albarán, 5 presupuesto) y genera el documento desde la ficha del servicio en FacturaScripts.',
+            'estado 1 (o 3 albarán, 5 presupuesto) y genera el documento con create_documento_servicio_at. Para ' +
+            'calcular la cantidad a partir de las horas de inicio y fin usa calcular_horas_trabajo_at.',
         required: ['idservicio'],
     },
     update: {
