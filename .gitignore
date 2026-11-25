@@ -24,3 +24,7 @@ fs-mcp/server/dist/*
 !fs-mcp/server/dist/index.js
 fs-forja/server/dist/*
 !fs-forja/server/dist/index.js
+
+# Instrucciones locales de cada desarrollador (rutas de su equipo, credenciales de prueba...).
+CLAUDE.local.md
+AGENTS.override.md
