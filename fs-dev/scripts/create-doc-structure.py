@@ -23,6 +23,11 @@ Ticketbai y Verifactu):
 
 Las carpetas vacías reciben un ``.gitkeep`` para que git las suba.
 
+El informe indica además si ``Doc/Context/`` está vacío (sin más archivos que el
+``README.md`` de la plantilla): es la señal para rellenarlo con la skill
+``fs-dev:context-writer`` a partir del historial git y del código. No es un
+pendiente y no cambia el código de salida.
+
 El script es idempotente: nunca sobrescribe un archivo que ya existe. Del
 ``.gitignore`` solo quita las reglas que impedirían versionar la estructura
 (``CLAUDE.md``, ``AGENTS.md``, ``/.claude`` entero o ``.agents``) y añade las
@@ -224,6 +229,7 @@ class Report:
         gitignore_added: reglas añadidas al ``.gitignore``.
         gitignore_removed: reglas quitadas del ``.gitignore`` por impedir versionar la estructura.
         pending: tareas que el script no resuelve solo y debe revisar una persona o el agente.
+        context_empty: ``Doc/Context/`` no tiene más contenido que el índice de la plantilla.
     """
 
     created: list[str] = field(default_factory=list)
@@ -231,6 +237,7 @@ class Report:
     gitignore_added: list[str] = field(default_factory=list)
     gitignore_removed: list[str] = field(default_factory=list)
     pending: list[str] = field(default_factory=list)
+    context_empty: bool = False
 
     def changes(self) -> bool:
         """Indica si hay algo creado o modificado (o por crear o modificar con ``--check``)."""
@@ -456,6 +463,21 @@ def check_agent_files(project: Project, report: Report) -> None:
                               'la tabla de Doc/')
 
 
+def is_context_empty(project: Project) -> bool:
+    """Indica si Doc/Context/ no tiene más contenido que el README.md de la plantilla (o aún no existe)."""
+    folder = project.root / 'Doc/Context'
+    if not folder.is_dir():
+        return True
+    files = [path for path in folder.rglob('*')
+             if path.is_file() and path.name not in IGNORED_FILES and path.name != '.gitkeep']
+    if any(path != folder / 'README.md' for path in files):
+        return False
+    if not files:
+        return True
+    content = (folder / 'README.md').read_text(encoding='utf-8', errors='replace')
+    return content.strip() == CONTEXT_README_TEMPLATE.format(name=project.name).strip()
+
+
 def check_ignored_paths(project: Project, report: Report) -> None:
     """Avisa de las rutas de la estructura que el .gitignore sigue ignorando.
 
@@ -496,6 +518,7 @@ def check_ignored_paths(project: Project, report: Report) -> None:
 def build_structure(project: Project, check: bool = False) -> Report:
     """Crea o comprueba la estructura completa de documentación del proyecto."""
     report = Report()
+    report.context_empty = is_context_empty(project)
     ensure_folders(project, report, check)
     write_file(project, 'Doc/Context/README.md', CONTEXT_README_TEMPLATE.format(name=project.name), report, check)
     ensure_forja(project, report, check)
@@ -522,6 +545,8 @@ def print_report(project: Project, report: Report, check: bool) -> None:
         print('  La estructura ya estaba completa.')
     for item in report.pending:
         print(f'  ! Pendiente: {item}')
+    if report.context_empty:
+        print('  · Doc/Context está vacío: rellénalo con la skill fs-dev:context-writer (historial git y código).')
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -544,7 +569,7 @@ def main(argv: list[str] | None = None) -> int:
             'root': str(project.root), 'kind': project.kind, 'name': project.name, 'check': args.check,
             'created': report.created, 'existing': report.existing,
             'gitignore_added': report.gitignore_added, 'gitignore_removed': report.gitignore_removed,
-            'pending': report.pending,
+            'pending': report.pending, 'context_empty': report.context_empty,
         }, ensure_ascii=False, indent=2))
     else:
         print_report(project, report, args.check)

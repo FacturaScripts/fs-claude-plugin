@@ -35,7 +35,7 @@ Al ser un hook del plugin, no se ejecuta en los proyectos que desactivan `fs-dev
 Las referencias viven fuera de `agents/` para que ningún host las interprete como agentes:
 
 - `fs-dev/references/docs/`: documentación técnica.
-- `fs-dev/references/documentacion/`: guía de estilo y formato del escenario de capturas de `docs-writer`. La
+- `fs-dev/references/documentacion/`: guía de estilo y formato del escenario de capturas de `docs-writer`, y contenido de `Doc/Context` de `context-writer`. La
   sincronización de la documentación no la toca. Las capturas las hace `fs-dev/scripts/doc-screenshots.py` con Chrome
   sin interfaz, igual en los dos hosts, sin depender del navegador integrado de ninguno.
 - `fs-user/references/docs/`: documentación para usuarios.

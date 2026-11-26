@@ -1,6 +1,6 @@
 ---
 name: crear-documentacion
-description: Crea o completa la estructura de documentación de un plugin o del core de FacturaScripts (Doc/User, Doc/Dev, Doc/Context, Doc/Assets, Doc/forja.json, AGENTS.md, CLAUDE.md y .gitignore).
+description: Crea o completa la estructura de documentación de un plugin o del core de FacturaScripts (Doc/User, Doc/Dev, Doc/Context, Doc/Assets, Doc/forja.json, AGENTS.md, CLAUDE.md y .gitignore) y, si Doc/Context está vacío, lo rellena a partir del historial git y del código.
 ---
 
 # Skill: Estructura de documentación de FacturaScripts
@@ -135,6 +135,8 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
 - En `Doc/forja.json` añade las secciones `User` y `Dev` que falten y valida las páginas: que existan en su carpeta,
   que los campos y tipos sean los de la tabla, las longitudes máximas, el color y que exista la página padre.
 - Termina con código 1 si deja tareas **pendientes** que no resuelve solo.
+- Indica si `Doc/Context` está vacío (sin más archivos que el `README.md` de la plantilla): en el texto, con una línea
+  final, y en `--json`, con `context_empty`. No es un pendiente y no cambia el código de salida.
 
 ## Pasos
 
@@ -156,8 +158,14 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
 5. Si el script creó `AGENTS.md`, revisa su primera frase: debe decir en una o dos frases qué hace el plugin. Tómalo
    del `README.md`, del `facturascripts.ini` o del código, y no lo alargues: el detalle va en `Doc/`.
 6. Repite el script con `--check` para confirmar que la estructura queda completa y resume los cambios.
+7. **Rellena el contexto si está vacío.** Si el informe dice que `Doc/Context` está vacío (`context_empty` en
+   `--json`), que es lo normal la primera vez que se crea la estructura, sigue sin esperar a que el usuario lo pida
+   con la skill `fs-dev:context-writer`: lee el historial git del más antiguo al más nuevo y el código, escribe
+   `Doc/Context/` y completa los docblocks que faltan sin cambiar el código. Sáltatelo solo si el usuario ha pedido
+   expresamente únicamente la estructura, o si el plugin no tiene todavía código ni commits (un plugin recién
+   creado): entonces dilo en el resumen. En el core, `context-writer` no añade docblocks salvo que el usuario lo pida.
 
-No escribas páginas de `Doc/User`, `Doc/Dev` o `Doc/Context` ni rellenes `forja.json` salvo que el usuario lo pida.
+No escribas páginas de `Doc/User` o `Doc/Dev` ni rellenes `forja.json` salvo que el usuario lo pida.
 Para escribir una página de `Doc/User` o `Doc/Dev` con sus capturas, usa la skill `fs-dev:docs-writer`, y para
 bajarla o subirla a la forja, `fs-dev:sincronizar-forja`. No hagas commits.
 

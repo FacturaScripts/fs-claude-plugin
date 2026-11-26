@@ -73,6 +73,30 @@ class CreateDocStructureTest(unittest.TestCase):
         gitignore = (self.root / '.gitignore').read_text(encoding='utf-8')
         self.assertEqual(gitignore, DOCS.GITIGNORE_TEMPLATE)
 
+    def test_indica_si_el_contexto_esta_vacio(self) -> None:
+        """Doc/Context con solo el README de la plantilla cuenta como vacío; con un tema, no."""
+        code, output = run_main(str(self.root), '--check', '--json')
+        self.assertEqual(code, 1)
+        self.assertTrue(json.loads(output)['context_empty'])
+
+        _, output = run_main(str(self.root))
+        self.assertIn('Doc/Context está vacío', output)
+        _, output = run_main(str(self.root), '--json')
+        self.assertTrue(json.loads(output)['context_empty'])
+
+        (self.root / 'Doc/Context/01-arquitectura.md').write_text('# Arquitectura\n', encoding='utf-8')
+        code, output = run_main(str(self.root), '--json')
+        self.assertEqual(code, 0)
+        self.assertFalse(json.loads(output)['context_empty'])
+
+    def test_un_indice_de_contexto_editado_no_esta_vacio(self) -> None:
+        """Si el README de Doc/Context ya no es el de la plantilla, el contexto tiene contenido."""
+        run_main(str(self.root))
+        readme = self.root / 'Doc/Context/README.md'
+        readme.write_text(readme.read_text(encoding='utf-8') + '\nNotas del equipo.\n', encoding='utf-8')
+        _, output = run_main(str(self.root), '--json')
+        self.assertFalse(json.loads(output)['context_empty'])
+
     def test_es_idempotente(self) -> None:
         run_main(str(self.root))
         code, output = run_main(str(self.root))

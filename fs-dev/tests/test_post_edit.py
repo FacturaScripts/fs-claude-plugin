@@ -250,6 +250,37 @@ class ProcessFileTest(unittest.TestCase):
         self.assertEqual(0, result)
         self.assertEqual(original, content)
 
+    def test_doc_only_mode_skips_both_transformations(self) -> None:
+        """Con el marcador de doc-only-guard.py en el repositorio, el archivo no cambia."""
+        with tempfile.TemporaryDirectory() as directory:
+            plugin = make_plugin(Path(directory))
+            subprocess.run(['git', '-C', str(plugin), 'init', '-q'], check=True)
+            file_path = plugin / 'Model' / 'Example.php'
+            file_path.write_text(PLUGIN_CLASS, encoding='utf-8')
+            marker = plugin / '.git' / POST_EDIT.DOC_ONLY_MARKER
+            marker.write_text(json.dumps({'root': str(plugin.resolve()),
+                                          'started': POST_EDIT.datetime.now().timestamp()}), encoding='utf-8')
+
+            POST_EDIT.process_file(POST_EDIT.ModifiedFile(file_path), SCRIPT_PATH.parent)
+            self.assertEqual(PLUGIN_CLASS, file_path.read_text(encoding='utf-8'))
+
+            # Un marcador caducado ya no tiene efecto.
+            marker.write_text(json.dumps({'root': str(plugin.resolve()), 'started': 0}), encoding='utf-8')
+            POST_EDIT.process_file(POST_EDIT.ModifiedFile(file_path), SCRIPT_PATH.parent)
+            self.assertNotEqual(PLUGIN_CLASS, file_path.read_text(encoding='utf-8'))
+
+    def test_doc_only_mode_of_other_project_does_not_apply(self) -> None:
+        """Un marcador cuya raíz es otra carpeta del repositorio no afecta al archivo."""
+        with tempfile.TemporaryDirectory() as directory:
+            plugin = make_plugin(Path(directory))
+            subprocess.run(['git', '-C', str(directory), 'init', '-q'], check=True)
+            other = Path(directory) / 'Otro'
+            other.mkdir()
+            (Path(directory) / '.git' / POST_EDIT.DOC_ONLY_MARKER).write_text(
+                json.dumps({'root': str(other.resolve()), 'started': POST_EDIT.datetime.now().timestamp()}),
+                encoding='utf-8')
+            self.assertFalse(POST_EDIT.doc_only_active((plugin / 'Model' / 'Example.php').resolve()))
+
     def test_settings_can_disable_both_transformations(self) -> None:
         """Con ambas opciones desactivadas en ~/.fs-ai.json el archivo no cambia."""
         with tempfile.TemporaryDirectory() as directory:

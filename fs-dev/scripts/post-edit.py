@@ -15,6 +15,13 @@ Para cada archivo PHP, XML o Twig primero actualiza el copyright y después
 ordena los miembros de las clases PHP, para evitar escrituras concurrentes
 sobre el mismo archivo.
 
+No toca los archivos de un repositorio con el modo «solo documentación»
+activo (``doc-only-guard.py start``): la skill ``fs-dev:context-writer`` añade
+docblocks sin que el código pueda cambiar, ni siquiera el orden de los miembros
+o el año del copyright. El modo se detecta por el marcador
+``fs-ai-doc-only.json`` de la carpeta de git del repositorio, que caduca a las
+12 horas por si se queda olvidado.
+
 Salida:
 
 - stdout: solo si algún archivo ha cambiado, un JSON
@@ -43,6 +50,12 @@ SUPPORTED_SUFFIXES = ('.php', '.xml', '.twig')
 
 # Tiempo máximo de cada transformador, por debajo del timeout de 30 s del hook.
 TRANSFORM_TIMEOUT = 20
+
+# Marcador del modo «solo documentación» dentro de la carpeta de git del repositorio.
+DOC_ONLY_MARKER = 'fs-ai-doc-only.json'
+
+# Segundos tras los que el marcador deja de tener efecto, por si se queda olvidado.
+DOC_ONLY_MAX_AGE = 12 * 3600
 
 
 @dataclass(frozen=True)
@@ -199,6 +212,46 @@ def _digest(path: Path) -> Optional[str]:
         return None
 
 
+def doc_only_active(path: Path) -> bool:
+    """Indica si el archivo está en un proyecto con el modo «solo documentación» activo.
+
+    Args:
+        path: Ruta absoluta del archivo.
+
+    Returns:
+        ``True`` si el repositorio git del archivo tiene un marcador vigente de
+        ``doc-only-guard.py`` cuya raíz contiene el archivo.
+    """
+    folder = path.parent
+    if not folder.is_dir():
+        return False
+    try:
+        result = subprocess.run(
+            ['git', '-C', str(folder), 'rev-parse', '--git-path', DOC_ONLY_MARKER],
+            check=False, capture_output=True, text=True, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if result.returncode != 0 or not result.stdout.strip():
+        return False
+
+    marker = Path(result.stdout.strip())
+    marker = marker if marker.is_absolute() else folder / marker
+    try:
+        data = json.loads(marker.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return False
+    if not isinstance(data, dict) or not isinstance(data.get('started'), (int, float)):
+        return False
+    if datetime.now().timestamp() - data['started'] > DOC_ONLY_MAX_AGE or not data.get('root'):
+        return False
+    try:
+        path.resolve().relative_to(Path(str(data['root'])).resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def process_file(item: ModifiedFile, scripts_dir: Path) -> int:
     """Aplica en orden los transformadores compatibles al archivo indicado.
 
@@ -212,6 +265,8 @@ def process_file(item: ModifiedFile, scripts_dir: Path) -> int:
     """
     file_path = item.path
     if not file_path.is_file() or not file_path.name.endswith(SUPPORTED_SUFFIXES):
+        return 0
+    if doc_only_active(file_path):
         return 0
 
     copyright_args = [str(file_path), str(datetime.now().year)]
