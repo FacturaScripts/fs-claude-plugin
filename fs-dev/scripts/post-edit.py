@@ -15,6 +15,10 @@ Para cada archivo PHP, XML o Twig primero actualiza el copyright y después
 ordena los miembros de las clases PHP, para evitar escrituras concurrentes
 sobre el mismo archivo.
 
+Para cada archivo de traducciones (``Translation/*.json``) comprueba, sin
+modificarlo, que ninguna clave lleve mayúsculas: el sistema de traducciones de
+facturascripts.com las rechaza. Las mayúsculas solo pueden ir en el valor.
+
 No toca los archivos de un repositorio con el modo «solo documentación»
 activo (``doc-only-guard.py start``): la skill ``fs-dev:context-writer`` añade
 docblocks sin que el código pueda cambiar, ni siquiera el orden de los miembros
@@ -24,10 +28,12 @@ o el año del copyright. El modo se detecta por el marcador
 
 Salida:
 
-- stdout: solo si algún archivo ha cambiado, un JSON
+- stdout: solo si algún archivo ha cambiado o hay claves de traducción con
+  mayúsculas, un JSON
   ``{"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": ...}}``
-  que avisa al modelo de que debe releerlo antes de volver a editarlo. Ambos
-  hosts admiten ``additionalContext`` en ``PostToolUse``.
+  que avisa al modelo de que debe releer el archivo antes de volver a editarlo
+  o de que debe pasar esas claves a minúsculas. Ambos hosts admiten
+  ``additionalContext`` en ``PostToolUse``.
 - stderr: avisos y errores de los transformadores.
 - Código de salida: siempre 0. Un error nunca bloquea la sesión; Codex no
   documenta el significado de un código distinto de 0 y 2 en ``PostToolUse``,
@@ -56,6 +62,12 @@ DOC_ONLY_MARKER = 'fs-ai-doc-only.json'
 
 # Segundos tras los que el marcador deja de tener efecto, por si se queda olvidado.
 DOC_ONLY_MAX_AGE = 12 * 3600
+
+# Carpeta que contiene los archivos de traducciones de un plugin o del core.
+TRANSLATION_DIR = 'Translation'
+
+# Número máximo de claves con mayúsculas que se citan en el aviso de cada archivo.
+MAX_LISTED_KEYS = 20
 
 
 @dataclass(frozen=True)
@@ -282,6 +294,41 @@ def process_file(item: ModifiedFile, scripts_dir: Path) -> int:
     return 0
 
 
+def is_translation_file(path: Path) -> bool:
+    """Indica si el archivo es un archivo de traducciones de FacturaScripts.
+
+    Args:
+        path: Ruta absoluta del archivo.
+
+    Returns:
+        ``True`` si es un ``.json`` situado directamente en una carpeta ``Translation``.
+    """
+    return path.suffix == '.json' and path.parent.name == TRANSLATION_DIR
+
+
+def uppercase_translation_keys(path: Path) -> List[str]:
+    """Devuelve las claves de un archivo de traducciones que contienen mayúsculas.
+
+    El archivo no se modifica. Si no es un archivo de traducciones, no se puede
+    leer o no es un objeto JSON válido, no se informa de nada.
+
+    Args:
+        path: Ruta absoluta del archivo.
+
+    Returns:
+        Las claves con alguna letra mayúscula, en el orden del archivo.
+    """
+    if not is_translation_file(path) or not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []
+    if not isinstance(data, dict):
+        return []
+    return [key for key in data if isinstance(key, str) and key != key.lower()]
+
+
 def _display_path(path: Path, cwd: Path) -> str:
     """Devuelve la ruta relativa al directorio de trabajo cuando es posible.
 
@@ -298,24 +345,54 @@ def _display_path(path: Path, cwd: Path) -> str:
         return str(path)
 
 
-def build_output(changed: List[Path], cwd: Path) -> Dict[str, Any]:
-    """Construye el JSON que avisa al modelo de los archivos modificados por el hook.
+def _uppercase_keys_message(path: Path, keys: List[str], cwd: Path) -> str:
+    """Redacta el aviso de las claves de traducción con mayúsculas de un archivo.
 
     Args:
-        changed: Archivos cuyo contenido ha cambiado.
+        path: Archivo de traducciones.
+        keys: Claves con mayúsculas encontradas.
         cwd: Directorio de trabajo de la sesión.
+
+    Returns:
+        El texto del aviso para el modelo.
+    """
+    listed = ', '.join(f'"{key}"' for key in keys[:MAX_LISTED_KEYS])
+    if len(keys) > MAX_LISTED_KEYS:
+        listed += f' y {len(keys) - MAX_LISTED_KEYS} más'
+    return (
+        f'ERROR en {_display_path(path, cwd)}: las claves de traducción nunca pueden llevar mayúsculas '
+        f'y estas las tienen: {listed}. El sistema de traducciones de facturascripts.com rechaza esas '
+        'claves. Pásalas a minúsculas (kebab-case) en el JSON y en todos sus usos en PHP, Twig y '
+        'XMLView; las mayúsculas solo pueden ir en el valor, que es el texto que ve el usuario.'
+    )
+
+
+def build_output(
+    changed: List[Path], cwd: Path, uppercase_keys: Optional[Dict[Path, List[str]]] = None,
+) -> Dict[str, Any]:
+    """Construye el JSON que avisa al modelo de los cambios y problemas detectados.
+
+    Args:
+        changed: Archivos cuyo contenido ha cambiado por el hook.
+        cwd: Directorio de trabajo de la sesión.
+        uppercase_keys: Claves de traducción con mayúsculas, por archivo.
 
     Returns:
         Objeto con ``hookSpecificOutput.additionalContext`` para ``PostToolUse``.
     """
-    names = ', '.join(_display_path(path, cwd) for path in changed)
+    messages: List[str] = []
+    if changed:
+        names = ', '.join(_display_path(path, cwd) for path in changed)
+        messages.append(
+            f'El hook de fs-dev ha modificado {names} tras la edición (año de copyright y/o '
+            'orden de los miembros de la clase). Relee el archivo antes de volver a editarlo.'
+        )
+    for path, keys in (uppercase_keys or {}).items():
+        messages.append(_uppercase_keys_message(path, keys, cwd))
     return {
         'hookSpecificOutput': {
             'hookEventName': 'PostToolUse',
-            'additionalContext': (
-                f'El hook de fs-dev ha modificado {names} tras la edición (año de copyright y/o '
-                'orden de los miembros de la clase). Relee el archivo antes de volver a editarlo.'
-            ),
+            'additionalContext': '\n\n'.join(messages),
         },
     }
 
@@ -328,10 +405,16 @@ def run(payload: Dict[str, Any], scripts_dir: Path) -> Optional[Dict[str, Any]]:
         scripts_dir: Directorio donde están los transformadores.
 
     Returns:
-        El JSON que debe escribirse en stdout, o ``None`` si nada ha cambiado.
+        El JSON que debe escribirse en stdout, o ``None`` si nada ha cambiado y
+        no hay claves de traducción con mayúsculas.
     """
     changed: List[Path] = []
+    uppercase_keys: Dict[Path, List[str]] = {}
     for item in modified_files(payload):
+        keys = uppercase_translation_keys(item.path)
+        if keys:
+            uppercase_keys[item.path] = keys
+
         before = _digest(item.path)
         result = process_file(item, scripts_dir)
         if result != 0:
@@ -340,10 +423,10 @@ def run(payload: Dict[str, Any], scripts_dir: Path) -> Optional[Dict[str, Any]]:
         if before is not None and after is not None and before != after:
             changed.append(item.path)
 
-    if not changed:
+    if not changed and not uppercase_keys:
         return None
     cwd = Path(str(payload.get('cwd') or Path.cwd())).expanduser()
-    return build_output(changed, cwd)
+    return build_output(changed, cwd, uppercase_keys)
 
 
 def main() -> int:

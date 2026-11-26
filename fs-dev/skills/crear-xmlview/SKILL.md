@@ -132,7 +132,7 @@ Coloreado del contenido de cualquier widget: `<option color="danger">lt:0</optio
 
 ## Comprobaciones
 
-- [ ] Los `name` de grupos y columnas son únicos, en minúsculas y en inglés; los textos visibles son claves de traducción.
+- [ ] Los `name` de grupos y columnas son únicos, en minúsculas y en inglés; los textos visibles son claves de traducción sin ninguna mayúscula (minúsculas y `kebab-case`, definidas en `Translation/es_ES.json`).
 - [ ] Cada columna tiene un solo widget y su `fieldname` existe en el modelo.
 - [ ] Tras cambiar el XML se ha reconstruido el plugin y, si la vista se personalizó con el botón de opciones, se han eliminado esos cambios.
 

@@ -319,16 +319,24 @@ Si usas directamente `PanelController`, su `loadData()` es abstracto: no llames 
 
 Añade las claves necesarias **únicamente** en `Translation/es_ES.json`. No crees ni modifiques otros archivos de idioma.
 
-Las **claves de traducción se escriben siempre en minúsculas** y en `kebab-case`. Solo el valor (el texto traducido) puede llevar mayúsculas.
+> **REGLA OBLIGATORIA: la clave de una traducción NUNCA lleva mayúsculas, bajo ningún concepto.**
+> La clave (lo de la izquierda) va siempre entera en minúsculas, en inglés y en `kebab-case` (letras `a-z`, números y
+> guiones). Las mayúsculas solo pueden ir en el **valor** (lo de la derecha), que es el texto que ve el usuario. El
+> sistema de traducciones de facturascripts.com **rechaza** cualquier clave con una mayúscula, así que una clave como
+> `My-Model`, `myModel` o `IVA-rate` impide subir las traducciones. Esto incluye las claves que escribes en PHP
+> (`Tools::trans()`, `Tools::log()`), en Twig (`trans()`) y en los XMLView (`title`, `description`): deben coincidir
+> exactamente con la clave en minúsculas del JSON. Antes de terminar, revisa que ninguna clave nueva tenga mayúsculas.
 
 ```json
 {
-    "mi-modelos": "Mis modelos",
-    "mi-modelo": "Mi modelo",
-    "mi-entidad": "Mi entidad",
-    "detalles": "Detalles"
+    "my-models": "Mis modelos",
+    "my-model": "Mi modelo",
+    "my-entity": "Mi entidad",
+    "vat-rate": "Tipo de IVA"
 }
 ```
+
+Incorrecto (no se puede subir): `"My-Model": "Mi modelo"`, `"myModel": "Mi modelo"`, `"VAT-rate": "Tipo de IVA"`.
 
 ### Paso 7: Init.php
 
@@ -388,7 +396,7 @@ Los tests van en `Test/main/`, con `namespace FacturaScripts\Test\Plugins;` y he
 - Incluye siempre `primaryDescriptionColumn()` en el modelo.
 - Valida en `test()` del modelo, no en el controlador.
 - Registra extensiones, workers y migraciones en `Init.php`.
-- Crea las traducciones de todos los textos visibles únicamente en `Translation/es_ES.json`, con claves en minúsculas (`kebab-case`).
+- Crea las traducciones de todos los textos visibles únicamente en `Translation/es_ES.json`. Las claves **nunca llevan mayúsculas** (minúsculas y `kebab-case`); las mayúsculas solo van en el valor.
 
 ## Skills relacionadas
 

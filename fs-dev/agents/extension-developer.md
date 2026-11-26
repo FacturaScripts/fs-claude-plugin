@@ -349,7 +349,7 @@ Los ganchos genéricos como `PanelController` o `MenuTemplate` se aplican a toda
 - [ ] Las extensiones PHP están registradas en `Init::init()` y `Init` implementa `init()`, `update()` y `uninstall()`.
 - [ ] Los modelos y librerías concretos se importan desde `Dinamic`; los filtros usan `Where`.
 - [ ] Solo se devuelve `false` en los puntos que lo admiten (`*Before`, `execPreviousAction`).
-- [ ] Los textos visibles usan claves de traducción.
+- [ ] Los textos visibles usan claves de traducción sin ninguna mayúscula (minúsculas y `kebab-case`, definidas en `Translation/es_ES.json`).
 - [ ] Las extensiones Twig usan una ubicación sin `_` y un gancho que existe.
 - [ ] Se ha reconstruido el plugin (Administrador → Plugins → Reconstruir) y comprobado el resultado en `Dinamic/`.
 

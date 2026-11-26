@@ -76,7 +76,7 @@ class NombreModelo extends ModelClass
         // Validaciones antes de guardar
         $this->name = Tools::noHtml($this->name);
         if (empty($this->name)) {
-            // clave de traducción del plugin, definida en Translation/es_ES.json
+            // clave de traducción del plugin, definida en Translation/es_ES.json (nunca con mayúsculas)
             Tools::log()->warning('mi-plugin-nombre-obligatorio');
             return false;
         }

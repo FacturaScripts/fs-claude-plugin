@@ -277,7 +277,7 @@ public function test(): bool
 }
 ```
 
-Las claves de traducción propias (como `mi-plugin-estado-no-valido`) deben añadirse en `Translation/es_ES.json` del plugin; comprueba en `Core/Translation/es_ES.json` si ya existe una clave adecuada.
+Las claves de traducción propias (como `mi-plugin-estado-no-valido`) deben añadirse en `Translation/es_ES.json` del plugin. La clave **nunca lleva mayúsculas** (solo minúsculas y `kebab-case`; las mayúsculas van únicamente en el valor), porque facturascripts.com rechaza las claves con mayúsculas al subir las traducciones. Comprueba en `Core/Translation/es_ES.json` si ya existe una clave adecuada.
 
 ### Gestión de errores
 

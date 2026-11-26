@@ -76,7 +76,7 @@ Para reemplazar una plantilla heredando de la original, usa el identificador `@`
 Variables: `fsc` (controlador; sus propiedades y métodos públicos), `controllerName`, `template`, `assetManager` y `log`.
 
 ```twig
-{{ trans('clave', {'%code%': 'FAC1'}) }}   {# traducción con parámetros #}
+{{ trans('clave', {'%code%': 'FAC1'}) }}   {# traducción con parámetros; la clave nunca lleva mayúsculas #}
 {{ fsc.url() }}                             {# URL del controlador actual #}
 {{ asset('ListFacturaCliente') }}           {# URL de otro controlador o recurso #}
 {{ fsc.user.nick }}

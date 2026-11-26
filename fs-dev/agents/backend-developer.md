@@ -317,7 +317,7 @@ El error más habitual al trabajar con asientos es crear las partidas con subcue
 
 - Usa `Tools::noHtml()` para escapar el texto antes de guardarlo; `Tools::fixHtml()` revierte ese escape y solo debe usarse al mostrar o exportar contenido de confianza (`la-clase-tools.md`).
 - Usa `$db->var2str()` para escapar valores en SQL directo.
-- Usa `Tools::trans()` para traducciones (`Tools::lang($idioma)->trans()` para un idioma concreto).
+- Usa `Tools::trans()` para traducciones (`Tools::lang($idioma)->trans()` para un idioma concreto). Las claves nuevas van solo en `Translation/es_ES.json` y **nunca llevan mayúsculas** (minúsculas y `kebab-case`); las mayúsculas solo van en el valor.
 - Usa `Tools::log()` para registrar mensajes (info, warning, error).
 - Valida siempre en `test()` antes de guardar.
 - Usa `newCode()` para generar códigos automáticos.

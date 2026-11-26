@@ -243,7 +243,7 @@ $this->setTabGroup('ListFacturaCliente', 'sales'); // equivale a setSettings($vi
 - [ ] Las funciones de `statistics` son métodos públicos del controlador.
 - [ ] Los modales son `<group>` dentro de `<modals>` y su `name` coincide con el `action` del botón.
 - [ ] Los filtros usan la firma de `ListController` o de `ListView` según el controlador, con `Where`.
-- [ ] Los textos son claves de traducción; los iconos son de Font Awesome 6.
+- [ ] Los textos son claves de traducción sin ninguna mayúscula (minúsculas y `kebab-case`, definidas en `Translation/es_ES.json`); los iconos son de Font Awesome 6.
 - [ ] Se ha reconstruido el plugin y se han restablecido las opciones guardadas de la vista.
 
 ## Skills relacionadas

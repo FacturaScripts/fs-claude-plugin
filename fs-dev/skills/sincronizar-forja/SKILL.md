@@ -79,6 +79,9 @@ Para traer a `Doc/` una página escrita en la web, `forja_get_publication` devue
 - `forja_upload_translations` sube los `Translation/*.json` del plugin (todos o solo `lang`) o una sola clave con
   `lang`, `key` y `value`. En local solo se mantiene `es_ES.json` (los demás idiomas se traducen en la web), así que
   normalmente se sube con `lang: "es_ES"`.
+- Antes de subir, comprueba que **ninguna clave tiene mayúsculas**: la web rechaza la subida si una clave lleva alguna
+  (las mayúsculas solo pueden ir en el valor). Si encuentras una, renómbrala a minúsculas en el JSON y en todos los
+  usos del código (PHP, Twig y XMLView) antes de subir.
 - La subida sigue las reglas de la web: **cada idioma enviado cuesta puntos** (no se cobran si nada cambia), hay topes
   diarios y semanales de claves nuevas y un máximo de claves por idioma, y los textos quedan **pendientes de
   revisión**. Las claves nuevas se crean en todos los idiomas con el texto en español. No se cambian las claves del
