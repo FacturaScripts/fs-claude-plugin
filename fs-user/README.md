@@ -36,7 +36,7 @@ En Claude Code invoca una skill con `/fs-user:<nombre>`, por ejemplo `/fs-user:a
 | `fs-user:rentabilidad` | Márgenes por cliente, producto y familia, y facturas vendidas por debajo de coste |
 | `fs-user:salud-inventario` | Valoración del stock, stock muerto, sobrestock, rotación y productos sin ventas |
 | `fs-user:retencion-clientes` | Clientes perdidos, inactivos, nuevos frente a recurrentes, frecuencia de compra, valor y riesgo de crédito |
-| `fs-user:impuestos-trimestre` | IVA repercutido y soportado de un trimestre con desglose por tipo y diferencia orientativa para el modelo 303 |
+| `fs-user:impuestos-trimestre` | Modelos fiscales de un trimestre o del año (303/390, 111/190, 115/180, 130, 347, 349 y 369) con las cifras de sus plugins, o el IVA orientativo desde las facturas |
 | `fs-user:informe-contable` | Pérdidas y ganancias y balance de situación abreviados de un ejercicio, con comparativa y ratios |
 | `fs-user:crear-informe` | Informe a medida: ventas por familia, agente o serie, clientes, compras, inventario, tesorería o documentos pendientes |
 | `fs-user:reporting-analyst` | Análisis puntual de cualquier pregunta de negocio con los datos del ERP |
