@@ -58,7 +58,7 @@ EOF
 )"
 ```
 
-No añadas firmas, marcas del asistente ni líneas `Co-Authored-By` salvo que el usuario las solicite expresamente.
+Añade al final del cuerpo la línea de atribución que indique el entorno (por ejemplo, la que da Claude Code en sus instrucciones de atribución para las PR), para que quede constancia de que el asistente creó la PR. Cópiala tal cual, sin inventarla. Si el entorno no indica ninguna, no la añadas. Omítela solo si el usuario lo pide expresamente. Los commits de la rama siguen la regla de `skill-commit` y llevan su `Co-Authored-By`.
 
 ### Título de la PR
 

@@ -124,6 +124,6 @@ Cuando el usuario pida hacer un commit, sigue este orden:
 4. Analiza los cambios y redacta un mensaje de commit que siga las convenciones anteriores
 5. Haz staging solo de los archivos relevantes (evita `git add .` a ciegas)
 6. Crea el commit con el mensaje bien formateado
-7. No añadas firmas, marcas del asistente ni líneas `Co-Authored-By` salvo que el usuario las solicite expresamente.
+7. Añade al final del mensaje, separada por una línea en blanco, la línea de atribución `Co-Authored-By: ...` que indique el entorno (por ejemplo, la que da Claude Code en sus instrucciones de atribución), para que quede constancia de que el asistente participó en el commit. Cópiala tal cual, sin inventar el nombre del modelo ni el correo. Si el entorno no indica ninguna, no la inventes. Omítela solo si el usuario lo pide expresamente.
 
 Si los cambios incluyen múltiples temas distintos, propón dividirlos en varios commits separados.
