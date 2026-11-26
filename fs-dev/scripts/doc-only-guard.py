@@ -277,13 +277,21 @@ def strip_php_comments(source: str) -> str:
 
 
 def php_signature(content: bytes, php: Optional[str]) -> Optional[str]:
-    """Devuelve la firma del código PHP sin comentarios ni espacios, o ``None`` si no se puede calcular."""
+    """Devuelve la firma del código PHP sin comentarios ni espacios, o ``None`` si no se puede calcular.
+
+    El tokenizador y el código van en dos archivos de una carpeta temporal, y a PHP solo se
+    le pasan sus rutas. Así funciona también en Windows, donde ``php`` suele ser un lanzador
+    ``.cmd`` o ``.bat`` que estropea un argumento ``-r`` con saltos de línea y comillas, y
+    donde otro proceso no puede abrir un temporal que siga abierto.
+    """
     if php:
-        with tempfile.NamedTemporaryFile(suffix='.php') as handle:
-            handle.write(content)
-            handle.flush()
+        with tempfile.TemporaryDirectory(prefix='fs-doc-guard-') as folder:
+            tokenizer = Path(folder) / 'tokens.php'
+            source = Path(folder) / 'source.php'
+            tokenizer.write_text('<?php\n' + PHP_TOKENS, encoding='utf-8')
+            source.write_bytes(content)
             try:
-                result = subprocess.run([php, '-d', 'error_reporting=0', '-r', PHP_TOKENS, handle.name],
+                result = subprocess.run([php, '-d', 'error_reporting=0', str(tokenizer), str(source)],
                                         capture_output=True, check=False, timeout=60)
             except (OSError, subprocess.SubprocessError):
                 return None
@@ -334,8 +342,26 @@ def check(project: Project, php: Optional[str] = None) -> Result:
     return result
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     """Punto de entrada: ejecuta el subcomando y devuelve el código de salida."""
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('command', choices=('start', 'check', 'stop', 'status'))
     parser.add_argument('path', nargs='?', default='.', help='carpeta del plugin o del core')

@@ -82,6 +82,16 @@ class ConfigPathTest(unittest.TestCase):
         reminder = load_script('language-reminder')
         self.assertEqual(reminder.read_language_setting(reminder.config_path()), 'en')
 
+    def test_without_home_there_is_no_config(self) -> None:
+        """Sin directorio personal (en Windows, sin USERPROFILE) no falla: no hay configuración."""
+        for name in SCRIPTS:
+            with self.subTest(script=name):
+                module = load_script(name)
+                with mock.patch.object(module.Path, 'home', side_effect=RuntimeError('sin home')):
+                    path = module.config_path()
+                self.assertFalse(path.exists())
+                self.assertEqual('.fs-ai.json', path.name)
+
 
 if __name__ == '__main__':
     unittest.main()

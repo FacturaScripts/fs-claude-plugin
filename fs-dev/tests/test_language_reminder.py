@@ -36,7 +36,7 @@ def run_hook(home: Path, payload: object = None) -> subprocess.CompletedProcess:
     }
     env = {**os.environ, 'HOME': str(home), 'USERPROFILE': str(home)}
     return subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)], input=json.dumps(data), capture_output=True, text=True,
+        [sys.executable, str(SCRIPT_PATH)], input=json.dumps(data), capture_output=True, text=True, encoding='utf-8',
         check=False, env=env,
     )
 
@@ -182,12 +182,12 @@ class HooksManifestTest(unittest.TestCase):
     def test_user_prompt_submit_registered(self) -> None:
         """El manifiesto ejecuta el script con la ruta portable y entre comillas."""
         manifest = json.loads((PLUGIN_ROOT / 'hooks' / 'hooks.json').read_text(encoding='utf-8'))
-        commands = [
-            hook['command']
-            for group in manifest['hooks'].get('UserPromptSubmit', [])
-            for hook in group['hooks']
-        ]
-        self.assertIn('python3 "${CLAUDE_PLUGIN_ROOT}/scripts/language-reminder.py"', commands)
+        hooks = [hook for group in manifest['hooks'].get('UserPromptSubmit', []) for hook in group['hooks']]
+        self.assertIn(
+            'sh "${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh" "${CLAUDE_PLUGIN_ROOT}/scripts/language-reminder.py"',
+            [hook['command'] for hook in hooks],
+        )
+        self.assertIn(r'"${CLAUDE_PLUGIN_ROOT}\scripts\language-reminder.py"', hooks[0]['commandWindows'])
 
 
 if __name__ == '__main__':

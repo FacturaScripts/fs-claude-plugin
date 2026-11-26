@@ -19,13 +19,13 @@ SORTER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = SORTER
 SPEC.loader.exec_module(SORTER)
 
-# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
+# HOME (USERPROFILE en Windows) aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
-_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
+_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name, 'USERPROFILE': _HOME.name})
 
 
 def setUpModule() -> None:
-    """Aísla HOME durante todo el módulo; los subprocesos heredan el entorno."""
+    """Aísla HOME y USERPROFILE durante todo el módulo; los subprocesos heredan el entorno."""
     _HOME_PATCH.start()
 
 
@@ -202,7 +202,7 @@ class FileTest(unittest.TestCase):
             Resultado del proceso.
         """
         return subprocess.run([sys.executable, str(SCRIPT_PATH), str(path)],
-                              capture_output=True, text=True, check=False)
+                              capture_output=True, text=True, encoding='utf-8', check=False)
 
     def test_preserves_crlf_line_endings(self) -> None:
         """Un archivo CRLF se ordena sin convertir ninguna línea a LF."""
@@ -240,7 +240,7 @@ class FileTest(unittest.TestCase):
             original = php('    public $b;\n    public $a;')
             path.write_text(original, encoding='utf-8')
 
-            with unittest.mock.patch.dict(os.environ, {'HOME': str(home)}):
+            with unittest.mock.patch.dict(os.environ, {'HOME': str(home), 'USERPROFILE': str(home)}):
                 self.run_script(path)
 
             self.assertEqual(original, path.read_text(encoding='utf-8'))

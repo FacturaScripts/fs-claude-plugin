@@ -81,7 +81,10 @@ Los cuatro plugins usan `~/.fs-ai.json` (si solo existe el antiguo `~/.fs-claude
 - FacturaScripts con la API REST habilitada para `fs-mcp`
 - Node.js 18 o superior para ejecutar los servidores MCP de `fs-mcp` y `fs-forja`
 - Acceso a la API de autor de la forja para `fs-forja`
-- Python 3 para las automatizaciones de `fs-dev`
+- Python 3 para las automatizaciones de `fs-dev` y `fs-user` (en Windows, el de python.org con el lanzador `py` o el de la Microsoft Store)
+- En Windows, Git for Windows (Git Bash) para que Claude Code ejecute los hooks de `fs-dev` y `fs-user`; Codex no lo necesita
+
+Los cuatro plugins funcionan en Linux, macOS y Windows. Los detalles de cada sistema están en [`COMPATIBILITY.md`](COMPATIBILITY.md#linux-macos-y-windows).
 
 ## Licencia
 

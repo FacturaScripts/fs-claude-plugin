@@ -12,6 +12,8 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
+from plataforma import requiere_enlaces
+
 
 SCRIPT_PATH = Path(__file__).parents[1] / 'scripts' / 'check-min-version.py'
 SPEC = importlib.util.spec_from_file_location('check_min_version', SCRIPT_PATH)
@@ -20,13 +22,13 @@ CHECKER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = CHECKER
 SPEC.loader.exec_module(CHECKER)
 
-# HOME aislado y sin FS_CORE_PATH para que la configuración del usuario no altere las pruebas.
+# HOME (USERPROFILE en Windows) aislado y sin FS_CORE_PATH para que la configuración del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
-_ENV_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
+_ENV_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name, 'USERPROFILE': _HOME.name})
 
 
 def setUpModule() -> None:
-    """Aísla HOME y FS_CORE_PATH durante todo el módulo; los subprocesos heredan el entorno."""
+    """Aísla HOME, USERPROFILE y FS_CORE_PATH durante todo el módulo; los subprocesos heredan el entorno."""
     _ENV_PATCH.start()
     os.environ.pop('FS_CORE_PATH', None)
 
@@ -867,15 +869,15 @@ class CliTest(unittest.TestCase):
 
             failing = subprocess.run(
                 (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(core)),
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, encoding='utf-8', check=False,
             )
             self.assertEqual(1, failing.returncode)
             self.assertIn('INCUMPLE', failing.stdout)
 
             missing_core = subprocess.run(
                 (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(Path(tmp) / 'no-existe')),
-                capture_output=True, text=True, check=False,
-                cwd=tmp, env={'PATH': '/usr/bin:/bin', 'HOME': tmp},
+                capture_output=True, text=True, encoding='utf-8', check=False,
+                cwd=tmp, env={'PATH': '/usr/bin:/bin', 'HOME': tmp, 'USERPROFILE': tmp},
             )
             self.assertEqual(2, missing_core.returncode)
             self.assertIn('git clone', missing_core.stderr)
@@ -890,7 +892,7 @@ class CliTest(unittest.TestCase):
 
             result = subprocess.run(
                 (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(core), '--json'),
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, encoding='utf-8', check=False,
             )
             report = json.loads(result.stdout)
 
@@ -961,12 +963,12 @@ class RemovedApiTest(unittest.TestCase):
             plugin = build_plugin(Path(tmp), '2025', self.USES_ANTIGUO)
             command = (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(core))
 
-            without = subprocess.run(command, capture_output=True, text=True, check=False)
+            without = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', check=False)
             self.assertEqual(0, without.returncode)
             self.assertIn('Funciona hasta: v2025', without.stdout)
 
             failing = subprocess.run((*command, '--max-version', '2026'),
-                                     capture_output=True, text=True, check=False)
+                                     capture_output=True, text=True, encoding='utf-8', check=False)
             self.assertEqual(1, failing.returncode)
             self.assertIn('INCUMPLE. Usa símbolos que ya no existen en v2026', failing.stdout)
 
@@ -1131,6 +1133,7 @@ class RequireTest(unittest.TestCase):
             self.assertEqual([('Base', 'auditado'), ('./Base', 'nombre inválido'), ('Base//', 'nombre inválido')],
                              [(entry['name'], entry['estado']) for entry in report['requeridos']])
 
+    @requiere_enlaces
     def test_symlinked_plugin_folder_is_audited(self) -> None:
         """El core carga una carpeta de Plugins/ que sea un enlace, así que se audita."""
         with tempfile.TemporaryDirectory() as tmp:
@@ -1171,7 +1174,7 @@ class RequireTest(unittest.TestCase):
 
             result = subprocess.run(
                 (sys.executable, str(SCRIPT_PATH), str(plugins / 'Raiz'), '--core', str(core)),
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, encoding='utf-8', check=False,
             )
 
             self.assertEqual(0, result.returncode)
@@ -1268,8 +1271,8 @@ class ErrorExitTest(unittest.TestCase):
 
             result = subprocess.run(
                 (sys.executable, str(SCRIPT_PATH), str(plugin), '--core', str(core)),
-                capture_output=True, text=True, check=False,
-                env={'PATH': str(Path(tmp) / 'sin-git'), 'HOME': tmp},
+                capture_output=True, text=True, encoding='utf-8', check=False,
+                env={'PATH': str(Path(tmp) / 'sin-git'), 'HOME': tmp, 'USERPROFILE': tmp},
             )
 
             self.assertEqual(2, result.returncode)

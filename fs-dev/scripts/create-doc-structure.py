@@ -487,7 +487,7 @@ def check_ignored_paths(project: Project, report: Report) -> None:
     try:
         toplevel = subprocess.run(
             ['git', '-C', str(project.root), 'rev-parse', '--show-toplevel'],
-            capture_output=True, text=True, check=False,
+            capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
         )
     except OSError:
         return
@@ -496,7 +496,7 @@ def check_ignored_paths(project: Project, report: Report) -> None:
 
     result = subprocess.run(
         ['git', '-C', str(project.root), 'check-ignore', '--no-index', '-v', *VERSIONED_PATHS],
-        capture_output=True, text=True, check=False,
+        capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
     )
     ignored: dict[tuple[str, str], list[str]] = {}
     for line in result.stdout.splitlines():
@@ -549,8 +549,26 @@ def print_report(project: Project, report: Report, check: bool) -> None:
         print('  · Doc/Context está vacío: rellénalo con la skill fs-dev:context-writer (historial git y código).')
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
     """Punto de entrada: crea o comprueba la estructura y devuelve el código de salida."""
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('path', nargs='?', default='.', help='carpeta del plugin o del core')
     parser.add_argument('--check', action='store_true', help='solo informa de lo que falta, sin escribir')

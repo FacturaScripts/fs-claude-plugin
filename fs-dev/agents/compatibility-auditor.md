@@ -45,6 +45,8 @@ Usa el script `check-min-version.py`:
 python3 "<scripts>/check-min-version.py" <ruta_plugin> [--core <ruta_core>] [--json] [--include-tests] [--min-confidence alta|media|baja] [--plugins-dir <dir>] [--max-version <versión>] [--workers <n>]
 ```
 
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 Opciones relevantes:
 
 - `--core`: ruta del clon git del core. Si no se indica, el script busca `FS_CORE_PATH`, la clave `settings.corePath` (o su alias `settings.coreRepoPath`) de `~/.fs-ai.json`, la raíz de la instalación cuando el plugin está en `Plugins/` y, por último, el directorio actual.

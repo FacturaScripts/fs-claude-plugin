@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh\" \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.py\"",
+            "commandWindows": "py -3 \"${CLAUDE_PLUGIN_ROOT}\\scripts\\detect-facturascripts.py\" || python \"${CLAUDE_PLUGIN_ROOT}\\scripts\\detect-facturascripts.py\"",
             "timeout": 10
           }
         ]

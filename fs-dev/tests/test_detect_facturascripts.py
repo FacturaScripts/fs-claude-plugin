@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,8 +12,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[2]
 SCRIPTS = {
-    'fs-dev': REPO_ROOT / 'fs-dev' / 'scripts' / 'detect-facturascripts.sh',
-    'fs-user': REPO_ROOT / 'fs-user' / 'scripts' / 'detect-facturascripts.sh',
+    'fs-dev': REPO_ROOT / 'fs-dev' / 'scripts' / 'detect-facturascripts.py',
+    'fs-user': REPO_ROOT / 'fs-user' / 'scripts' / 'detect-facturascripts.py',
 }
 CABECERA = '=== CONTEXTO: Proyecto FacturaScripts detectado ==='
 
@@ -29,11 +30,11 @@ def ejecutar(script: Path, cwd: Path) -> subprocess.CompletedProcess[str]:
     """
     entrada = json.dumps({'hook_event_name': 'SessionStart', 'cwd': str(cwd)})
     return subprocess.run(
-        ['bash', str(script)],
+        [sys.executable, str(script)],
         cwd=cwd,
         input=entrada,
         capture_output=True,
-        text=True,
+        text=True, encoding='utf-8',
         timeout=10,
         check=False,
     )
@@ -156,9 +157,9 @@ class DetectFacturaScriptsTest(unittest.TestCase):
 
         salida = ejecutar(SCRIPTS['fs-dev'], plugin / 'Model').stdout
 
-        self.assertIn(f'Plugin MiPlugin: {plugin}/AGENTS.md', salida)
-        self.assertIn(f'Plugin MiPlugin: {plugin}/Doc/Context/README.md', salida)
-        self.assertIn(f'Core: {raiz}/AGENTS.md', salida)
+        self.assertIn(f"Plugin MiPlugin: {plugin / 'AGENTS.md'}", salida)
+        self.assertIn(f"Plugin MiPlugin: {plugin / 'Doc' / 'Context' / 'README.md'}", salida)
+        self.assertIn(f"Core: {raiz / 'AGENTS.md'}", salida)
         self.assertNotIn('OtroPlugin', salida)
 
 

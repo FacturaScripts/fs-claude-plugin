@@ -216,7 +216,7 @@ class CoreRepo:
         try:
             return subprocess.run(
                 ('git', '-C', str(self.path), *args),
-                capture_output=True, text=True, check=False,
+                capture_output=True, text=True, encoding='utf-8', errors='replace', check=False,
             )
         except OSError as error:
             raise AuditError(f'No se puede ejecutar git ({error}). Instálalo o añádelo al PATH.') from error
@@ -311,11 +311,18 @@ def config_path() -> Path:
     Usa ``~/.fs-ai.json``; si no existe pero sí el antiguo ``~/.fs-claude.json``
     (instalaciones anteriores al cambio de nombre), devuelve este último.
 
+    Si no se puede determinar el directorio personal (sin ``HOME`` ni, en Windows,
+    ``USERPROFILE``), devuelve una ruta que no existe, como si no hubiera configuración.
+
     Returns:
         Ruta del archivo de configuración, exista o no.
     """
-    current = Path.home() / '.fs-ai.json'
-    legacy = Path.home() / '.fs-claude.json'
+    try:
+        home = Path.home()
+    except RuntimeError:
+        home = Path(os.devnull)
+    current = home / '.fs-ai.json'
+    legacy = home / '.fs-claude.json'
     if not current.exists() and legacy.exists():
         return legacy
     return current
@@ -390,7 +397,7 @@ def sibling_provider(symbol: Symbol, plugins_dir: Path, own_name: str,
         args += ['-e', pattern]
     args += ['--', str(plugins_dir)]
 
-    result = subprocess.run(args, capture_output=True, text=True, check=False)
+    result = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', check=False)
     found: list[str] = []
     for line in result.stdout.splitlines():
         try:
@@ -415,7 +422,7 @@ def vendor_provider(symbol: Symbol, vendor_dirs: list[Path]) -> str | None:
             args += ['-e', pattern]
         args += ['--', str(vendor)]
 
-        result = subprocess.run(args, capture_output=True, text=True, check=False)
+        result = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', check=False)
         for line in result.stdout.splitlines():
             try:
                 parts = Path(line).resolve().relative_to(vendor.resolve()).parts
@@ -1224,6 +1231,23 @@ def audit_requires(plugin: PluginInfo, core: CoreRepo, plugins_dir: Path | None,
     return entries
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
     """Punto de entrada del script.
 
@@ -1233,6 +1257,7 @@ def main(argv: list[str] | None = None) -> int:
     Returns:
         0 si cumple, 1 si incumple y 2 ante un error de configuración o inesperado.
     """
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(
         description='Audita el min_version declarado por un plugin de FacturaScripts.')
     parser.add_argument('plugin', help='Ruta del plugin a auditar')

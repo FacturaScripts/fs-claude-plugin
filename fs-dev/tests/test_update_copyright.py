@@ -19,13 +19,13 @@ COPYRIGHT = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = COPYRIGHT
 SPEC.loader.exec_module(COPYRIGHT)
 
-# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
+# HOME (USERPROFILE en Windows) aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
-_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
+_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name, 'USERPROFILE': _HOME.name})
 
 
 def setUpModule() -> None:
-    """Aísla HOME durante todo el módulo; los subprocesos heredan el entorno."""
+    """Aísla HOME y USERPROFILE durante todo el módulo; los subprocesos heredan el entorno."""
     _HOME_PATCH.start()
 
 
@@ -130,7 +130,7 @@ class CliTest(unittest.TestCase):
         """
         return subprocess.run(
             [sys.executable, str(SCRIPT_PATH), str(path), '2026', *extra],
-            capture_output=True, text=True, check=False,
+            capture_output=True, text=True, encoding='utf-8', check=False,
         )
 
     def test_preserves_crlf_line_endings(self) -> None:
@@ -173,9 +173,9 @@ class CliTest(unittest.TestCase):
         """Un año no numérico o un archivo inexistente devuelven 1."""
         with tempfile.TemporaryDirectory() as directory:
             missing = subprocess.run([sys.executable, str(SCRIPT_PATH), str(Path(directory) / 'x.php'), '2026'],
-                                     capture_output=True, text=True, check=False)
+                                     capture_output=True, text=True, encoding='utf-8', check=False)
             bad_year = subprocess.run([sys.executable, str(SCRIPT_PATH), 'x.php', 'año'],
-                                      capture_output=True, text=True, check=False)
+                                      capture_output=True, text=True, encoding='utf-8', check=False)
 
         self.assertEqual(1, missing.returncode)
         self.assertEqual(1, bad_year.returncode)

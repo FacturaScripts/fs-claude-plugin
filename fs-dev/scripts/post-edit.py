@@ -197,7 +197,7 @@ def _run(script: Path, *args: str) -> int:
     try:
         result = subprocess.run(
             [sys.executable, str(script), *args],
-            check=False, capture_output=True, text=True, timeout=TRANSFORM_TIMEOUT,
+            check=False, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=TRANSFORM_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError) as error:
         print(f'fs-dev: no se pudo ejecutar {script.name}: {error}', file=sys.stderr)
@@ -240,7 +240,7 @@ def doc_only_active(path: Path) -> bool:
     try:
         result = subprocess.run(
             ['git', '-C', str(folder), 'rev-parse', '--git-path', DOC_ONLY_MARKER],
-            check=False, capture_output=True, text=True, timeout=5,
+            check=False, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=5,
         )
     except (OSError, subprocess.SubprocessError):
         return False
@@ -337,10 +337,11 @@ def _display_path(path: Path, cwd: Path) -> str:
         cwd: Directorio de trabajo de la sesión.
 
     Returns:
-        La ruta relativa, o la absoluta si el archivo está fuera de ``cwd``.
+        La ruta relativa con barras ``/`` en todos los sistemas, o la absoluta si el
+        archivo está fuera de ``cwd``.
     """
     try:
-        return str(path.relative_to(cwd.resolve()))
+        return path.relative_to(cwd.resolve()).as_posix()
     except ValueError:
         return str(path)
 
@@ -429,12 +430,30 @@ def run(payload: Dict[str, Any], scripts_dir: Path) -> Optional[Dict[str, Any]]:
     return build_output(changed, cwd, uppercase_keys)
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main() -> int:
     """Lee la entrada estándar del hook y procesa todos los archivos detectados.
 
     Returns:
         Siempre 0: los errores se notifican por stderr sin bloquear al host.
     """
+    use_utf8_stdio()
     try:
         try:
             payload = json.load(sys.stdin)
