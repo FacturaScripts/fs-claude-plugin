@@ -18,6 +18,14 @@ const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 const buildDirectory = path.join(serverDirectory, 'build');
 const TOKEN = 'token-de-prueba';
 const ZIP_BYTES = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0xff, 0x10, 0x20]);
+/** Cuerpo de publicación con los 300 caracteres que exige la forja. */
+const LONG_BODY = `# Novedades\n\n${'Texto de la publicación con los cambios de la versión. '.repeat(6)}`;
+/** Cuerpo largo sin saltos de línea, que multipart enviaría como CRLF. */
+const LONG_LINE = LONG_BODY.replace(/\n+/g, ' ');
+/** Respuestas 429 pendientes por ruta del plugin Limitado: segundos de Retry-After de cada una. */
+const pending429 = [];
+/** URL base del servidor de prueba. */
+let baseUrl;
 
 /** @type {string} */
 let tempDirectory;
@@ -117,6 +125,17 @@ async function route(req, res, body) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   if (req.headers['x-forja-token'] !== TOKEN) {
     sendJson(res, 401, { code: 'invalid-token', message: 'Token no válido' });
+    return;
+  }
+
+  if (url.pathname.startsWith('/api/3/forja/plugins/Limitado')) {
+    // como ApiForja: el 429 por exceso de peticiones lleva Retry-After y no atiende la petición
+    if (pending429.length > 0) {
+      res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': String(pending429.shift()) });
+      res.end(JSON.stringify({ code: 429, message: 'Demasiadas peticiones' }));
+      return;
+    }
+    sendJson(res, 200, { ok: true, method: req.method });
     return;
   }
 
@@ -241,7 +260,7 @@ before(async () => {
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = /** @type {import('node:net').AddressInfo} */ (server.address());
-  const baseUrl = `http://127.0.0.1:${port}`;
+  baseUrl = `http://127.0.0.1:${port}`;
 
   // Archivo de conexiones aislado: la conexión por defecto es de tipo api y la de forja va después.
   const connectionsFile = path.join(tempDirectory, 'connections.json');
@@ -429,7 +448,7 @@ test('forja_upload_translations envía los archivos locales como JSON {idioma: {
 
 test('forja_create_publication lee el cuerpo de body_file y valida los parámetros', async () => {
   const bodyFile = path.join(tempDirectory, 'noticia.md');
-  await writeFile(bodyFile, '# Novedades\n');
+  await writeFile(bodyFile, LONG_BODY);
 
   const result = await toolsModule.handleForjaTool('forja_create_publication', {
     plugin: 'MiPlugin',
@@ -441,7 +460,7 @@ test('forja_create_publication lee el cuerpo de body_file y valida los parámetr
     body_file: bodyFile,
   });
   assert.deepEqual(JSON.parse(result.content[0].text).json, {
-    type: 'news', title: 'Versión 2', title_short: 'V2', youtube: 'abc123def', color: 'info', body: '# Novedades\n',
+    type: 'news', title: 'Versión 2', title_short: 'V2', youtube: 'abc123def', color: 'info', body: LONG_BODY,
   });
 
   // Con imágenes, la publicación se envía en multipart con los archivos en images[].
@@ -451,14 +470,14 @@ test('forja_create_publication lee el cuerpo de body_file y valida los parámetr
     plugin: 'MiPlugin',
     type: 'user',
     title: 'Guía',
-    body: 'Texto',
+    body: LONG_LINE,
     ordernum: 3,
     images: [imagePath],
   });
   assert.deepEqual(JSON.parse(withImages.content[0].text).multipart, {
     type: 'user',
     title: 'Guía',
-    body: 'Texto',
+    body: LONG_LINE,
     ordernum: '3',
     'images[]': { filename: 'captura.png', size: 3, text: 'png' },
   });
@@ -474,8 +493,9 @@ test('forja_create_publication lee el cuerpo de body_file y valida los parámetr
 
   const sent = requests.length;
   for (const [args, message] of [
-    [{ plugin: 'MiPlugin', title: 'Sin tipo', body: 'x' }, /type\) o su publicación padre/],
-    [{ plugin: 'MiPlugin', type: 'news', title: 'Color', body: 'x', color: 'rosa' }, /color debe ser/],
+    [{ plugin: 'MiPlugin', title: 'Sin tipo', body: LONG_BODY }, /type\) o su publicación padre/],
+    [{ plugin: 'MiPlugin', type: 'news', title: 'Color', body: LONG_BODY, color: 'rosa' }, /color debe ser/],
+    [{ plugin: 'MiPlugin', type: 'news', title: 'Corta', body: '   Texto corto   ' }, /11 caracteres y la forja exige al menos 300/],
   ]) {
     const response = await toolsModule.handleForjaTool('forja_create_publication', args);
     assert.equal(response.isError, true);
@@ -865,4 +885,78 @@ test('sitePath deja relativa al sitio la URL de una publicación y no toca lo qu
   assert.equal(sitePath('https://forja.localhost/publicaciones/x?lang=es'), '/publicaciones/x?lang=es');
   assert.equal(sitePath('/publicaciones/ya-relativa'), '/publicaciones/ya-relativa');
   assert.equal(sitePath('mailto:hola@example.com'), 'mailto:hola@example.com');
+});
+
+/**
+ * Cliente propio contra el servidor de prueba, para que sus límites no afecten al resto de pruebas.
+ *
+ * @param {Record<string, unknown>} limiterOptions Opciones del limitador.
+ * @returns {import('../build/fs/forja-client.js').ForjaClient} Cliente.
+ */
+function isolatedClient(limiterOptions = {}) {
+  const config = { name: 'Forja aislada', url: baseUrl, token: TOKEN, type: 'forja' };
+  return new forjaModule.ForjaClient(() => ({ key: 'aislada', config }), limiterOptions);
+}
+
+test('un 429 con Retry-After corto se espera y se repite una sola vez', async () => {
+  const client = isolatedClient();
+  pending429.push(1);
+  const before = requests.length;
+  const started = Date.now();
+  const result = await client.sendJson('POST', '/plugins/Limitado/translations', { es_ES: { a: 'b' } });
+  assert.equal(result.method, 'POST');
+  assert.equal(requests.length - before, 2);
+  assert.ok(Date.now() - started >= 1000, 'no ha esperado el Retry-After');
+
+  // dos 429 seguidos: solo se repite una vez y se devuelve el segundo
+  pending429.push(0, 0);
+  await assert.rejects(client.get('/plugins/Limitado'), (error) => {
+    assert.equal(error.status, 429);
+    assert.equal(error.retryAfter, 0);
+    assert.match(error.message, /la forja pide esperar 0 s/);
+    return true;
+  });
+  pending429.length = 0;
+});
+
+test('un 429 con Retry-After largo no se repite y frena las siguientes peticiones al mismo servidor', async () => {
+  const client = isolatedClient();
+  pending429.push(3600);
+  const before = requests.length;
+  await assert.rejects(client.get('/plugins/Limitado'), (error) => {
+    assert.equal(error.status, 429);
+    assert.equal(error.retryAfter, 3600);
+    return true;
+  });
+  assert.equal(requests.length - before, 1);
+
+  await assert.rejects(client.get('/plugins/Limitado'), (error) => {
+    assert.equal(error.name, 'ForjaLimitError');
+    assert.match(error.message, /espera que ha pedido la forja/);
+    assert.match(error.message, /60 minuto/);
+    return true;
+  });
+  assert.equal(requests.length - before, 1);
+});
+
+test('los límites se comparten entre las conexiones del mismo servidor', async () => {
+  const configs = {
+    a: { name: 'A', url: baseUrl, token: TOKEN, type: 'forja' },
+    b: { name: 'B', url: `${baseUrl}/api/3/forja/`, token: TOKEN, type: 'forja' },
+  };
+  const client = new forjaModule.ForjaClient((key) => ({ key, config: configs[key] }), { perMinute: 2, maxWaitMs: 10 });
+  await client.get('/plugins/Limitado', undefined, 'a');
+  await client.get('/plugins/Limitado', undefined, 'b');
+  await assert.rejects(client.get('/plugins/Limitado', undefined, 'a'), /por minuto/);
+});
+
+test('forja_upload_translations no envía un idioma con más de 500 claves', async () => {
+  const pluginDir = path.join(tempDirectory, 'MuchasClaves');
+  const keys = Object.fromEntries(Array.from({ length: 501 }, (_, i) => [`clave-${i}`, `Texto ${i}`]));
+  await createFiles(pluginDir, { 'Translation/es_ES.json': JSON.stringify(keys) });
+  const before = requests.length;
+  const result = await toolsModule.handleForjaTool('forja_upload_translations', { plugin: 'MiPlugin', plugin_path: pluginDir });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /501 claves y la forja admite como máximo 500/);
+  assert.equal(requests.length, before);
 });

@@ -18,7 +18,7 @@ import path from 'path';
 import { forjaClient } from '../../fs/forja-client.js';
 import { pathId } from '../../utils/pathId.js';
 import { buildProjectZip, isToolBuildZip, removeToolBuildZip } from './build-zip.js';
-import { publishDocPage } from './doc-page.js';
+import { MIN_BODY_LENGTH, publishDocPage } from './doc-page.js';
 
 /** Descripción común del parámetro `connection`. */
 const CONNECTION_PROPERTY = {
@@ -69,6 +69,12 @@ const IMAGE_EXTENSIONS = ['.gif', '.jpeg', '.jpg', '.png', '.webp'];
 const MARKDOWN_EXTENSIONS = ['.markdown', '.md', '.txt'];
 const ZIP_EXTENSIONS = ['.zip'];
 
+/** Claves de traducción que admite la forja por idioma en cada subida. */
+const MAX_TRANSLATION_KEYS = 500;
+
+/** Puntos que cuesta cada idioma enviado en una subida de traducciones que cambia algo. */
+const TRANSLATION_LANG_POINTS = 10;
+
 /** Tamaño máximo de un cuerpo leído de body_file: 1 MB. */
 const MAX_BODY_FILE_SIZE = 1024 * 1024;
 
@@ -80,7 +86,7 @@ const PUBLICATION_PROPERTIES = {
   type: { type: 'string', enum: PUBLICATION_TYPES, description: 'Tipo: news (noticia), user (documentación de uso) o dev (documentación de programación)' },
   title: { type: 'string', description: 'Título (máximo 200 caracteres)' },
   title_short: { type: 'string', description: 'Título corto (máximo 100; por defecto, el título recortado)' },
-  body: { type: 'string', description: 'Cuerpo en Markdown, de al menos 300 caracteres (alternativa a body_file)' },
+  body: { type: 'string', description: `Cuerpo en Markdown, de al menos ${MIN_BODY_LENGTH} caracteres (alternativa a body_file)` },
   body_file: { type: 'string', description: 'Ruta absoluta de un archivo .md, .markdown o .txt con el cuerpo (alternativa a body)' },
   ordernum: { type: 'integer', description: 'Orden dentro de la documentación' },
   idparent: { type: 'integer', description: 'Publicación padre, del mismo plugin; 0 la quita. Al crear con padre, se hereda su tipo' },
@@ -181,8 +187,9 @@ export const forjaTools: Tool[] = [
     name: 'forja_upload_translations',
     description:
       'Forja: sube traducciones de uno de tus plugins, bien los archivos <plugin_path>/Translation/*.json (todos o solo lang), bien una sola ' +
-      'clave con lang, key y value. Sigue las reglas de la web: cada idioma enviado cuesta puntos (no se cobran si nada cambia), hay topes ' +
-      'diarios y semanales de claves nuevas y los textos quedan pendientes de revisión. Las claves nuevas se crean en todos los idiomas. ' +
+      `clave con lang, key y value. Sigue las reglas de la web: cada idioma enviado cuesta ${TRANSLATION_LANG_POINTS} puntos (no se cobran si nada ` +
+      `cambia), admite hasta ${MAX_TRANSLATION_KEYS} claves por idioma, hay topes diarios y semanales de claves nuevas y los textos quedan ` +
+      'pendientes de revisión. Las claves nuevas se crean en todos los idiomas y las que comparten varios plugins no se cambian. ' +
       'Las traducciones no se pueden borrar por la API. Devuelve created, updated, unchanged, skipped, points_spent y points',
     inputSchema: {
       type: 'object' as const,
@@ -292,7 +299,7 @@ export const forjaTools: Tool[] = [
     name: 'forja_create_publication',
     description:
       'Forja: crea una publicación (noticia o página de documentación) de uno de tus plugins. Exige el email verificado y tiene los mismos ' +
-      'máximos diarios y semanales que la web. Para publicar una página de Doc/User o Doc/Dev usa forja_publish_doc_page',
+      'máximos que la web: 20 publicaciones al día y 100 a la semana. Para publicar una página de Doc/User o Doc/Dev usa forja_publish_doc_page',
     inputSchema: {
       type: 'object' as const,
       properties: { connection: CONNECTION_PROPERTY, plugin: PLUGIN_PROPERTY, ...PUBLICATION_PROPERTIES },
@@ -705,7 +712,15 @@ async function uploadTranslations(args: Record<string, unknown>, connection?: st
       throw new Error(`${filePath} debe contener un objeto {clave: valor}`);
     }
     // Un archivo vacío no se envía: la forja rechaza la subida entera si un idioma no trae claves.
-    if (Object.keys(parsed).length > 0) {
+    const keys = Object.keys(parsed).length;
+    // La forja rechaza la subida entera si un idioma pasa del máximo: se avisa antes de gastar la petición.
+    if (keys > MAX_TRANSLATION_KEYS) {
+      throw new Error(
+        `${filePath} tiene ${keys} claves y la forja admite como máximo ${MAX_TRANSLATION_KEYS} por idioma en cada subida: ` +
+          'súbelo por partes con lang, key y value o reduce el archivo'
+      );
+    }
+    if (keys > 0) {
       payload[file.slice(0, -5)] = parsed as Record<string, unknown>;
     }
   }
@@ -793,6 +808,12 @@ async function publicationData(args: Record<string, unknown>): Promise<Record<st
       throw new Error(`El archivo ${bodyFile} supera 1 MB: no parece el cuerpo de una publicación`);
     }
     data.body = await readFile(bodyFile, 'utf-8');
+  }
+  if (data.body !== undefined) {
+    const length = String(data.body).trim().length;
+    if (length < MIN_BODY_LENGTH) {
+      throw new Error(`El cuerpo tiene ${length} caracteres y la forja exige al menos ${MIN_BODY_LENGTH}`);
+    }
   }
   return data;
 }

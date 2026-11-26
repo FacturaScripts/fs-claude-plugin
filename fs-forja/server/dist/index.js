@@ -29644,34 +29644,217 @@ var {
 } = axios_default;
 
 // src/fs/forja-client.ts
+import { createHash } from "crypto";
 import fs3 from "fs";
 import { readFile, stat } from "fs/promises";
 import https2 from "https";
 import path3 from "path";
+
+// src/fs/forja-limits.ts
+var FORJA_LIMIT_PER_MINUTE = 30;
+var FORJA_LIMIT_PER_HOUR = 300;
+var FORJA_INVALID_TOKEN_LIMIT = 5;
+var FORJA_IP_BLOCK_MINUTES = 10;
+var AUTH_FAILURES_BEFORE_STOP = FORJA_INVALID_TOKEN_LIMIT - 2;
+var AUTH_FAILURES_AFTER_RETRY = FORJA_INVALID_TOKEN_LIMIT - 1;
+var MINUTE_MS = 6e4;
+var HOUR_MS = 36e5;
+var INCIDENT_WINDOW_MS = FORJA_IP_BLOCK_MINUTES * MINUTE_MS;
+var ForjaLimitError = class extends Error {
+  /**
+   * @param message - Mensaje legible con lo que ocurre y cuándo se puede reintentar
+   */
+  constructor(message) {
+    super(message);
+    this.name = "ForjaLimitError";
+  }
+};
+function minutesLeft(ms) {
+  return Math.max(1, Math.ceil(ms / MINUTE_MS));
+}
+var ForjaRateLimiter = class {
+  /** Espera máxima en milisegundos antes de rechazar una petición. */
+  maxWaitMs;
+  perMinute;
+  perHour;
+  now;
+  sleep;
+  /** Marcas de tiempo de las peticiones de la última hora, de la más antigua a la más reciente. */
+  stamps = [];
+  /** Instante hasta el que la forja ha pedido no enviar peticiones (Retry-After de un 429). */
+  pausedUntil = 0;
+  /**
+   * @param options - Márgenes y reloj (opcional)
+   */
+  constructor(options = {}) {
+    this.perMinute = options.perMinute ?? FORJA_LIMIT_PER_MINUTE - 2;
+    this.perHour = options.perHour ?? FORJA_LIMIT_PER_HOUR - 10;
+    this.maxWaitMs = options.maxWaitMs ?? 9e4;
+    this.now = options.now ?? (() => Date.now());
+    this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  }
+  /**
+   * Reserva un hueco para una petición: espera lo necesario para no pasar de los límites.
+   *
+   * @throws ForjaLimitError si habría que esperar más de la espera máxima (normalmente, por el límite horario)
+   */
+  async acquire() {
+    for (; ; ) {
+      const now = this.now();
+      this.stamps = this.stamps.filter((stamp) => now - stamp < HOUR_MS);
+      let wait = 0;
+      let reason = "el l\xEDmite de peticiones por minuto de la forja (30 por minuto y 300 por hora)";
+      if (this.stamps.length >= this.perHour) {
+        wait = this.stamps[this.stamps.length - this.perHour] + HOUR_MS - now;
+        reason = "el l\xEDmite de peticiones por hora de la forja (30 por minuto y 300 por hora)";
+      }
+      const lastMinute = this.stamps.filter((stamp) => now - stamp < MINUTE_MS);
+      if (lastMinute.length >= this.perMinute) {
+        const minuteWait = lastMinute[lastMinute.length - this.perMinute] + MINUTE_MS - now;
+        if (minuteWait > wait) {
+          wait = minuteWait;
+          reason = "el l\xEDmite de peticiones por minuto de la forja (30 por minuto y 300 por hora)";
+        }
+      }
+      if (this.pausedUntil - now > wait) {
+        wait = this.pausedUntil - now;
+        reason = "la espera que ha pedido la forja tras responder 429 (demasiadas peticiones desde esta IP)";
+      }
+      if (wait <= 0) {
+        this.stamps.push(now);
+        return;
+      }
+      if (wait > this.maxWaitMs) {
+        throw new ForjaLimitError(
+          `Se ha alcanzado ${reason}; no se env\xEDa la petici\xF3n. Reintenta en unos ${minutesLeft(wait)} minuto(s)`
+        );
+      }
+      await this.sleep(Math.ceil(wait) + 50);
+    }
+  }
+  /**
+   * Deja de enviar peticiones durante el tiempo que ha pedido la forja con la cabecera `Retry-After`.
+   *
+   * @param ms - Milisegundos que hay que esperar
+   */
+  pause(ms) {
+    if (Number.isFinite(ms) && ms > 0) {
+      this.pausedUntil = Math.max(this.pausedUntil, this.now() + ms);
+    }
+  }
+};
+var ForjaAuthGuard = class {
+  now;
+  /** Instantes de los 401 recibidos en la ventana, de cualquier token de este servidor. */
+  failures = [];
+  /** Instante hasta el que se considera bloqueada la IP. */
+  blockedUntil = 0;
+  /** Tokens (por su identificador) que la forja ha aceptado. */
+  validTokens = /* @__PURE__ */ new Set();
+  /** Si se ha cambiado un token y se permite probarlo aunque se haya llegado al corte. */
+  retryAllowed = false;
+  /**
+   * @param options - Reloj (opcional; sirve para las pruebas)
+   */
+  constructor(options = {}) {
+    this.now = options.now ?? (() => Date.now());
+  }
+  /**
+   * Comprueba que se puede enviar otra petición con un token.
+   *
+   * @param tokenId - Identificador del token que se va a usar
+   * @throws ForjaLimitError si la IP está bloqueada o, con un token no comprobado, si hay demasiados rechazos por
+   *   token no válido en la ventana
+   */
+  check(tokenId2) {
+    const now = this.prune();
+    if (this.blockedUntil > now) {
+      throw new ForjaLimitError(
+        `La forja ha bloqueado esta IP tras varias peticiones con un token no v\xE1lido y la desbloquea en unos ${minutesLeft(this.blockedUntil - now)} minuto(s); no se env\xEDan peticiones hasta entonces`
+      );
+    }
+    if (this.validTokens.has(tokenId2)) {
+      return;
+    }
+    const stop = this.retryAllowed ? AUTH_FAILURES_AFTER_RETRY : AUTH_FAILURES_BEFORE_STOP;
+    if (this.failures.length >= stop) {
+      const wait = this.failures[this.failures.length - stop] + INCIDENT_WINDOW_MS - now;
+      throw new ForjaLimitError(
+        `La forja ha rechazado el token ${this.failures.length} veces en los \xFAltimos ${FORJA_IP_BLOCK_MINUTES} minutos y no se env\xEDan m\xE1s peticiones: con ${FORJA_INVALID_TOKEN_LIMIT} intentos fallidos en ${FORJA_IP_BLOCK_MINUTES} minutos bloquea la IP. Corrige el token con forja_add_connection (overwrite) o reintenta en unos ${minutesLeft(wait)} minuto(s)`
+      );
+    }
+  }
+  /**
+   * Anota el resultado de una petición. Un 401 suma un intento fallido y, como en la forja, una respuesta
+   * correcta no borra los anteriores. Un 403 con intentos fallidos recientes se toma como el bloqueo de la IP.
+   * Cualquier otra respuesta confirma que el token es válido.
+   *
+   * @param status - Estado HTTP de la respuesta, o undefined si no hubo respuesta
+   * @param tokenId - Identificador del token usado
+   */
+  record(status, tokenId2) {
+    if (status === void 0) {
+      return;
+    }
+    const now = this.prune();
+    this.retryAllowed = false;
+    if (status === 401) {
+      this.failures.push(now);
+      this.validTokens.delete(tokenId2);
+    } else if (status === 403 && this.failures.length > 0 && !this.validTokens.has(tokenId2)) {
+      this.blockedUntil = now + INCIDENT_WINDOW_MS;
+    } else if (status !== 403) {
+      this.validTokens.add(tokenId2);
+    }
+  }
+  /**
+   * Permite probar un token nuevo aunque se haya llegado al corte, siempre que quede margen antes del bloqueo.
+   * Los intentos fallidos anteriores se conservan porque la forja los sigue contando para la IP.
+   */
+  allowRetry() {
+    this.retryAllowed = true;
+  }
+  /**
+   * Quita los intentos fallidos que ya han salido de la ventana.
+   *
+   * @returns Instante actual
+   */
+  prune() {
+    const now = this.now();
+    this.failures = this.failures.filter((stamp) => now - stamp < INCIDENT_WINDOW_MS);
+    return now;
+  }
+};
+
+// src/fs/forja-client.ts
 var ForjaApiError = class extends Error {
   /** Estado HTTP, o undefined si no hubo respuesta (error de red). */
   status;
   /** Código de error que devuelve el servidor en el cuerpo, si lo hay. */
   code;
+  /** Segundos que pide esperar la forja en la cabecera `Retry-After` (429), si los indica. */
+  retryAfter;
   /**
    * @param message - Mensaje legible
    * @param status - Estado HTTP
    * @param code - Código de error del servidor
+   * @param retryAfter - Segundos de la cabecera `Retry-After`
    */
-  constructor(message, status, code) {
+  constructor(message, status, code, retryAfter) {
     super(message);
     this.name = "ForjaApiError";
     this.status = status;
     this.code = code;
+    this.retryAfter = retryAfter;
   }
 };
 var REQUEST_TIMEOUT_MS = 3e5;
 var STATUS_HINTS = {
   401: "revisa el token de autor: se genera en la pesta\xF1a \xABavanzado\xBB de PortalForja y solo se muestra al generarlo",
   402: "no tienes puntos suficientes en la forja para esta operaci\xF3n",
-  403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; tambi\xE9n se responde 403 tras varios intentos fallidos desde la misma IP",
+  403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; tambi\xE9n se responde 403 durante 10 minutos cuando la IP queda bloqueada tras 5 peticiones con un token no v\xE1lido",
   404: "el recurso no existe, o el plugin no es tuyo ni de un equipo en el que est\xE9s aceptado",
-  429: "se ha superado un l\xEDmite de la forja (peticiones, publicaciones o traducciones por d\xEDa o semana); espera antes de reintentar"
+  429: "se ha superado un l\xEDmite de la forja (30 peticiones por minuto o 300 por hora desde tu IP, 20 publicaciones al d\xEDa o 100 a la semana, o las claves de traducci\xF3n nuevas por d\xEDa o semana); espera antes de reintentar"
 };
 function resolveForjaConnection(key) {
   if (key) {
@@ -29716,6 +29899,16 @@ function parseErrorBody(data) {
   }
   return {};
 }
+function parseRetryAfter(value) {
+  const seconds = Number(Array.isArray(value) ? value[0] : value);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : void 0;
+}
+function serverId(config2) {
+  return normalizeBaseUrl(config2.url).toLowerCase();
+}
+function tokenId(config2) {
+  return createHash("sha256").update(String(config2.token ?? "")).digest("hex").slice(0, 16);
+}
 async function fileToBlob(filePath) {
   const info = await stat(filePath).catch(() => null);
   if (!info || !info.isFile()) {
@@ -29730,11 +29923,18 @@ async function fileToBlob(filePath) {
 var ForjaClient = class {
   resolver;
   instances = /* @__PURE__ */ new Map();
+  /** Limitadores por servidor: la forja cuenta las peticiones por IP, no por token. */
+  limiters = /* @__PURE__ */ new Map();
+  /** Guardianes de tokens no válidos por servidor: la forja bloquea la IP, no el token. */
+  authGuards = /* @__PURE__ */ new Map();
+  limiterOptions;
   /**
    * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-ai.json`
+   * @param limiterOptions - Márgenes y reloj del limitador de peticiones (opcional; sirve para las pruebas)
    */
-  constructor(resolver = resolveForjaConnection) {
+  constructor(resolver = resolveForjaConnection, limiterOptions = {}) {
     this.resolver = resolver;
+    this.limiterOptions = limiterOptions;
   }
   /**
    * Devuelve (y cachea) la instancia de axios de una conexión de tipo forja.
@@ -29784,10 +29984,12 @@ var ForjaClient = class {
         }
         const { code, message } = parseErrorBody(error2.response?.data);
         const hint = STATUS_HINTS[status];
+        const retryAfter = status === 429 ? parseRetryAfter(error2.response?.headers?.["retry-after"]) : void 0;
         throw new ForjaApiError(
-          `Forja (${name}, HTTP ${status}${code ? `, ${code}` : ""}): ${message || error2.message}` + (hint ? ` (${hint})` : ""),
+          `Forja (${name}, HTTP ${status}${code ? `, ${code}` : ""}): ${message || error2.message}` + (hint ? ` (${hint})` : "") + (retryAfter !== void 0 ? `; la forja pide esperar ${retryAfter} s` : ""),
           status,
-          code
+          code,
+          retryAfter
         );
       }
     );
@@ -29795,7 +29997,13 @@ var ForjaClient = class {
     return instance;
   }
   /**
-   * Ejecuta una petición y antepone el método y la ruta al mensaje de error.
+   * Ejecuta una petición respetando los límites de la forja (espera si hace falta) y antepone el método y la ruta
+   * al mensaje de error.
+   *
+   * Si la forja responde 429 con `Retry-After`, el limitador del servidor se pausa ese tiempo y, si la espera cabe
+   * en la máxima del limitador, la petición se repite una vez: ese 429 lo da la forja antes de atender la petición,
+   * así que repetirla no duplica nada. Los 429 por límites diarios o semanales no llevan `Retry-After` y no se
+   * repiten.
    *
    * @param method - Método HTTP
    * @param endpoint - Ruta relativa a `/api/3/forja`
@@ -29805,14 +30013,69 @@ var ForjaClient = class {
    */
   async request(method, endpoint, options, connectionKey) {
     try {
-      return await this.getInstance(connectionKey).request({ method, url: endpoint, ...options });
+      const { config: config2 } = this.resolver(connectionKey);
+      const server2 = serverId(config2);
+      const token = tokenId(config2);
+      const guard = this.getAuthGuard(server2);
+      const limiter = this.getLimiter(server2);
+      for (let attempt = 0; ; attempt++) {
+        guard.check(token);
+        await limiter.acquire();
+        let status;
+        try {
+          const response = await this.getInstance(connectionKey).request({ method, url: endpoint, ...options });
+          status = response.status;
+          return response;
+        } catch (error2) {
+          if (error2 instanceof ForjaApiError) {
+            status = error2.status;
+            if (error2.status === 429 && error2.retryAfter !== void 0) {
+              limiter.pause(error2.retryAfter * 1e3);
+              if (attempt === 0 && error2.retryAfter * 1e3 <= limiter.maxWaitMs) {
+                continue;
+              }
+            }
+          }
+          throw error2;
+        } finally {
+          guard.record(status, token);
+        }
+      }
     } catch (error2) {
       const message = `${method.toUpperCase()} ${endpoint}: ${error2 instanceof Error ? error2.message : String(error2)}`;
       if (error2 instanceof ForjaApiError) {
-        throw new ForjaApiError(message, error2.status, error2.code);
+        throw new ForjaApiError(message, error2.status, error2.code, error2.retryAfter);
       }
-      throw new Error(message);
+      throw error2 instanceof ForjaLimitError ? new ForjaLimitError(message) : new Error(message);
     }
+  }
+  /**
+   * Guardián de tokens no válidos de un servidor, compartido por todas sus conexiones.
+   *
+   * @param server - Identificador del servidor
+   * @returns Guardián
+   */
+  getAuthGuard(server2) {
+    let guard = this.authGuards.get(server2);
+    if (!guard) {
+      guard = new ForjaAuthGuard(this.limiterOptions);
+      this.authGuards.set(server2, guard);
+    }
+    return guard;
+  }
+  /**
+   * Limitador de peticiones de un servidor, compartido por todas sus conexiones.
+   *
+   * @param server - Identificador del servidor
+   * @returns Limitador
+   */
+  getLimiter(server2) {
+    let limiter = this.limiters.get(server2);
+    if (!limiter) {
+      limiter = new ForjaRateLimiter(this.limiterOptions);
+      this.limiters.set(server2, limiter);
+    }
+    return limiter;
   }
   /**
    * Petición GET que devuelve JSON. Los parámetros se envían tal cual en la query, sin `filter[]`.
@@ -29862,10 +30125,13 @@ var ForjaClient = class {
     return response.data;
   }
   /**
-   * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión).
+   * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión) y permite probar un token
+   * nuevo aunque se haya llegado al corte por tokens no válidos. Los límites y los intentos fallidos se conservan,
+   * porque la forja los sigue contando para la IP.
    */
   clearCache() {
     this.instances.clear();
+    this.authGuards.forEach((guard) => guard.allowRetry());
   }
 };
 function compact(values) {
@@ -30262,7 +30528,7 @@ async function buildProjectZip(source) {
 }
 
 // src/modules/forja/doc-page.ts
-import { createHash } from "crypto";
+import { createHash as createHash2 } from "crypto";
 import { readFile as readFile3, realpath as realpath2, stat as stat2, writeFile } from "fs/promises";
 import path5 from "path";
 var DOC_SECTIONS = { User: "user", Dev: "dev" };
@@ -30378,7 +30644,7 @@ async function resolveImages(location, refs) {
     if (!IMAGE_EXTENSIONS.includes(path5.extname(file).toLowerCase())) {
       throw new Error(`${ref} no es una imagen (${IMAGE_EXTENSIONS.join(", ")})`);
     }
-    const sha256 = createHash("sha256").update(await readFile3(file)).digest("hex");
+    const sha256 = createHash2("sha256").update(await readFile3(file)).digest("hex");
     images.push({ ref, key: key.split(path5.sep).join("/"), file, sha256 });
   }
   return images;
@@ -30607,12 +30873,14 @@ var VERSION_PATTERN2 = /^[0-9]+(\.[0-9]+)?$/;
 var IMAGE_EXTENSIONS2 = [".gif", ".jpeg", ".jpg", ".png", ".webp"];
 var MARKDOWN_EXTENSIONS = [".markdown", ".md", ".txt"];
 var ZIP_EXTENSIONS = [".zip"];
+var MAX_TRANSLATION_KEYS = 500;
+var TRANSLATION_LANG_POINTS = 10;
 var MAX_BODY_FILE_SIZE = 1024 * 1024;
 var PUBLICATION_PROPERTIES = {
   type: { type: "string", enum: PUBLICATION_TYPES, description: "Tipo: news (noticia), user (documentaci\xF3n de uso) o dev (documentaci\xF3n de programaci\xF3n)" },
   title: { type: "string", description: "T\xEDtulo (m\xE1ximo 200 caracteres)" },
   title_short: { type: "string", description: "T\xEDtulo corto (m\xE1ximo 100; por defecto, el t\xEDtulo recortado)" },
-  body: { type: "string", description: "Cuerpo en Markdown, de al menos 300 caracteres (alternativa a body_file)" },
+  body: { type: "string", description: `Cuerpo en Markdown, de al menos ${MIN_BODY_LENGTH} caracteres (alternativa a body_file)` },
   body_file: { type: "string", description: "Ruta absoluta de un archivo .md, .markdown o .txt con el cuerpo (alternativa a body)" },
   ordernum: { type: "integer", description: "Orden dentro de la documentaci\xF3n" },
   idparent: { type: "integer", description: "Publicaci\xF3n padre, del mismo plugin; 0 la quita. Al crear con padre, se hereda su tipo" },
@@ -30704,7 +30972,7 @@ var forjaTools = [
   },
   {
     name: "forja_upload_translations",
-    description: "Forja: sube traducciones de uno de tus plugins, bien los archivos <plugin_path>/Translation/*.json (todos o solo lang), bien una sola clave con lang, key y value. Sigue las reglas de la web: cada idioma enviado cuesta puntos (no se cobran si nada cambia), hay topes diarios y semanales de claves nuevas y los textos quedan pendientes de revisi\xF3n. Las claves nuevas se crean en todos los idiomas. Las traducciones no se pueden borrar por la API. Devuelve created, updated, unchanged, skipped, points_spent y points",
+    description: `Forja: sube traducciones de uno de tus plugins, bien los archivos <plugin_path>/Translation/*.json (todos o solo lang), bien una sola clave con lang, key y value. Sigue las reglas de la web: cada idioma enviado cuesta ${TRANSLATION_LANG_POINTS} puntos (no se cobran si nada cambia), admite hasta ${MAX_TRANSLATION_KEYS} claves por idioma, hay topes diarios y semanales de claves nuevas y los textos quedan pendientes de revisi\xF3n. Las claves nuevas se crean en todos los idiomas y las que comparten varios plugins no se cambian. Las traducciones no se pueden borrar por la API. Devuelve created, updated, unchanged, skipped, points_spent y points`,
     inputSchema: {
       type: "object",
       properties: {
@@ -30801,7 +31069,7 @@ var forjaTools = [
   },
   {
     name: "forja_create_publication",
-    description: "Forja: crea una publicaci\xF3n (noticia o p\xE1gina de documentaci\xF3n) de uno de tus plugins. Exige el email verificado y tiene los mismos m\xE1ximos diarios y semanales que la web. Para publicar una p\xE1gina de Doc/User o Doc/Dev usa forja_publish_doc_page",
+    description: "Forja: crea una publicaci\xF3n (noticia o p\xE1gina de documentaci\xF3n) de uno de tus plugins. Exige el email verificado y tiene los mismos m\xE1ximos que la web: 20 publicaciones al d\xEDa y 100 a la semana. Para publicar una p\xE1gina de Doc/User o Doc/Dev usa forja_publish_doc_page",
     inputSchema: {
       type: "object",
       properties: { connection: CONNECTION_PROPERTY, plugin: PLUGIN_PROPERTY, ...PUBLICATION_PROPERTIES },
@@ -31128,7 +31396,13 @@ async function uploadTranslations(args, connection) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error(`${filePath} debe contener un objeto {clave: valor}`);
     }
-    if (Object.keys(parsed).length > 0) {
+    const keys = Object.keys(parsed).length;
+    if (keys > MAX_TRANSLATION_KEYS) {
+      throw new Error(
+        `${filePath} tiene ${keys} claves y la forja admite como m\xE1ximo ${MAX_TRANSLATION_KEYS} por idioma en cada subida: s\xFAbelo por partes con lang, key y value o reduce el archivo`
+      );
+    }
+    if (keys > 0) {
       payload[file.slice(0, -5)] = parsed;
     }
   }
@@ -31179,6 +31453,12 @@ async function publicationData(args) {
       throw new Error(`El archivo ${bodyFile} supera 1 MB: no parece el cuerpo de una publicaci\xF3n`);
     }
     data.body = await readFile4(bodyFile, "utf-8");
+  }
+  if (data.body !== void 0) {
+    const length = String(data.body).trim().length;
+    if (length < MIN_BODY_LENGTH) {
+      throw new Error(`El cuerpo tiene ${length} caracteres y la forja exige al menos ${MIN_BODY_LENGTH}`);
+    }
   }
   return data;
 }

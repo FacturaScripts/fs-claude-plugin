@@ -6,15 +6,21 @@
  * los plugins de los que el contacto es autor y a los de los equipos en los que está aceptado.
  * A diferencia de la API REST estándar que usa fs-mcp, envía JSON sin el envoltorio `filter[]` y sube archivos en
  * multipart.
+ *
+ * Respeta por su cuenta los límites de la forja (30 peticiones por minuto y 300 por hora por IP, y bloqueo de la IP
+ * 10 minutos tras 5 peticiones con un token no válido en 10 minutos), los comparte entre las conexiones del mismo
+ * servidor y atiende el `Retry-After` de un 429: ver `forja-limits.ts`.
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, Method } from "axios";
+import { createHash } from "crypto";
 import fs from "fs";
 import { readFile, stat } from "fs/promises";
 import https from "https";
 import path from "path";
 import { connectionManager, normalizeBaseUrl } from "../connection-manager.js";
 import type { ConnectionConfig } from "../types/connections.js";
+import { ForjaAuthGuard, ForjaLimitError, ForjaRateLimiter, ForjaRateLimiterOptions } from "./forja-limits.js";
 
 /**
  * Conexión de tipo forja ya resuelta, con su clave.
@@ -49,17 +55,21 @@ export class ForjaApiError extends Error {
   readonly status: number | undefined;
   /** Código de error que devuelve el servidor en el cuerpo, si lo hay. */
   readonly code: string | undefined;
+  /** Segundos que pide esperar la forja en la cabecera `Retry-After` (429), si los indica. */
+  readonly retryAfter: number | undefined;
 
   /**
    * @param message - Mensaje legible
    * @param status - Estado HTTP
    * @param code - Código de error del servidor
+   * @param retryAfter - Segundos de la cabecera `Retry-After`
    */
-  constructor(message: string, status?: number, code?: string) {
+  constructor(message: string, status?: number, code?: string, retryAfter?: number) {
     super(message);
     this.name = "ForjaApiError";
     this.status = status;
     this.code = code;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -70,9 +80,9 @@ const REQUEST_TIMEOUT_MS = 300_000;
 const STATUS_HINTS: Record<number, string> = {
   401: "revisa el token de autor: se genera en la pestaña «avanzado» de PortalForja y solo se muestra al generarlo",
   402: "no tienes puntos suficientes en la forja para esta operación",
-  403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; también se responde 403 tras varios intentos fallidos desde la misma IP",
+  403: "el personal de facturascripts.com no te ha concedido el acceso a la API de autor, o lo ha retirado; también se responde 403 durante 10 minutos cuando la IP queda bloqueada tras 5 peticiones con un token no válido",
   404: "el recurso no existe, o el plugin no es tuyo ni de un equipo en el que estés aceptado",
-  429: "se ha superado un límite de la forja (peticiones, publicaciones o traducciones por día o semana); espera antes de reintentar",
+  429: "se ha superado un límite de la forja (30 peticiones por minuto o 300 por hora desde tu IP, 20 publicaciones al día o 100 a la semana, o las claves de traducción nuevas por día o semana); espera antes de reintentar",
 };
 
 /**
@@ -139,6 +149,37 @@ function parseErrorBody(data: unknown): { code?: string; message?: string } {
 }
 
 /**
+ * Lee la cabecera `Retry-After` en segundos (no se admite el formato de fecha, que la forja no usa).
+ *
+ * @param value - Valor de la cabecera
+ * @returns Segundos, o undefined si no hay un número válido
+ */
+function parseRetryAfter(value: unknown): number | undefined {
+  const seconds = Number(Array.isArray(value) ? value[0] : value);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+}
+
+/**
+ * Identificador de un servidor de la forja, con el que se comparten los límites, que la forja cuenta por IP.
+ *
+ * @param config - Configuración de la conexión
+ * @returns URL base normalizada en minúsculas
+ */
+function serverId(config: ConnectionConfig): string {
+  return normalizeBaseUrl(config.url).toLowerCase();
+}
+
+/**
+ * Identificador de un token para el guardián de tokens no válidos, sin guardar el token en claro.
+ *
+ * @param config - Configuración de la conexión
+ * @returns Huella corta del token
+ */
+function tokenId(config: ConnectionConfig): string {
+  return createHash("sha256").update(String(config.token ?? "")).digest("hex").slice(0, 16);
+}
+
+/**
  * Crea un Blob a partir de un archivo local. Usa `fs.openAsBlob` (Node ≥ 19.8) para no cargar el archivo en
  * memoria y, en versiones anteriores, lo lee completo.
  *
@@ -163,12 +204,22 @@ async function fileToBlob(filePath: string): Promise<Blob> {
 export class ForjaClient {
   private readonly resolver: ForjaConnectionResolver;
   private readonly instances: Map<string, AxiosInstance> = new Map();
+  /** Limitadores por servidor: la forja cuenta las peticiones por IP, no por token. */
+  private readonly limiters: Map<string, ForjaRateLimiter> = new Map();
+  /** Guardianes de tokens no válidos por servidor: la forja bloquea la IP, no el token. */
+  private readonly authGuards: Map<string, ForjaAuthGuard> = new Map();
+  private readonly limiterOptions: ForjaRateLimiterOptions;
 
   /**
    * @param resolver - Resolución de conexiones; por defecto, `resolveForjaConnection` sobre `~/.fs-ai.json`
+   * @param limiterOptions - Márgenes y reloj del limitador de peticiones (opcional; sirve para las pruebas)
    */
-  constructor(resolver: ForjaConnectionResolver = resolveForjaConnection) {
+  constructor(
+    resolver: ForjaConnectionResolver = resolveForjaConnection,
+    limiterOptions: ForjaRateLimiterOptions = {}
+  ) {
     this.resolver = resolver;
+    this.limiterOptions = limiterOptions;
   }
 
   /**
@@ -229,11 +280,14 @@ export class ForjaClient {
         }
         const { code, message } = parseErrorBody(error.response?.data);
         const hint = STATUS_HINTS[status];
+        const retryAfter = status === 429 ? parseRetryAfter(error.response?.headers?.["retry-after"]) : undefined;
         throw new ForjaApiError(
           `Forja (${name}, HTTP ${status}${code ? `, ${code}` : ""}): ${message || error.message}` +
-            (hint ? ` (${hint})` : ""),
+            (hint ? ` (${hint})` : "") +
+            (retryAfter !== undefined ? `; la forja pide esperar ${retryAfter} s` : ""),
           status,
-          code
+          code,
+          retryAfter
         );
       }
     );
@@ -243,7 +297,13 @@ export class ForjaClient {
   }
 
   /**
-   * Ejecuta una petición y antepone el método y la ruta al mensaje de error.
+   * Ejecuta una petición respetando los límites de la forja (espera si hace falta) y antepone el método y la ruta
+   * al mensaje de error.
+   *
+   * Si la forja responde 429 con `Retry-After`, el limitador del servidor se pausa ese tiempo y, si la espera cabe
+   * en la máxima del limitador, la petición se repite una vez: ese 429 lo da la forja antes de atender la petición,
+   * así que repetirla no duplica nada. Los 429 por límites diarios o semanales no llevan `Retry-After` y no se
+   * repiten.
    *
    * @param method - Método HTTP
    * @param endpoint - Ruta relativa a `/api/3/forja`
@@ -258,14 +318,73 @@ export class ForjaClient {
     connectionKey?: string
   ) {
     try {
-      return await this.getInstance(connectionKey).request<T>({ method, url: endpoint, ...options });
+      const { config } = this.resolver(connectionKey);
+      const server = serverId(config);
+      const token = tokenId(config);
+      const guard = this.getAuthGuard(server);
+      const limiter = this.getLimiter(server);
+
+      for (let attempt = 0; ; attempt++) {
+        guard.check(token);
+        await limiter.acquire();
+
+        let status: number | undefined;
+        try {
+          const response = await this.getInstance(connectionKey).request<T>({ method, url: endpoint, ...options });
+          status = response.status;
+          return response;
+        } catch (error) {
+          if (error instanceof ForjaApiError) {
+            status = error.status;
+            if (error.status === 429 && error.retryAfter !== undefined) {
+              limiter.pause(error.retryAfter * 1000);
+              if (attempt === 0 && error.retryAfter * 1000 <= limiter.maxWaitMs) {
+                continue;
+              }
+            }
+          }
+          throw error;
+        } finally {
+          guard.record(status, token);
+        }
+      }
     } catch (error) {
       const message = `${method.toUpperCase()} ${endpoint}: ${error instanceof Error ? error.message : String(error)}`;
       if (error instanceof ForjaApiError) {
-        throw new ForjaApiError(message, error.status, error.code);
+        throw new ForjaApiError(message, error.status, error.code, error.retryAfter);
       }
-      throw new Error(message);
+      throw error instanceof ForjaLimitError ? new ForjaLimitError(message) : new Error(message);
     }
+  }
+
+  /**
+   * Guardián de tokens no válidos de un servidor, compartido por todas sus conexiones.
+   *
+   * @param server - Identificador del servidor
+   * @returns Guardián
+   */
+  private getAuthGuard(server: string): ForjaAuthGuard {
+    let guard = this.authGuards.get(server);
+    if (!guard) {
+      guard = new ForjaAuthGuard(this.limiterOptions);
+      this.authGuards.set(server, guard);
+    }
+    return guard;
+  }
+
+  /**
+   * Limitador de peticiones de un servidor, compartido por todas sus conexiones.
+   *
+   * @param server - Identificador del servidor
+   * @returns Limitador
+   */
+  private getLimiter(server: string): ForjaRateLimiter {
+    let limiter = this.limiters.get(server);
+    if (!limiter) {
+      limiter = new ForjaRateLimiter(this.limiterOptions);
+      this.limiters.set(server, limiter);
+    }
+    return limiter;
   }
 
   /**
@@ -335,10 +454,13 @@ export class ForjaClient {
   }
 
   /**
-   * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión).
+   * Limpia el caché de instancias de axios (por ejemplo, tras modificar una conexión) y permite probar un token
+   * nuevo aunque se haya llegado al corte por tokens no válidos. Los límites y los intentos fallidos se conservan,
+   * porque la forja los sigue contando para la IP.
    */
   clearCache(): void {
     this.instances.clear();
+    this.authGuards.forEach((guard) => guard.allowRetry());
   }
 }
 
