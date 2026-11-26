@@ -9,18 +9,24 @@
  *   2. Declara sus modelos con `ResourceDef` (shared/resource.ts) y sus
  *      informes, y exporta un `OfficialPlugin` desde su index.ts.
  *   3. Añádelo a la lista OFFICIAL_PLUGINS de este archivo.
+ *
+ * Los plugins de modelos fiscales (Modelo111, 115, 130, 303, 347, 349 y 369) no
+ * tienen modelos propios que exponer: aportan una tool por cada modelo que
+ * declaran (también los anuales 190, 180 y 390), que lee su endpoint
+ * `/api/3/modeloNNN` (ver `modelos-fiscales/index.ts`).
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { registerToolModel } from '../metadata/enrich.js';
 import { registerModelMetadata } from '../metadata/registry.js';
 import { crmPlugin } from './crm/index.js';
+import { modelosFiscalesPlugins } from './modelos-fiscales/index.js';
 import { proyectosPlugin } from './proyectos/index.js';
 import { serviciosPlugin } from './servicios/index.js';
 import type { OfficialPlugin, ToolArgs, ToolResult } from './types.js';
 
 /** Plugins oficiales incluidos en fs-mcp. */
-export const OFFICIAL_PLUGINS: OfficialPlugin[] = [serviciosPlugin, proyectosPlugin, crmPlugin];
+export const OFFICIAL_PLUGINS: OfficialPlugin[] = [serviciosPlugin, proyectosPlugin, crmPlugin, ...modelosFiscalesPlugins];
 
 /**
  * Registra la metadata y las tools de todos los plugins oficiales. Hay que

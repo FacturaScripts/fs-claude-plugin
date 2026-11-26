@@ -298,6 +298,26 @@ Los contactos son del core (`get_contactos`, `create_contacto`, `update_contacto
 
 Las campañas se preparan en borrador: se añaden los destinatarios con `anadir_lista_campana_crm`, se comprueba el email con `enviar_prueba_campana_crm` y se ponen a enviar con `set_estado_campana_crm`; el envío lo hace el cron del plugin por lotes, dentro de las horas y los días de la campaña. Cada destinatario necesita una cuenta de correo de salida: si no se indica, se usa la primera disponible. `anadir_lista_campana_crm` y `enviar_prueba_campana_crm` usan endpoints del plugin CRM 3.6 o posterior.
 
+### Modelos fiscales
+
+Cada modelo fiscal de la Hacienda española tiene en su plugin un endpoint de solo lectura (`GET /api/3/modeloNNN`, también los anuales `/modelo190`, `/modelo180` y `/modelo390`) que lo calcula con la misma clase que su pantalla. fs-mcp solo lee: no genera asientos, no guarda regularizaciones ni descarga los ficheros de la AEAT.
+
+| Modelo | Herramienta | Plugin |
+|---|---|---|
+| 111: retenciones del trabajo y de actividades económicas (trimestral) | `get_modelo_111` | Modelo111 2.52 |
+| 190: resumen anual del 111, con el detalle por perceptor y la validación del fichero | `get_modelo_190` | Modelo111 2.52 |
+| 115: retenciones de alquileres (trimestral) | `get_modelo_115` | Modelo115 1.8 |
+| 180: resumen anual del 115, con el detalle por arrendador e inmueble | `get_modelo_180` | Modelo115 1.8 |
+| 130: pago fraccionado del IRPF, acumulado desde enero | `get_modelo_130` | Modelo130 5.1 |
+| 303: IVA (trimestral o mensual) | `get_modelo_303` | Modelo303 3.52 |
+| 390: resumen anual del IVA, con sus casillas propias y los periodos liquidados del año | `get_modelo_390` | Modelo303 3.52 |
+| 347: operaciones con terceros (anual) | `get_modelo_347` | Modelo347 3.62 |
+| 349: operaciones intracomunitarias | `get_modelo_349` | Modelo349 1.3 |
+| 369: IVA de ventanilla única (OSS/IOSS) | `get_modelo_369` | Modelo369 1.2 |
+| Resultado y avisos de todos los modelos de un trimestre (o de los anuales) | `get_resumen_modelos_fiscales` | Los que haya instalados |
+
+Todas aceptan la empresa y el año (`idempresa` + `anio`) o el `codejercicio`, el `periodo` (`T1`-`T4` u `01`-`12` según el modelo; en los anuales, 190, 180, 390 y 347, es opcional y solo admite `ANUAL`) y `detalle: true` para incluir las listas de facturas o partidas. Devuelven las casillas que calcula el plugin, un resumen con nombres, el resultado y los avisos (facturas sin asiento, configuración contable dudosa...). Los informativos (190, 180, 347 y 349) devuelven `resultado: null`; el del 390 es su casilla 86. El resumen anual no suma un total a ingresar, porque lo ingresado está en los modelos trimestrales. Si la instalación tiene una versión del plugin sin el endpoint, el error indica la versión necesaria.
+
 ### Estructura y cómo añadir otro plugin oficial
 
 Cada plugin vive en `server/src/plugins/<plugin>/`, separado de los módulos del core:

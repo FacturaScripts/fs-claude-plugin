@@ -77682,6 +77682,313 @@ var crmPlugin = {
   }
 };
 
+// src/plugins/modelos-fiscales/index.ts
+var QUARTERS = ["T1", "T2", "T3", "T4"];
+var MONTHS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+var COMPANY_TEXT = "Indica la empresa y el a\xF1o (idempresa + anio) o directamente el codejercicio; sin nada usa la empresa predeterminada y el a\xF1o actual.";
+var READ_ONLY_TEXT = "Solo lee: calcula con la misma clase que la pantalla del plugin, sin generar asientos ni guardar nada.";
+var MODELOS = [
+  {
+    numero: "111",
+    plugin: "Modelo111",
+    version: "2.52",
+    description: "Modelo 111 (retenciones e ingresos a cuenta del trabajo y de actividades econ\xF3micas) de un trimestre: casillas oficiales 01-03 (trabajo), 07-09 (actividades econ\xF3micas) y 28-30 (total, ingresado antes y resultado). Las retenciones salen de las partidas contables de la cuenta de retenciones practicadas (4751), sin las de alquileres (modelo 115). El resumen anual es get_modelo_190.",
+    periodos: QUARTERS,
+    props: {
+      ingresos_anteriores: {
+        type: "number",
+        description: "Importe ya ingresado en autoliquidaciones anteriores del mismo periodo (casilla 29, en una complementaria): se resta del total a ingresar (por defecto 0)"
+      }
+    }
+  },
+  {
+    numero: "190",
+    plugin: "Modelo111",
+    version: "2.52",
+    description: "Modelo 190 (resumen anual de retenciones e ingresos a cuenta del trabajo y de actividades econ\xF3micas) de un ejercicio: detalle por perceptor (NIF, nombre, provincia, clave y subclave, percepci\xF3n y retenci\xF3n), casillas 01-03 del resumen y los errores que impiden generar el fichero (NIF que falta, importes negativos...). Es informativo: no tiene resultado a ingresar (lo ingresado est\xE1 en los modelos 111).",
+    periodos: ["ANUAL"],
+    periodoOpcional: true,
+    props: {}
+  },
+  {
+    numero: "115",
+    plugin: "Modelo115",
+    version: "1.8",
+    description: "Modelo 115 (retenciones de alquileres de inmuebles urbanos) de un trimestre: arrendadores, base, retenciones y resultado (casillas 01-05). Parte de las facturas de proveedor con retenci\xF3n de alquileres. El resumen anual es get_modelo_180.",
+    periodos: QUARTERS,
+    props: {
+      codretencion: { type: "string", description: "Solo las facturas con esta retenci\xF3n (por defecto todas)" },
+      a_deducir: {
+        type: "number",
+        description: "Importe a deducir de una declaraci\xF3n anterior del mismo periodo (complementaria)"
+      }
+    }
+  },
+  {
+    numero: "180",
+    plugin: "Modelo115",
+    version: "1.8",
+    description: "Modelo 180 (resumen anual de retenciones de alquileres de inmuebles urbanos) de un ejercicio: desglose por arrendador e inmueble (referencia catastral y situaci\xF3n), los mismos registros del fichero, con las casillas 01-03 del resumen; avisa de los arrendadores sin inmueble o sin NIF. Es informativo: no tiene resultado a ingresar (lo ingresado est\xE1 en los modelos 115).",
+    periodos: ["ANUAL"],
+    periodoOpcional: true,
+    props: {
+      codretencion: { type: "string", description: "Solo las facturas con esta retenci\xF3n (por defecto todas)" }
+    }
+  },
+  {
+    numero: "130",
+    plugin: "Modelo130",
+    version: "5.1",
+    description: "Modelo 130 (pago fraccionado del IRPF en estimaci\xF3n directa) de un trimestre. Es acumulativo: del 1 de enero al final del trimestre. Devuelve las casillas 01 a 19 (ingresos, gastos, rendimiento neto, 20 %, retenciones, pagos de trimestres anteriores y resultado) a partir de las partidas contables de las cuentas de ingresos y gastos configuradas en el plugin.",
+    periodos: QUARTERS,
+    props: {
+      gastos_dificil_justificacion: {
+        type: "boolean",
+        description: "Aplicar la deducci\xF3n de gastos de dif\xEDcil justificaci\xF3n (por defecto false)"
+      },
+      porcentaje_gastos_dificil: {
+        type: "number",
+        description: "Porcentaje de gastos de dif\xEDcil justificaci\xF3n (por defecto 5; m\xE1ximo 2.000 \u20AC al a\xF1o)"
+      },
+      porcentaje: { type: "number", description: "Porcentaje del pago fraccionado (casilla 04, por defecto 20)" }
+    }
+  },
+  {
+    numero: "303",
+    plugin: "Modelo303",
+    version: "3.52",
+    description: "Modelo 303 (autoliquidaci\xF3n de IVA) de un trimestre o mes: todas las casillas que calcula el plugin (IVA devengado, deducible, resultado del r\xE9gimen general y resultado final, casilla 71). Parte de las partidas de IVA de la contabilidad y usa la regularizaci\xF3n guardada del periodo (con sus casillas manuales: compensaciones, complementarias...); si no hay, hace un c\xE1lculo provisional sin guardarla. Es la cifra que se declara; get_impuestos_periodo, en cambio, es una orientaci\xF3n desde las facturas. El resumen anual es get_modelo_390.",
+    periodos: [...QUARTERS, ...MONTHS],
+    props: {}
+  },
+  {
+    numero: "390",
+    plugin: "Modelo303",
+    version: "3.52",
+    description: "Modelo 390 (declaraci\xF3n-resumen anual de IVA) de un ejercicio: sus casillas oficiales (operaciones del a\xF1o, deducciones, volumen de operaciones y resultado de las liquidaciones: 86, 95, 97, 98...), los datos de presentaci\xF3n de la regularizaci\xF3n anual, la lista de periodos liquidados del a\xF1o y un aviso si faltan regularizaciones o el resultado anual no cuadra con lo liquidado. resultado es la casilla 86, informativa: lo ingresado o devuelto est\xE1 en los modelos 303 del a\xF1o. Si no hay regularizaci\xF3n anual guardada, hace un c\xE1lculo provisional sin guardarla.",
+    periodos: ["ANUAL"],
+    periodoOpcional: true,
+    props: {}
+  },
+  {
+    numero: "347",
+    plugin: "Modelo347",
+    version: "3.62",
+    description: "Modelo 347 (declaraci\xF3n anual de operaciones con terceros) de un ejercicio: clientes y proveedores que superan el importe (3.005,06 \u20AC por defecto) con su total anual y por trimestre, desde las facturas o desde la contabilidad. Es informativo: no tiene resultado a ingresar.",
+    periodos: ["ANUAL"],
+    periodoOpcional: true,
+    props: {
+      importe: { type: "number", description: "Importe m\xEDnimo anual por tercero (por defecto 3005.06)" },
+      origen: {
+        type: "string",
+        enum: ["facturas", "contabilidad"],
+        description: "Calcular desde las facturas o desde las partidas contables (por defecto facturas)"
+      },
+      agrupar: {
+        type: "string",
+        enum: ["tercero", "cifnif"],
+        description: "Agrupar por cliente/proveedor o por CIF/NIF (por defecto tercero)"
+      },
+      excluir_irpf: { type: "boolean", description: "Excluir las facturas con retenci\xF3n de IRPF" }
+    }
+  },
+  {
+    numero: "349",
+    plugin: "Modelo349",
+    version: "1.3",
+    description: "Modelo 349 (operaciones intracomunitarias) de un trimestre o mes: operadores de la UE con su clave (E entregas, S servicios prestados, A adquisiciones, I servicios adquiridos) y base, desde las facturas intracomunitarias ya emitidas. Es informativo: no tiene resultado a ingresar.",
+    periodos: [...QUARTERS, ...MONTHS],
+    props: {
+      codserie: { type: "string", description: "Solo las facturas de esta serie (por defecto todas)" }
+    }
+  },
+  {
+    numero: "369",
+    plugin: "Modelo369",
+    version: "1.2",
+    description: "Modelo 369 (IVA de ventanilla \xFAnica OSS/IOSS) de un trimestre o mes: ventas a clientes de otros pa\xEDses de la UE con IVA, por pa\xEDs, tipo de IVA y bienes o servicios, y la cuota total a ingresar.",
+    periodos: [...QUARTERS, ...MONTHS],
+    props: {
+      regimen: {
+        type: "string",
+        enum: ["oss", "external-oss", "ioss"],
+        description: "R\xE9gimen: oss y external-oss se declaran por trimestres, ioss por meses (por defecto oss)"
+      }
+    }
+  }
+];
+function periodDescription(def) {
+  if (def.periodoOpcional) return "Periodo (solo ANUAL, el valor por defecto)";
+  return def.periodos.includes("01") ? "Periodo: T1-T4 trimestres o 01-12 meses" : "Periodo: T1-T4 trimestres";
+}
+function commonProps(def) {
+  return {
+    connection: CONNECTION_PROPERTY,
+    idempresa: { type: "number", description: "Empresa (por defecto la predeterminada)" },
+    anio: { type: "number", description: "A\xF1o natural del ejercicio (por defecto el actual)" },
+    codejercicio: { type: "string", description: "C\xF3digo del ejercicio; si se indica, manda sobre idempresa y anio" },
+    periodo: {
+      type: "string",
+      enum: [...def.periodos],
+      description: periodDescription(def)
+    },
+    detalle: {
+      type: "boolean",
+      description: "Incluir las listas de detalle (facturas, partidas...) adem\xE1s de totales y casillas"
+    }
+  };
+}
+function buildTool(def) {
+  return {
+    name: `get_modelo_${def.numero}`,
+    description: `${def.description} ${COMPANY_TEXT} ${READ_ONLY_TEXT} Requiere el plugin ${def.plugin} ${def.version} o posterior.`,
+    inputSchema: {
+      type: "object",
+      properties: { ...commonProps(def), ...def.props },
+      required: def.periodoOpcional ? [] : ["periodo"]
+    }
+  };
+}
+function normalizePeriod(value) {
+  const text = String(value ?? "").trim().toUpperCase();
+  if (/^[1-4]T$/.test(text)) return `T${text[0]}`;
+  if (/^T[1-4]$/.test(text)) return text;
+  if (/^(0?[1-9]|1[0-2])$/.test(text)) return text.padStart(2, "0");
+  if (["ANUAL", "ANNUAL", "Y", "A", "0A", "A\xD1O", "ANO"].includes(text)) return "ANUAL";
+  return text;
+}
+function buildModeloPath(def, args) {
+  const query = new URLSearchParams();
+  const periodo = args.periodo === void 0 || args.periodo === "" ? "" : normalizePeriod(args.periodo);
+  if (periodo === "" && !def.periodoOpcional) {
+    return { error: `Indica el periodo: ${def.periodos.join(", ")}.` };
+  }
+  if (periodo !== "" && !def.periodos.includes(periodo)) {
+    return { error: `Periodo \xAB${String(args.periodo)}\xBB no v\xE1lido para el modelo ${def.numero}. Usa ${def.periodos.join(", ")}.` };
+  }
+  if (periodo !== "") query.set("periodo", periodo);
+  for (const key of ["idempresa", "anio", "codejercicio", ...Object.keys(def.props)]) {
+    const value = args[key];
+    if (value === void 0 || value === null || value === "") continue;
+    query.set(key, typeof value === "boolean" ? value ? "1" : "0" : String(value));
+  }
+  if (isTrue(args.detalle)) query.set("detalle", "1");
+  const text = query.toString();
+  return `/modelo${def.numero}${text === "" ? "" : `?${text}`}`;
+}
+function modeloError(def, error2) {
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  if (isMissingResource(message)) {
+    return `${message}
+La instalaci\xF3n no expone /api/3/modelo${def.numero}: el plugin ${def.plugin} no est\xE1 activo o es anterior a la versi\xF3n ${def.version}, la primera con este endpoint. Actual\xEDzalo para consultar el modelo.`;
+  }
+  if (message.includes("HTTP 403")) {
+    return `${message}
+La clave de API de esta conexi\xF3n no tiene permiso para el recurso modelo${def.numero} del plugin ${def.plugin}: hay que darle acceso desde la configuraci\xF3n de la API de FacturaScripts.`;
+  }
+  return message;
+}
+async function getModelo(def, args) {
+  const path4 = buildModeloPath(def, args);
+  if (typeof path4 !== "string") return fail(`get_modelo_${def.numero}: ${path4.error}`);
+  try {
+    const data = await fsClient.get(path4, void 0, connectionOf(args));
+    return ok(data);
+  } catch (error2) {
+    return fail(`Error en get_modelo_${def.numero}: ${modeloError(def, error2)}`);
+  }
+}
+var QUARTERLY_SUMMARY = ["303", "111", "115", "130", "349", "369"];
+var ANNUAL_SUMMARY = ["390", "190", "180", "347"];
+var RESUMEN_TOOL = {
+  name: "get_resumen_modelos_fiscales",
+  description: `Resumen de los modelos trimestrales de una empresa para un trimestre (303, 111, 115, 130, 349 y 369, con el total a ingresar; con periodo ANUAL, los anuales 390, 190, 180 y 347, sin total porque lo ingresado est\xE1 en los trimestrales): el resultado y los avisos de cada uno, y cu\xE1les no se han podido calcular porque su plugin no est\xE1 instalado o es antiguo. Para las casillas y el detalle de un modelo usa su tool get_modelo_NNN. ${COMPANY_TEXT} ${READ_ONLY_TEXT}`,
+  inputSchema: {
+    type: "object",
+    properties: {
+      connection: CONNECTION_PROPERTY,
+      idempresa: { type: "number", description: "Empresa (por defecto la predeterminada)" },
+      anio: { type: "number", description: "A\xF1o natural del ejercicio (por defecto el actual)" },
+      codejercicio: { type: "string", description: "C\xF3digo del ejercicio; si se indica, manda sobre idempresa y anio" },
+      periodo: { type: "string", enum: [...QUARTERS, "ANUAL"], description: "Trimestre T1-T4 o ANUAL" }
+    },
+    required: ["periodo"]
+  }
+};
+async function getResumen(args) {
+  const periodo = normalizePeriod(args.periodo);
+  if (![...QUARTERS, "ANUAL"].includes(periodo)) {
+    return fail("get_resumen_modelos_fiscales: periodo no v\xE1lido. Usa T1, T2, T3, T4 o ANUAL.");
+  }
+  const annual = periodo === "ANUAL";
+  const numeros = annual ? ANNUAL_SUMMARY : QUARTERLY_SUMMARY;
+  const base = { idempresa: args.idempresa, anio: args.anio, codejercicio: args.codejercicio, periodo };
+  const modelos = [];
+  let totalIngresar = 0;
+  for (const numero of numeros) {
+    const def = MODELOS.find((item) => item.numero === numero);
+    if (!def) continue;
+    const path4 = buildModeloPath(def, base);
+    if (typeof path4 !== "string") continue;
+    try {
+      const data = await fsClient.get(path4, void 0, connectionOf(args));
+      const resultado = data.resultado === null || data.resultado === void 0 ? null : round2(num2(data.resultado));
+      if (!annual && resultado !== null && resultado > 0) totalIngresar += resultado;
+      modelos.push({
+        modelo: typeof data.modelo === "string" ? data.modelo : numero,
+        plugin: def.plugin,
+        resultado,
+        resumen: data.resumen ?? null,
+        avisos: Array.isArray(data.avisos) ? data.avisos : [],
+        empresa: data.empresa ?? null,
+        ejercicio: data.ejercicio ?? null
+      });
+    } catch (error2) {
+      modelos.push({ modelo: numero, plugin: def.plugin, error: modeloError(def, error2) });
+    }
+  }
+  if (annual) {
+    return ok({
+      periodo,
+      modelos,
+      total_a_ingresar: null,
+      nota: "Los modelos anuales son declaraciones resumen: lo ingresado est\xE1 en los modelos trimestrales del a\xF1o (303, 111 y 115), as\xED que no se suma ning\xFAn total a ingresar. El 190, el 180 y el 347 son informativos (resultado null); el resultado del 390 es su casilla 86, el resultado de la liquidaci\xF3n anual."
+    });
+  }
+  return ok({
+    periodo,
+    modelos,
+    total_a_ingresar: round2(totalIngresar),
+    nota: "total_a_ingresar suma los resultados positivos de los modelos con resultado; los informativos (347, 349) no tienen. Un resultado negativo es a devolver o compensar seg\xFAn el modelo."
+  });
+}
+function buildPlugin(plugin, defs, extra = []) {
+  const modelTools = new Map(defs.map((def) => [buildTool(def), def]));
+  const tools5 = [...modelTools.keys(), ...extra];
+  return {
+    name: plugin,
+    description: `Modelos ${defs.map((def) => def.numero).join(" y ")} por sus endpoints de solo lectura`,
+    models: [],
+    tools: tools5,
+    toolModels: {},
+    async handleTool(name, args) {
+      for (const [tool, def] of modelTools) {
+        if (name === tool.name) return getModelo(def, args);
+      }
+      if (name === RESUMEN_TOOL.name && extra.includes(RESUMEN_TOOL)) return getResumen(args);
+      return null;
+    }
+  };
+}
+var PLUGIN_NAMES = [...new Set(MODELOS.map((def) => def.plugin))];
+var modelosFiscalesPlugins = PLUGIN_NAMES.map(
+  (plugin, index) => buildPlugin(
+    plugin,
+    MODELOS.filter((def) => def.plugin === plugin),
+    index === 0 ? [RESUMEN_TOOL] : []
+  )
+);
+
 // src/plugins/proyectos/metadata/models/estado_proyecto.ts
 var estadoProyectoMetadata = {
   "name": "estado_proyecto",
@@ -84218,7 +84525,7 @@ var serviciosPlugin = {
 };
 
 // src/plugins/index.ts
-var OFFICIAL_PLUGINS = [serviciosPlugin, proyectosPlugin, crmPlugin];
+var OFFICIAL_PLUGINS = [serviciosPlugin, proyectosPlugin, crmPlugin, ...modelosFiscalesPlugins];
 function registerOfficialPluginTools(tools5) {
   let count = 0;
   for (const plugin of OFFICIAL_PLUGINS) {
