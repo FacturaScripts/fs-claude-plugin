@@ -52,6 +52,8 @@ Este repositorio distribuye los plugins `fs-dev`, `fs-user`, `fs-mcp` y `fs-forj
   - Codex: `apply_patch`, con el parche en `tool_input.command`.
 - Mantén una única entrada secuencial para transformaciones que puedan escribir sobre el mismo archivo. No configures handlers concurrentes para copyright y ordenación.
 - El hook canónico de edición es `fs-dev/scripts/post-edit.py`: primero actualiza copyright y después ordena la clase PHP.
+- Los hooks deben funcionar en Linux, macOS y Windows. Escríbelos en Python 3 (nunca en bash) y decláralos con `command` (`sh "${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh" "${CLAUDE_PLUGIN_ROOT}/scripts/<script>.py"`, que usan Claude Code en los tres sistemas y Codex en Linux y macOS) y `commandWindows` (`py -3 "${CLAUDE_PLUGIN_ROOT}\scripts\<script>.py" || python "${CLAUDE_PLUGIN_ROOT}\scripts\<script>.py"`, que Codex ejecuta con `cmd.exe` en Windows). `run-python.sh` se duplica en `fs-dev` y `fs-user` porque cada plugin se instala por separado.
+- Los scripts deben leer y escribir en UTF-8 de forma explícita (también stdin, stdout y la salida de los subprocesos), mostrar las rutas relativas con `/` y no depender de `fcntl`, `posix_spawn`, permisos POSIX ni enlaces simbólicos sin una alternativa para Windows. En las pruebas, aísla `HOME` y también `USERPROFILE`, que es el que usan `Path.home()` y `os.homedir()` en Windows.
 - Conserva `SessionStart` en ambos plugins como único punto de detección de contexto. No uses `CwdChanged` para inyectar contexto: Claude Code solo lo ejecuta para efectos secundarios y no añade su salida al contexto del modelo, y Codex no tiene ese evento. Tras cambiar el directorio de trabajo, el usuario debe abrir una sesión nueva en Claude Code o un hilo nuevo en Codex.
 - En hooks compartidos usa `${CLAUDE_PLUGIN_ROOT}`, que ambos hosts proporcionan por compatibilidad. En servidores MCP conserva el lanzador portable: Claude Code exporta `CLAUDE_PLUGIN_ROOT` al subproceso y Codex resuelve `cwd: "."` respecto a la raíz instalada del plugin. Cita siempre las rutas usadas en comandos shell para soportar directorios con espacios.
 - Los hooks de Codex requieren revisión del usuario mediante `/hooks`, y una modificación de `hooks.json` invalida la confianza anterior.
@@ -88,8 +90,8 @@ Ejecuta las comprobaciones relevantes al alcance del cambio:
 
 ```bash
 python3 -m unittest discover -s fs-dev/tests
-python3 -m py_compile fs-dev/scripts/*.py fs-dev/tests/*.py
-bash -n fs-dev/scripts/*.sh fs-user/scripts/*.sh
+python3 -m py_compile fs-dev/scripts/*.py fs-user/scripts/*.py fs-dev/tests/*.py
+sh -n fs-dev/scripts/*.sh fs-user/scripts/*.sh
 jq empty .claude-plugin/marketplace.json \
   fs-dev/.claude-plugin/plugin.json fs-user/.claude-plugin/plugin.json \
   fs-mcp/.claude-plugin/plugin.json fs-forja/.claude-plugin/plugin.json \
@@ -104,6 +106,7 @@ npm test --prefix fs-forja/server
 git diff --check
 ```
 
+- En Windows, usa `py -3` (o `python`) en lugar de `python3`, que suele ser el alias de la Microsoft Store. Algunas pruebas se omiten allí con su motivo (permisos POSIX, enlaces simbólicos sin modo de desarrollador y archivos de prueba que bloquea el antivirus).
 - Ejecuta solamente las comprobaciones aplicables; por ejemplo, no recompiles `fs-mcp` ni `fs-forja` si no ha cambiado su fuente o artefactos.
 - Si una herramienta de validación no está disponible, no instales dependencias globales sin autorización. Usa una alternativa local segura e informa de la limitación.
 - Tras modificar el empaquetado, verifica los inventarios instalados: Claude Code debe descubrir sus agentes nativos y Codex debe descubrir las skills y el MCP.

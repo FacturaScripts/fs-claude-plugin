@@ -7,8 +7,10 @@
  * (por ejemplo, el texto de una nota) o una ruta equivocada no acaben subiendo
  * credenciales, solo se aceptan archivos normales y visibles: se resuelven los
  * enlaces simbólicos y se rechazan los archivos y carpetas ocultos, la
- * configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones,
- * y las extensiones típicas de claves y certificados.
+ * configuración de fs-mcp, las carpetas del sistema y de datos de aplicaciones
+ * (también las de Windows) y las extensiones típicas de claves y certificados.
+ * La carpeta temporal del sistema se acepta aunque en Windows esté dentro de
+ * `AppData`, igual que en Linux y macOS.
  */
 
 import { realpath, stat } from 'node:fs/promises';
@@ -19,8 +21,14 @@ import { CONFIG_FILE_NAME, LEGACY_CONFIG_FILE_NAME } from '../../utils/configPat
 /** Tamaño máximo por defecto de un archivo subido (25 MB). */
 export const DEFAULT_MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-/** Carpetas del sistema desde las que nunca se sube nada. */
+/** Carpetas del sistema desde las que nunca se sube nada (Linux y macOS). */
 const SYSTEM_DIRS = ['/etc', '/private/etc', '/proc', '/sys', '/dev', '/root'];
+
+/**
+ * Variables de entorno con las carpetas del sistema de Windows desde las que
+ * nunca se sube nada: la del propio Windows y la de datos de programas.
+ */
+const WINDOWS_SYSTEM_DIR_VARS = ['SystemRoot', 'windir', 'ProgramData'];
 
 /** Carpetas del usuario (relativas a su home) con credenciales o datos de aplicaciones. */
 const HOME_DIRS = [
@@ -57,6 +65,20 @@ export interface UploadOptions {
     home?: string;
     /** Tamaño máximo en bytes; por defecto, 25 MB. */
     maxBytes?: number;
+    /** Carpeta temporal del sistema; por defecto, `os.tmpdir()`. */
+    tempDir?: string;
+}
+
+/**
+ * Carpetas del sistema desde las que nunca se sube nada en la plataforma actual.
+ * En Windows se añaden las de las variables de WINDOWS_SYSTEM_DIR_VARS que existan.
+ */
+function systemDirs(): string[] {
+    if (process.platform !== 'win32') return SYSTEM_DIRS;
+    const windowsDirs = WINDOWS_SYSTEM_DIR_VARS
+        .map((name) => process.env[name])
+        .filter((value): value is string => typeof value === 'string' && path.isAbsolute(value));
+    return [...SYSTEM_DIRS, ...windowsDirs];
 }
 
 /**
@@ -107,11 +129,16 @@ function connectionsFileFromEnv(): string | null {
 /**
  * Devuelve el motivo por el que una ruta no se puede subir, o null si se puede.
  *
+ * La carpeta temporal del sistema no cuenta como carpeta de datos de
+ * aplicaciones aunque esté dentro de una: en Windows es `AppData\Local\Temp`,
+ * y en Linux y macOS queda fuera del home, donde ya se acepta.
+ *
  * @param target ruta que se comprueba (la indicada o la real).
  * @param home directorio home del usuario.
  * @param protectedFiles archivos de configuración de fs-mcp, con sus rutas reales.
+ * @param tempDirs carpeta temporal del sistema, tal cual y con su ruta real.
  */
-function blockedReason(target: string, home: string, protectedFiles: string[]): string | null {
+function blockedReason(target: string, home: string, protectedFiles: string[], tempDirs: string[]): string | null {
     if (protectedFiles.some((file) => comparable(file) === comparable(target))) {
         return 'es el archivo de configuración de fs-mcp, que contiene los tokens de las conexiones';
     }
@@ -121,9 +148,13 @@ function blockedReason(target: string, home: string, protectedFiles: string[]): 
         return 'está oculto o dentro de una carpeta oculta (por ejemplo .ssh, .aws o .env), donde suele haber credenciales';
     }
 
-    const dirs = [...SYSTEM_DIRS, ...HOME_DIRS.map((dir) => path.join(home, dir))];
-    const dir = dirs.find((candidate) => isInside(target, candidate));
-    if (dir) return `está dentro de ${dir}, una carpeta del sistema o de datos de aplicaciones`;
+    const system = systemDirs().find((candidate) => isInside(target, candidate));
+    if (system) return `está dentro de ${system}, una carpeta del sistema o de datos de aplicaciones`;
+
+    const appData = HOME_DIRS.map((dir) => path.join(home, dir)).find((candidate) => isInside(target, candidate));
+    const inTemp = appData !== undefined
+        && tempDirs.some((dir) => isInside(dir, appData) && isInside(target, dir));
+    if (appData && !inTemp) return `está dentro de ${appData}, una carpeta del sistema o de datos de aplicaciones`;
 
     const name = path.basename(target).toLowerCase();
     if (SENSITIVE_EXTENSIONS.has(path.extname(name)) || name.startsWith(SSH_KEY_PREFIX)) {
@@ -156,13 +187,15 @@ export async function checkUploadPath(raw: unknown, options: UploadOptions = {})
     const envFile = connectionsFileFromEnv();
     if (envFile) configFiles.push(envFile);
     const protectedFiles = await Promise.all(configFiles.map(realOrSelf));
+    const tempDir = path.resolve(options.tempDir ?? os.tmpdir());
+    const tempDirs = [tempDir, await realOrSelf(tempDir)];
 
     const given = path.resolve(value);
     const real = await realpath(given).catch(() => null);
     if (!real) return { ok: false, error: `no existe el archivo ${value}.` };
 
     for (const target of new Set([given, real])) {
-        const reason = blockedReason(target, home, [...configFiles, ...protectedFiles]);
+        const reason = blockedReason(target, home, [...configFiles, ...protectedFiles], tempDirs);
         if (reason) return { ok: false, error: `no se sube ${value} porque ${reason}.` };
     }
 

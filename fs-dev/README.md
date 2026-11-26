@@ -115,6 +115,8 @@ La detección solo se hace al iniciar la sesión, en ambos hosts. Si cambias de 
 
 Cuando se detecta un proyecto, las skills y agentes tienen acceso al contexto completo del framework para dar respuestas más precisas.
 
+La detección la hace `scripts/detect-facturascripts.py`. Como el resto de hooks, funciona en Linux, macOS y Windows (ver [Hooks en Linux, macOS y Windows](#hooks-en-linux-macos-y-windows)).
+
 El contexto incluye también la regla de la documentación propia: el core y cada plugin pueden tener su `AGENTS.md` y su carpeta `Doc/` (`User`, `Dev`, `Context` con su índice `README.md`, `Assets` y `forja.json`), que hay que leer antes de cambiarlos y actualizar en el mismo trabajo. Si el plugin donde se abre la sesión o el core tienen `AGENTS.md` o `Doc/Context/README.md`, el contexto da sus rutas. Así la regla se aplica aunque el core no incluya todavía su propio `AGENTS.md`.
 
 ---
@@ -154,7 +156,19 @@ El plugin ejecuta un hook `PostToolUse` secuencial tras cada escritura o edició
 - **Nunca bloquea:** sale siempre con código 0 y deja los errores y avisos en stderr.
 - **Avisa al modelo:** si modifica un archivo, devuelve `hookSpecificOutput.additionalContext` para que el modelo lo relea antes de volver a editarlo. Si no cambia nada, no escribe en stdout.
 - **Respeta el formato:** conserva los finales de línea (LF o CRLF) y el BOM, y no modifica los archivos que no son UTF-8 válido.
+- **Rutas portables:** en el aviso al modelo, las rutas relativas usan siempre `/`, también en Windows.
 - **Respeta el modo «solo documentación»:** no toca los archivos de un proyecto mientras `scripts/doc-only-guard.py start` esté activo en su repositorio (ver [Protección «solo documentación»](#protección-solo-documentación)).
+
+### Hooks en Linux, macOS y Windows
+
+Todos los hooks son scripts de Python 3 y cada uno se declara con dos comandos en `hooks/hooks.json`:
+
+- `command`: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh" "<script>.py"`. Lo usan Claude Code en los tres sistemas (en Windows lo ejecuta con Git Bash) y Codex en Linux y macOS. `run-python.sh` busca `python3` o `python` en Linux y macOS, y `py -3`, `python` o `python3` en Windows, porque allí `python3` suele ser el alias de la Microsoft Store.
+- `commandWindows`: `py -3 "<script>.py" || python "<script>.py"`. Lo usa Codex en Windows, que ejecuta los hooks con `cmd.exe`; Claude Code lo ignora.
+
+Requisitos en Windows: Python 3 (de python.org, con el lanzador `py`, o de la Microsoft Store) y, para Claude Code, Git for Windows, que aporta Git Bash. Sin Git Bash, Claude Code ejecuta los hooks con PowerShell y no funcionan.
+
+Los scripts leen y escriben en UTF-8 aunque Windows use otra página de códigos en las tuberías, y no dependen de `bash`, `fcntl` ni de los permisos POSIX.
 
 ### Actualización de copyright
 
@@ -192,6 +206,8 @@ Cada grupo se ordena alfabéticamente. La transformación solo actúa sobre clas
 ### Auditoría de `min_version`
 
 `scripts/check-min-version.py` no es un hook: se ejecuta a petición, desde la skill `fs-dev:verificar-min-version` o a mano.
+
+En los ejemplos de esta sección y las siguientes: En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
 
 ```bash
 python3 fs-dev/scripts/check-min-version.py <ruta_plugin> [--core <ruta_core>] [--json] [--include-tests] [--min-confidence alta|media|baja] [--plugins-dir <dir>] [--max-version <versión>] [--workers <n>]
@@ -261,7 +277,7 @@ Devuelve `0` si todo está bien, `1` si `check` encuentra infracciones y `2` si 
 FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' python3 fs-dev/scripts/doc-screenshots.py <escenario.json> [--scan] [--only <nombre> ...] [--check]
 ```
 
-Abre Google Chrome o Chromium sin interfaz con un perfil temporal (sin dependencias de Python), inicia sesión en la instalación de pruebas con las credenciales de las variables de entorno, ejecuta los pasos de cada pantalla y guarda un PNG por captura. Antes de capturar oculta la barra de depuración, sustituye por valores ficticios los nombres, NIF, emails, teléfonos, direcciones e IBAN (por campo, por columna y por patrón, siempre con el mismo valor ficticio para el mismo valor real), desenfoca los QR, dibuja las marcas (recuadro, número, flecha y nota) y recorta. Si queda algún dato personal visible, no guarda la imagen. Bloquea los clics que pueden cambiar datos salvo que el paso lo permita expresamente. `--scan` lista los controles de cada pantalla con su selector. Devuelve `0` si todo va bien, `1` si falla alguna captura y `2` si el escenario no es válido o Chrome no arranca.
+Abre Google Chrome, Chromium o Microsoft Edge sin interfaz con un perfil temporal (sin dependencias de Python; en Linux y macOS por la tubería de DevTools y en Windows por un WebSocket local), inicia sesión en la instalación de pruebas con las credenciales de las variables de entorno, ejecuta los pasos de cada pantalla y guarda un PNG por captura. Antes de capturar oculta la barra de depuración, sustituye por valores ficticios los nombres, NIF, emails, teléfonos, direcciones e IBAN (por campo, por columna y por patrón, siempre con el mismo valor ficticio para el mismo valor real), desenfoca los QR, dibuja las marcas (recuadro, número, flecha y nota) y recorta. Si queda algún dato personal visible, no guarda la imagen. Bloquea los clics que pueden cambiar datos salvo que el paso lo permita expresamente. `--scan` lista los controles de cada pantalla con su selector. Devuelve `0` si todo va bien, `1` si falla alguna captura y `2` si el escenario no es válido o Chrome no arranca.
 
 ## Configuración personalizada (`~/.fs-ai.json`)
 

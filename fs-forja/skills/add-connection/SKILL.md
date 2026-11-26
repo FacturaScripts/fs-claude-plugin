@@ -35,7 +35,7 @@ Si fs-forja está activo, llama a `forja_list_connections`. Si ya hay una conexi
 - Si la clave es de una conexión de fs-mcp, falla y no la toca: propón otra clave.
 - Si la clave es de una conexión de tipo forja, falla salvo con `overwrite: true`, que solo debes usar si el usuario confirma que quiere sustituirla (el token anterior se pierde).
 
-**Opción B — Sin el servidor MCP disponible:** ejecuta este script con `python3`, sustituyendo `CLAVE`, `NOMBRE`, `URL` y `TOKEN` por los valores reales:
+**Opción B — Sin el servidor MCP disponible:** ejecuta este script con `python3` (en Windows, `py -3` o `python`, porque `python3` suele ser el alias de la Microsoft Store), sustituyendo `CLAVE`, `NOMBRE`, `URL` y `TOKEN` por los valores reales:
 
 ```python
 import json, os, re, sys, uuid

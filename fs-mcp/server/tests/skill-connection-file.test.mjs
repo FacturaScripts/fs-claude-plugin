@@ -3,7 +3,7 @@
  * configure-local-modules.
  *
  * Cada caso extrae el bloque de Python que escribe el archivo del SKILL.md y lo
- * ejecuta con python3 en un HOME temporal.
+ * ejecuta con Python 3 (python3, python o py -3, el que funcione) en un HOME temporal.
  */
 
 import assert from 'node:assert/strict';
@@ -12,8 +12,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { POSIX_MODES, SIN_ENLACES, entornoConHome, python } from './platform.mjs';
 
-const skillsDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'skills');
+const skillsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'skills');
 
 // Con la umask habitual un archivo nuevo saldría 0644, legible por todas las cuentas
 process.umask(0o022);
@@ -35,8 +37,9 @@ function bloqueQueEscribe(skill) {
 
 /** Ejecuta el bloque de la skill con HOME en `home`; `prologo` va delante. */
 function ejecutar(skill, home, prologo = '') {
-  return execFileSync('python3', ['-I', '-c', prologo + bloqueQueEscribe(skill)], {
-    env: { PATH: process.env.PATH, HOME: home },
+  const { command, args } = python();
+  return execFileSync(command, [...args, '-I', '-X', 'utf8', '-c', prologo + bloqueQueEscribe(skill)], {
+    env: entornoConHome(home),
     encoding: 'utf-8',
   });
 }
@@ -65,7 +68,7 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
     const guardado = JSON.parse(fs.readFileSync(file, 'utf-8'));
     assert.ok(['uno', 'dos'].every((k) => k in guardado.connections.connections));
     assert.equal(guardado.connections.default, 'uno');
-    assert.equal(modo(file), 0o600);
+    if (POSIX_MODES) assert.equal(modo(file), 0o600);
     assert.deepEqual(
       fs.readdirSync(home).filter((n) => n.includes('.tmp')),
       []
@@ -78,10 +81,10 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
 
     ejecutar(skill, home);
 
-    assert.equal(modo(path.join(home, '.fs-ai.json')), 0o600);
+    if (POSIX_MODES) assert.equal(modo(path.join(home, '.fs-ai.json')), 0o600);
   });
 
-  test(`${skill} conserva el enlace simbólico y escribe en su destino`, () => {
+  test(`${skill} conserva el enlace simbólico y escribe en su destino`, { skip: SIN_ENLACES }, () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-skill-'));
     temporales.push(home);
     const dotfiles = path.join(home, 'dotfiles');
@@ -95,7 +98,7 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
 
     assert.equal(fs.lstatSync(file).isSymbolicLink(), true);
     assert.ok('dos' in JSON.parse(fs.readFileSync(destino, 'utf-8')).connections.connections);
-    assert.equal(modo(destino), 0o600);
+    if (POSIX_MODES) assert.equal(modo(destino), 0o600);
     assert.deepEqual(fs.readdirSync(dotfiles), ['fs-ai.json']);
   });
 
@@ -114,6 +117,6 @@ for (const skill of ['add-connection', 'configure-local-modules']) {
 
     const salida = ejecutar(skill, home, prologo);
 
-    assert.deepEqual(salida.split('\n').filter((l) => l.startsWith('PASO')), ['PASO fsync', 'PASO replace']);
+    assert.deepEqual(salida.split(/\r?\n/).filter((l) => l.startsWith('PASO')), ['PASO fsync', 'PASO replace']);
   });
 }

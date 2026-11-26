@@ -13,6 +13,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
+import { POSIX_MODES, enlacesSimbolicos } from './platform.mjs';
 
 const serverDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const buildDirectory = path.join(serverDirectory, 'build');
@@ -565,11 +566,12 @@ test('ignora la ruta /api/3/forja si la URL de la conexión ya la incluye', asyn
 test('solo sube archivos locales con la extensión de su uso, también tras un enlace simbólico', async () => {
   const secret = path.join(tempDirectory, 'conexiones.json');
   await writeFile(secret, '{"token": "secreto"}');
+  // En Windows, crear enlaces simbólicos puede exigir el modo de desarrollador: sin él se prueba solo el archivo
   const disguised = path.join(tempDirectory, 'disfrazado.md');
-  await symlink(secret, disguised);
+  if (enlacesSimbolicos()) await symlink(secret, disguised);
   const sent = requests.length;
 
-  for (const bodyFile of [secret, disguised]) {
+  for (const bodyFile of enlacesSimbolicos() ? [secret, disguised] : [secret]) {
     const result = await toolsModule.handleForjaTool('forja_create_publication', {
       plugin: 'MiPlugin', type: 'news', title: 'Fuga', body_file: bodyFile,
     });
@@ -612,7 +614,7 @@ test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no 
     '__MACOSX/x': '',
     'Assets/Thumbs.db': '',
   });
-  await symlink(path.join(pluginPath, 'Init.php'), path.join(pluginPath, 'Enlace.php'));
+  if (enlacesSimbolicos()) await symlink(path.join(pluginPath, 'Init.php'), path.join(pluginPath, 'Enlace.php'));
 
   const result = await toolsModule.handleForjaTool('forja_build_zip', { source_path: pluginPath });
   assert.equal(result.isError, undefined, result.content[0].text);
@@ -623,7 +625,8 @@ test('forja_build_zip empaqueta un plugin en su carpeta raíz y quita lo que no 
   assert.equal(summary.root, 'MiPlugin');
   assert.equal(path.basename(summary.path), 'MiPlugin-2.5.zip');
   assert.equal(summary.files, 5);
-  assert.deepEqual(Object.keys(summary.excluded).sort(), ['ai', 'doc', 'hidden', 'phpunit', 'symlink', 'system', 'test']);
+  const excluded = ['ai', 'doc', 'hidden', 'phpunit', 'symlink', 'system', 'test'];
+  assert.deepEqual(Object.keys(summary.excluded).sort(), excluded.filter((key) => key !== 'symlink' || enlacesSimbolicos()));
   assert.deepEqual(summary.excluded.ai.sample, ['CLAUDE.md', 'GEMINI.md', 'Lib/AGENTS.md']);
   assert.deepEqual(summary.excluded.phpunit.sample, ['phpunit.xml.dist']);
   assert.deepEqual(summary.excluded.doc.sample, ['Doc/']);
@@ -732,18 +735,21 @@ test('forja_upload_build borra el zip de forja_build_zip tras subirlo, salvo kee
   assert.equal(user.local_zip.deleted, false);
   assert.equal(await exists(userZip), true);
 
-  // si la carpeta temporal de la herramienta deja de ser solo del usuario, sus zips no se borran
-  const exposed = await build();
-  const base = path.dirname(path.dirname(exposed));
-  await chmod(base, 0o777);
-  const unsafe = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: exposed })).content[0].text);
-  assert.equal(unsafe.local_zip.deleted, false);
-  assert.equal(await exists(exposed), true);
-  await rm(path.dirname(exposed), { recursive: true, force: true });
+  // si la carpeta temporal de la herramienta deja de ser solo del usuario, sus zips no se borran (solo con
+  // permisos POSIX: Windows no los tiene y la herramienta no hace esa comprobación)
+  if (POSIX_MODES) {
+    const exposed = await build();
+    const base = path.dirname(path.dirname(exposed));
+    await chmod(base, 0o777);
+    const unsafe = JSON.parse((await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'MiPlugin', zip_path: exposed })).content[0].text);
+    assert.equal(unsafe.local_zip.deleted, false);
+    assert.equal(await exists(exposed), true);
+    await rm(path.dirname(exposed), { recursive: true, force: true });
+  }
 
   // al crear el siguiente zip, la carpeta vuelve a quedar solo para el usuario
   const third = await build();
-  assert.equal((await stat(base)).mode & 0o777, 0o700);
+  if (POSIX_MODES) assert.equal((await stat(path.dirname(path.dirname(third)))).mode & 0o777, 0o700);
 
   // si la subida falla, el zip de la herramienta se conserva
   const failed = await toolsModule.handleForjaTool('forja_upload_build', { plugin: 'Ajeno', zip_path: third });

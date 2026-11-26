@@ -10,10 +10,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { SIN_MODOS, fijarHome, guardarHome } from './platform.mjs';
 
 const managerUrl = pathToFileURL(
-  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'build', 'connection-manager.js')
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'build', 'connection-manager.js')
 ).href;
 
 // Con la umask habitual un archivo nuevo saldría 0644, legible por todas las cuentas
@@ -21,10 +22,10 @@ process.umask(0o022);
 
 let instancia = 0;
 const temporales = [];
-const homeOriginal = process.env.HOME;
+const restaurarHome = guardarHome();
 
 test.after(() => {
-  process.env.HOME = homeOriginal;
+  restaurarHome();
   for (const dir of temporales) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -34,7 +35,7 @@ async function nuevoGestor(formato) {
   temporales.push(dir);
   let file;
   if (formato === 'fs-ai') {
-    process.env.HOME = dir;
+    fijarHome(dir);
     delete process.env.FS_CONNECTIONS_FILE;
     file = path.join(dir, '.fs-ai.json');
   } else {
@@ -48,12 +49,12 @@ async function nuevoGestor(formato) {
 const modo = (file) => fs.statSync(file).mode & 0o777;
 
 for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
-  test(`el archivo de conexiones se crea 0600 al arrancar (${formato})`, async () => {
+  test(`el archivo de conexiones se crea 0600 al arrancar (${formato})`, { skip: SIN_MODOS }, async () => {
     const { file } = await nuevoGestor(formato);
     assert.equal(modo(file), 0o600);
   });
 
-  test(`el archivo de conexiones se crea 0600 al guardar (${formato})`, async () => {
+  test(`el archivo de conexiones se crea 0600 al guardar (${formato})`, { skip: SIN_MODOS }, async () => {
     const { connectionManager, file } = await nuevoGestor(formato);
     fs.rmSync(file);
     connectionManager.addConnection('a', { name: 'A', url: 'http://127.0.0.1:1', token: 'secreto' });
@@ -62,7 +63,7 @@ for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
 }
 
 for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
-  test(`guardar deja en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, async () => {
+  test(`guardar deja en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, { skip: SIN_MODOS }, async () => {
     const { connectionManager, file } = await nuevoGestor(formato);
     fs.chmodSync(file, 0o644);
     connectionManager.addConnection('a', { name: 'A', url: 'http://127.0.0.1:1', token: 'secreto' });
@@ -71,7 +72,7 @@ for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
 }
 
 for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
-  test(`el token no llega a escribirse en un archivo que ya existía en 0644 (${formato})`, async () => {
+  test(`el token no llega a escribirse en un archivo que ya existía en 0644 (${formato})`, { skip: SIN_MODOS }, async () => {
     const { connectionManager, file } = await nuevoGestor(formato);
     fs.chmodSync(file, 0o644);
     // Un enlace duro al archivo anterior: si el token se escribiera en él, aunque
@@ -88,12 +89,12 @@ for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
 }
 
 for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
-  test(`al cargar queda en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, async () => {
+  test(`al cargar queda en 0600 un archivo de conexiones que ya existía en 0644 (${formato})`, { skip: SIN_MODOS }, async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
     temporales.push(dir);
     let file;
     if (formato === 'fs-ai') {
-      process.env.HOME = dir;
+      fijarHome(dir);
       delete process.env.FS_CONNECTIONS_FILE;
       file = path.join(dir, '.fs-ai.json');
       fs.writeFileSync(file, JSON.stringify({ connections: { default: '', connections: {} } }));
@@ -110,7 +111,7 @@ for (const formato of ['fs-ai', 'FS_CONNECTIONS_FILE']) {
   });
 }
 
-test('el directorio del archivo de conexiones se crea 0700 al arrancar', async () => {
+test('el directorio del archivo de conexiones se crea 0700 al arrancar', { skip: SIN_MODOS }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
   temporales.push(dir);
   const file = path.join(dir, 'config', 'fs-mcp', 'connections.json');
@@ -123,7 +124,7 @@ test('el directorio del archivo de conexiones se crea 0700 al arrancar', async (
   assert.equal(modo(file), 0o600);
 });
 
-test('el directorio del archivo de conexiones se crea 0700 al guardar', async () => {
+test('el directorio del archivo de conexiones se crea 0700 al guardar', { skip: SIN_MODOS }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-mode-'));
   temporales.push(dir);
   const file = path.join(dir, 'config', 'connections.json');

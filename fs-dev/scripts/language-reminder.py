@@ -24,6 +24,7 @@ Salida:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -118,11 +119,18 @@ def config_path() -> Path:
     Usa ``~/.fs-ai.json``; si no existe pero sí el antiguo ``~/.fs-claude.json``
     (instalaciones anteriores al cambio de nombre), devuelve este último.
 
+    Si no se puede determinar el directorio personal (sin ``HOME`` ni, en Windows,
+    ``USERPROFILE``), devuelve una ruta que no existe, como si no hubiera configuración.
+
     Returns:
         Ruta del archivo de configuración, exista o no.
     """
-    current = Path.home() / '.fs-ai.json'
-    legacy = Path.home() / '.fs-claude.json'
+    try:
+        home = Path.home()
+    except RuntimeError:
+        home = Path(os.devnull)
+    current = home / '.fs-ai.json'
+    legacy = home / '.fs-claude.json'
     if not current.exists() and legacy.exists():
         return legacy
     return current
@@ -217,6 +225,23 @@ def build_output(config_file: Path) -> Optional[Dict[str, Any]]:
     }
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main() -> int:
     """Escribe el aviso de idioma en stdout.
 
@@ -227,6 +252,7 @@ def main() -> int:
     Returns:
         Siempre 0: los errores se notifican por stderr sin bloquear al host.
     """
+    use_utf8_stdio()
     try:
         try:
             sys.stdin.read()

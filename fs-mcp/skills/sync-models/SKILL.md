@@ -204,6 +204,8 @@ Reporta `Sin cambios detectados` y termina (no toques nada). Aun así, si la ski
      | node dist/index.js 2>/dev/null | tail -1 | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['result']['content'][0]['text'])"
    ```
 
+   Necesita Bash (en Windows, Git Bash). En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 ---
 
 ## Múltiples modelos

@@ -213,6 +213,9 @@ class PatternsTest(unittest.TestCase):
         self.assertTrue(any(re.search(r, 'Nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_HEADER_RULES))
         self.assertTrue(any(re.search(r, 'nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_FIELD_RULES))
         self.assertEqual('nif', next(c for r, c in headers if r.search('CIF/NIF')))
+        # La cabecera del listado de clientes de FacturaScripts es «Núm. fiscal».
+        for header in ('Núm. fiscal', 'Num. fiscal', 'Número fiscal', 'Identificador fiscal'):
+            self.assertEqual('nif', next(c for r, c in headers if r.search(header)), header)
         self.assertFalse(any(r.search('Total') for r, _ in headers))
 
 
@@ -424,6 +427,52 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(0, code, report)
         self.assertTrue((self.folder / 'recorte' / 'tabla.png').is_file())
 
+
+    def test_fiscal_number_column_is_anonymized(self):
+        """La columna «Núm. fiscal» se anonimiza aunque su valor no tenga forma de NIF."""
+        (self.folder / 'fiscal.html').write_text(
+            '<!doctype html><html><body><table><thead><tr><th>Código</th><th>Nombre</th><th>Núm. fiscal</th></tr>'
+            '</thead><tbody><tr><td>3</td><td>Pedro Gómez</td><td>654654654d</td></tr></tbody></table></body></html>',
+            encoding='utf-8')
+        url = (self.folder / 'fiscal.html').as_uri()
+        scenario = {'base_url': url, 'output_dir': str(self.folder / 'fiscal'),
+                    'captures': [{'name': '01-fiscal', 'url': url}]}
+        code, report = self.run_scenario(scenario)
+        self.assertEqual(0, code, report)
+        shot = report['captures'][0]
+        self.assertIn('nif', {item['category'] for item in shot['anonymized']}, shot)
+        self.assertNotIn('654654654d', json.dumps(report))
+
+    def test_generic_name_column_uses_the_screen_name(self):
+        """La columna «Nombre» de ListEmpresa se anonimiza como empresa, no como cliente."""
+        (self.folder / 'ListEmpresa.html').write_text(
+            '<!doctype html><html><body><table><thead><tr><th>Código</th><th>Nombre</th><th>Núm. fiscal</th></tr>'
+            '</thead><tbody><tr><td>1</td><td>Transportes Pérez</td><td>B12345674</td></tr></tbody></table>'
+            '</body></html>', encoding='utf-8')
+        url = (self.folder / 'ListEmpresa.html').as_uri()
+        scenario = {'base_url': url, 'output_dir': str(self.folder / 'empresa'),
+                    'captures': [{'name': '01-empresa', 'url': url}]}
+        code, report = self.run_scenario(scenario)
+        self.assertEqual(0, code, report)
+        fakes = {item['fake'] for item in report['captures'][0]['anonymized']}
+        self.assertIn('Empresa Ejemplo 1', fakes)
+        self.assertFalse(any(f.startswith('Cliente Ejemplo') for f in fakes), fakes)
+
+    def test_arrow_flips_when_the_target_is_at_the_edge(self):
+        """Una flecha pedida hacia el borde de la ventana llega desde el lado contrario y entra en el recorte."""
+        (self.folder / 'borde.html').write_text(
+            '<!doctype html><html><body style="margin:0"><button id="b" style="position:absolute;top:100px;right:10px;'
+            'width:80px;height:30px">Guardar</button></body></html>', encoding='utf-8')
+        url = (self.folder / 'borde.html').as_uri()
+        scenario = {
+            'base_url': url, 'output_dir': str(self.folder / 'borde'), 'viewport': {'width': 900, 'height': 400},
+            'captures': [{'name': '01-borde', 'url': url, 'clip': '#b', 'margin': 0,
+                          'highlight': [{'target': '#b', 'arrow': 'right', 'note': 'Guarda'}]}],
+        }
+        code, report = self.run_scenario(scenario)
+        self.assertEqual(0, code, report)
+        # Con la flecha a la derecha (fuera de la ventana) el recorte sería del ancho del botón (unos 90 px).
+        self.assertGreater(report['captures'][0]['width'], 150, report)
 
     def test_false_positives_modal_alert_and_clip_all(self):
         (self.folder / 'falsos.html').write_text(FALSE_POSITIVES_PAGE, encoding='utf-8')

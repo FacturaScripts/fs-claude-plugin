@@ -29,7 +29,9 @@ FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' python3 "<scripts>/doc-s
 python3 "<scripts>/create-doc-structure.py" "<plugin o core>" --check
 ```
 
-El script de capturas necesita Python 3 y Google Chrome o Chromium; no instala nada.
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar. Las variables delante del comando (`FS_DOC_USER=... python3 ...`) solo funcionan en Bash (también Git Bash); en PowerShell, defínelas antes con `$env:FS_DOC_USER = '...'` y `$env:FS_DOC_PASSWORD = '...'`.
+
+El script de capturas necesita Python 3 y Google Chrome, Chromium o Microsoft Edge; no instala nada y funciona en Linux, macOS y Windows.
 
 ## Antes de capturar
 

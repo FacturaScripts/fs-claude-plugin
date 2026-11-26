@@ -23,13 +23,13 @@ SPEC.loader.exec_module(POST_EDIT)
 
 YEAR = POST_EDIT.datetime.now().year
 
-# HOME aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
+# HOME (USERPROFILE en Windows) aislado para que ~/.fs-ai.json del usuario no altere las pruebas.
 _HOME = tempfile.TemporaryDirectory()
-_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name})
+_HOME_PATCH = unittest.mock.patch.dict(os.environ, {'HOME': _HOME.name, 'USERPROFILE': _HOME.name})
 
 
 def setUpModule() -> None:
-    """Aísla HOME durante todo el módulo; los subprocesos heredan el entorno."""
+    """Aísla HOME y USERPROFILE durante todo el módulo; los subprocesos heredan el entorno."""
     _HOME_PATCH.start()
 
 
@@ -70,7 +70,7 @@ def run_hook(payload: object, cwd: Path | None = None) -> subprocess.CompletedPr
     """
     data = payload if isinstance(payload, str) else json.dumps(payload)
     return subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)], input=data, capture_output=True, text=True,
+        [sys.executable, str(SCRIPT_PATH)], input=data, capture_output=True, text=True, encoding='utf-8',
         check=False, cwd=str(cwd) if cwd else None,
     )
 
@@ -291,7 +291,7 @@ class ProcessFileTest(unittest.TestCase):
             file_path = Path(directory) / 'Example.php'
             file_path.write_text(PLUGIN_CLASS, encoding='utf-8')
 
-            with unittest.mock.patch.dict(os.environ, {'HOME': str(home)}):
+            with unittest.mock.patch.dict(os.environ, {'HOME': str(home), 'USERPROFILE': str(home)}):
                 POST_EDIT.process_file(POST_EDIT.ModifiedFile(file_path), SCRIPT_PATH.parent)
 
             self.assertEqual(PLUGIN_CLASS, file_path.read_text(encoding='utf-8'))

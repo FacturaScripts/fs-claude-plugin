@@ -9,6 +9,7 @@ El repositorio mantiene una única implementación para ambos hosts. Separar un 
 | Scripts y referencias desde skills y perfiles | `${CLAUDE_PLUGIN_ROOT}` sustituida en el contenido; no existe en Bash | Rutas relativas al `SKILL.md` o al perfil | `fs-dev/scripts/`, `*/references/` |
 | Modelo de cada perfil | Campo `model` del agente | Solicitado por la skill al delegar; sin delegación, el modelo de la sesión | Tabla de equivalencias de este documento |
 | Inicio de sesión | `SessionStart` | `SessionStart` | `*/hooks/hooks.json` |
+| Comando de los hooks | `command` en los tres sistemas (Git Bash en Windows) | `command` en Linux y macOS; `commandWindows` con `cmd.exe` en Windows | `scripts/run-python.sh` y scripts de Python 3 |
 | Cambio de directorio | Requiere sesión nueva; `CwdChanged` no añade su salida al contexto | Requiere hilo nuevo; el evento no existe | Solo `SessionStart` |
 | Idioma de las respuestas | `UserPromptSubmit` con `additionalContext` | `UserPromptSubmit` con `additionalContext` | `fs-dev/scripts/language-reminder.py` |
 | Ediciones automáticas | `Write` y `Edit` | `apply_patch` | `fs-dev/scripts/post-edit.py` |
@@ -23,6 +24,22 @@ El hook `PostToolUse` normaliza los formatos de entrada de ambos hosts. Procesa 
 El hook nunca bloquea: sale siempre con código 0 y deja los errores en stderr, porque Codex no documenta la salida 1 en `PostToolUse`. Cuando modifica un archivo, devuelve `hookSpecificOutput.additionalContext` en ambos hosts para que el modelo lo relea antes de volver a editarlo. Un archivo cuenta como nuevo cuando `Write` informa `tool_response.type: "create"` (Claude Code) o el parche usa `*** Add File:` (Codex).
 
 En Codex, los hooks instalados deben revisarse desde `/hooks`. Cualquier cambio en `hooks.json` invalida la confianza anterior. El modificador de clase solo actúa sobre archivos PHP con namespace `FacturaScripts\\`.
+
+## Linux, macOS y Windows
+
+Los cuatro plugins funcionan en los tres sistemas. Las diferencias se resuelven así:
+
+- **Hooks.** Todos son scripts de Python 3; no queda ninguno en bash. Cada hook declara dos comandos:
+  - `command`: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh" "${CLAUDE_PLUGIN_ROOT}/scripts/<script>.py"`. Claude Code lo ejecuta con `sh -c` en Linux y macOS y con Git Bash en Windows, con `${CLAUDE_PLUGIN_ROOT}` sustituida con barras `/`. Codex lo ejecuta con `$SHELL -lc` en Linux y macOS. `run-python.sh` elige `python3` o `python` en Linux y macOS, y `py -3`, `python` o `python3` en Windows: allí `python3` suele ser el alias de la Microsoft Store, que no ejecuta nada si Python no se ha instalado desde la tienda.
+  - `commandWindows`: `py -3 "<ruta>\scripts\<script>.py" || python "<ruta>\scripts\<script>.py"`. Es un campo de Codex, que en Windows lo usa en lugar de `command` y lo ejecuta con `cmd.exe /C`, sustituyendo `${CLAUDE_PLUGIN_ROOT}` por la ruta nativa con barras invertidas. Claude Code lo ignora y `claude plugin validate --strict` lo acepta. Como los scripts salen siempre con 0, el `||` solo prueba `python` cuando `py` no existe.
+- **Requisitos en Windows.** Python 3 (de python.org, que instala el lanzador `py`, o de la Microsoft Store). Claude Code necesita además Git for Windows: sin Git Bash ejecuta los hooks con PowerShell, que no entiende `command`. Codex no necesita Git Bash.
+- **Codificación.** En Windows, Python usa la página de códigos local (cp1252) en las tuberías. Los scripts fuerzan UTF-8 en stdin, stdout y stderr y al leer la salida de los subprocesos, para que el JSON de los hooks y los acentos lleguen intactos.
+- **Rutas.** Los avisos de los hooks muestran las rutas relativas con `/` en todos los sistemas. El contexto de `SessionStart` da las rutas de la documentación en el formato nativo.
+- **Capturas de la documentación.** `doc-screenshots.py` habla con Chrome por la tubería de DevTools (`--remote-debugging-pipe`) en Linux y macOS. En Windows, donde Python no puede pasar los descriptores 3 y 4 al proceso hijo, usa un WebSocket local en 127.0.0.1 (`--remote-debugging-port=0`). También localiza Chrome, Chromium y Edge en sus carpetas de Windows.
+- **Tokenizador de PHP.** `doc-only-guard.py` pasa a PHP rutas de archivos temporales en lugar de código con `-r`, porque en Windows `php` suele ser un lanzador `.cmd` o `.bat` que estropea los argumentos con saltos de línea y comillas.
+- **Servidores MCP.** Se lanzan con `node` y el lanzador portable de `plugin.json`, igual en los tres sistemas. En Windows, la subida de archivos de fs-mcp bloquea también las carpetas de Windows y de `ProgramData`, y acepta la carpeta temporal del sistema aunque esté dentro de `AppData`.
+- **Permisos y enlaces.** Los permisos 0600 y 0700 del archivo de conexiones y de la carpeta temporal de fs-forja solo existen en Linux y macOS; en Windows el archivo queda protegido por los permisos del perfil del usuario. Crear enlaces simbólicos exige en Windows el modo de desarrollador, así que las pruebas que los necesitan se omiten si no se pueden crear.
+- **Antivirus.** Windows Defender impide leer los archivos que parecen una webshell. `check-security.py` declara en `limitaciones` cualquier archivo que no puede leer y lo cuenta en `sin_analizar`. Los ejemplos de `fs-dev/tests/test_check_security.py` escapan con `\xNN` una letra de cada palabra sensible para que Defender no marque el archivo de pruebas. Los archivos temporales que esas pruebas escriben sí los bloquea, y esas pruebas se omiten en ese equipo.
 
 ## Idioma de las respuestas
 

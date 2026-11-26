@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.sh\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh\" \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-facturascripts.py\"",
+            "commandWindows": "py -3 \"${CLAUDE_PLUGIN_ROOT}\\scripts\\detect-facturascripts.py\" || python \"${CLAUDE_PLUGIN_ROOT}\\scripts\\detect-facturascripts.py\"",
             "timeout": 10
           }
         ]
@@ -17,7 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/language-reminder.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh\" \"${CLAUDE_PLUGIN_ROOT}/scripts/language-reminder.py\"",
+            "commandWindows": "py -3 \"${CLAUDE_PLUGIN_ROOT}\\scripts\\language-reminder.py\" || python \"${CLAUDE_PLUGIN_ROOT}\\scripts\\language-reminder.py\"",
             "timeout": 10
           }
         ]
@@ -29,7 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/post-edit.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run-python.sh\" \"${CLAUDE_PLUGIN_ROOT}/scripts/post-edit.py\"",
+            "commandWindows": "py -3 \"${CLAUDE_PLUGIN_ROOT}\\scripts\\post-edit.py\" || python \"${CLAUDE_PLUGIN_ROOT}\\scripts\\post-edit.py\"",
             "timeout": 30
           }
         ]

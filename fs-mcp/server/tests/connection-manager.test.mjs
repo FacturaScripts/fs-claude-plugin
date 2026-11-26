@@ -11,10 +11,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { SIN_ENLACES, SIN_MODOS, fijarHome, guardarHome } from './platform.mjs';
 
 const managerUrl = pathToFileURL(
-  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'build', 'connection-manager.js')
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'build', 'connection-manager.js')
 ).href;
 
 let instancia = 0;
@@ -75,7 +76,7 @@ test('guardar sustituye el archivo por rename y no deja temporales', async () =>
   assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.a.token, 'secreto');
 });
 
-test('guardar conserva el modo 0600 de un archivo existente', async () => {
+test('guardar conserva el modo 0600 de un archivo existente', { skip: SIN_MODOS }, async () => {
   const anterior = process.umask(0o002);
   try {
     const { connectionManager, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
@@ -118,9 +119,9 @@ test('el formato ~/.fs-ai.json también se niega con un array y conserva el arch
   temporales.push(dir);
   const file = path.join(dir, '.fs-ai.json');
   fs.writeFileSync(file, '[]', 'utf-8');
-  const homeOriginal = process.env.HOME;
+  const restaurarHome = guardarHome();
   const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;
-  process.env.HOME = dir;
+  fijarHome(dir);
   delete process.env.FS_CONNECTIONS_FILE;
   try {
     const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
@@ -128,12 +129,12 @@ test('el formato ~/.fs-ai.json también se niega con un array y conserva el arch
     assert.equal(fs.readFileSync(file, 'utf-8'), '[]');
     assert.throws(() => connectionManager.getConnection('nueva'), /no encontrada/);
   } finally {
-    process.env.HOME = homeOriginal;
+    restaurarHome();
     if (ficheroOriginal !== undefined) process.env.FS_CONNECTIONS_FILE = ficheroOriginal;
   }
 });
 
-test('un enlace plantado en el nombre de temporal de antes no recibe el token', async () => {
+test('un enlace plantado en el nombre de temporal de antes no recibe el token', { skip: SIN_ENLACES }, async () => {
   const { connectionManager, dir, file } = await nuevoGestor(JSON.stringify({ default: '', connections: {} }));
   const victima = path.join(dir, 'victima');
   fs.writeFileSync(victima, 'intacto', 'utf-8');
@@ -171,9 +172,9 @@ test('tras corregir un archivo roto, añadir una conexión conserva las demás, 
   temporales.push(dir);
   const file = path.join(dir, '.fs-ai.json');
   fs.writeFileSync(file, '{"connections": {"default": "a", ', 'utf-8');
-  const homeOriginal = process.env.HOME;
+  const restaurarHome = guardarHome();
   const ficheroOriginal = process.env.FS_CONNECTIONS_FILE;
-  process.env.HOME = dir;
+  fijarHome(dir);
   delete process.env.FS_CONNECTIONS_FILE;
   try {
     const { connectionManager } = await import(`${managerUrl}?caso=${++instancia}`);
@@ -193,7 +194,7 @@ test('tras corregir un archivo roto, añadir una conexión conserva las demás, 
     assert.equal(connectionManager.getConnection().name, 'Pruebas');
     assert.equal(connectionManager.getConnection('b').name, 'B');
   } finally {
-    process.env.HOME = homeOriginal;
+    restaurarHome();
     if (ficheroOriginal !== undefined) process.env.FS_CONNECTIONS_FILE = ficheroOriginal;
   }
 });
@@ -216,7 +217,7 @@ test('dos gestores sobre el mismo archivo no se pisan lo que guarda cada uno', a
   assert.equal(uno.getConnection().name, 'B');
 });
 
-test('un archivo de conexiones que es un enlace simbólico se conserva y su destino recibe la conexión', async () => {
+test('un archivo de conexiones que es un enlace simbólico se conserva y su destino recibe la conexión', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   const dotfiles = path.join(dir, 'dotfiles');
@@ -363,7 +364,7 @@ async function gestorConEnlaceRoto({ crearDirectorio }) {
   return { connectionManager, dotfiles, enlace };
 }
 
-test('con un enlace simbólico roto, la conexión se guarda en su destino y el enlace se conserva', async () => {
+test('con un enlace simbólico roto, la conexión se guarda en su destino y el enlace se conserva', { skip: SIN_ENLACES }, async () => {
   const { connectionManager, dotfiles, enlace } = await gestorConEnlaceRoto({ crearDirectorio: true });
 
   connectionManager.addConnection('a', conexion);
@@ -375,7 +376,7 @@ test('con un enlace simbólico roto, la conexión se guarda en su destino y el e
   assert.deepEqual(fs.readdirSync(dotfiles), ['connections.json']);
 });
 
-test('con un enlace simbólico roto a un directorio que no existe, no se guarda ni se sustituye el enlace', async () => {
+test('con un enlace simbólico roto a un directorio que no existe, no se guarda ni se sustituye el enlace', { skip: SIN_ENLACES }, async () => {
   const { connectionManager, dotfiles, enlace } = await gestorConEnlaceRoto({ crearDirectorio: false });
 
   assert.throws(() => connectionManager.addConnection('a', conexion), { code: 'ENOENT' });
@@ -408,7 +409,7 @@ try {
   console.log(error.code);
 }`;
 
-test('un enlace roto cuyo destino vuelve a él a través de un directorio que no existe no cuelga el servidor', async () => {
+test('un enlace roto cuyo destino vuelve a él a través de un directorio que no existe no cuelga el servidor', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   // El sistema da ENOENT ("falta" no existe); quitando el ".." sobre el texto, vuelve a ser el propio enlace
@@ -420,7 +421,7 @@ test('un enlace roto cuyo destino vuelve a él a través de un directorio que no
   assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
 });
 
-test('un enlace roto con ".." dentro de un directorio enlazado se resuelve sobre el directorio real', async () => {
+test('un enlace roto con ".." dentro de un directorio enlazado se resuelve sobre el directorio real', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   // home/cfg -> ../real/cfg y real/cfg/link -> ../other/conn.json: para el sistema, real/other/conn.json
@@ -457,7 +458,7 @@ fs.readlinkSync = () => 'enlace' + ++salto;`;
   assert.equal(enOtroProceso(path.join(dir, 'enlace0'), intentarGuardar, prologo).trim(), 'ELOOP');
 });
 
-test('un enlace roto con ".." tras un directorio enlazado no escribe en el archivo al que lleva quitarlo sobre el texto', async () => {
+test('un enlace roto con ".." tras un directorio enlazado no escribe en el archivo al que lleva quitarlo sobre el texto', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   // v/y -> ../X/Y, así que para el sistema v/y/../q es X/q, que no existe; quitando el ".." sobre el texto es v/q
@@ -477,7 +478,7 @@ test('un enlace roto con ".." tras un directorio enlazado no escribe en el archi
   assert.deepEqual(fs.readdirSync(path.join(dir, 'X')), ['Y']);
 });
 
-test('un enlace roto a un directorio que no existe seguido de ".." da ENOENT y no EISDIR', async () => {
+test('un enlace roto a un directorio que no existe seguido de ".." da ENOENT y no EISDIR', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   const enlace = path.join(dir, 'connections.json');
@@ -491,7 +492,7 @@ test('un enlace roto a un directorio que no existe seguido de ".." da ENOENT y n
   assert.deepEqual(fs.readdirSync(dir), ['connections.json']);
 });
 
-test('en una cadena de enlaces, el ".." tras un directorio enlazado se resuelve con el sistema también en el segundo salto', async () => {
+test('en una cadena de enlaces, el ".." tras un directorio enlazado se resuelve con el sistema también en el segundo salto', { skip: SIN_ENLACES }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-mcp-conn-'));
   temporales.push(dir);
   // h/link -> ../v/y/../q/l2, y para el sistema v/y/../q es X/q, donde l2 -> conn.json (aún no existe)

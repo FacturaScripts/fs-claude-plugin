@@ -26,7 +26,7 @@ fs.writeFileSync(
 );
 
 const servidor = spawn('node', [path.join(serverDirectory, 'dist', 'index.js')], {
-  env: { ...process.env, HOME: home, FS_CONNECTIONS_FILE: path.join(home, 'connections.json') },
+  env: { ...process.env, HOME: home, USERPROFILE: home, FS_CONNECTIONS_FILE: path.join(home, 'connections.json') },
   stdio: ['pipe', 'pipe', 'ignore'],
 });
 const pendientes = new Map();

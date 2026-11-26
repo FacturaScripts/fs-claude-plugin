@@ -21,6 +21,8 @@ Los scripts están en [`../../scripts/`](../../scripts/), relativa a este `SKILL
    python3 "<scripts>/check-min-version.py" <ruta_plugin> --core <ruta_core>
    ```
 
+   En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 4. Lee completo el perfil [`../../agents/compatibility-auditor.md`](../../agents/compatibility-auditor.md) para interpretar el informe y verificar a mano los símbolos de confianza media o baja.
 5. Ejecuta la auditoría de seguridad:
 

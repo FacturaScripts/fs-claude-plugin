@@ -655,6 +655,23 @@ def read_bytes(path: Path) -> bytes | None:
         return None
 
 
+def is_unreadable(path: Path) -> bool:
+    """Indica si un archivo regular existe pero no se puede leer.
+
+    En Windows, el antivirus impide leer (``Errno 22``) los archivos que considera
+    maliciosos, como una webshell; en Linux y macOS, puede faltar el permiso de
+    lectura. Un archivo así no se analiza y debe declararse.
+    """
+    if not is_regular_file(path):
+        return False
+    try:
+        with path.open('rb') as handle:
+            handle.read(1)
+    except OSError:
+        return True
+    return False
+
+
 def is_binary(path: Path, data: bytes) -> bool:
     """Indica si un archivo es binario, por su extensión o por contener bytes nulos."""
     return path.suffix.lower() in BINARY_EXTENSIONS or b'\0' in data[:8192]
@@ -1752,10 +1769,13 @@ def audit(plugin_dir: Path, include_vendor: bool = False, include_tests: bool = 
                        for relative in binary_php)
     limitations.extend(f'{entry} es un enlace simbólico: se ha analizado su destino, que puede estar fuera del '
                        'plugin.' for entry in found.links)
+    unreadable = [path.relative_to(plugin_dir).as_posix() for path in files if is_unreadable(path)]
+    limitations.extend(f'{relative} no se ha podido leer y no se ha analizado: en Windows suele ser el antivirus, que '
+                       'lo bloquea por considerarlo malicioso; revísalo a mano.' for relative in unreadable)
     if not meta['ini']:
         limitations.append('No hay facturascripts.ini: la ruta puede no ser un plugin de FacturaScripts.')
     not_analyzed = (len(vendor) + len(found.node_modules) + len(found.skipped_dirs) + len(embedded_php)
-                    + len(binary_php))
+                    + len(binary_php) + len(unreadable))
 
     return {
         'plugin': {'name': meta['name'], 'version': meta['version'], 'path': str(plugin_dir)},
@@ -1854,6 +1874,23 @@ def print_report(report: dict) -> None:
         print(f'  - {limitation}')
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
     """Punto de entrada del script.
 
@@ -1864,6 +1901,7 @@ def main(argv: list[str] | None = None) -> int:
         0 sin hallazgos de severidad media o alta, 1 con hallazgos y 2 si la ruta
         no es válida o se produce un error inesperado.
     """
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(
         description='Audita los comportamientos sensibles para la seguridad de un plugin de FacturaScripts.')
     parser.add_argument('plugin', help='Ruta del plugin a auditar')
