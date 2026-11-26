@@ -10,6 +10,8 @@ FS_DOC_USER='<usuario>' FS_DOC_PASSWORD='<contraseña>' \
   python3 "<scripts>/doc-screenshots.py" "<escenario.json>" [--scan] [--only <nombre> ...] [--check] [--root <carpeta>]
 ```
 
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar. Las variables delante del comando (`FS_DOC_USER=... python3 ...`) solo funcionan en Bash (también Git Bash); en PowerShell, defínelas antes con `$env:FS_DOC_USER = '...'` y `$env:FS_DOC_PASSWORD = '...'`.
+
 - `--check` valida el escenario sin abrir Chrome.
 - `--scan` no guarda imágenes: para cada captura ejecuta sus pasos y devuelve la URL, el título, el tamaño de la página,
   los **controles visibles** con el `target` que se puede usar en los pasos y si cambian datos (`changes_data`), y los

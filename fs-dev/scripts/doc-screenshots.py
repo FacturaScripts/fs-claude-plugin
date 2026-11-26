@@ -34,6 +34,11 @@ bloquean. El texto de los ``alert()`` nativos se devuelve en ``dialogs``; los
 Las credenciales no van en el escenario: se leen de las variables de entorno
 ``FS_DOC_USER`` y ``FS_DOC_PASSWORD`` (o de las que indique ``login``).
 
+Funciona en Linux, macOS y Windows. En Linux y macOS habla con Chrome por la
+tubería de DevTools (``--remote-debugging-pipe``); en Windows, donde Python no
+puede pasar los descriptores 3 y 4 al proceso hijo, usa un WebSocket local
+(``--remote-debugging-port=0``). Ninguna de las dos vías necesita dependencias.
+
 Uso:
     doc-screenshots.py <escenario.json> [--only <nombre> ...] [--scan] [--check]
                        [--output-dir <carpeta>] [--root <carpeta>] [--chrome <ruta>]
@@ -51,17 +56,24 @@ from __future__ import annotations
 
 import argparse
 import base64
-import fcntl
 import json
 import os
 import re
 import select
 import shutil
+import socket
+import struct
+import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
+
+try:
+    import fcntl
+except ImportError:  # Windows: no existe y se usa el transporte por WebSocket.
+    fcntl = None
 
 
 # Tamaño de la ventana por defecto: el de un portátil corriente, legible al reducir la imagen en la web.
@@ -100,7 +112,7 @@ FIELD_RULES = [
 HEADER_RULES = [
     [r'^(cliente|proveedor|acreedor|razón social|nombre comercial|contacto|persona de contacto|'
      r'titular|destinatario|apellidos)$', 'name'],
-    [r'^(cif/nif|nif|cif|dni|nif/cif)$', 'nif'],
+    [r'^(cif/nif|nif|cif|dni|nif/cif|n[úu]m(?:\.|ero)? fiscal|identificador fiscal)$', 'nif'],
     [r'^(email|e-mail|correo|correo electrónico)$', 'email'],
     [r'^(teléfono|teléfono 1|teléfono 2|móvil|tel\.?)$', 'phone'],
     [r'^(dirección)$', 'address'],
@@ -1080,13 +1092,33 @@ def is_local_url(url: str) -> bool:
     return host in ('localhost', '127.0.0.1', '::1') or host.endswith('.localhost') or host.endswith('.test')
 
 
+def windows_chrome_paths(env: dict) -> list[str]:
+    """Devuelve las rutas habituales de Chrome, Chromium y Edge en Windows.
+
+    Usa las carpetas de programas del sistema y la del usuario (Chrome puede instalarse sin permisos de
+    administrador en ``%LOCALAPPDATA%``). Una variable que no exista se omite.
+    """
+    executables = (('Google', 'Chrome', 'Application', 'chrome.exe'),
+                   ('Chromium', 'Application', 'chrome.exe'),
+                   ('Microsoft', 'Edge', 'Application', 'msedge.exe'))
+    paths = []
+    for variable in ('PROGRAMFILES', 'PROGRAMFILES(X86)', 'LOCALAPPDATA'):
+        base = env.get(variable) or os.environ.get(variable)
+        if base:
+            paths.extend(os.path.join(base, *parts) for parts in executables)
+    return paths
+
+
 def find_chrome(explicit: str | None, env: dict) -> str:
-    """Localiza el ejecutable de Chrome o Chromium."""
+    """Localiza el ejecutable de Chrome, Chromium o Edge en Linux, macOS o Windows."""
     candidates = [explicit, env.get('FS_DOC_CHROME'),
                   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
                   '/Applications/Chromium.app/Contents/MacOS/Chromium',
                   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge']
-    for name in ('google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser', 'microsoft-edge'):
+    if os.name == 'nt':
+        candidates.extend(windows_chrome_paths(env))
+    for name in ('google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser', 'microsoft-edge',
+                 'chrome', 'msedge'):
         candidates.append(shutil.which(name))
     for candidate in candidates:
         if candidate and os.path.isfile(candidate) and os.access(candidate, os.X_OK):
@@ -1103,51 +1135,46 @@ def png_size(path: Path) -> tuple[int, int]:
 
 
 def high_fd(fd: int) -> int:
-    """Mueve un descriptor por encima de 10 para que no choque con los 3 y 4 que usa Chrome."""
+    """Mueve un descriptor por encima de 10 para que no choque con los 3 y 4 que usa Chrome (solo POSIX)."""
     moved = fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 10)
     os.close(fd)
     return moved
 
 
-class Browser:
-    """Chrome sin interfaz controlado por el protocolo DevTools a través de una tubería (sin dependencias)."""
+def pipe_supported() -> bool:
+    """Indica si el sistema permite la tubería de DevTools: hace falta ``posix_spawn`` y ``fcntl`` (no en Windows)."""
+    return fcntl is not None and hasattr(os, 'posix_spawn')
 
-    def __init__(self, binary: str, viewport: dict, insecure: bool, timeout: float):
-        self.timeout = timeout
-        self.events: list[dict] = []
-        # Diálogos nativos (alert, confirm, prompt) abiertos por la página y si se aceptan los confirm y prompt.
-        self.dialogs: list[dict] = []
-        self.accept_dialogs = False
+
+class PipeConnection:
+    """Conexión con Chrome por la tubería de DevTools (``--remote-debugging-pipe``), en Linux y macOS.
+
+    Chrome lee los comandos del descriptor 3 y escribe las respuestas en el 4; cada mensaje termina en un byte nulo.
+    """
+
+    def __init__(self, binary: str, args: list[str]):
         self.buffer = b''
-        self.next_id = 0
-        self.session = None
-        self.profile = tempfile.mkdtemp(prefix='fs-doc-chrome-')
         cmd_read, self.cmd_write = (high_fd(fd) for fd in os.pipe())
         self.res_read, res_write = (high_fd(fd) for fd in os.pipe())
-        args = [binary, '--headless=new', '--remote-debugging-pipe', f'--user-data-dir={self.profile}',
-                '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--hide-scrollbars',
-                '--mute-audio', '--disable-background-networking', '--disable-sync', '--disable-features=Translate',
-                '--password-store=basic', '--use-mock-keychain', '--lang=es-ES', '--force-color-profile=srgb',
-                f'--window-size={int(viewport["width"])},{int(viewport["height"])}', 'about:blank']
-        if insecure:
-            args.insert(1, '--ignore-certificate-errors')
         actions = [(os.POSIX_SPAWN_DUP2, cmd_read, 3), (os.POSIX_SPAWN_DUP2, res_write, 4),
                    (os.POSIX_SPAWN_OPEN, 0, os.devnull, os.O_RDONLY, 0),
                    (os.POSIX_SPAWN_OPEN, 1, os.devnull, os.O_WRONLY, 0),
                    (os.POSIX_SPAWN_OPEN, 2, os.devnull, os.O_WRONLY, 0)]
         try:
-            self.pid = os.posix_spawn(binary, args, os.environ, file_actions=actions)
+            self.pid = os.posix_spawn(binary, [binary, '--remote-debugging-pipe', *args], os.environ,
+                                      file_actions=actions)
         finally:
             os.close(cmd_read)
             os.close(res_write)
-        target = self.call('Target.createTarget', {'url': 'about:blank'})['targetId']
-        self.session = self.call('Target.attachToTarget', {'targetId': target, 'flatten': True})['sessionId']
-        self.call('Page.enable', session=True)
-        self.call('Emulation.setDeviceMetricsOverride', {
-            'width': int(viewport['width']), 'height': int(viewport['height']),
-            'deviceScaleFactor': viewport.get('scale', 1), 'mobile': False}, session=True)
 
-    def _read_message(self, deadline: float) -> dict:
+    def send(self, data: bytes) -> None:
+        """Envía un mensaje JSON ya codificado."""
+        data += b'\0'
+        while data:
+            data = data[os.write(self.cmd_write, data):]
+
+    def receive(self, deadline: float) -> bytes:
+        """Devuelve el siguiente mensaje de Chrome o lanza ScreenshotError si no llega antes del plazo."""
         while b'\0' not in self.buffer:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
@@ -1160,7 +1187,196 @@ class Browser:
                 raise ScreenshotError('Chrome se ha cerrado inesperadamente.')
             self.buffer += chunk
         raw, self.buffer = self.buffer.split(b'\0', 1)
-        return json.loads(raw)
+        return raw
+
+    def close(self) -> None:
+        """Espera a que Chrome termine (o lo mata) y cierra las tuberías."""
+        for _ in range(50):
+            pid, _ = os.waitpid(self.pid, os.WNOHANG)
+            if pid:
+                break
+            time.sleep(0.1)
+        else:
+            try:
+                os.kill(self.pid, 9)
+                os.waitpid(self.pid, 0)
+            except (ProcessLookupError, ChildProcessError):
+                pass
+        for fd in (self.cmd_write, self.res_read):
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+
+
+class WebSocketConnection:
+    """Conexión con Chrome por un WebSocket local (``--remote-debugging-port=0``), usada en Windows.
+
+    Chrome elige un puerto libre y lo escribe, junto con la ruta del WebSocket del navegador, en el archivo
+    ``DevToolsActivePort`` de su perfil. El cliente WebSocket es mínimo (RFC 6455, solo mensajes de texto) y no
+    necesita dependencias. El puerto solo escucha en 127.0.0.1 y el perfil es temporal.
+    """
+
+    def __init__(self, binary: str, args: list[str], profile: str, timeout: float):
+        self.buffer = b''
+        flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+        self.process = subprocess.Popen([binary, '--remote-debugging-port=0', *args], stdin=subprocess.DEVNULL,
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=flags)
+        try:
+            port, path = self._active_port(Path(profile) / 'DevToolsActivePort', time.monotonic() + timeout)
+            self.sock = socket.create_connection(('127.0.0.1', port), timeout=timeout)
+            self._handshake(port, path)
+        except BaseException:
+            self._stop_process()
+            raise
+
+    def _active_port(self, marker: Path, deadline: float) -> tuple[int, str]:
+        """Espera a que Chrome publique su puerto y devuelve el puerto y la ruta del WebSocket del navegador."""
+        while time.monotonic() < deadline:
+            if self.process.poll() is not None:
+                raise ScreenshotError('Chrome se ha cerrado inesperadamente.')
+            try:
+                lines = marker.read_text(encoding='utf-8').split()
+            except OSError:
+                lines = []
+            if len(lines) >= 2 and lines[0].isdigit():
+                return int(lines[0]), lines[1]
+            time.sleep(0.05)
+        raise ScreenshotError('Chrome no responde a tiempo.')
+
+    def _handshake(self, port: int, path: str) -> None:
+        """Abre el WebSocket con la petición HTTP de actualización y comprueba la respuesta 101."""
+        key = base64.b64encode(os.urandom(16)).decode()
+        request = (f'GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nUpgrade: websocket\r\n'
+                   f'Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n')
+        self.sock.sendall(request.encode('ascii'))
+        while b'\r\n\r\n' not in self.buffer:
+            chunk = self.sock.recv(4096)
+            if not chunk:
+                raise ScreenshotError('Chrome ha cerrado la conexión de DevTools.')
+            self.buffer += chunk
+        head, self.buffer = self.buffer.split(b'\r\n\r\n', 1)
+        if b' 101 ' not in head.split(b'\r\n', 1)[0]:
+            raise ScreenshotError('Chrome ha rechazado la conexión de DevTools.')
+
+    def _frame(self, opcode: int, payload: bytes) -> bytes:
+        """Construye una trama final y enmascarada, como exige el protocolo a los clientes."""
+        length = len(payload)
+        if length < 126:
+            header = struct.pack('!BB', 0x80 | opcode, 0x80 | length)
+        elif length < 1 << 16:
+            header = struct.pack('!BBH', 0x80 | opcode, 0x80 | 126, length)
+        else:
+            header = struct.pack('!BBQ', 0x80 | opcode, 0x80 | 127, length)
+        mask = os.urandom(4)
+        masked = bytes(byte ^ mask[index % 4] for index, byte in enumerate(payload))
+        return header + mask + masked
+
+    def _read_exact(self, size: int, deadline: float) -> bytes:
+        """Lee exactamente ``size`` bytes del socket antes del plazo."""
+        while len(self.buffer) < size:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ScreenshotError('Chrome no responde a tiempo.')
+            self.sock.settimeout(remaining)
+            try:
+                chunk = self.sock.recv(1 << 20)
+            except socket.timeout:
+                continue
+            except OSError as error:
+                raise ScreenshotError(f'Chrome se ha cerrado inesperadamente: {error}') from error
+            if not chunk:
+                raise ScreenshotError('Chrome se ha cerrado inesperadamente.')
+            self.buffer += chunk
+        data, self.buffer = self.buffer[:size], self.buffer[size:]
+        return data
+
+    def send(self, data: bytes) -> None:
+        """Envía un mensaje JSON ya codificado como trama de texto."""
+        self.sock.sendall(self._frame(0x1, data))
+
+    def receive(self, deadline: float) -> bytes:
+        """Devuelve el siguiente mensaje de Chrome; une los fragmentos y contesta a los ping."""
+        message = b''
+        while True:
+            first, second = self._read_exact(2, deadline)
+            opcode, length = first & 0x0F, second & 0x7F
+            if length == 126:
+                length = struct.unpack('!H', self._read_exact(2, deadline))[0]
+            elif length == 127:
+                length = struct.unpack('!Q', self._read_exact(8, deadline))[0]
+            mask = self._read_exact(4, deadline) if second & 0x80 else b''
+            payload = self._read_exact(length, deadline)
+            if mask:
+                payload = bytes(byte ^ mask[index % 4] for index, byte in enumerate(payload))
+            if opcode == 0x8:
+                raise ScreenshotError('Chrome ha cerrado la conexión de DevTools.')
+            if opcode == 0x9:
+                self.sock.sendall(self._frame(0xA, payload))
+                continue
+            if opcode == 0xA:
+                continue
+            message += payload
+            if first & 0x80:
+                return message
+
+    def _stop_process(self) -> None:
+        """Espera hasta cinco segundos a que Chrome termine y, si no, lo mata."""
+        try:
+            self.process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.process.kill()
+            self.process.wait()
+
+    def close(self) -> None:
+        """Cierra el socket y espera a que Chrome termine (o lo mata)."""
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+        self._stop_process()
+
+
+class Browser:
+    """Chrome sin interfaz controlado por el protocolo DevTools (sin dependencias).
+
+    La conexión es una tubería en Linux y macOS y un WebSocket local en Windows; el resto es igual.
+    """
+
+    def __init__(self, binary: str, viewport: dict, insecure: bool, timeout: float):
+        self.timeout = timeout
+        self.events: list[dict] = []
+        # Diálogos nativos (alert, confirm, prompt) abiertos por la página y si se aceptan los confirm y prompt.
+        self.dialogs: list[dict] = []
+        self.accept_dialogs = False
+        self.next_id = 0
+        self.session = None
+        self.profile = tempfile.mkdtemp(prefix='fs-doc-chrome-')
+        args = ['--headless=new', f'--user-data-dir={self.profile}',
+                '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--hide-scrollbars',
+                '--mute-audio', '--disable-background-networking', '--disable-sync', '--disable-features=Translate',
+                '--password-store=basic', '--use-mock-keychain', '--lang=es-ES', '--force-color-profile=srgb',
+                f'--window-size={int(viewport["width"])},{int(viewport["height"])}', 'about:blank']
+        if insecure:
+            args.insert(0, '--ignore-certificate-errors')
+        try:
+            if pipe_supported():
+                self.connection = PipeConnection(binary, args)
+            else:
+                self.connection = WebSocketConnection(binary, args, self.profile, max(timeout, 30))
+        except BaseException:
+            shutil.rmtree(self.profile, ignore_errors=True)
+            raise
+        target = self.call('Target.createTarget', {'url': 'about:blank'})['targetId']
+        self.session = self.call('Target.attachToTarget', {'targetId': target, 'flatten': True})['sessionId']
+        self.call('Page.enable', session=True)
+        self.call('Emulation.setDeviceMetricsOverride', {
+            'width': int(viewport['width']), 'height': int(viewport['height']),
+            'deviceScaleFactor': viewport.get('scale', 1), 'mobile': False}, session=True)
+
+    def _read_message(self, deadline: float) -> dict:
+        """Lee el siguiente mensaje de Chrome (respuesta o evento) antes del plazo."""
+        return json.loads(self.connection.receive(deadline))
 
     def _send(self, method: str, params: dict | None = None, session: bool = False) -> int:
         """Envía un comando sin esperar la respuesta y devuelve su identificador."""
@@ -1168,9 +1384,7 @@ class Browser:
         message = {'id': self.next_id, 'method': method, 'params': params or {}}
         if session:
             message['sessionId'] = self.session
-        data = json.dumps(message).encode() + b'\0'
-        while data:
-            data = data[os.write(self.cmd_write, data):]
+        self.connection.send(json.dumps(message).encode())
         return self.next_id
 
     def _on_event(self, event: dict) -> None:
@@ -1277,23 +1491,13 @@ class Browser:
             self.call('Browser.close', timeout=5)
         except (ScreenshotError, OSError):
             pass
-        for _ in range(50):
-            pid, _ = os.waitpid(self.pid, os.WNOHANG)
-            if pid:
+        self.connection.close()
+        # En Windows, Chrome puede tardar un momento en soltar los archivos del perfil tras salir.
+        for _ in range(10):
+            shutil.rmtree(self.profile, ignore_errors=True)
+            if not os.path.exists(self.profile):
                 break
-            time.sleep(0.1)
-        else:
-            try:
-                os.kill(self.pid, 9)
-                os.waitpid(self.pid, 0)
-            except (ProcessLookupError, ChildProcessError):
-                pass
-        for fd in (self.cmd_write, self.res_read):
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-        shutil.rmtree(self.profile, ignore_errors=True)
+            time.sleep(0.2)
 
 
 def absolute_url(base_url: str, url: str) -> str:
@@ -1484,7 +1688,26 @@ def run(scenario: dict, args: argparse.Namespace, env: dict) -> tuple[int, dict]
     return (1 if failed else 0), report
 
 
+def use_utf8_stdio() -> None:
+    """Usa UTF-8 en la entrada y las salidas estándar, también en Windows.
+
+    En Windows, Python usa la página de códigos local (cp1252) cuando la entrada o la salida
+    es una tubería, como al ejecutarse desde un hook o desde la herramienta Bash del modelo:
+    los acentos del JSON y de los mensajes llegarían corruptos. Un flujo sin ``reconfigure``
+    (por ejemplo, ``io.StringIO`` en las pruebas) se deja como está.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding='utf-8')
+            except (OSError, ValueError):
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    """Punto de entrada: valida el escenario, hace las capturas y devuelve el código de salida."""
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description='Capturas anotadas y anonimizadas para la documentación de FacturaScripts.')
     parser.add_argument('scenario', help='Escenario JSON con las capturas.')
     parser.add_argument('--only', nargs='+', help='Solo las capturas con estos nombres.')

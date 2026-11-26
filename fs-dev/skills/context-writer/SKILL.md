@@ -32,6 +32,8 @@ python3 "<scripts>/doc-only-guard.py" check "<plugin o core>"
 python3 "<scripts>/doc-only-guard.py" stop "<plugin o core>"
 ```
 
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 `doc-only-guard.py start` guarda un marcador en la carpeta de git del repositorio (nunca en el árbol de trabajo) y,
 mientras existe, el hook de edición de fs-dev no actualiza el copyright ni ordena las clases de ese proyecto; caduca a
 las 12 horas si se queda olvidado. `check` compara cada PHP con su versión de partida sin comentarios ni espacios (con

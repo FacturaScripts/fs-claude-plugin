@@ -127,6 +127,8 @@ python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>" --che
 python3 "<scripts>/create-doc-structure.py" "<ruta del plugin o del core>"
 ```
 
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 - Detecta un plugin por su `facturascripts.ini` y el core por `Core/Kernel.php`; en otra carpeta termina con código 2.
 - `--check` solo informa de lo que falta. `--json` devuelve el informe en JSON.
 - Del `.gitignore` quita solo las reglas que impiden versionar la estructura (`CLAUDE.md`, `AGENTS.md`, `/.claude`

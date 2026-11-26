@@ -213,6 +213,9 @@ class PatternsTest(unittest.TestCase):
         self.assertTrue(any(re.search(r, 'Nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_HEADER_RULES))
         self.assertTrue(any(re.search(r, 'nombre', re.IGNORECASE) for r, _ in SHOTS.WEAK_FIELD_RULES))
         self.assertEqual('nif', next(c for r, c in headers if r.search('CIF/NIF')))
+        # La cabecera del listado de clientes de FacturaScripts es «Núm. fiscal».
+        for header in ('Núm. fiscal', 'Num. fiscal', 'Número fiscal', 'Identificador fiscal'):
+            self.assertEqual('nif', next(c for r, c in headers if r.search(header)), header)
         self.assertFalse(any(r.search('Total') for r, _ in headers))
 
 
@@ -424,6 +427,21 @@ class BrowserTest(unittest.TestCase):
         self.assertEqual(0, code, report)
         self.assertTrue((self.folder / 'recorte' / 'tabla.png').is_file())
 
+
+    def test_fiscal_number_column_is_anonymized(self):
+        """La columna «Núm. fiscal» se anonimiza aunque su valor no tenga forma de NIF."""
+        (self.folder / 'fiscal.html').write_text(
+            '<!doctype html><html><body><table><thead><tr><th>Código</th><th>Nombre</th><th>Núm. fiscal</th></tr>'
+            '</thead><tbody><tr><td>3</td><td>Pedro Gómez</td><td>654654654d</td></tr></tbody></table></body></html>',
+            encoding='utf-8')
+        url = (self.folder / 'fiscal.html').as_uri()
+        scenario = {'base_url': url, 'output_dir': str(self.folder / 'fiscal'),
+                    'captures': [{'name': '01-fiscal', 'url': url}]}
+        code, report = self.run_scenario(scenario)
+        self.assertEqual(0, code, report)
+        shot = report['captures'][0]
+        self.assertIn('nif', {item['category'] for item in shot['anonymized']}, shot)
+        self.assertNotIn('654654654d', json.dumps(report))
 
     def test_false_positives_modal_alert_and_clip_all(self):
         (self.folder / 'falsos.html').write_text(FALSE_POSITIVES_PAGE, encoding='utf-8')
