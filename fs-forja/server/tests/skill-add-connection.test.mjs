@@ -2,7 +2,7 @@
  * Pruebas de cómo escribe ~/.fs-ai.json la skill fs-forja:add-connection.
  *
  * Cada caso extrae el bloque de Python que escribe el archivo del SKILL.md, sustituye los valores de ejemplo y lo
- * ejecuta con python3 en un HOME temporal.
+ * ejecuta con Python 3 (python3, python o py -3, el que funcione) en un HOME temporal.
  */
 
 import assert from 'node:assert/strict';
@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { POSIX_MODES, SIN_ENLACES, entornoConHome, python } from './platform.mjs';
 
 const skillFile = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'skills', 'add-connection', 'SKILL.md'
@@ -65,12 +66,13 @@ function crearHome(contenido) {
  *
  * @param {string} home HOME temporal.
  * @param {object} [valores] Valores del bloque.
- * @returns {{status: number|null, stderr: string}} Resultado de python3.
+ * @returns {{status: number|null, stderr: string}} Resultado de Python.
  */
 function ejecutar(home, valores) {
   try {
-    execFileSync('python3', ['-I', '-c', bloque(valores)], {
-      env: { PATH: process.env.PATH, HOME: home },
+    const { command, args } = python();
+    execFileSync(command, [...args, '-I', '-X', 'utf8', '-c', bloque(valores)], {
+      env: entornoConHome(home),
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -107,7 +109,7 @@ test('añade la conexión de tipo forja sin cambiar la conexión por defecto ni 
   assert.equal(guardado.connections.default, 'erp');
   assert.deepEqual(guardado.connections.connections.erp, inicial.connections.connections.erp);
   assert.deepEqual(guardado.settings, inicial.settings);
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  if (POSIX_MODES) assert.equal(fs.statSync(file).mode & 0o777, 0o600);
   assert.deepEqual(fs.readdirSync(home).filter((n) => n.includes('.tmp')), []);
 });
 
@@ -119,7 +121,7 @@ test('crea el archivo en 0600 sin conexión por defecto si no existe', () => {
   const guardado = JSON.parse(fs.readFileSync(file, 'utf-8'));
   assert.equal(guardado.connections.default, '');
   assert.equal(guardado.connections.connections['forja-autor'].type, 'forja');
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  if (POSIX_MODES) assert.equal(fs.statSync(file).mode & 0o777, 0o600);
 });
 
 test('nunca sustituye una conexión de fs-mcp, ni confirmándolo', () => {
@@ -151,7 +153,7 @@ test('una conexión de tipo forja existente solo se sustituye confirmándolo', (
   assert.equal(JSON.parse(fs.readFileSync(file, 'utf-8')).connections.connections['forja-autor'].token, 'token-de-autor');
 });
 
-test('conserva el enlace simbólico y escribe en su destino', () => {
+test('conserva el enlace simbólico y escribe en su destino', { skip: SIN_ENLACES }, () => {
   const { home, file } = crearHome();
   const dotfiles = path.join(home, 'dotfiles');
   fs.mkdirSync(dotfiles);

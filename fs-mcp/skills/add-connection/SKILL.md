@@ -45,6 +45,8 @@ Una vez recopilados los datos, ejecuta estos comandos para obtener la ruta corre
 python3 -c "import os; h = os.path.expanduser('~'); n = os.path.join(h, '.fs-ai.json'); v = os.path.join(h, '.fs-claude.json'); print(v if not os.path.exists(n) and os.path.exists(v) else n)"
 ```
 
+En Windows, `python3` suele ser el alias de la Microsoft Store y no ejecuta nada: usa `py -3` (o `python`) en su lugar.
+
 Esto devuelve la ruta exacta a `~/.fs-ai.json` en cualquier SO:
 - macOS/Linux: `/Users/username/.fs-ai.json` o `/home/username/.fs-ai.json`
 - Windows: `C:\Users\username\.fs-ai.json`

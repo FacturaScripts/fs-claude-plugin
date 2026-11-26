@@ -76628,6 +76628,7 @@ import os2 from "node:os";
 import path3 from "node:path";
 var DEFAULT_MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 var SYSTEM_DIRS = ["/etc", "/private/etc", "/proc", "/sys", "/dev", "/root"];
+var WINDOWS_SYSTEM_DIR_VARS = ["SystemRoot", "windir", "ProgramData"];
 var HOME_DIRS = [
   "Library/Keychains",
   "Library/Cookies",
@@ -76638,6 +76639,11 @@ var HOME_DIRS = [
 ];
 var SENSITIVE_EXTENSIONS = /* @__PURE__ */ new Set([".pem", ".key", ".p12", ".pfx", ".jks", ".keystore", ".kdbx", ".ppk", ".gpg", ".asc"]);
 var SSH_KEY_PREFIX = "id_";
+function systemDirs() {
+  if (process.platform !== "win32") return SYSTEM_DIRS;
+  const windowsDirs = WINDOWS_SYSTEM_DIR_VARS.map((name) => process.env[name]).filter((value) => typeof value === "string" && path3.isAbsolute(value));
+  return [...SYSTEM_DIRS, ...windowsDirs];
+}
 function comparable(value) {
   const normalized = path3.resolve(value);
   return process.platform === "darwin" || process.platform === "win32" ? normalized.toLowerCase() : normalized;
@@ -76654,7 +76660,7 @@ function connectionsFileFromEnv() {
   if (!value || value.startsWith("${")) return null;
   return path3.resolve(value);
 }
-function blockedReason(target, home, protectedFiles) {
+function blockedReason(target, home, protectedFiles, tempDirs) {
   if (protectedFiles.some((file) => comparable(file) === comparable(target))) {
     return "es el archivo de configuraci\xF3n de fs-mcp, que contiene los tokens de las conexiones";
   }
@@ -76662,9 +76668,11 @@ function blockedReason(target, home, protectedFiles) {
   if (segments.some((segment) => segment.startsWith("."))) {
     return "est\xE1 oculto o dentro de una carpeta oculta (por ejemplo .ssh, .aws o .env), donde suele haber credenciales";
   }
-  const dirs = [...SYSTEM_DIRS, ...HOME_DIRS.map((dir2) => path3.join(home, dir2))];
-  const dir = dirs.find((candidate) => isInside(target, candidate));
-  if (dir) return `est\xE1 dentro de ${dir}, una carpeta del sistema o de datos de aplicaciones`;
+  const system = systemDirs().find((candidate) => isInside(target, candidate));
+  if (system) return `est\xE1 dentro de ${system}, una carpeta del sistema o de datos de aplicaciones`;
+  const appData = HOME_DIRS.map((dir) => path3.join(home, dir)).find((candidate) => isInside(target, candidate));
+  const inTemp = appData !== void 0 && tempDirs.some((dir) => isInside(dir, appData) && isInside(target, dir));
+  if (appData && !inTemp) return `est\xE1 dentro de ${appData}, una carpeta del sistema o de datos de aplicaciones`;
   const name = path3.basename(target).toLowerCase();
   if (SENSITIVE_EXTENSIONS.has(path3.extname(name)) || name.startsWith(SSH_KEY_PREFIX)) {
     return "parece una clave, un certificado o un almac\xE9n de contrase\xF1as";
@@ -76682,11 +76690,13 @@ async function checkUploadPath(raw, options = {}) {
   const envFile = connectionsFileFromEnv();
   if (envFile) configFiles.push(envFile);
   const protectedFiles = await Promise.all(configFiles.map(realOrSelf));
+  const tempDir = path3.resolve(options.tempDir ?? os2.tmpdir());
+  const tempDirs = [tempDir, await realOrSelf(tempDir)];
   const given = path3.resolve(value);
   const real = await realpath(given).catch(() => null);
   if (!real) return { ok: false, error: `no existe el archivo ${value}.` };
   for (const target of /* @__PURE__ */ new Set([given, real])) {
-    const reason = blockedReason(target, home, [...configFiles, ...protectedFiles]);
+    const reason = blockedReason(target, home, [...configFiles, ...protectedFiles], tempDirs);
     if (reason) return { ok: false, error: `no se sube ${value} porque ${reason}.` };
   }
   const info = await stat(real).catch(() => null);

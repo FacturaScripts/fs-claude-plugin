@@ -8,10 +8,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const moduleUrl = pathToFileURL(
-  path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'build', 'utils', 'configPath.js')
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'build', 'utils', 'configPath.js')
 ).href;
 const { resolveConfigPath } = await import(moduleUrl);
 

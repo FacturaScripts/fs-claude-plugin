@@ -8,6 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync, realpathSyn
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import test from 'node:test';
+import { SIN_ENLACES } from './platform.mjs';
 
 const { checkUploadPath } = await import('../build/plugins/shared/upload.js');
 
@@ -79,7 +80,22 @@ test('rechaza las carpetas de datos de aplicaciones y las claves o certificados'
   }
 });
 
-test('rechaza un enlace simbólico visible que apunta a un archivo protegido', async () => {
+test('acepta la carpeta temporal del sistema aunque esté dentro de AppData, como en Windows', async () => {
+  const { home, escribir, limpiar } = crearHome();
+  try {
+    const tempDir = join(home, 'AppData', 'Local', 'Temp');
+    const temporal = escribir('AppData/Local/Temp/adjunto.pdf');
+    const datos = escribir('AppData/Local/Programa/datos.db');
+
+    assert.equal((await checkUploadPath(temporal, { home, tempDir })).ok, true);
+    assert.equal((await checkUploadPath(datos, { home, tempDir })).ok, false);
+    assert.equal((await checkUploadPath(escribir('AppData/Local/Temp/.oculto'), { home, tempDir })).ok, false);
+  } finally {
+    limpiar();
+  }
+});
+
+test('rechaza un enlace simbólico visible que apunta a un archivo protegido', { skip: SIN_ENLACES }, async () => {
   const { home, escribir, limpiar } = crearHome();
   try {
     const secreto = escribir('.fs-ai.json', '{"connections":{}}');

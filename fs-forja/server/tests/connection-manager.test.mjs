@@ -13,9 +13,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { POSIX_MODES, fijarHome, guardarHome } from './platform.mjs';
 
 const buildDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'build');
-const homeOriginal = process.env.HOME;
+const restaurarHome = guardarHome();
 
 let tempDirectory;
 let configFile;
@@ -35,14 +36,14 @@ before(async () => {
     },
     settings: { sortClassMembers: true, localModulesPath: '/ruta/privada' },
   }), { mode: 0o600 });
-  process.env.HOME = tempDirectory;
+  fijarHome(tempDirectory);
   delete process.env.FS_CONNECTIONS_FILE;
 
   managerModule = await import(pathToFileURL(path.join(buildDirectory, 'connection-manager.js')).href);
 });
 
 after(async () => {
-  process.env.HOME = homeOriginal;
+  restaurarHome();
   await rm(tempDirectory, { recursive: true, force: true });
 });
 
@@ -97,7 +98,7 @@ test('añade la conexión de tipo forja sin cambiar la conexión por defecto ni 
   assert.equal(saved.connections.connections.erp.token, 'token-api');
   assert.equal(saved.connections.connections.forja.token, 'token-api-fs');
   assert.deepEqual(saved.settings, { sortClassMembers: true, localModulesPath: '/ruta/privada' });
-  assert.equal((await stat(configFile)).mode & 0o777, 0o600);
+  if (POSIX_MODES) assert.equal((await stat(configFile)).mode & 0o777, 0o600);
 });
 
 test('una conexión de tipo forja existente solo se sustituye con overwrite', async () => {
