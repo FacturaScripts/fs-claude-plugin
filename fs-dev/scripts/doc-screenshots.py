@@ -497,6 +497,8 @@ PAGE_HELPERS = r"""
 
             // 2. Campos de formulario por su nombre. Los genéricos («nombre») solo si el formulario tiene otro dato
             // personal con valor.
+            // Nombre de la pantalla (último tramo de la ruta): solo se usa como pista de los campos y columnas genéricos.
+            const pageName = decodeURIComponent(location.pathname.split('/').pop() || '');
             const fieldRules = cfg.fields.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
             const weakFieldRules = cfg.weak_fields.map(([re, cat]) => [new RegExp(re, 'i'), cat]);
             const personalForm = el => {
@@ -516,7 +518,8 @@ PAGE_HELPERS = r"""
                     }
                 }
                 const label = el.closest('.mb-3, .form-group, td, div') ? norm((el.closest('.mb-3, .form-group, div').querySelector('label') || {}).textContent) : '';
-                const hint = el.name + ' ' + label;
+                // En un campo genérico («nombre») la pantalla dice de quién es: EditEmpresa, EditProveedor...
+                const hint = el.name + ' ' + label + (weakFieldRules.some(([re]) => re === rule[0]) ? ' ' + pageName : '');
                 if (el.tagName === 'SELECT') {
                     [...el.options].forEach(o => {
                         if (o.value && rule[1] === 'name') {
@@ -548,7 +551,8 @@ PAGE_HELPERS = r"""
                     if (rule) {
                         columns.push([index, rule[1], text]);
                     } else if (weakRule) {
-                        weak.push([index, weakRule[1], text]);
+                        // En una columna genérica («Nombre») la pantalla dice de quién es: ListEmpresa, ListProveedor...
+                        weak.push([index, weakRule[1], text + ' ' + pageName]);
                     }
                     index += th.colSpan || 1;
                 });
@@ -737,6 +741,13 @@ PAGE_HELPERS = r"""
                     dir = Object.keys(space).sort((a, b) => space[b] - space[a])[0];
                 }
                 const len = 90, gap = 6;
+                // Si la flecha pedida no cabe en ese lado (elemento pegado al borde), llega desde el lado contrario para
+                // que la flecha y su nota no se salgan de la ventana ni tapen el elemento.
+                const room = {left: view.left, right: innerWidth - view.right, up: view.top, down: innerHeight - view.bottom};
+                const opposite = {left: 'right', right: 'left', up: 'down', down: 'up'}[dir];
+                if (opposite && room[dir] < len + gap + 10 && room[opposite] > room[dir]) {
+                    dir = opposite;
+                }
                 const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
                 let x2, y2, x1, y1;
                 if (dir === 'left') {
